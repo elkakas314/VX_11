@@ -1,0 +1,117 @@
+{
+    "module": "hormiguero",
+    "version": "6.1",
+    "role": "colonia_neuronas_aprendizaje_continuo",
+    "description": "Colonia de hormigas neuronales que optimiza pheromone scoring, hiperparámetros y mix de motores",
+    "style": {
+        "language": "es",
+        "verbosity": "baja",
+        "format": "json",
+        "tone": "scientific"
+    },
+    "templates": {
+        "optimization_loop": {
+            "system": "Eres Hormiguero VX11 v6.1.\n\nTu rol es:\n1. Monitorear outcomes de todas las ejecutiones (success|failure|partial|timeout)\n2. Calcular rewards/penalties por engine y por intent\n3. Actualizar pheromone en BD o learner.json\n4. Explorar nuevas combinaciones de pesos (w_q, w_l, w_c, w_f)\n5. Sugerir ajustes de hiperparámetros\n\nMetodología: Algoritmo genético simple + reinforcement learning",
+            "rules": [
+                "Actualizar pheromone_new = pheromone_old * decay + reward",
+                "decay típico: 0.95",
+                "Recompensas: success_on_time=+0.2, success_late=+0.05, failure=-0.3, timeout=-0.1",
+                "Explorar pesos: cada N iteraciones, probar nuevas combinaciones",
+                "Persistencia: escribir learner.json cada 100 iteraciones",
+                "No oversaturar: max pheromone = 1.0, min = -1.0"
+            ],
+            "ga_config": {
+                "population_size": 10,
+                "generations_per_batch": 5,
+                "mutation_rate": 0.1,
+                "crossover_rate": 0.7,
+                "fitness_metric": "average_reward_per_engine"
+            }
+        },
+        "metric_collection": {
+            "description": "Métricas que recolecta hormiguero para cada execution",
+            "fields": {
+                "engine_id": "string",
+                "intent": "string (task type)",
+                "outcome": "success|failure|partial|timeout",
+                "latency_ms": "actual execution time",
+                "cost_actual": "actual cost incurred",
+                "quality_achieved": "0-1 satisfaction score",
+                "timestamp": "ISO8601",
+                "user_satisfaction": "1-5 (opcional)"
+            }
+        },
+        "batch_optimization": {
+            "description": "Cada N ejecuciones, ejecutar optimización global",
+            "trigger": "every_N_executions (default: 100)",
+            "operations": [
+                {
+                    "op": "recalculate_pheromones",
+                    "description": "Recalcular todas las pheromones basado en historial reciente"
+                },
+                {
+                    "op": "genetic_algorithm",
+                    "description": "Evolucionar pesos (w_q, w_l, w_c, w_f) usando GA"
+                },
+                {
+                    "op": "suggest_hyperparameters",
+                    "description": "Sugerir nuevos decay rates, reward magnitudes, etc."
+                },
+                {
+                    "op": "prune_underperformers",
+                    "description": "Marcar engines/herramientas con pheromone < -0.5 para revisión"
+                }
+            ]
+        }
+    },
+    "endpoints": {
+        "POST /scan": {
+            "description": "Escanear ambiente y recolectar métricas actuales",
+            "response": {
+                "engines": "array[{id, pheromone, recent_outcomes}]",
+                "system_health": "object",
+                "suggestions": "array[string]"
+            }
+        },
+        "POST /learn": {
+            "description": "Registrar outcome de un execution",
+            "request": {
+                "engine_id": "string",
+                "intent": "string",
+                "outcome": "success|failure|partial|timeout",
+                "latency_ms": "integer",
+                "cost_actual": "float",
+                "quality": "float (0-1)"
+            },
+            "response": {
+                "pheromone_delta": "float",
+                "new_pheromone": "float",
+                "reward_applied": "float"
+            }
+        },
+        "GET /status": {
+            "description": "Estado actual del hormiguero",
+            "response": {
+                "total_scans": "integer",
+                "last_optimization": "ISO8601",
+                "suggested_mode": "eco|balanced|high-perf|critical",
+                "top_performing_engines": "array[string]"
+            }
+        }
+    },
+    "persistence": {
+        "type": "hybrid",
+        "options": [
+            {
+                "storage": "BD (tabla Pheromone)",
+                "priority": "primary",
+                "retention": "all_history"
+            },
+            {
+                "storage": "switch/learner.json",
+                "priority": "secondary",
+                "retention": "last_100_outcomes_per_engine"
+            }
+        ]
+    }
+}

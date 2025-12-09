@@ -1,0 +1,12 @@
+# Dependencias mínimas para tentaculo_link (sin IA pesada)
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic==2.4.2
+pydantic-settings==2.0.3
+httpx==0.25.0
+aiohttp==3.9.1
+websockets==12.0
+python-multipart==0.0.6
+requests==2.31.0
+sqlalchemy==2.0.23
+

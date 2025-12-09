@@ -1,0 +1,183 @@
+{
+    "module": "switch",
+    "version": "6.1",
+    "role": "router_ia_hibrido",
+    "description": "Elige el mejor motor IA o herramienta para cada petición según context-7, constraints y pheromone scoring",
+    "style": {
+        "language": "es",
+        "verbosity": "baja",
+        "format": "json_only",
+        "tone": "professional"
+    },
+    "templates": {
+        "route_decision": {
+            "system": "Eres el switch VX11 v6.1. Tu rol es elegir el mejor motor IA o herramienta para cada petición.\n\nDecisiones se basan en:\n1. context7.layer3_task.type (mix|audit|repair|explore|script|query|automation)\n2. constraints: max_latency_ms, cost_sensitivity, local_only\n3. context7.layer7_meta.mode (eco|balanced|high-perf|critical)\n4. Scoring: quality*w_q + latency*w_l + cost*w_c + pheromone*w_f\n5. Pheromone decay y reward según historial\n\nResponde SIEMPRE con JSON válido.",
+            "user_prefix": "Contexto y petición:",
+            "rules": [
+                "Respeta SIEMPRE constraints.cost_sensitivity (high → local, low → premium engines)",
+                "Respeta SIEMPRE context7.layer5_security.sandbox (sandbox=true → tools seguros)",
+                "Si constraints.local_only=true, solo elige engines.type=local",
+                "Prefiere motores con pheromone > 0 (historial positivo)",
+                "Evita motores saturados (load_score > 0.8)",
+                "Devuelve SIEMPRE JSON con: engine_id, route (local|remote|tool), score (0-1), reasoning (breve)"
+            ],
+            "output_schema": {
+                "type": "object",
+                "required": [
+                    "engine_id",
+                    "route",
+                    "score"
+                ],
+                "properties": {
+                    "engine_id": {
+                        "type": "string",
+                        "description": "Identificador del motor elegido"
+                    },
+                    "route": {
+                        "type": "string",
+                        "enum": [
+                            "local",
+                            "remote",
+                            "tool"
+                        ],
+                        "description": "Tipo de ruta"
+                    },
+                    "tool": {
+                        "type": "string",
+                        "description": "Si route=tool, nombre de la herramienta (ej: hermes.cli, hermes.playwright)"
+                    },
+                    "score": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1,
+                        "description": "Confianza de la decisión"
+                    },
+                    "reasoning": {
+                        "type": "string",
+                        "maxLength": 200
+                    },
+                    "pheromone_applied": {
+                        "type": "number",
+                        "minimum": -1,
+                        "maximum": 1
+                    },
+                    "mode_weights": {
+                        "type": "object",
+                        "properties": {
+                            "w_q": {
+                                "type": "number"
+                            },
+                            "w_l": {
+                                "type": "number"
+                            },
+                            "w_c": {
+                                "type": "number"
+                            },
+                            "w_f": {
+                                "type": "number"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "scoring_formula": {
+            "description": "Fórmula canónica de scoring",
+            "formula": "score = w_q * quality_norm + w_l * (1 - latency_norm) + w_c * (1 - cost_norm) + w_f * pheromone",
+            "normalization": {
+                "quality_norm": "quality / max_quality (typically 1.0)",
+                "latency_norm": "min(latency / max_acceptable_ms, 1.0)",
+                "cost_norm": "cost / max_cost_per_request"
+            },
+            "modes": {
+                "eco": {
+                    "w_q": 0.3,
+                    "w_l": 0.3,
+                    "w_c": 0.4
+                },
+                "balanced": {
+                    "w_q": 0.4,
+                    "w_l": 0.3,
+                    "w_c": 0.3
+                },
+                "high-perf": {
+                    "w_q": 0.6,
+                    "w_l": 0.2,
+                    "w_c": 0.2
+                },
+                "critical": {
+                    "w_q": 0.7,
+                    "w_l": 0.2,
+                    "w_c": 0.1
+                }
+            }
+        },
+        "pheromone_update": {
+            "description": "Cómo se actualiza la feromona después de cada uso",
+            "formula": "pheromone_new = pheromone_old * decay + reward",
+            "decay": 0.95,
+            "rewards": {
+                "success_on_time": 0.2,
+                "success_late": 0.05,
+                "failure": -0.3,
+                "timeout": -0.1,
+                "cost_excessive": -0.1
+            },
+            "persistence": "BD o switch/learner.json"
+        }
+    },
+    "engines_reference": {
+        "local_gguf_small": {
+            "type": "local",
+            "tags": [
+                "fast",
+                "cheap"
+            ],
+            "max_ctx": 4096,
+            "latency_ms": 150,
+            "quality": 0.6,
+            "cost": 0.0
+        },
+        "deepseek_auto": {
+            "type": "remote",
+            "tags": [
+                "reasoning",
+                "heavy"
+            ],
+            "max_ctx": 16000,
+            "latency_ms": 1200,
+            "quality": 0.9,
+            "cost": 2.0
+        },
+        "gpt5_mini": {
+            "type": "remote",
+            "tags": [
+                "balanced"
+            ],
+            "max_ctx": 16000,
+            "latency_ms": 800,
+            "quality": 0.8,
+            "cost": 1.2
+        },
+        "hermes_cli": {
+            "type": "tool",
+            "tags": [
+                "cli",
+                "commands"
+            ],
+            "latency_ms": 200,
+            "quality": 1.0,
+            "cost": 0.0
+        },
+        "hermes_playwright": {
+            "type": "tool",
+            "tags": [
+                "browser",
+                "scraping"
+            ],
+            "latency_ms": 5000,
+            "quality": 1.0,
+            "cost": 0.0
+        }
+    }
+}

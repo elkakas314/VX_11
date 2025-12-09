@@ -1,0 +1,256 @@
+# AUDITORÍA COMPLETADA: OPERATOR VX11 v6.4
+
+**Resumen de Auditoría Visual y Lógica**  
+Fecha: 4 de diciembre de 2025  
+Estado: ✅ SIN MODIFICACIONES (Auditoría pasiva)
+
+---
+
+## 📋 DOCUMENTOS GENERADOS
+
+Se han generado 3 documentos detallados:
+
+### 1. **OPERATOR_AUDIT_v6_4.md** (Principal)
+   - 📊 Resumen ejecutivo con hallazgos críticos
+   - 🏗️ Estructura actual (backend FastAPI + frontend React/Vite)
+   - 🔌 Matriz de wiring: conexiones correctas vs faltantes
+   - 🎨 Auditoría visual de componentes React
+   - 📋 7 paneles faltantes para representar arquitectura v6.4
+   - 🚨 Fallos detectados por severidad (Críticos|Mayores|Menores)
+   - 📝 Lista de implementación mínima con 3 tiers
+   - 🔄 Matriz de cambios propuestos (3,300 LOC estimados)
+
+### 2. **OPERATOR_AUDIT_v6_4_DIAGRAMS.md** (Arquitectura)
+   - 📐 9 diagramas Mermaid detallados
+   - ✅ ACTUAL vs ❌ REQUERIDA (comparativa visual)
+   - 🔄 Flujo de orquestación secuencial completo
+   - 📊 Estado de componentes UI (qué existe/falta)
+   - 🔌 Matriz endpoints requeridos por componente
+   - 💾 Esquema BD completo con relaciones
+   - 🎨 Mockup ASCII de layout sugerido
+   - 🪜 Jerarquía de canales WebSocket
+   - 📊 Matriz de integración por módulo
+
+### 3. **OPERATOR_AUDIT_v6_4_QUICK_START.md** (Implementación)
+   - ✅ Checklist de qué existe (hecho)
+   - ❌ Checklist de qué falta por tier
+   - 📋 Checklist de implementación TIER 1 (crítico)
+   - 💻 Código de ejemplo listo-para-copiar:
+     - MadreClient class
+     - SpawnerClient class
+     - Nuevos endpoints FastAPI
+     - Componentes React (MadrePanel, SpawnerPanel, SwitchQueuePanel)
+     - Actualizaciones api.ts y App.tsx
+     - Test script bash
+   - ✔️ Verification checklist post-implementación
+
+---
+
+## 🎯 HALLAZGOS PRINCIPALES
+
+### ✅ QUÉ FUNCIONA
+
+| Componente | Estado | Detalle |
+|-----------|--------|---------|
+| Backend FastAPI | ✅ OK | Puerto 8011, 17 endpoints, auth validando |
+| WebSocket bridge | ✅ OK | Conecta a Tentáculo Link bidireccional |
+| Switch client | ✅ OK | Usa `/switch/route-v5` correctamente |
+| Health aggregator | ✅ OK | Colecta 12 módulos cada request |
+| Frontend React | ✅ OK | Vite build funcional, componentes cargan |
+| StatusBar | ✅ OK | Muestra conexión + contador health |
+| Dashboard | ✅ OK | Grid de módulos + eventos recientes |
+| ChatPanel | ✅ OK | Interface básica con Switch |
+
+### ❌ QUÉ FALTA (CRÍTICO)
+
+| Componente | Impacto | Solución |
+|-----------|---------|----------|
+| Planes Madre | 🔴 Crítico | Implementar MadreClient + `/plans/*` endpoints |
+| Hijas Spawner | 🔴 Crítico | Implementar SpawnerClient + `/spawns/*` endpoints |
+| Cola prioritaria | 🔴 Crítico | Exponer `/queue/*` desde Switch |
+| Paneles visuales | 🔴 Crítico | Crear MadrePanel, SpawnerPanel, SwitchQueuePanel |
+| WebSocket canales | 🟡 Mayor | Segregar eventos por canal (madre|switch|etc) |
+| Auditoría MCP | 🟡 Mayor | Crear MCPPanel con sandbox audit logs |
+| Tareas Hormiguero | 🟡 Mayor | Crear HormigueroPanel con clasificación Reina |
+
+### ⚠️ RIESGOS OPERACIONALES
+
+1. **Operador ciego a planes** → No sabe qué orquestó Madre
+2. **Procesos zombies** → Hijas sin monitoreo, memory leaks potencial
+3. **Cola de trabajo oculta** → No optimiza orden tareas, no ve modelo activo
+4. **Ruido de eventos** → 100+ eventos/min sin filtro = ilegible
+5. **Falta auditoria** → No ve code ejecutado en sandbox MCP
+6. **Sin visualización de flujos** → Desconoce estado de tentáculos activos
+
+---
+
+## 📊 COBERTURA ARQUITECTÓNICA
+
+```
+Operator Actual: 40% de v6.4
+├── ✅ Tentáculo Link: 100% (bridge funcional)
+├── ✅ Switch: 80% (chat OK, cola oculta)
+├── ✅ Hermes: 60% (waveform OK, models invisible)
+├── ✅ Shub: 90% (upload/run OK)
+├── ⚠️  Manifestator: 100% (validate OK)
+├── ⚠️  Madre: 10% (no planes expuestos)
+├── ⚠️  Spawner: 5% (cliente no existe)
+├── ⚠️  MCP: 15% (sin panel auditoría)
+└── ⚠️  Hormiguero: 0% (sin cliente, sin UI)
+
+Necesario para v6.4 completo: +3,300 LOC
+└── Tier 1 (1,800 LOC): Crítico - 5-7 días
+└── Tier 2 (1,200 LOC): Mayor - 3-5 días
+└── Tier 3 (300 LOC): Mejora - 2-3 días
+```
+
+---
+
+## 🚀 ROADMAP RECOMENDADO
+
+### SEMANA 1 (TIER 1 - CRÍTICO)
+
+**Objetivo**: Visibilidad de planes, hijas y cola
+
+**Day 1 (6 horas)**
+- Implementar `MadreClient` en backend
+- Implementar `SpawnerClient` en backend
+- Agregar endpoints `/plans/*` y `/spawns/*`
+- Testar con curl
+
+**Day 2 (8 horas)**
+- Crear `MadrePanel.tsx` (tabla planes + ejecutar)
+- Crear `SpawnerPanel.tsx` (tabla hijas + kill + logs)
+- Crear `SwitchQueuePanel.tsx` (estado cola + modelo + próximas)
+- Actualizar `api.ts` con nuevas funciones
+- Integrar en `App.tsx`
+
+**Day 3 (6 horas)**
+- Integration testing (plan → hija → complete)
+- Verificación de latencias
+- E2E testing con Tentáculo vivo
+- Documentación de cambios
+
+**Resultado**: Operador ve planes creados, hijas en ejecución, cola de trabajos
+
+---
+
+### SEMANA 2 (TIER 2 - MAYOR)
+
+**Objetivo**: Información completa de subsistemas
+
+**Day 1-2**
+- Endpoints Hermes models registry
+- Panel de modelos (local/remoto/CLI)
+- Endpoints MCP sandbox audit
+- Panel auditoría + violaciones
+
+**Day 3-4**
+- Endpoints Hormiguero tasks
+- Panel tareas con clasificación Reina
+- WebSocket canales específicos (madre|switch|hermes|etc)
+- JobQueue → BD persistence
+
+---
+
+### SEMANA 3+ (TIER 3 - MEJORA)
+
+**Objetivo**: UX avanzada, polish
+
+- Collapsible tabs + drag-n-drop
+- MiniMap (9-node overview)
+- Dark mode + presets
+- Logs streaming en vivo
+- Export/import configuración
+
+---
+
+## 📊 ESTIMACIÓN DE ESFUERZO
+
+| Tarea | Líneas | Horas | Complejidad |
+|-------|--------|-------|-------------|
+| MadreClient | 50 | 2 | Baja |
+| SpawnerClient | 50 | 2 | Baja |
+| Endpoints planes | 100 | 3 | Baja |
+| Endpoints spawns | 120 | 4 | Media |
+| Endpoints cola | 60 | 2 | Baja |
+| MadrePanel | 200 | 5 | Media |
+| SpawnerPanel | 250 | 6 | Media |
+| SwitchQueuePanel | 180 | 4 | Media |
+| API updates | 150 | 3 | Baja |
+| Testing | - | 8 | Media |
+| **TIER 1 Total** | **~1,800** | **~39 horas** | **2-3 devs, 1 semana** |
+
+---
+
+## ✔️ PRÓXIMOS PASOS
+
+1. **Revisar documentos**: Leer auditoría completa en `OPERATOR_AUDIT_v6_4.md`
+2. **Validar arquitectura**: Revisar diagramas en `OPERATOR_AUDIT_v6_4_DIAGRAMS.md`
+3. **Iniciar implementación**: Copiar código de `OPERATOR_AUDIT_v6_4_QUICK_START.md`
+4. **Testear**: Usar test script bash incluido
+5. **Deployar**: Asegurar Tentáculo Link + Madre + Spawner activos
+
+---
+
+## 📞 PREGUNTAS FRECUENTES
+
+**P: ¿Por qué Operator está incompleto?**  
+A: La arquitectura v6.4 fue reconstruida en Madre (planes), Switch (cola), Spawner (hijas), MCP (audit). Operator fue diseñado como visualizador pero solo muestra módulos básicos. Necesita actualizarse para exponer nuevas capas.
+
+**P: ¿Es crítico implementar TODO?**  
+A: Tier 1 (planes, hijas, cola) es crítico para operar en vivo. Tiers 2-3 mejoran visualización pero no son bloqueantes.
+
+**P: ¿Cuánto tiempo toma?**  
+A: ~39 horas Dev Tier 1 (1 semana con 1-2 devs) + ~25 horas Tier 2 (3-4 días) + ~10 horas Tier 3 (2 días polish).
+
+**P: ¿Qué riesgos hay de NO implementar?**  
+A: Operador operará a ciegas, incapaz de auditar planes, ver procesos activos, o comprender estado actual del sistema. Alto riesgo de errores operacionales.
+
+**P: ¿Puedo empezar implementación hoy?**  
+A: Sí. El código de ejemplo en `QUICK_START.md` es listo-para-copiar. Comienza con MadreClient.
+
+---
+
+## 📎 ARCHIVOS DE REFERENCIA
+
+```
+/home/elkakas314/vx11/
+├── OPERATOR_AUDIT_v6_4.md                    # Auditoría completa (50 KB)
+├── OPERATOR_AUDIT_v6_4_DIAGRAMS.md           # Diagramas Mermaid (20 KB)
+├── OPERATOR_AUDIT_v6_4_QUICK_START.md        # Código listo (15 KB)
+├── operator/
+│   ├── backend/
+│   │   ├── main.py                           # FastAPI app (316 líneas)
+│   │   └── services/
+│   │       ├── clients.py                    # Existing clients (70 líneas)
+│   │       ├── operator_brain.py             # Intent handler
+│   │       ├── health_aggregator.py          # Health check loop
+│   │       ├── job_queue.py                  # In-memory job store
+│   │       ├── model_rotator.py              # Model selector
+│   │       └── intent_parser.py              # Intent detection
+│   └── frontend/
+│       ├── src/
+│       │   ├── App.tsx                       # Root component (45 líneas)
+│       │   ├── services/api.ts               # API wrapper (25 líneas)
+│       │   └── components/
+│       │       ├── Dashboard.tsx             # Grid view (30 líneas)
+│       │       ├── ChatPanel.tsx             # Chat interface (25 líneas)
+│       │       ├── ShubPanel.tsx             # Placeholder (10 líneas)
+│       │       └── StatusBar.tsx             # Header (15 líneas)
+│       └── package.json
+├── tentaculo_link/
+│   └── main.py                               # Central hub (421 líneas)
+├── madre/
+│   └── main.py                               # Orchestrator (1,122 líneas)
+└── spawner/
+    └── main.py                               # Process manager
+```
+
+---
+
+**AUDITORÍA COMPLETADA SIN CAMBIOS**
+
+Estado: ✅ Análisis exhaustivo, recomendaciones documentadas, código de ejemplo incluido, listo para implementación.
+
+Próximo paso: Leer `OPERATOR_AUDIT_v6_4.md` para contexto completo, luego ejecutar Tier 1 según `QUICK_START.md`.

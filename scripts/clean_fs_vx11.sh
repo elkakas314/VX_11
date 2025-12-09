@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# Clean lightweight filesystem debris without touching backups or runtime DBs.
+set -euo pipefail
+
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ARCHIVE_LOGS="${REPO_ROOT}/build/artifacts/logs/archive"
+mkdir -p "${ARCHIVE_LOGS}"
+
+prune_expr=(
+  -path "${REPO_ROOT}/build/artifacts/backups" -o
+  -path "${REPO_ROOT}/data/runtime"
+)
+
+echo "Removing __pycache__ directories..."
+find "${REPO_ROOT}" \( "${prune_expr[@]}" \) -prune -o -type d -name "__pycache__" -print -exec rm -rf {} +
+
+echo "Removing Python bytecode (*.pyc/*.pyo)..."
+find "${REPO_ROOT}" \( "${prune_expr[@]}" \) -prune -o -type f \( -name "*.pyc" -o -name "*.pyo" \) -print -delete
+
+echo "Removing .DS_Store..."
+find "${REPO_ROOT}" \( "${prune_expr[@]}" \) -prune -o -type f -name ".DS_Store" -print -delete
+
+echo "Archiving logs older than 14 days into ${ARCHIVE_LOGS}..."
+find "${REPO_ROOT}/build/artifacts/logs" -maxdepth 1 -type f -mtime +14 -print -exec mv {} "${ARCHIVE_LOGS}"/ \;
+
+echo "Clean-up completed."

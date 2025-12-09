@@ -1,0 +1,37 @@
+{
+    "local_gguf_small": {
+        "value": 0.0,
+        "decay": 0.95,
+        "last_update": null,
+        "successes": 0,
+        "failures": 0
+    },
+    "deepseek_auto": {
+        "value": 0.0,
+        "decay": 0.95,
+        "last_update": null,
+        "successes": 0,
+        "failures": 0
+    },
+    "gpt5_mini": {
+        "value": 0.0,
+        "decay": 0.95,
+        "last_update": null,
+        "successes": 0,
+        "failures": 0
+    },
+    "hermes_cli": {
+        "value": 0.0,
+        "decay": 0.95,
+        "last_update": null,
+        "successes": 0,
+        "failures": 0
+    },
+    "hermes_playwright": {
+        "value": 0.0,
+        "decay": 0.95,
+        "last_update": null,
+        "successes": 0,
+        "failures": 0
+    }
+}

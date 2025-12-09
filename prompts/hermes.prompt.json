@@ -1,0 +1,143 @@
+{
+    "module": "hermes",
+    "version": "6.1",
+    "role": "concentrador_cli_playwright_tools",
+    "description": "Concentrador de CLI, Playwright y herramientas locales con seguridad basada en context-7",
+    "style": {
+        "language": "es",
+        "verbosity": "baja",
+        "format": "json",
+        "tone": "technical"
+    },
+    "templates": {
+        "cli_execution": {
+            "system": "Eres Hermes CLI Executor. Tu rol es ejecutar comandos de shell SOLO si:\n1. context7.layer5_security.sandbox == false O command está en whitelist\n2. context7.layer5_security.auth_level == 'owner' O 'trusted'\n3. command no está en blacklist (rm, chmod, useradd, etc.)\n\nResponde siempre con JSON: {status, exit_code, stdout, stderr, truncated}",
+            "rules": [
+                "Si sandbox=true, SOLO ejecutar comandos predefinidos en whitelist",
+                "Si auth_level=guest, DENEGAR todos los comandos peligrosos",
+                "Max timeout: context7.layer3_task.deadline_ms (default 5000ms)",
+                "Si output > 10KB, truncar y devolver truncated=true",
+                "Capturar stdout, stderr y exit_code",
+                "No ejecutar nunca: rm, chmod, passwd, useradd, curl (datos sensibles), etc."
+            ],
+            "whitelist_commands": [
+                "ls",
+                "pwd",
+                "find",
+                "grep",
+                "cat",
+                "head",
+                "tail",
+                "ps",
+                "top",
+                "netstat",
+                "systemctl status",
+                "pytest",
+                "python",
+                "npm",
+                "yarn"
+            ],
+            "blacklist_commands": [
+                "rm",
+                "chmod",
+                "chown",
+                "useradd",
+                "userdel",
+                "passwd",
+                "curl -H",
+                "wget",
+                "dd",
+                "mkfs",
+                "format"
+            ]
+        },
+        "playwright_automation": {
+            "system": "Eres Hermes Playwright Executor. Tu rol es automatizar navegador headless SOLO si:\n1. url está en whitelist de dominios permitidos\n2. context7.layer5_security.auth_level >= 'trusted'\n3. Timeout < context7.layer3_task.deadline_ms (default 15000ms)\n\nResponde con JSON: {status, steps_executed, data, screenshots_base64}",
+            "rules": [
+                "Validar siempre que url esté en allowed_domains",
+                "Si context7.layer5_security.sandbox=true, modo readonly (sin clicks de alto riesgo)",
+                "Capturar screenshots solo si se pide (layer7_meta.debug_trace=true)",
+                "Max steps: 20 por script",
+                "Devolver: status (ok|timeout|error), steps_executed, data (extracted info), screenshots (opcional)"
+            ],
+            "allowed_domains": [
+                "localhost:*",
+                "127.0.0.1:*",
+                "github.com",
+                "docs.python.org",
+                "reaper.fm",
+                "cockos.com"
+            ]
+        },
+        "tools_execution": {
+            "system": "Eres Hermes Tools Executor. Tu rol es ejecutar herramientas locales (scripts Python, utilidades).\nHerramientas disponibles:\n- parse_logs: Parsear logs y extraer patrones\n- check_ports: Verificar puertos abiertos\n- run_tests: Lanzar suite de tests\n- validate_schema: Validar JSON/YAML contra schema\n\nResponde con JSON: {tool_name, status, result, duration_ms}",
+            "rules": [
+                "Validar que herramienta esté en layer5_security.allowed_tools",
+                "Passar context7 a todas las herramientas",
+                "Timeout ajustado al tipo de herramienta",
+                "Capturar resultado completo en JSON"
+            ],
+            "available_tools": [
+                "parse_logs",
+                "check_ports",
+                "run_tests",
+                "validate_schema",
+                "fetch_url_metadata"
+            ]
+        }
+    },
+    "endpoints": {
+        "POST /hermes/cli": {
+            "request": {
+                "context7": "object (full context-7 schema)",
+                "command": "string (e.g., 'ls -la')",
+                "args": "array[string]",
+                "mode": "enum: safe|extended (default: safe)",
+                "timeout_ms": "integer (default: 5000)"
+            },
+            "response": {
+                "status": "string: ok|error",
+                "exit_code": "integer",
+                "stdout": "string (truncated to 10KB)",
+                "stderr": "string",
+                "truncated": "boolean"
+            }
+        },
+        "POST /hermes/playwright": {
+            "request": {
+                "context7": "object (full context-7 schema)",
+                "script_id": "string (predefined script name)",
+                "params": "object (script-specific params)",
+                "timeout_ms": "integer (default: 15000)"
+            },
+            "response": {
+                "status": "string: ok|timeout|error",
+                "steps_executed": "integer",
+                "data": "object (extracted data)",
+                "screenshots": "array[base64] (optional)"
+            }
+        },
+        "POST /hermes/tools": {
+            "request": {
+                "context7": "object (full context-7 schema)",
+                "tool_name": "string (from allowed_tools)",
+                "params": "object (tool-specific)"
+            },
+            "response": {
+                "tool_name": "string",
+                "status": "string: ok|error",
+                "result": "object",
+                "duration_ms": "integer"
+            }
+        }
+    },
+    "security": {
+        "authentication": "context7.layer5_security.auth_level",
+        "sandbox_mode": "context7.layer5_security.sandbox",
+        "allowed_tools": "context7.layer5_security.allowed_tools",
+        "rate_limiting": {
+            "max_requests_per_second": 10,
+            "max_concurrent_commands": 3
+        }
+    }
+}

@@ -1,0 +1,307 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "VX11 Context-7 Canonical Schema",
+    "version": "6.1",
+    "description": "7 Layers of Context passed to ALL VX11 modules (switch, hermes, hormiguero, madre, shubniggurath)",
+    "type": "object",
+    "required": [
+        "layer1_user",
+        "layer2_session",
+        "layer3_task",
+        "layer4_environment",
+        "layer5_security",
+        "layer6_history",
+        "layer7_meta"
+    ],
+    "properties": {
+        "layer1_user": {
+            "type": "object",
+            "description": "User profile and preferences",
+            "required": [
+                "id",
+                "profile"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "description": "User hash or unique identifier"
+                },
+                "profile": {
+                    "type": "string",
+                    "enum": [
+                        "power_user",
+                        "novice",
+                        "automation_freak",
+                        "researcher",
+                        "artist"
+                    ],
+                    "description": "User profile type"
+                },
+                "preferences": {
+                    "type": "object",
+                    "properties": {
+                        "language": {
+                            "type": "string",
+                            "enum": [
+                                "es",
+                                "en",
+                                "fr"
+                            ],
+                            "default": "es"
+                        },
+                        "verbosity": {
+                            "type": "string",
+                            "enum": [
+                                "low",
+                                "normal",
+                                "high"
+                            ],
+                            "default": "normal"
+                        },
+                        "humor": {
+                            "type": "string",
+                            "enum": [
+                                "dry",
+                                "casual",
+                                "formal"
+                            ],
+                            "default": "dry"
+                        }
+                    }
+                }
+            }
+        },
+        "layer2_session": {
+            "type": "object",
+            "description": "Session metadata",
+            "required": [
+                "session_id",
+                "channel",
+                "start_time"
+            ],
+            "properties": {
+                "session_id": {
+                    "type": "string",
+                    "description": "UUID v4 of session"
+                },
+                "channel": {
+                    "type": "string",
+                    "enum": [
+                        "copilot",
+                        "http",
+                        "cli",
+                        "telegram",
+                        "webhook"
+                    ],
+                    "description": "Origin channel"
+                },
+                "start_time": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "ISO8601 timestamp"
+                }
+            }
+        },
+        "layer3_task": {
+            "type": "object",
+            "description": "Task-specific context",
+            "required": [
+                "task_id",
+                "type"
+            ],
+            "properties": {
+                "task_id": {
+                    "type": "string",
+                    "description": "UUID v4 of task"
+                },
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "mix",
+                        "audit",
+                        "repair",
+                        "explore",
+                        "script",
+                        "query",
+                        "automation"
+                    ],
+                    "description": "Task type"
+                },
+                "deadline_ms": {
+                    "type": "integer",
+                    "description": "Max execution time in milliseconds",
+                    "default": 10000
+                },
+                "priority": {
+                    "type": "string",
+                    "enum": [
+                        "low",
+                        "normal",
+                        "high",
+                        "critical"
+                    ],
+                    "default": "normal"
+                }
+            }
+        },
+        "layer4_environment": {
+            "type": "object",
+            "description": "Runtime environment state",
+            "required": [
+                "os",
+                "vx_version"
+            ],
+            "properties": {
+                "os": {
+                    "type": "string",
+                    "enum": [
+                        "ubuntu",
+                        "windows",
+                        "macos"
+                    ],
+                    "description": "Operating system"
+                },
+                "vx_version": {
+                    "type": "string",
+                    "pattern": "^vx11\\.[0-9]\\.[0-9]$",
+                    "description": "VX11 version (e.g., vx11.6.1)"
+                },
+                "resources": {
+                    "type": "object",
+                    "properties": {
+                        "cpu_load": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1,
+                            "description": "CPU load percentage (0-1)"
+                        },
+                        "ram_free_mb": {
+                            "type": "integer",
+                            "description": "Free RAM in MB"
+                        },
+                        "disk_free_mb": {
+                            "type": "integer",
+                            "description": "Free disk space in MB"
+                        }
+                    }
+                }
+            }
+        },
+        "layer5_security": {
+            "type": "object",
+            "description": "Security context and permissions",
+            "required": [
+                "auth_level",
+                "sandbox"
+            ],
+            "properties": {
+                "auth_level": {
+                    "type": "string",
+                    "enum": [
+                        "owner",
+                        "trusted",
+                        "guest"
+                    ],
+                    "description": "Authorization level"
+                },
+                "sandbox": {
+                    "type": "boolean",
+                    "description": "Whether to run in sandbox mode (restricted)"
+                },
+                "allowed_tools": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "List of allowed tool names (e.g., 'switch.hermes.cli.safe', 'switch.hermes.playwright.readonly')",
+                    "examples": [
+                        "switch.hermes.cli.safe",
+                        "switch.hermes.playwright.readonly",
+                        "switch.query",
+                        "hormiguero.scan"
+                    ]
+                },
+                "ip_whitelist": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Allowed IP addresses"
+                }
+            }
+        },
+        "layer6_history": {
+            "type": "object",
+            "description": "Execution history and learning",
+            "properties": {
+                "recent_commands": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "maxItems": 10,
+                    "description": "Last 10 commands in this session"
+                },
+                "last_outcome": {
+                    "type": "string",
+                    "enum": [
+                        "success",
+                        "failure",
+                        "partial",
+                        "timeout"
+                    ],
+                    "description": "Result of previous task"
+                },
+                "penalties": {
+                    "type": "object",
+                    "description": "Penalties by tool or engine (for learning)",
+                    "additionalProperties": {
+                        "type": "number",
+                        "minimum": -1,
+                        "maximum": 1
+                    }
+                },
+                "successes_count": {
+                    "type": "integer",
+                    "description": "Number of successful tasks in session"
+                }
+            }
+        },
+        "layer7_meta": {
+            "type": "object",
+            "description": "Execution metadata and flags",
+            "properties": {
+                "explain_mode": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "If true, include detailed reasoning in responses"
+                },
+                "debug_trace": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "If true, include debug stack trace"
+                },
+                "telemetry": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "If true, collect metrics and logs"
+                },
+                "mode": {
+                    "type": "string",
+                    "enum": [
+                        "eco",
+                        "balanced",
+                        "high-perf",
+                        "critical"
+                    ],
+                    "default": "balanced",
+                    "description": "Execution mode for engine scoring"
+                },
+                "trace_id": {
+                    "type": "string",
+                    "description": "Correlation ID for distributed tracing"
+                }
+            }
+        }
+    }
+}

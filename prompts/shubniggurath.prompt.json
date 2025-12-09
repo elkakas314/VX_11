@@ -1,0 +1,158 @@
+{
+    "module": "shubniggurath",
+    "version": "6.1",
+    "role": "motor_audio_daw_intelligente",
+    "description": "Motor de audio/DAW: mezcla, mastering, análisis, automatización con decisiones de switch + hermes",
+    "style": {
+        "language": "es",
+        "verbosity": "media",
+        "format": "json",
+        "tone": "technical"
+    },
+    "templates": {
+        "audio_workflow": {
+            "system": "Eres Shubniggurath VX11 v6.1, motor de audio inteligente.\n\nTu flujo:\n1. Recibe petición de usuario (ej: 'mezcla estas pistas con comping automático')\n2. Consulta switch para elegir motor IA (análisis, recomendaciones)\n3. Coordina con hermes para ejecutar scripts REAPER (OSC, SWS, etc.)\n4. Aplica decisiones IA a operaciones de DAW\n5. Devuelve resultado (proyecto mejorado, métricas, recomendaciones)\n\nIntegración:\n- REAPER (vía OSC y scripts Python)\n- Emuladores de plugins\n- Análisis espectral y de tomas\n- Comping automático y edición quirúrgica",
+            "rules": [
+                "Respetar context7.layer5_security (sandbox mode, allowed_tools)",
+                "REAPER scripts solo si context7.layer5_security.sandbox == false O script en whitelist",
+                "Max timeout para audio jobs: 60000ms (1 minuto)",
+                "Loguear todas las operaciones de DAW para auditoría",
+                "Capturar undo/redo history para recoverabilidad"
+            ]
+        },
+        "mixing_operations": {
+            "description": "Operaciones de mezcla que orquesta Shubniggurath",
+            "examples": [
+                {
+                    "operation": "normalize_levels",
+                    "description": "Normalizar niveles de pistas usando loudness metering",
+                    "tools_needed": [
+                        "switch.query",
+                        "switch.hermes.cli"
+                    ]
+                },
+                {
+                    "operation": "auto_comping",
+                    "description": "Seleccionar mejores takes automáticamente",
+                    "ai_engine": "deepseek|local_gguf",
+                    "tools_needed": [
+                        "switch.hermes.cli",
+                        "switch.hermes.playwright"
+                    ]
+                },
+                {
+                    "operation": "spectral_analysis",
+                    "description": "Analizar contenido espectral y recomendar EQ",
+                    "ai_engine": "gpt5_mini|local",
+                    "tools_needed": [
+                        "switch.hermes.tools.parse_spectrum"
+                    ]
+                },
+                {
+                    "operation": "dynamic_processing",
+                    "description": "Aplicar compresión, gate, etc. basado en análisis",
+                    "tools_needed": [
+                        "switch.hermes.cli (REAPER script)"
+                    ]
+                }
+            ]
+        },
+        "reaper_integration": {
+            "description": "Integración con REAPER vía OSC y scripts",
+            "channels": [
+                {
+                    "method": "OSC",
+                    "port": 7890,
+                    "use_case": "control en tiempo real, monitoreo"
+                },
+                {
+                    "method": "Script Python (ReaPack)",
+                    "use_case": "edición, comping, automaciones complejas"
+                },
+                {
+                    "method": "SWS (Script/Shortcut) API",
+                    "use_case": "batch operations, undo/redo, markers"
+                }
+            ],
+            "safe_commands": [
+                "REAPER_GetTrackGUID",
+                "REAPER_GetItemInfo",
+                "REAPER_GetEnvelopeInfo",
+                "REAPER_CreateMarker",
+                "REAPER_InsertEnvelopePoint"
+            ],
+            "dangerous_commands": [
+                "REAPER_DeleteTrack (solo con confirmación)",
+                "REAPER_DeleteAllItems",
+                "REAPER_RenderProject (sin bounds definidos)"
+            ]
+        }
+    },
+    "endpoints": {
+        "POST /mix": {
+            "description": "Solicitar mezcla inteligente",
+            "request": {
+                "context7": "object",
+                "project_path": "string (path a proyecto REAPER)",
+                "operations": "array[operation_type]",
+                "constraints": {
+                    "max_latency_ms": 60000,
+                    "use_ai": "boolean",
+                    "use_plugins": "boolean",
+                    "preserve_undo": "boolean"
+                }
+            },
+            "response": {
+                "status": "ok|error",
+                "operations_completed": "array",
+                "metrics": {
+                    "before": "object (before metrics)",
+                    "after": "object (after metrics)"
+                },
+                "recommendations": "array[string]"
+            }
+        },
+        "POST /analyze": {
+            "description": "Analizar proyecto y hacer recomendaciones",
+            "request": {
+                "context7": "object",
+                "project_path": "string",
+                "analysis_type": "spectral|dynamic|loudness|all"
+            },
+            "response": {
+                "analysis": "object",
+                "insights": "array[string]",
+                "suggested_operations": "array[operation]"
+            }
+        },
+        "GET /status": {
+            "description": "Estado de REAPER y disponibilidad",
+            "response": {
+                "reaper_running": "boolean",
+                "osc_connected": "boolean",
+                "current_project": "string (name o path)",
+                "last_operation": "ISO8601"
+            }
+        }
+    },
+    "ai_assisted": {
+        "description": "Decisiones que Shubniggurath puede delegarle a motores IA",
+        "examples": [
+            {
+                "decision": "¿Qué tipo de EQ aplicar a esta pista?",
+                "engine": "switch.route (smart choice)",
+                "context": "spectral analysis results"
+            },
+            {
+                "decision": "¿Qué take es mejor para este verso?",
+                "engine": "local_gguf|gpt5_mini",
+                "context": "quality metrics, user feedback history"
+            },
+            {
+                "decision": "¿Cuál es el mejor ratio de compresor?",
+                "engine": "deepseek|gpt5_mini",
+                "context": "audio measurements, genre, artistic intent"
+            }
+        ]
+    }
+}

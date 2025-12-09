@@ -1,0 +1,38 @@
+{
+  "version": "6.3",
+  "modules": {
+    "gateway": {"port": 8000, "path": "gateway", "token": "VX11_GATEWAY_TOKEN"},
+    "madre": {"port": 8001, "path": "madre", "token": "VX11_GATEWAY_TOKEN"},
+    "switch": {"port": 8002, "path": "switch", "token": "VX11_GATEWAY_TOKEN"},
+    "hermes": {"port": 8003, "path": "hermes", "token": "VX11_GATEWAY_TOKEN"},
+    "hormiguero": {"port": 8004, "path": "hormiguero", "token": "VX11_GATEWAY_TOKEN"},
+    "manifestator": {"port": 8005, "path": "manifestator", "token": "VX11_GATEWAY_TOKEN"},
+    "mcp": {"port": 8006, "path": "mcp", "token": "VX11_GATEWAY_TOKEN"},
+    "shub": {"port": 8007, "path": "shub", "token": "VX11_GATEWAY_TOKEN"},
+    "spawner": {"port": 8008, "path": "spawner", "token": "VX11_GATEWAY_TOKEN"},
+    "operator": {"port": 8011, "path": "operator", "token": "VX11_GATEWAY_TOKEN"}
+  },
+  "docs_fractal": {
+    "index": "docs/INDEX.md",
+    "vx11": "docs/VX11/_index.md",
+    "shub": "docs/shub/_index.md",
+    "operator": "docs/operator/_index.md",
+    "switch": "docs/switch/_index.md",
+    "hermes": "docs/hermes/_index.md",
+    "madre": "docs/madre/_index.md",
+    "manifestator": "docs/manifestator/_index.md",
+    "spawner": "docs/spawner/_index.md",
+    "mcp": "docs/mcp/_index.md",
+    "hormiguero": "docs/hormiguero/_index.md",
+    "glossary": "docs/glossary.md"
+  },
+  "database": {
+    "path": "data/vx11.db",
+    "schema_version": "6.3"
+  },
+  "health": {
+    "aggregator": "gateway",
+    "paths": ["/health"],
+    "token_header": "X-VX11-TOKEN"
+  }
+}

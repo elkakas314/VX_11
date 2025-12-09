@@ -1,0 +1,13 @@
+[Unit]
+Description=VX11 Tentaculo Link
+After=network.target
+
+[Service]
+Type=simple
+User=%i
+WorkingDirectory=/home/elkakas314/vx11
+ExecStart=/home/elkakas314/vx11/build/.venv/bin/uvicorn tentaculo_link.main:app --host 0.0.0.0 --port 8000
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

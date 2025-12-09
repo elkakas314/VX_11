@@ -1,0 +1,17 @@
+[Unit]
+Description=VX11 %i service
+After=network.target
+
+[Service]
+Type=simple
+User=${USER}
+WorkingDirectory=/home/elkakas314/vx11
+ExecStart=/home/elkakas314/vx11/build/.venv/bin/uvicorn %i.main:app --host 0.0.0.0 --port %p --reload
+Restart=on-failure
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target
+
+## Usage: copy this file to /etc/systemd/system/vx11-<service>.service
+## and replace %i with module name and %p with port (or create specific unit files below).

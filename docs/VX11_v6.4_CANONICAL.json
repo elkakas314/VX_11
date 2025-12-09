@@ -1,0 +1,39 @@
+{
+  "version": "6.4",
+  "modules": {
+    "tentaculo_link": {"port": 8000, "path": "tentaculo_link", "token": "VX11_TENTACULO_LINK_TOKEN"},
+    "madre": {"port": 8001, "path": "madre", "token": "VX11_GATEWAY_TOKEN"},
+    "switch": {"port": 8002, "path": "switch", "token": "VX11_GATEWAY_TOKEN"},
+    "hermes": {"port": 8003, "path": "switch/hermes", "token": "VX11_GATEWAY_TOKEN"},
+    "hormiguero": {"port": 8004, "path": "hormiguero", "token": "VX11_GATEWAY_TOKEN"},
+    "manifestator": {"port": 8005, "path": "manifestator", "token": "VX11_GATEWAY_TOKEN"},
+    "mcp": {"port": 8006, "path": "mcp", "token": "VX11_GATEWAY_TOKEN"},
+    "shubniggurath": {
+      "port": 8007,
+      "path": "shubniggurath",
+      "pro_path": "shubniggurath/pro",
+      "token": "VX11_GATEWAY_TOKEN"
+    },
+    "spawner": {"port": 8008, "path": "spawner", "token": "VX11_GATEWAY_TOKEN"},
+    "operator": {"port": 8011, "path": "operator", "token": "VX11_GATEWAY_TOKEN"}
+  },
+  "docs_fractal": {
+    "index": "docs/INDEX.md",
+    "architecture": "docs/ARCHITECTURE.md",
+    "api_reference": "docs/API_REFERENCE.md",
+    "canonical": "docs/VX11_v6.4_CANONICAL.json"
+  },
+  "database": {
+    "path": "data/runtime/vx11.db",
+    "schema_version": "6.4"
+  },
+  "artifacts": {
+    "logs": "build/artifacts/logs",
+    "sandbox": "build/artifacts/sandbox"
+  },
+  "health": {
+    "aggregator": "tentaculo_link",
+    "paths": ["/health"],
+    "token_header": "X-VX11-TOKEN"
+  }
+}

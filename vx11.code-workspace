@@ -1,0 +1,46 @@
+{
+    "folders": [
+        {
+            "path": ".",
+            "name": "VX11 v6.0"
+        }
+    ],
+    "settings": {
+        "python.pythonPath": "${workspaceFolder}/.venv/bin/python",
+        "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+        "python.linting.enabled": true,
+        "python.linting.pylintEnabled": false,
+        "python.linting.flake8Enabled": true,
+        "python.formatting.provider": "black",
+        "editor.formatOnSave": true,
+        "[python]": {
+            "editor.defaultFormatter": "ms-python.python",
+            "editor.formatOnSave": true
+        },
+        "files.exclude": {
+            "**/__pycache__": true,
+            "**/*.pyc": true,
+            "**/.pytest_cache": true,
+            "**/.venv": true,
+            "**/.vscode": true,
+            "**/.git": true
+        },
+        "search.exclude": {
+            "**/__pycache__": true,
+            "**/.venv": true,
+            "**/node_modules": true,
+            ".vscode": true
+        }
+    },
+    "extensions": {
+        "recommendations": [
+            "ms-python.python",
+            "ms-python.vscode-pylance",
+            "charliermarsh.ruff",
+            "ms-python.black-formatter",
+            "eamodio.gitlens",
+            "ms-azuretools.vscode-docker",
+            "humao.rest-client"
+        ]
+    }
+}

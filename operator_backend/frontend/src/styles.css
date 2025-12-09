@@ -1,0 +1,137 @@
+:root {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background: #0c1018;
+  color: #e7ecf4;
+}
+
+body, html, #root {
+  margin: 0;
+  min-height: 100vh;
+}
+
+.page {
+  padding: 16px;
+}
+
+.statusbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  border: 1px solid #1f2a3a;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #111827, #0b1322);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+@media (min-width: 960px) {
+  .layout {
+    grid-template-columns: 2fr 1.2fr;
+  }
+}
+
+.panels {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.card {
+  background: #0f1724;
+  border: 1px solid #1f2a3a;
+  border-radius: 14px;
+  padding: 12px;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+}
+
+.chip {
+  padding: 10px;
+  border-radius: 12px;
+  background: #111a2c;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid #1f2a3a;
+}
+
+.chip.ok {
+  border-color: #1dd1a1;
+}
+
+.chip.fail {
+  border-color: #ff6b6b;
+}
+
+.events {
+  margin-top: 10px;
+}
+
+.events ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.events li {
+  padding: 6px 0;
+  border-bottom: 1px solid #1f2a3a;
+}
+
+.chat-log {
+  min-height: 120px;
+  border: 1px solid #1f2a3a;
+  border-radius: 10px;
+  padding: 10px;
+  background: #0c131f;
+}
+
+.chat-input {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+input, button {
+  font-family: inherit;
+}
+
+input {
+  flex: 1;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #1f2a3a;
+  background: #0b1322;
+  color: #e7ecf4;
+}
+
+button {
+  padding: 10px 14px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #2563eb, #06b6d4);
+  color: white;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

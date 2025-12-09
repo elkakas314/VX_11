@@ -1,0 +1,3331 @@
+ 
+Aquí está el código faltante para hacer operativo Shub-Niggurath en VX11 v6.3:
+
+```python
+# shub/shub_core_init.py
+import os
+import sys
+import asyncio
+from pathlib import Path
+from typing import Dict, Any, Optional
+import numpy as np
+import librosa
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, String, Integer, Float, JSON, DateTime
+from datetime import datetime
+import json
+import pickle
+
+# Configuración de paths VX11
+VX11_ROOT = Path(__file__).parent.parent.parent
+SHUB_ROOT = Path(__file__).parent
+
+class ShubCoreInitializer:
+    """Inicializador del núcleo DSP de Shub-Niggurath"""
+
+    def __init__(self):
+        self.config = self._load_config()
+        self.dsp_engine = None
+        self.fx_engine = None
+        self.pipeline = None
+        self.virtual_engineer = None
+        self.db_engine = None
+        self.session_factory = None
+
+    def _load_config(self) -> Dict[str, Any]:
+        """Cargar configuración desde archivos VX11 existentes"""
+        config_path = VX11_ROOT / "config" / "settings.py"
+        tokens_path = VX11_ROOT / "tokens.env"
+
+        config = {
+            "samplerate": 48000,
+            "channels": 2,
+            "fft_size": 4096,
+            "hop_length": 1024,
+            "analysis_duration": 30,  # segundos para análisis
+            "db_path": VX11_ROOT / "data" / "vx11.db",
+            "cache_path": SHUB_ROOT / "cache",
+            "models_path": SHUB_ROOT / "models",
+            "max_file_size_mb": 500
+        }
+
+        # Cargar tokens si existen
+        if tokens_path.exists():
+            with open(tokens_path, 'r') as f:
+                for line in f:
+                    if 'SHUB_TOKEN' in line:
+                        config['shub_token'] = line.split('=')[1].strip()
+
+        return config
+
+    async def initialize_dsp(self):
+        """Inicializar motor DSP"""
+        from .dsp_engine import DSPEngine
+        from .dsp_fx import FXEngine
+
+        self.dsp_engine = DSPEngine(
+            sample_rate=self.config['samplerate'],
+            fft_size=self.config['fft_size'],
+            hop_length=self.config['hop_length']
+        )
+
+        self.fx_engine = FXEngine()
+
+        # Inicializar modelos si existen
+        models_dir = self.config['models_path']
+        if models_dir.exists():
+            await self._load_dsp_models(models_dir)
+
+        return True
+
+    async def _load_dsp_models(self, models_dir: Path):
+        """Cargar modelos DSP preentrenados"""
+        # Implementar carga de modelos de clasificación
+        # y análisis basados en shubnoggurath.txt
+        pass
+
+    async def initialize_database(self):
+        """Inicializar conexión a base de datos VX11"""
+        from .shub_db import init_database
+
+        db_url = f"sqlite+aiosqlite:///{self.config['db_path']}"
+        self.db_engine = create_async_engine(db_url, echo=False)
+        self.session_factory = sessionmaker(
+            self.db_engine, class_=AsyncSession, expire_on_commit=False
+        )
+
+        # Crear tablas Shub si no existen
+        await init_database(self.db_engine)
+        return True
+
+    async def initialize_pipelines(self):
+        """Inicializar pipelines de procesamiento"""
+        from .dsp_pipeline_full import DSPPipeline
+        from .mode_c_pipeline import ModeCPipeline
+        from .virtual_engineer import VirtualEngineer
+
+        self.pipeline = DSPPipeline(
+            dsp_engine=self.dsp_engine,
+            fx_engine=self.fx_engine,
+            db_session_factory=self.session_factory
+        )
+
+        self.mode_c_pipeline = ModeCPipeline(
+            dsp_pipeline=self.pipeline,
+            config=self.config
+        )
+
+        self.virtual_engineer = VirtualEngineer(
+            dsp_engine=self.dsp_engine,
+            fx_engine=self.fx_engine,
+            db_session_factory=self.session_factory,
+            config=self.config
+        )
+
+        return True
+
+    async def warmup_cache(self):
+        """Calentar caché con análisis frecuentes"""
+        cache_dir = self.config['cache_path']
+        cache_dir.mkdir(exist_ok=True)
+
+        # Pre-cargar perfiles de referencia
+        reference_dir = SHUB_ROOT / "reference_profiles"
+        if reference_dir.exists():
+            # Cargar perfiles en memoria
+            pass
+
+        return True
+
+    async def initialize_all(self):
+        """Inicialización completa del núcleo"""
+        tasks = [
+            self.initialize_database(),
+            self.initialize_dsp(),
+            self.initialize_pipelines(),
+            self.warmup_cache()
+        ]
+
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+
+        # Verificar que todo se inicializó correctamente
+        success = all([r is True or not isinstance(r, Exception) for r in results])
+
+        if success:
+            print("Shub Core inicializado exitosamente")
+            return {
+                "status": "ready",
+                "components": {
+                    "dsp_engine": bool(self.dsp_engine),
+                    "fx_engine": bool(self.fx_engine),
+                    "pipeline": bool(self.pipeline),
+                    "virtual_engineer": bool(self.virtual_engineer),
+                    "database": bool(self.db_engine)
+                }
+            }
+        else:
+            raise RuntimeError(f"Error en inicialización: {results}")
+
+# Singleton global
+_shub_core = None
+
+async def get_shub_core() -> ShubCoreInitializer:
+    """Obtener instancia singleton del núcleo Shub"""
+    global _shub_core
+    if _shub_core is None:
+        _shub_core = ShubCoreInitializer()
+        await _shub_core.initialize_all()
+    return _shub_core
+```
+
+```python
+# shub/dsp_engine.py
+import numpy as np
+import librosa
+import scipy.signal as signal
+import scipy.stats as stats
+from typing import Dict, List, Any, Tuple, Optional
+import asyncio
+from dataclasses import dataclass
+from enum import Enum
+import warnings
+
+@dataclass
+class AudioAnalysis:
+    """Resultado completo del análisis DSP"""
+    # Información básica
+    duration: float
+    sample_rate: int
+    channels: int
+
+    # Medidas de nivel
+    peak_dbfs: float
+    rms_dbfs: float
+    lufs_integrated: float
+    lufs_range: float
+    true_peak_dbfs: float
+
+    # Análisis espectral
+    spectral_centroid: float
+    spectral_rolloff: float
+    spectral_flux: float
+    zero_crossing_rate: float
+    mfcc: np.ndarray
+    chroma: np.ndarray
+    spectral_contrast: np.ndarray
+    spectral_flatness: float
+
+    # Análisis dinámico
+    dynamic_range: float
+    crest_factor: float
+    transients: List[float]
+    transients_count: int
+
+    # Detección de problemas
+    clipping_samples: int
+    dc_offset: float
+    noise_floor_dbfs: float
+    phase_correlation: float
+    sibilance_detected: bool
+    sibilance_freq: float
+    resonances: List[Dict[str, float]]
+
+    # Análisis musical
+    bpm: Optional[float]
+    key_detected: Optional[str]
+    key_confidence: Optional[float]
+    harmonic_complexity: float
+    percussiveness: float
+
+    # Clasificación
+    instrument_prediction: Dict[str, float]
+    genre_prediction: Dict[str, float]
+    mood_prediction: Dict[str, float]
+
+    # Issues detectados
+    issues: List[Dict[str, Any]]
+
+    # Recomendaciones iniciales
+    recommendations: List[Dict[str, Any]]
+
+class DSPEngine:
+    """Motor DSP avanzado basado en shubnoggurath.txt"""
+
+    def __init__(self, sample_rate: int = 48000, fft_size: int = 4096, hop_length: int = 1024):
+        self.sample_rate = sample_rate
+        self.fft_size = fft_size
+        self.hop_length = hop_length
+
+        # Umbrales para detección
+        self.clipping_threshold = -0.5  # dBFS
+        self.sibilance_threshold = 5000  # Hz
+        self.noise_threshold = -60  # dBFS
+        self.dc_offset_threshold = 0.01  # 1%
+        self.phase_threshold = 0.5  # Correlación mínima
+
+    async def analyze_audio(self, audio_data: np.ndarray, sample_rate: int = None) -> AudioAnalysis:
+        """Análisis completo de audio"""
+        if sample_rate is None:
+            sample_rate = self.sample_rate
+
+        # Convertir a mono para análisis
+        if len(audio_data.shape) > 1:
+            audio_mono = np.mean(audio_data, axis=1)
+        else:
+            audio_mono = audio_data.copy()
+
+        # Tareas de análisis en paralelo
+        tasks = [
+            self._analyze_levels(audio_mono),
+            self._analyze_spectral(audio_mono, sample_rate),
+            self._analyze_dynamics(audio_mono),
+            self._detect_issues(audio_mono, sample_rate),
+            self._analyze_musical(audio_mono, sample_rate),
+            self._classify_audio(audio_mono, sample_rate)
+        ]
+
+        results = await asyncio.gather(*tasks)
+
+        # Combinar resultados
+        level_analysis = results[0]
+        spectral_analysis = results[1]
+        dynamic_analysis = results[2]
+        issues_analysis = results[3]
+        musical_analysis = results[4]
+        classification = results[5]
+
+        # Calcular recomendaciones
+        recommendations = await self._generate_recommendations(
+            level_analysis, spectral_analysis, dynamic_analysis,
+            issues_analysis, musical_analysis
+        )
+
+        return AudioAnalysis(
+            duration=len(audio_mono) / sample_rate,
+            sample_rate=sample_rate,
+            channels=1 if len(audio_data.shape) == 1 else audio_data.shape[1],
+            **level_analysis,
+            **spectral_analysis,
+            **dynamic_analysis,
+            **issues_analysis,
+            **musical_analysis,
+            **classification,
+            issues=issues_analysis.get('issues', []),
+            recommendations=recommendations
+        )
+
+    async def _analyze_levels(self, audio: np.ndarray) -> Dict[str, Any]:
+        """Análisis de niveles LUFS, RMS, Peak"""
+        # Convertir a dBFS
+        audio_abs = np.abs(audio)
+
+        # Peak
+        peak_linear = np.max(audio_abs)
+        peak_dbfs = 20 * np.log10(max(peak_linear, 1e-10))
+
+        # RMS
+        rms_linear = np.sqrt(np.mean(audio ** 2))
+        rms_dbfs = 20 * np.log10(max(rms_linear, 1e-10))
+
+        # LUFS (simplificado)
+        # En producción real usar pyloudnorm
+        k_weighted = self._apply_k_weighting(audio)
+        momentary = np.mean(k_weighted ** 2)
+        integrated = 10 * np.log10(max(momentary, 1e-10))
+
+        # True Peak (interpolado)
+        upsampled = signal.resample(audio, len(audio) * 4)
+        true_peak = np.max(np.abs(upsampled))
+        true_peak_dbfs = 20 * np.log10(max(true_peak, 1e-10))
+
+        # Loudness Range (simplificado)
+        window_size = self.sample_rate // 10  # 100ms
+        windows = len(audio) // window_size
+        loudness_values = []
+
+        for i in range(windows):
+            segment = audio[i*window_size:(i+1)*window_size]
+            seg_rms = np.sqrt(np.mean(segment ** 2))
+            loudness_values.append(20 * np.log10(max(seg_rms, 1e-10)))
+
+        lufs_range = np.percentile(loudness_values, 95) - np.percentile(loudness_values, 5)
+
+        return {
+            "peak_dbfs": float(peak_dbfs),
+            "rms_dbfs": float(rms_dbfs),
+            "lufs_integrated": float(integrated),
+            "lufs_range": float(lufs_range),
+            "true_peak_dbfs": float(true_peak_dbfs)
+        }
+
+    def _apply_k_weighting(self, audio: np.ndarray) -> np.ndarray:
+        """Aplicar ponderación K (simplificada)"""
+        # En producción usar filtro de ponderación K real
+        return audio
+
+    async def _analyze_spectral(self, audio: np.ndarray, sample_rate: int) -> Dict[str, Any]:
+        """Análisis espectral avanzado"""
+        # STFT
+        stft = librosa.stft(audio, n_fft=self.fft_size, hop_length=self.hop_length)
+        magnitude = np.abs(stft)
+
+        # Frecuencias
+        freqs = librosa.fft_frequencies(sr=sample_rate, n_fft=self.fft_size)
+
+        # Centroide espectral
+        spectral_centroid = np.sum(freqs * magnitude.sum(axis=1)) / np.sum(magnitude)
+
+        # Roll-off (85%)
+        total_energy = np.sum(magnitude)
+        target_energy = 0.85 * total_energy
+        cumulative_energy = np.cumsum(magnitude.sum(axis=1))
+        rolloff_idx = np.where(cumulative_energy >= target_energy)[0][0]
+        spectral_rolloff = freqs[rolloff_idx]
+
+        # Flux
+        spectral_flux = np.mean(np.diff(magnitude, axis=1) ** 2)
+
+        # Zero Crossing Rate
+        zero_crossing_rate = np.mean(librosa.feature.zero_crossing_rate(audio))
+
+        # MFCC
+        mfcc = librosa.feature.mfcc(y=audio, sr=sample_rate, n_mfcc=13)
+        mfcc_mean = np.mean(mfcc, axis=1)
+
+        # Chroma
+        chroma = librosa.feature.chroma_stft(y=audio, sr=sample_rate)
+        chroma_mean = np.mean(chroma, axis=1)
+
+        # Spectral Contrast
+        spectral_contrast = librosa.feature.spectral_contrast(y=audio, sr=sample_rate)
+        spectral_contrast_mean = np.mean(spectral_contrast, axis=1)
+
+        # Spectral Flatness
+        spectral_flatness = np.exp(np.mean(np.log(magnitude + 1e-10))) / np.mean(magnitude)
+
+        return {
+            "spectral_centroid": float(spectral_centroid),
+            "spectral_rolloff": float(spectral_rolloff),
+            "spectral_flux": float(spectral_flux),
+            "zero_crossing_rate": float(zero_crossing_rate),
+            "mfcc": mfcc_mean.tolist(),
+            "chroma": chroma_mean.tolist(),
+            "spectral_contrast": spectral_contrast_mean.tolist(),
+            "spectral_flatness": float(spectral_flatness)
+        }
+
+    async def _analyze_dynamics(self, audio: np.ndarray) -> Dict[str, Any]:
+        """Análisis dinámico"""
+        # Dynamic Range (simplificado)
+        window_size = self.sample_rate // 10  # 100ms
+        windows = len(audio) // window_size
+
+        rms_values = []
+        for i in range(windows):
+            segment = audio[i*window_size:(i+1)*window_size]
+            rms = np.sqrt(np.mean(segment ** 2))
+            rms_values.append(20 * np.log10(max(rms, 1e-10)))
+
+        dynamic_range = np.max(rms_values) - np.min(rms_values)
+
+        # Crest Factor
+        peak = np.max(np.abs(audio))
+        rms = np.sqrt(np.mean(audio ** 2))
+        crest_factor = 20 * np.log10(peak / max(rms, 1e-10))
+
+        # Detección de transitorios
+        transients = librosa.onset.onset_detect(
+            y=audio,
+            sr=self.sample_rate,
+            units='time'
+        )
+        transients_strength = librosa.onset.onset_strength(y=audio, sr=self.sample_rate)
+
+        return {
+            "dynamic_range": float(dynamic_range),
+            "crest_factor": float(crest_factor),
+            "transients": transients.tolist(),
+            "transients_count": len(transients)
+        }
+
+    async def _detect_issues(self, audio: np.ndarray, sample_rate: int) -> Dict[str, Any]:
+        """Detección de problemas en el audio"""
+        issues = []
+
+        # Clipping
+        clipping_samples = np.sum(np.abs(audio) >= (1.0 - 10**(self.clipping_threshold/20)))
+
+        if clipping_samples > 0:
+            issues.append({
+                "type": "clipping",
+                "severity": min(1.0, clipping_samples / len(audio) * 10),
+                "samples": int(clipping_samples),
+                "description": f"{clipping_samples} muestras con clipping"
+            })
+
+        # DC Offset
+        dc_offset = np.mean(audio)
+        dc_offset_percent = abs(dc_offset) * 100
+
+        if dc_offset_percent > self.dc_offset_threshold:
+            issues.append({
+                "type": "dc_offset",
+                "severity": min(1.0, dc_offset_percent / 10),
+                "offset": float(dc_offset),
+                "description": f"DC Offset: {dc_offset_percent:.2f}%"
+            })
+
+        # Noise Floor
+        # Usar percentil bajo para estimar ruido
+        noise_floor = np.percentile(np.abs(audio), 10)
+        noise_floor_dbfs = 20 * np.log10(max(noise_floor, 1e-10))
+
+        if noise_floor_dbfs > self.noise_threshold:
+            issues.append({
+                "type": "high_noise_floor",
+                "severity": min(1.0, (noise_floor_dbfs - self.noise_threshold) / 30),
+                "noise_dbfs": float(noise_floor_dbfs),
+                "description": f"Noise floor alto: {noise_floor_dbfs:.1f} dBFS"
+            })
+
+        # Phase Correlation (para estéreo)
+        if len(audio.shape) > 1 and audio.shape[1] == 2:
+            phase_corr = np.corrcoef(audio[:, 0], audio[:, 1])[0, 1]
+            if phase_corr < self.phase_threshold:
+                issues.append({
+                    "type": "phase_issues",
+                    "severity": 1.0 - phase_corr,
+                    "correlation": float(phase_corr),
+                    "description": f"Problemas de fase, correlación: {phase_corr:.2f}"
+                })
+        else:
+            phase_corr = 1.0
+
+        # Sibilance (agudos extremos)
+        fft = np.fft.rfft(audio[:self.fft_size])
+        freqs = np.fft.rfftfreq(self.fft_size, 1/sample_rate)
+        magnitudes = np.abs(fft)
+
+        sibilance_band = (freqs > 5000) & (freqs < 10000)
+        sibilance_energy = np.sum(magnitudes[sibilance_band])
+        total_energy = np.sum(magnitudes)
+        sibilance_ratio = sibilance_energy / total_energy if total_energy > 0 else 0
+
+        if sibilance_ratio > 0.3:
+            issues.append({
+                "type": "sibilance",
+                "severity": min(1.0, sibilance_ratio * 2),
+                "ratio": float(sibilance_ratio),
+                "description": "Sibilancia detectada en frecuencias agudas"
+            })
+            sibilance_detected = True
+            sibilance_freq = freqs[np.argmax(magnitudes[sibilance_band])]
+        else:
+            sibilance_detected = False
+            sibilance_freq = 0.0
+
+        # Resonancias problemáticas
+        resonances = []
+        mag_db = 20 * np.log10(magnitudes + 1e-10)
+        peaks, properties = signal.find_peaks(mag_db, prominence=6, distance=10)
+
+        for peak in peaks[:5]:  # Top 5 resonancias
+            if freqs[peak] > 100:  # Ignorar frecuencias muy bajas
+                resonances.append({
+                    "frequency": float(freqs[peak]),
+                    "magnitude": float(mag_db[peak]),
+                    "prominence": float(properties['prominences'][list(peaks).index(peak)])
+                })
+
+        return {
+            "clipping_samples": int(clipping_samples),
+            "dc_offset": float(dc_offset),
+            "noise_floor_dbfs": float(noise_floor_dbfs),
+            "phase_correlation": float(phase_corr),
+            "sibilance_detected": sibilance_detected,
+            "sibilance_freq": float(sibilance_freq),
+            "resonances": resonances,
+            "issues": issues
+        }
+
+    async def _analyze_musical(self, audio: np.ndarray, sample_rate: int) -> Dict[str, Any]:
+        """Análisis musical: BPM, tonalidad, etc."""
+        # BPM
+        try:
+            onset_env = librosa.onset.onset_strength(y=audio, sr=sample_rate)
+            tempo, _ = librosa.beat.beat_track(onset_envelope=onset_env, sr=sample_rate)
+            bpm = float(tempo[0]) if len(tempo) > 0 else None
+        except:
+            bpm = None
+
+        # Key Detection
+        try:
+            chroma = librosa.feature.chroma_cqt(y=audio, sr=sample_rate)
+            chroma_avg = np.mean(chroma, axis=1)
+            key_idx = np.argmax(chroma_avg)
+            keys = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
+            key_detected = keys[key_idx]
+            key_confidence = float(chroma_avg[key_idx] / np.sum(chroma_avg))
+        except:
+            key_detected = None
+            key_confidence = None
+
+        # Harmonic-Percussive Separation
+        harmonic, percussive = librosa.effects.hpss(audio)
+        harmonic_energy = np.sum(harmonic ** 2)
+        percussive_energy = np.sum(percussive ** 2)
+        total_energy = harmonic_energy + percussive_energy
+
+        harmonic_complexity = harmonic_energy / total_energy if total_energy > 0 else 0.5
+        percussiveness = percussive_energy / total_energy if total_energy > 0 else 0.5
+
+        return {
+            "bpm": bpm,
+            "key_detected": key_detected,
+            "key_confidence": key_confidence,
+            "harmonic_complexity": float(harmonic_complexity),
+            "percussiveness": float(percussiveness)
+        }
+
+    async def _classify_audio(self, audio: np.ndarray, sample_rate: int) -> Dict[str, Any]:
+        """Clasificación de instrumento, género, mood"""
+        # En producción real, usar modelos ML entrenados
+        # Aquí implementamos reglas heurísticas basadas en análisis
+
+        # Extraer características
+        spectral_centroid = await self._extract_feature(audio, sample_rate, 'spectral_centroid')
+        zero_crossing = await self._extract_feature(audio, sample_rate, 'zero_crossing_rate')
+        mfcc = await self._extract_feature(audio, sample_rate, 'mfcc')
+
+        # Clasificación de instrumento (heurística)
+        instrument_scores = {
+            "vocals": 0.3,
+            "guitar": 0.2,
+            "piano": 0.1,
+            "drums": 0.2,
+            "bass": 0.1,
+            "strings": 0.05,
+            "synth": 0.05
+        }
+
+        # Ajustar basado en características
+        if spectral_centroid > 2000:
+            instrument_scores["vocals"] += 0.2
+        if zero_crossing > 0.1:
+            instrument_scores["drums"] += 0.1
+
+        # Normalizar
+        total = sum(instrument_scores.values())
+        instrument_prediction = {k: v/total for k, v in instrument_scores.items()}
+
+        # Género (heurística)
+        genre_prediction = {
+            "rock": 0.3,
+            "pop": 0.25,
+            "electronic": 0.2,
+            "hiphop": 0.15,
+            "jazz": 0.05,
+            "classical": 0.05
+        }
+
+        # Mood basado en características espectrales
+        mood_prediction = {
+            "energetic": 0.3,
+            "calm": 0.2,
+            "dark": 0.15,
+            "bright": 0.15,
+            "emotional": 0.1,
+            "aggressive": 0.1
+        }
+
+        return {
+            "instrument_prediction": instrument_prediction,
+            "genre_prediction": genre_prediction,
+            "mood_prediction": mood_prediction
+        }
+
+    async def _extract_feature(self, audio: np.ndarray, sample_rate: int, feature: str) -> float:
+        """Extraer característica específica"""
+        if feature == 'spectral_centroid':
+            stft = librosa.stft(audio[:self.fft_size])
+            magnitude = np.abs(stft)
+            freqs = librosa.fft_frequencies(sr=sample_rate, n_fft=self.fft_size)
+            return np.sum(freqs * magnitude.sum(axis=1)) / np.sum(magnitude)
+        elif feature == 'zero_crossing_rate':
+            return np.mean(librosa.feature.zero_crossing_rate(audio))
+        else:
+            return 0.0
+
+    async def _generate_recommendations(self, level_analysis: Dict, spectral_analysis: Dict,
+                                      dynamic_analysis: Dict, issues_analysis: Dict,
+                                      musical_analysis: Dict) -> List[Dict[str, Any]]:
+        """Generar recomendaciones basadas en análisis"""
+        recommendations = []
+
+        # Recomendaciones de nivel
+        if level_analysis['lufs_integrated'] > -14:
+            recommendations.append({
+                "type": "level",
+                "action": "reduce_loudness",
+                "priority": "high",
+                "description": f"LUFS integrado muy alto ({level_analysis['lufs_integrated']:.1f} dBFS). Reducir ganancia.",
+                "parameters": {"gain_reduction": max(0, level_analysis['lufs_integrated'] + 14)}
+            })
+
+        if level_analysis['true_peak_dbfs'] > -1.0:
+            recommendations.append({
+                "type": "level",
+                "action": "true_peak_limiter",
+                "priority": "high",
+                "description": f"True Peak excede límite ({level_analysis['true_peak_dbfs']:.1f} dBFS). Aplicar limitador.",
+                "parameters": {"threshold": -1.0}
+            })
+
+        # Recomendaciones espectrales
+        if spectral_analysis['spectral_centroid'] < 1000:
+            recommendations.append({
+                "type": "spectral",
+                "action": "brighten",
+                "priority": "medium",
+                "description": "Contenido de frecuencias bajas dominante. Considerar brillo.",
+                "parameters": {"high_shelf_gain": 2.0, "frequency": 5000}
+            })
+
+        # Recomendaciones dinámicas
+        if dynamic_analysis['dynamic_range'] < 6:
+            recommendations.append({
+                "type": "dynamics",
+                "action": "dynamic_expansion",
+                "priority": "medium",
+                "description": f"Rango dinámico bajo ({dynamic_analysis['dynamic_range']:.1f} dB). Considerar expansor.",
+                "parameters": {"ratio": 0.5, "threshold": -30}
+            })
+
+        # Recomendaciones basadas en issues
+        for issue in issues_analysis.get('issues', []):
+            if issue['type'] == 'clipping':
+                recommendations.append({
+                    "type": "repair",
+                    "action": "clip_restoration",
+                    "priority": "critical",
+                    "description": issue['description'],
+                    "parameters": {"method": "interpolation"}
+                })
+            elif issue['type'] == 'sibilance':
+                recommendations.append({
+                    "type": "repair",
+                    "action": "deesser",
+                    "priority": "high",
+                    "description": issue['description'],
+                    "parameters": {"frequency": issue.get('sibilance_freq', 7000), "reduction": -6}
+                })
+
+        return recommendations
+```
+
+```python
+# shub/dsp_fx.py
+import numpy as np
+from typing import Dict, List, Any, Optional, Tuple
+from dataclasses import dataclass
+import json
+
+@dataclass
+class FXChain:
+    """Cadena de efectos completa"""
+    name: str
+    description: str
+    plugins: List[Dict[str, Any]]
+    routing: Dict[str, Any]
+    presets: List[Dict[str, Any]]
+
+@dataclass
+class REAPERPreset:
+    """Preset de proyecto REAPER"""
+    project_name: str
+    tracks: List[Dict[str, Any]]
+    fx_chains: List[FXChain]
+    routing_matrix: Dict[str, Any]
+    automation: List[Dict[str, Any]]
+    metadata: Dict[str, Any]
+
+class FXEngine:
+    """Motor de generación de cadenas de efectos"""
+
+    def __init__(self):
+        self.plugin_catalog = self._load_plugin_catalog()
+        self.style_templates = self._load_style_templates()
+
+    def _load_plugin_catalog(self) -> Dict[str, Any]:
+        """Cargar catálogo de plugins disponibles"""
+        # En producción, cargar desde base de datos
+        return {
+            "eq": {
+                "name": "EQ",
+                "manufacturer": "Various",
+                "categories": ["eq", "filter"],
+                "parameters": ["frequency", "gain", "q"]
+            },
+            "compressor": {
+                "name": "Compressor",
+                "manufacturer": "Various",
+                "categories": ["dynamics"],
+                "parameters": ["threshold", "ratio", "attack", "release", "makeup"]
+            },
+            "reverb": {
+                "name": "Reverb",
+                "manufacturer": "Various",
+                "categories": ["reverb"],
+                "parameters": ["size", "decay", "mix", "predelay"]
+            },
+            "delay": {
+                "name": "Delay",
+                "manufacturer": "Various",
+                "categories": ["delay"],
+                "parameters": ["time", "feedback", "mix"]
+            },
+            "saturator": {
+                "name": "Saturator",
+                "manufacturer": "Various",
+                "categories": ["saturation"],
+                "parameters": ["drive", "tone", "mix"]
+            }
+        }
+
+    def _load_style_templates(self) -> Dict[str, Any]:
+        """Cargar plantillas por estilo musical"""
+        return {
+            "modern_pop": {
+                "description": "Producción pop moderna",
+                "target_lufs": -14.0,
+                "target_true_peak": -1.0,
+                "spectral_balance": {"low": 0.3, "mid": 0.4, "high": 0.3},
+                "dynamic_range": 8.0,
+                "fx_chains": ["vocal_chain", "drum_bus", "master_bus"]
+            },
+            "rock": {
+                "description": "Producción rock",
+                "target_lufs": -12.0,
+                "target_true_peak": -1.0,
+                "spectral_balance": {"low": 0.4, "mid": 0.4, "high": 0.2},
+                "dynamic_range": 10.0,
+                "fx_chains": ["guitar_chain", "drum_bus", "bass_chain", "master_bus"]
+            },
+            "electronic": {
+                "description": "Producción electrónica",
+                "target_lufs": -8.0,
+                "target_true_peak": -1.0,
+                "spectral_balance": {"low": 0.5, "mid": 0.3, "high": 0.2},
+                "dynamic_range": 6.0,
+                "fx_chains": ["synth_chain", "kick_bass", "master_bus"]
+            },
+            "acoustic": {
+                "description": "Producción acústica",
+                "target_lufs": -16.0,
+                "target_true_peak": -1.0,
+                "spectral_balance": {"low": 0.3, "mid": 0.5, "high": 0.2},
+                "dynamic_range": 12.0,
+                "fx_chains": ["vocal_chain", "acoustic_guitar", "master_bus"]
+            }
+        }
+
+    def generate_fx_chain(self, analysis: Dict[str, Any],
+                         target_style: str = None) -> FXChain:
+        """Generar cadena de efectos basada en análisis y estilo"""
+
+        # Determinar estilo si no se especifica
+        if target_style is None:
+            target_style = self._detect_style_from_analysis(analysis)
+
+        # Obtener plantilla de estilo
+        style_template = self.style_templates.get(target_style, self.style_templates["modern_pop"])
+
+        # Generar plugins basados en análisis
+        plugins = []
+
+        # EQ basado en análisis espectral
+        eq_plugin = self._generate_eq_plugin(analysis, style_template)
+        if eq_plugin:
+            plugins.append(eq_plugin)
+
+        # Compresor basado en dinámica
+        comp_plugin = self._generate_compressor_plugin(analysis, style_template)
+        if comp_plugin:
+            plugins.append(comp_plugin)
+
+        # Efectos basados en issues
+        repair_plugins = self._generate_repair_plugins(analysis)
+        plugins.extend(repair_plugins)
+
+        # Efectos estilísticos
+        style_plugins = self._generate_style_plugins(analysis, style_template)
+        plugins.extend(style_plugins)
+
+        # Crear cadena de efectos
+        chain_name = f"{target_style}_chain"
+        chain_description = f"Cadena de efectos para estilo {target_style}"
+
+        # Configurar routing
+        routing = {
+            "parallel_processing": False,
+            "sidechain_inputs": [],
+            "send_returns": []
+        }
+
+        return FXChain(
+            name=chain_name,
+            description=chain_description,
+            plugins=plugins,
+            routing=routing,
+            presets=self._generate_presets(plugins)
+        )
+
+    def _detect_style_from_analysis(self, analysis: Dict[str, Any]) -> str:
+        """Detectar estilo basado en análisis"""
+        instrument_pred = analysis.get('instrument_prediction', {})
+        genre_pred = analysis.get('genre_prediction', {})
+
+        # Priorizar instrumento dominante
+        if instrument_pred:
+            main_instrument = max(instrument_pred.items(), key=lambda x: x[1])[0]
+            if main_instrument in ['vocals', 'piano', 'guitar']:
+                return 'acoustic'
+            elif main_instrument in ['drums', 'guitar']:
+                return 'rock'
+            elif main_instrument in ['synth']:
+                return 'electronic'
+
+        # Fallback a género
+        if genre_pred:
+            main_genre = max(genre_pred.items(), key=lambda x: x[1])[0]
+            return main_genre
+
+        return 'modern_pop'
+
+    def _generate_eq_plugin(self, analysis: Dict[str, Any],
+                          style_template: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Generar plugin EQ basado en análisis espectral"""
+        spectral_centroid = analysis.get('spectral_centroid', 1000)
+        target_balance = style_template.get('spectral_balance', {"low": 0.33, "mid": 0.34, "high": 0.33})
+
+        # Determinar ajustes EQ basados en desviación del balance objetivo
+        bands = []
+
+        # Banda baja (20-250 Hz)
+        bands.append({
+            "type": "low_shelf",
+            "frequency": 100,
+            "gain": 0.0,  # Ajustar según análisis
+            "q": 0.7
+        })
+
+        # Banda media (250-4000 Hz)
+        bands.append({
+            "type": "peaking",
+            "frequency": 1000,
+            "gain": 0.0,
+            "q": 1.0
+        })
+
+        # Banda alta (4000-20000 Hz)
+        bands.append({
+            "type": "high_shelf",
+            "frequency": 5000,
+            "gain": 0.0,
+            "q": 0.7
+        })
+
+        return {
+            "plugin_type": "eq",
+            "manufacturer": "Shub-DSP",
+            "name": "Shub Matching EQ",
+            "parameters": {"bands": bands, "bypass": False}
+        }
+
+    def _generate_compressor_plugin(self, analysis: Dict[str, Any],
+                                  style_template: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Generar plugin de compresión basado en dinámica"""
+        dynamic_range = analysis.get('dynamic_range', 10.0)
+        target_dynamic = style_template.get('dynamic_range', 8.0)
+
+        # Calcular compresión necesaria
+        compression_needed = max(0, dynamic_range - target_dynamic)
+
+        if compression_needed > 2.0:
+            return {
+                "plugin_type": "compressor",
+                "manufacturer": "Shub-DSP",
+                "name": "Shub Dynamics",
+                "parameters": {
+                    "threshold": -20.0,
+                    "ratio": 2.0 + (compression_needed / 10),
+                    "attack": 10.0,
+                    "release": 100.0,
+                    "makeup": 0.0,
+                    "bypass": False
+                }
+            }
+        return None
+
+    def _generate_repair_plugins(self, analysis: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Generar plugins para reparar issues"""
+        plugins = []
+        issues = analysis.get('issues', [])
+
+        for issue in issues:
+            if issue['type'] == 'sibilance':
+                plugins.append({
+                    "plugin_type": "deesser",
+                    "manufacturer": "Shub-DSP",
+                    "name": "Shub Deesser",
+                    "parameters": {
+                        "frequency": issue.get('sibilance_freq', 7000),
+                        "threshold": -30.0,
+                        "reduction": -6.0
+                    }
+                })
+            elif issue['type'] == 'clipping':
+                plugins.append({
+                    "plugin_type": "clip_restorer",
+                    "manufacturer": "Shub-DSP",
+                    "name": "Shub Clip Repair",
+                    "parameters": {
+                        "method": "interpolation",
+                        "aggressiveness": 0.7
+                    }
+                })
+            elif issue['type'] == 'dc_offset':
+                plugins.append({
+                    "plugin_type": "dc_filter",
+                    "manufacturer": "Shub-DSP",
+                    "name": "Shub DC Filter",
+                    "parameters": {
+                        "cutoff": 10.0
+                    }
+                })
+
+        return plugins
+
+    def _generate_style_plugins(self, analysis: Dict[str, Any],
+                              style_template: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Generar plugins para estilo específico"""
+        style_name = style_template.get('description', '').lower()
+        plugins = []
+
+        if 'pop' in style_name or 'electronic' in style_name:
+            # Reverb para espacio
+            plugins.append({
+                "plugin_type": "reverb",
+                "manufacturer": "Shub-DSP",
+                "name": "Shub Ambience",
+                "parameters": {
+                    "size": 0.5,
+                    "decay": 2.0,
+                    "mix": 0.15,
+                    "predelay": 20.0
+                }
+            })
+
+        if 'rock' in style_name:
+            # Saturación para calidez
+            plugins.append({
+                "plugin_type": "saturator",
+                "manufacturer": "Shub-DSP",
+                "name": "Shub Warmth",
+                "parameters": {
+                    "drive": 0.3,
+                    "tone": 0.5,
+                    "mix": 0.2
+                }
+            })
+
+        if 'acoustic' in style_name:
+            # Compresión suave
+            plugins.append({
+                "plugin_type": "compressor",
+                "manufacturer": "Shub-DSP",
+                "name": "Shub Gentle Comp",
+                "parameters": {
+                    "threshold": -15.0,
+                    "ratio": 1.5,
+                    "attack": 30.0,
+                    "release": 200.0,
+                    "makeup": 0.0
+                }
+            })
+
+        return plugins
+
+    def _generate_presets(self, plugins: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Generar presets a partir de plugins"""
+        presets = []
+
+        for i, plugin in enumerate(plugins):
+            preset = {
+                "name": f"Preset_{i+1}",
+                "plugin_name": plugin.get('name', 'Unknown'),
+                "parameters": plugin.get('parameters', {}),
+                "description": f"Preset para {plugin.get('plugin_type', 'plugin')}"
+            }
+            presets.append(preset)
+
+        return presets
+
+    def generate_reaper_preset(self, analysis: Dict[str, Any],
+                             fx_chains: List[FXChain],
+                             project_name: str = "Shub_Project") -> REAPERPreset:
+        """Generar preset completo de proyecto REAPER"""
+
+        tracks = []
+
+        # Track maestro
+        master_track = {
+            "name": "Master",
+            "volume": 0.0,
+            "pan": 0.0,
+            "fx_chains": [chain for chain in fx_chains if "master" in chain.name],
+            "routing": {"parent": None, "receives": []}
+        }
+        tracks.append(master_track)
+
+        # Tracks por instrumento detectado
+        instrument_pred = analysis.get('instrument_prediction', {})
+
+        for instrument, confidence in instrument_pred.items():
+            if confidence > 0.2:  # Umbral de confianza
+                track = {
+                    "name": instrument.capitalize(),
+                    "volume": -6.0 if instrument == "drums" else -12.0,
+                    "pan": 0.0,
+                    "fx_chains": [chain for chain in fx_chains if instrument in chain.name],
+                    "routing": {"parent": "Master", "receives": []}
+                }
+                tracks.append(track)
+
+        # Routing matrix
+        routing_matrix = {
+            "master_track": 0,
+            "tracks": {i: track for i, track in enumerate(tracks)}
+        }
+
+        # Automation basada en análisis
+        automation = self._generate_automation(analysis)
+
+        return REAPERPreset(
+            project_name=project_name,
+            tracks=tracks,
+            fx_chains=fx_chains,
+            routing_matrix=routing_matrix,
+            automation=automation,
+            metadata={
+                "generated_by": "Shub-Niggurath",
+                "analysis_summary": {
+                    "duration": analysis.get('duration', 0),
+                    "lufs": analysis.get('lufs_integrated', 0),
+                    "key": analysis.get('key_detected', 'Unknown'),
+                    "bpm": analysis.get('bpm', 120)
+                }
+            }
+        )
+
+    def _generate_automation(self, analysis: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Generar automatización basada en análisis"""
+        automation = []
+
+        # Automatización de volumen basada en dinámica
+        dynamic_range = analysis.get('dynamic_range', 10.0)
+        if dynamic_range > 12:
+            automation.append({
+                "track": "Master",
+                "parameter": "volume",
+                "points": [
+                    {"time": 0.0, "value": 0.0},
+                    {"time": 0.5, "value": -2.0},
+                    {"time": 1.0, "value": 0.0}
+                ]
+            })
+
+        return automation
+
+    def export_to_rpp(self, preset: REAPERPreset) -> str:
+        """Exportar preset a formato RPP (REAPER Project)"""
+        # En producción, implementar generación real de archivo RPP
+        rpp_content = f"""<REAPER_PROJECT 0.1 "6.0/linux"
+  RIPPLE 0
+  GROUPOVERRIDE 0 0
+  AUTOXFADE 1
+  ENVATTACH 1
+  POOLEDENVATTACH 0
+  MIXERUIFLAGS 11 48
+  PEAKGAIN 1
+  FEEDBACK 0
+  PANLAW 1
+  PROJOFFS 0 0
+  MAXPROJLEN 0 600
+  GRID 1 4
+  TIMEMODE 1 5 0 25 0 0 -1
+  TEMPO 120 4 4
+  PLAYRATE 1 0 0 -1 0 0.0025
+  SELECTION {preset.metadata['analysis_summary']['duration']} 0
+  LOOP 0 0
+  RECMODE 1
+  RECORD_PATH "" ""
+
+  <TRACK
+    NAME "{preset.project_name}"
+  >
+"""
+
+        for track in preset.tracks:
+            rpp_content += f"""  <TRACK
+    NAME "{track['name']}"
+    VOLPAN {track['volume']} 1 {track['pan']} 0 1 -1 -1 1
+    MUTESOLO 0 0 0
+  >
+"""
+
+        rpp_content += "</REAPER_PROJECT>"
+        return rpp_content
+```
+
+```python
+# shub/dsp_pipeline_full.py
+import asyncio
+from typing import Dict, List, Any, Optional, Tuple
+from dataclasses import dataclass
+import numpy as np
+import json
+from datetime import datetime
+
+@dataclass
+class PipelineResult:
+    """Resultado completo del pipeline DSP"""
+    raw_analysis: Dict[str, Any]
+    normalized_analysis: Dict[str, Any]
+    fft_analysis: Dict[str, Any]
+    classification: Dict[str, Any]
+    issues: List[Dict[str, Any]]
+    fx_chain: Any
+    preset: Any
+    vx11_json: Dict[str, Any]
+    processing_time: float
+
+class DSPPipeline:
+    """Pipeline completo de procesamiento DSP"""
+
+    def __init__(self, dsp_engine, fx_engine, db_session_factory):
+        self.dsp_engine = dsp_engine
+        self.fx_engine = fx_engine
+        self.db_session_factory = db_session_factory
+
+    async def process_audio(self, audio_data: np.ndarray,
+                          sample_rate: int = 48000,
+                          metadata: Dict[str, Any] = None) -> PipelineResult:
+        """Procesar audio a través del pipeline completo"""
+        start_time = datetime.now()
+
+        # Paso 1: RAW Analysis
+        raw_analysis = await self._raw_analysis(audio_data, sample_rate)
+
+        # Paso 2: Normalization
+        normalized = await self._normalize_audio(audio_data, raw_analysis)
+        normalized_analysis = await self.dsp_engine.analyze_audio(normalized, sample_rate)
+
+        # Paso 3: FFT Analysis profundo
+        fft_analysis = await self._deep_fft_analysis(normalized, sample_rate)
+
+        # Paso 4: Classification
+        classification = await self._advanced_classification(
+            raw_analysis, normalized_analysis, fft_analysis
+        )
+
+        # Paso 5: Issues Detection
+        issues = await self._comprehensive_issues_detection(
+            raw_analysis, normalized_analysis, fft_analysis
+        )
+
+        # Paso 6: FX Chain Generation
+        fx_chain = await self._generate_fx_chain(
+            raw_analysis, normalized_analysis, classification
+        )
+
+        # Paso 7: Preset Generation
+        preset = await self._generate_preset(
+            raw_analysis, normalized_analysis, classification, fx_chain
+        )
+
+        # Paso 8: VX11 JSON
+        vx11_json = await self._generate_vx11_json(
+            raw_analysis, normalized_analysis, classification,
+            issues, fx_chain, preset, metadata
+        )
+
+        # Paso 9: Save to Database
+        await self._save_to_database(vx11_json)
+
+        processing_time = (datetime.now() - start_time).total_seconds()
+
+        return PipelineResult(
+            raw_analysis=raw_analysis,
+            normalized_analysis=normalized_analysis,
+            fft_analysis=fft_analysis,
+            classification=classification,
+            issues=issues,
+            fx_chain=fx_chain,
+            preset=preset,
+            vx11_json=vx11_json,
+            processing_time=processing_time
+        )
+
+    async def _raw_analysis(self, audio: np.ndarray, sample_rate: int) -> Dict[str, Any]:
+        """Análisis RAW inicial"""
+        return await self.dsp_engine.analyze_audio(audio, sample_rate)
+
+    async def _normalize_audio(self, audio: np.ndarray,
+                             analysis: Dict[str, Any]) -> np.ndarray:
+        """Normalizar audio basado en análisis"""
+        # Peak normalization a -1 dBFS
+        peak = analysis.get('peak_dbfs', 0)
+        if peak > -1.0:
+            gain = -1.0 - peak
+            normalized = audio * (10 ** (gain / 20))
+        else:
+            normalized = audio.copy()
+
+        # DC offset removal
+        dc_offset = analysis.get('dc_offset', 0)
+        normalized = normalized - dc_offset
+
+        return normalized
+
+    async def _deep_fft_analysis(self, audio: np.ndarray,
+                               sample_rate: int) -> Dict[str, Any]:
+        """Análisis FFT profundo multi-resolución"""
+        fft_sizes = [1024, 2048, 4096, 8192]
+        results = {}
+
+        for fft_size in fft_sizes:
+            stft = np.abs(np.fft.rfft(audio[:fft_size]))
+            freqs = np.fft.rfftfreq(fft_size, 1/sample_rate)
+
+            # Análisis por bandas
+            bands = {
+                "sub": (20, 60),
+                "low": (60, 250),
+                "low_mid": (250, 500),
+                "mid": (500, 2000),
+                "high_mid": (2000, 4000),
+                "high": (4000, 8000),
+                "air": (8000, 20000)
+            }
+
+            band_energies = {}
+            for band_name, (f_low, f_high) in bands.items():
+                mask = (freqs >= f_low) & (freqs <= f_high)
+                if np.any(mask):
+                    energy = np.sum(stft[mask])
+                    band_energies[band_name] = float(energy)
+
+            results[f"fft_{fft_size}"] = {
+                "band_energies": band_energies,
+                "spectral_flatness": self._calculate_spectral_flatness(stft),
+                "spectral_crest": self._calculate_spectral_crest(stft),
+                "harmonic_peaks": self._detect_harmonic_peaks(stft, freqs)
+            }
+
+        # Combinar resultados de diferentes resoluciones
+        combined = {
+            "multi_resolution": results,
+            "recommended_fft_size": self._recommend_fft_size(results),
+            "band_balance": self._calculate_band_balance(results)
+        }
+
+        return combined
+
+    def _calculate_spectral_flatness(self, spectrum: np.ndarray) -> float:
+        """Calcular flatness espectral"""
+        geometric_mean = np.exp(np.mean(np.log(spectrum + 1e-10)))
+        arithmetic_mean = np.mean(spectrum)
+        return float(geometric_mean / arithmetic_mean)
+
+    def _calculate_spectral_crest(self, spectrum: np.ndarray) -> float:
+        """Calcular crest factor espectral"""
+        peak = np.max(spectrum)
+        rms = np.sqrt(np.mean(spectrum ** 2))
+        return float(peak / rms) if rms > 0 else 0.0
+
+    def _detect_harmonic_peaks(self, spectrum: np.ndarray,
+                             freqs: np.ndarray) -> List[Dict[str, Any]]:
+        """Detectar picos armónicos"""
+        from scipy.signal import find_peaks
+
+        peaks, properties = find_peaks(spectrum, prominence=spectrum.max() * 0.1, distance=10)
+
+        harmonic_peaks = []
+        for i, peak_idx in enumerate(peaks[:10]):  # Top 10 peaks
+            harmonic_peaks.append({
+                "frequency": float(freqs[peak_idx]),
+                "magnitude": float(spectrum[peak_idx]),
+                "prominence": float(properties['prominences'][i])
+            })
+
+        return harmonic_peaks
+
+    def _recommend_fft_size(self, results: Dict[str, Any]) -> int:
+        """Recomendar tamaño FFT óptimo"""
+        # Basado en resolución vs tiempo de procesamiento
+        # En producción, usar reglas más sofisticadas
+        return 4096
+
+    def _calculate_band_balance(self, results: Dict[str, Any]) -> Dict[str, float]:
+        """Calcular balance entre bandas"""
+        fft_4096 = results.get("fft_4096", {})
+        band_energies = fft_4096.get("band_energies", {})
+
+        total = sum(band_energies.values())
+        if total > 0:
+            return {k: v/total for k, v in band_energies.items()}
+        return {}
+
+    async def _advanced_classification(self, raw: Dict[str, Any],
+                                     normalized: Dict[str, Any],
+                                     fft: Dict[str, Any]) -> Dict[str, Any]:
+        """Clasificación avanzada combinando múltiples análisis"""
+        classification = {}
+
+        # Combinar predicciones de instrumento
+        raw_instruments = raw.get('instrument_prediction', {})
+        norm_instruments = normalized.get('instrument_prediction', {})
+
+        combined_instruments = {}
+        all_instruments = set(list(raw_instruments.keys()) + list(norm_instruments.keys()))
+
+        for inst in all_instruments:
+            raw_score = raw_instruments.get(inst, 0)
+            norm_score = norm_instruments.get(inst, 0)
+            combined_instruments[inst] = (raw_score + norm_score) / 2
+
+        classification['instrument_prediction'] = combined_instruments
+
+        # Género basado en características espectrales
+        spectral_centroid = normalized.get('spectral_centroid', 1000)
+        dynamic_range = normalized.get('dynamic_range', 10)
+
+        genre_scores = {}
+        if spectral_centroid > 2000 and dynamic_range < 8:
+            genre_scores['electronic'] = 0.8
+            genre_scores['pop'] = 0.2
+        elif spectral_centroid < 1000 and dynamic_range > 10:
+            genre_scores['acoustic'] = 0.7
+            genre_scores['jazz'] = 0.3
+        else:
+            genre_scores['rock'] = 0.6
+            genre_scores['pop'] = 0.4
+
+        classification['genre_prediction'] = genre_scores
+
+        # Mood basado en análisis espectral y dinámico
+        mood_scores = {}
+        if spectral_centroid > 1800:
+            mood_scores['bright'] = 0.6
+            mood_scores['energetic'] = 0.4
+        elif dynamic_range > 12:
+            mood_scores['calm'] = 0.7
+            mood_scores['emotional'] = 0.3
+        else:
+            mood_scores['aggressive'] = 0.5
+            mood_scores['dark'] = 0.5
+
+        classification['mood_prediction'] = mood_scores
+
+        # Características adicionales
+        classification['characteristics'] = {
+            "brightness": min(1.0, spectral_centroid / 4000),
+            "warmth": min(1.0, 1 - (spectral_centroid / 4000)),
+            "aggressiveness": min(1.0, 1 - (dynamic_range / 20)),
+            "clarity": normalized.get('spectral_flatness', 0.5)
+        }
+
+        return classification
+
+    async def _comprehensive_issues_detection(self, raw: Dict[str, Any],
+                                            normalized: Dict[str, Any],
+                                            fft: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Detección comprehensiva de issues"""
+        issues = []
+
+        # Issues de raw analysis
+        raw_issues = raw.get('issues', [])
+        issues.extend(raw_issues)
+
+        # Issues de normalized analysis
+        norm_issues = normalized.get('issues', [])
+        issues.extend(norm_issues)
+
+        # Issues adicionales basados en FFT
+        fft_issues = self._detect_fft_issues(fft)
+        issues.extend(fft_issues)
+
+        # Eliminar duplicados y ordenar por severidad
+        unique_issues = []
+        seen = set()
+
+        for issue in issues:
+            issue_key = f"{issue['type']}_{issue.get('frequency', 0)}"
+            if issue_key not in seen:
+                seen.add(issue_key)
+                unique_issues.append(issue)
+
+        unique_issues.sort(key=lambda x: x.get('severity', 0), reverse=True)
+
+        return unique_issues
+
+    def _detect_fft_issues(self, fft_analysis: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Detectar issues basados en análisis FFT"""
+        issues = []
+
+        band_balance = fft_analysis.get('band_balance', {})
+
+        # Check for imbalance
+        if band_balance.get('sub', 0) > 0.3:
+            issues.append({
+                "type": "excessive_sub",
+                "severity": min(1.0, band_balance['sub']),
+                "description": "Excesivo contenido en sub-frecuencias",
+                "frequency_range": "20-60 Hz"
+            })
+
+        if band_balance.get('air', 0) < 0.05:
+            issues.append({
+                "type": "lack_of_air",
+                "severity": 0.5,
+                "description": "Falta de contenido en frecuencias altas",
+                "frequency_range": "8-20 kHz"
+            })
+
+        return issues
+
+    async def _generate_fx_chain(self, raw: Dict[str, Any],
+                               normalized: Dict[str, Any],
+                               classification: Dict[str, Any]) -> Any:
+        """Generar cadena de efectos basada en análisis combinado"""
+        # Combinar análisis para mejor decisión
+        combined_analysis = {
+            **normalized,
+            "classification": classification,
+            "raw_peak": raw.get('peak_dbfs', 0),
+            "raw_issues": raw.get('issues', [])
+        }
+
+        # Determinar estilo basado en clasificación
+        genre_pred = classification.get('genre_prediction', {})
+        if genre_pred:
+            main_genre = max(genre_pred.items(), key=lambda x: x[1])[0]
+        else:
+            main_genre = "modern_pop"
+
+        # Generar FX chain
+        fx_chain = self.fx_engine.generate_fx_chain(combined_analysis, main_genre)
+
+        return fx_chain
+
+    async def _generate_preset(self, raw: Dict[str, Any],
+                             normalized: Dict[str, Any],
+                             classification: Dict[str, Any],
+                             fx_chain) -> Any:
+        """Generar preset REAPER basado en análisis"""
+        # Nombre del proyecto basado en características
+        instrument_pred = classification.get('instrument_prediction', {})
+        main_instrument = max(instrument_pred.items(), key=lambda x: x[1])[0] if instrument_pred else "Unknown"
+
+        project_name = f"Shub_{main_instrument}_{int(normalized.get('bpm', 120))}BPM"
+
+        # Generar preset
+        preset = self.fx_engine.generate_reaper_preset(
+            analysis=normalized,
+            fx_chains=[fx_chain],
+            project_name=project_name
+        )
+
+        return preset
+
+    async def _generate_vx11_json(self, raw: Dict[str, Any],
+                                normalized: Dict[str, Any],
+                                classification: Dict[str, Any],
+                                issues: List[Dict[str, Any]],
+                                fx_chain,
+                                preset,
+                                metadata: Dict[str, Any] = None) -> Dict[str, Any]:
+        """Generar JSON compatible con VX11"""
+        vx11_json = {
+            "module": "shub",
+            "version": "1.0.0",
+            "timestamp": datetime.now().isoformat(),
+            "analysis_id": self._generate_analysis_id(),
+            "metadata": metadata or {},
+            "audio_analysis": {
+                "basic": {
+                    "duration": normalized.get('duration', 0),
+                    "sample_rate": normalized.get('sample_rate', 48000),
+                    "channels": normalized.get('channels', 2)
+                },
+                "levels": {
+                    "peak_dbfs": normalized.get('peak_dbfs', 0),
+                    "rms_dbfs": normalized.get('rms_dbfs', 0),
+                    "lufs_integrated": normalized.get('lufs_integrated', 0),
+                    "true_peak_dbfs": normalized.get('true_peak_dbfs', 0),
+                    "dynamic_range": normalized.get('dynamic_range', 0)
+                },
+                "spectral": {
+                    "centroid": normalized.get('spectral_centroid', 0),
+                    "rolloff": normalized.get('spectral_rolloff', 0),
+                    "flatness": normalized.get('spectral_flatness', 0)
+                },
+                "musical": {
+                    "bpm": normalized.get('bpm'),
+                    "key": normalized.get('key_detected'),
+                    "key_confidence": normalized.get('key_confidence')
+                }
+            },
+            "classification": classification,
+            "issues": issues,
+            "recommendations": normalized.get('recommendations', []),
+            "fx_chain": {
+                "name": fx_chain.name if hasattr(fx_chain, 'name') else "Unknown",
+                "description": fx_chain.description if hasattr(fx_chain, 'description') else "",
+                "plugin_count": len(fx_chain.plugins) if hasattr(fx_chain, 'plugins') else 0
+            },
+            "reaper_preset": {
+                "project_name": preset.project_name if hasattr(preset, 'project_name') else "",
+                "track_count": len(preset.tracks) if hasattr(preset, 'tracks') else 0
+            },
+            "processing_metadata": {
+                "pipeline_version": "full_dsp_v1.0",
+                "analysis_time": normalized.get('duration', 0)
+            }
+        }
+
+        return vx11_json
+
+    def _generate_analysis_id(self) -> str:
+        """Generar ID único para análisis"""
+        import uuid
+        return str(uuid.uuid4())
+
+    async def _save_to_database(self, vx11_json: Dict[str, Any]):
+        """Guardar análisis en base de datos"""
+        async with self.db_session_factory() as session:
+            # Implementar guardado en BD
+            # Usar SQLAlchemy para insertar
+            pass
+```
+
+```python
+# shub/virtual_engineer.py
+import asyncio
+from typing import Dict, List, Any, Optional, Tuple
+from dataclasses import dataclass
+import json
+from datetime import datetime
+import numpy as np
+
+@dataclass
+class EngineerDecision:
+    """Decisión del ingeniero virtual"""
+    decision_id: str
+    timestamp: datetime
+    context: Dict[str, Any]
+    reasoning: List[str]
+    action: str
+    parameters: Dict[str, Any]
+    confidence: float
+    alternatives: List[Dict[str, Any]]
+    expected_outcome: Dict[str, Any]
+
+@dataclass
+class EngineerSession:
+    """Sesión del ingeniero virtual"""
+    session_id: str
+    start_time: datetime
+    audio_analysis: Dict[str, Any]
+    decisions: List[EngineerDecision]
+    questions: List[Dict[str, Any]]
+    final_recommendations: Dict[str, Any]
+    learning_points: List[Dict[str, Any]]
+
+class VirtualEngineer:
+    """Ingeniero virtual con razonamiento y aprendizaje"""
+
+    def __init__(self, dsp_engine, fx_engine, db_session_factory, config):
+        self.dsp_engine = dsp_engine
+        self.fx_engine = fx_engine
+        self.db_session_factory = db_session_factory
+        self.config = config
+
+        # Memoria de aprendizaje
+        self.learned_patterns = []
+        self.decision_history = []
+        self.session_history = []
+
+    async start_session(self, audio_analysis: Dict[str, Any]) -> EngineerSession:
+        """Iniciar nueva sesión de ingeniería"""
+        session_id = self._generate_session_id()
+        session = EngineerSession(
+            session_id=session_id,
+            start_time=datetime.now(),
+            audio_analysis=audio_analysis,
+            decisions=[],
+            questions=[],
+            final_recommendations={},
+            learning_points=[]
+        )
+
+        # Analizar el audio
+        initial_analysis = await self._analyze_session_audio(audio_analysis)
+
+        # Generar preguntas de clarificación
+        questions = await self._generate_clarification_questions(initial_analysis)
+        session.questions = questions
+
+        # Tomar decisiones iniciales
+        initial_decisions = await self._make_initial_decisions(initial_analysis, questions)
+        session.decisions.extend(initial_decisions)
+
+        return session
+
+    def _generate_session_id(self) -> str:
+        """Generar ID único de sesión"""
+        import uuid
+        return f"session_{uuid.uuid4().hex[:8]}"
+
+    async def _analyze_session_audio(self, audio_analysis: Dict[str, Any]) -> Dict[str, Any]:
+        """Analizar audio de sesión con contexto"""
+        analysis = {
+            "technical": {
+                "quality_score": self._calculate_quality_score(audio_analysis),
+                "issues_by_priority": self._categorize_issues_by_priority(audio_analysis.get('issues', [])),
+                "improvement_potential": self._calculate_improvement_potential(audio_analysis)
+            },
+            "artistic": {
+                "style_match": self._analyze_style_match(audio_analysis),
+                "emotional_impact": self._analyze_emotional_impact(audio_analysis),
+                "commercial_potential": self._analyze_commercial_potential(audio_analysis)
+            },
+            "practical": {
+                "processing_complexity": self._estimate_processing_complexity(audio_analysis),
+                "time_estimate": self._estimate_processing_time(audio_analysis),
+                "resource_requirements": self._estimate_resource_requirements(audio_analysis)
+            }
+        }
+
+        return analysis
+
+    def _calculate_quality_score(self, analysis: Dict[str, Any]) -> float:
+        """Calcular puntuación de calidad general"""
+        score = 1.0
+
+        # Penalizar issues
+        issues = analysis.get('issues', [])
+        for issue in issues:
+            severity = issue.get('severity', 0.5)
+            score -= severity * 0.1
+
+        # Recompensar buen rango dinámico
+        dynamic_range = analysis.get('dynamic_range', 10)
+        if 8 <= dynamic_range <= 12:
+            score += 0.1
+
+        # Recompensar buen LUFS
+        lufs = analysis.get('lufs_integrated', -14)
+        if -16 <= lufs <= -12:
+            score += 0.1
+
+        return max(0.0, min(1.0, score))
+
+    def _categorize_issues_by_priority(self, issues: List[Dict[str, Any]]) -> Dict[str, List[Dict[str, Any]]]:
+        """Categorizar issues por prioridad"""
+        categorized = {
+            "critical": [],
+            "high": [],
+            "medium": [],
+            "low": []
+        }
+
+        for issue in issues:
+            severity = issue.get('severity', 0.5)
+            if severity > 0.8:
+                categorized["critical"].append(issue)
+            elif severity > 0.6:
+                categorized["high"].append(issue)
+            elif severity > 0.4:
+                categorized["medium"].append(issue)
+            else:
+                categorized["low"].append(issue)
+
+        return categorized
+
+    def _calculate_improvement_potential(self, analysis: Dict[str, Any]) -> float:
+        """Calcular potencial de mejora"""
+        issues = analysis.get('issues', [])
+        quality_score = self._calculate_quality_score(analysis)
+
+        # Potencial basado en issues y calidad actual
+        issue_potential = sum(issue.get('severity', 0) for issue in issues) * 0.3
+        quality_potential = (1.0 - quality_score) * 0.7
+
+        return min(1.0, issue_potential + quality_potential)
+
+    def _analyze_style_match(self, analysis: Dict[str, Any]) -> Dict[str, Any]:
+        """Analizar coherencia de estilo"""
+        instrument_pred = analysis.get('instrument_prediction', {})
+        genre_pred = analysis.get('genre_prediction', {})
+
+        # Verificar coherencia entre instrumentos y género
+        main_instrument = max(instrument_pred.items(), key=lambda x: x[1])[0] if instrument_pred else None
+        main_genre = max(genre_pred.items(), key=lambda x: x[1])[0] if genre_pred else None
+
+        # Reglas de coherencia
+        coherence_rules = {
+            ("vocals", "pop"): 0.9,
+            ("guitar", "rock"): 0.8,
+            ("synth", "electronic"): 0.9,
+            ("piano", "jazz"): 0.7,
+            ("drums", "rock"): 0.6,
+        }
+
+        coherence_score = coherence_rules.get((main_instrument, main_genre), 0.5)
+
+        return {
+            "main_instrument": main_instrument,
+            "main_genre": main_genre,
+            "coherence_score": coherence_score,
+            "recommendations": self._generate_style_recommendations(main_instrument, main_genre)
+        }
+
+    def _generate_style_recommendations(self, instrument: str, genre: str) -> List[str]:
+        """Generar recomendaciones de estilo"""
+        recommendations = []
+
+        if instrument == "vocals" and genre == "pop":
+            recommendations.append("Considerar compresión vocal moderna")
+            recommendations.append("Añadir reverb de placa para presencia")
+            recommendations.append("EQ de presencia alrededor de 5kHz")
+
+        elif instrument == "guitar" and genre == "rock":
+            recommendations.append("Saturación de amplificador")
+            recommendations.append("Compresión de guitarra rítmica")
+            recommendations.append("EQ en corte de caja")
+
+        return recommendations
+
+    def _analyze_emotional_impact(self, analysis: Dict[str, Any]) -> Dict[str, Any]:
+        """Analizar impacto emocional"""
+        mood_pred = analysis.get('mood_prediction', {})
+        spectral_centroid = analysis.get('spectral_centroid', 1000)
+        dynamic_range = analysis.get('dynamic_range', 10)
+
+        # Determinar emoción dominante
+        if mood_pred:
+            main_mood = max(mood_pred.items(), key=lambda x: x[1])[0]
+        else:
+            main_mood = "neutral"
+
+        # Calcular intensidad emocional
+        brightness_factor = spectral_centroid / 4000  # Normalizado
+        dynamics_factor = 1.0 - (dynamic_range / 20)  # Menor rango = más intenso
+
+        emotional_intensity = (brightness_factor + dynamics_factor) / 2
+
+        return {
+            "dominant_mood": main_mood,
+            "emotional_intensity": emotional_intensity,
+            "mood_consistency": self._calculate_mood_consistency(mood_pred),
+            "suggested_enhancements": self._suggest_emotional_enhancements(main_mood, emotional_intensity)
+        }
+
+    def _calculate_mood_consistency(self, mood_pred: Dict[str, float]) -> float:
+        """Calcular consistencia del mood"""
+        if not mood_pred:
+            return 0.5
+
+        values = list(mood_pred.values())
+        if len(values) > 1:
+            # Desviación estándar normalizada
+            std = np.std(values)
+            return 1.0 - min(1.0, std * 2)
+        return 1.0
+
+    def _suggest_emotional_enhancements(self, mood: str, intensity: float) -> List[str]:
+        """Sugerir mejoras emocionales"""
+        suggestions = []
+
+        if mood == "energetic" and intensity < 0.7:
+            suggestions.append("Aumentar compresión para más impacto")
+            suggestions.append("EQ boost en frecuencias altas")
+
+        elif mood == "calm" and intensity > 0.3:
+            suggestions.append("Reducir compresión para más dinámica")
+            suggestions.append("EQ cut en frecuencias agresivas")
+
+        return suggestions
+
+    def _analyze_commercial_potential(self, analysis: Dict[str, Any]) -> Dict[str, Any]:
+        """Analizar potencial comercial"""
+        lufs = analysis.get('lufs_integrated', -14)
+        true_peak = analysis.get('true_peak_dbfs', -1)
+        issues = analysis.get('issues', [])
+
+        # Puntuación de preparación para streaming
+        streaming_score = 1.0
+
+        # Penalizar por LUFS incorrecto
+        if lufs > -14:
+            streaming_score -= 0.3
+        elif lufs < -16:
+            streaming_score -= 0.1
+
+        # Penalizar por true peak
+        if true_peak > -1:
+            streaming_score -= 0.2
+
+        # Penalizar por issues críticos
+        critical_issues = [i for i in issues if i.get('severity', 0) > 0.8]
+        streaming_score -= len(critical_issues) * 0.1
+
+        streaming_score = max(0.0, min(1.0, streaming_score))
+
+        return {
+            "streaming_readiness": streaming_score,
+            "platform_compliance": self._check_platform_compliance(analysis),
+            "commercial_improvements": self._suggest_commercial_improvements(streaming_score, issues)
+        }
+
+    def _check_platform_compliance(self, analysis: Dict[str, Any]) -> Dict[str, bool]:
+        """Verificar cumplimiento con plataformas"""
+        lufs = analysis.get('lufs_integrated', -14)
+        true_peak = analysis.get('true_peak_dbfs', -1)
+
+        return {
+            "spotify": lufs <= -14 and true_peak <= -1,
+            "apple_music": lufs <= -16 and true_peak <= -1,
+            "youtube": lufs <= -13 and true_peak <= -1,
+            "tidal": lufs <= -14 and true_peak <= -1
+        }
+
+    def _suggest_commercial_improvements(self, score: float, issues: List[Dict[str, Any]]) -> List[str]:
+        """Sugerir mejoras comerciales"""
+        improvements = []
+
+        if score < 0.8:
+            improvements.append("Ajustar LUFS para plataformas de streaming")
+
+        critical_issues = [i for i in issues if i.get('type') in ['clipping', 'sibilance']]
+        if critical_issues:
+            improvements.append("Corregir problemas críticos de audio")
+
+        return improvements
+
+    def _estimate_processing_complexity(self, analysis: Dict[str, Any]) -> str:
+        """Estimar complejidad de procesamiento"""
+        issues = analysis.get('issues', [])
+        improvement_potential = self._calculate_improvement_potential(analysis)
+
+        if len(issues) > 5 or improvement_potential > 0.7:
+            return "high"
+        elif len(issues) > 2 or improvement_potential > 0.4:
+            return "medium"
+        else:
+            return "low"
+
+    def _estimate_processing_time(self, analysis: Dict[str, Any]) -> float:
+        """Estimar tiempo de procesamiento"""
+        duration = analysis.get('duration', 180)
+        complexity = self._estimate_processing_complexity(analysis)
+
+        # Tiempo estimado en segundos
+        time_multipliers = {
+            "low": 2.0,
+            "medium": 3.0,
+            "high": 5.0
+        }
+
+        return duration * time_multipliers.get(complexity, 3.0)
+
+    def _estimate_resource_requirements(self, analysis: Dict[str, Any]) -> Dict[str, Any]:
+        """Estimar requerimientos de recursos"""
+        complexity = self._estimate_processing_complexity(analysis)
+
+        requirements = {
+            "low": {"cpu": 1, "memory_mb": 512, "gpu": False},
+            "medium": {"cpu": 2, "memory_mb": 1024, "gpu": False},
+            "high": {"cpu": 4, "memory_mb": 2048, "gpu": True}
+        }
+
+        return requirements.get(complexity, requirements["medium"])
+
+    async def _generate_clarification_questions(self, session_analysis: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Generar preguntas de clarificación"""
+        questions = []
+
+        # Preguntas basadas en análisis
+        artistic = session_analysis.get('artistic', {})
+        style_match = artistic.get('style_match', {})
+
+        if style_match.get('coherence_score', 1.0) < 0.7:
+            questions.append({
+                "question": f"¿El estilo {style_match.get('main_genre')} es intencional para {style_match.get('main_instrument')}?",
+                "context": "style_coherence",
+                "priority": "medium"
+            })
+
+        # Preguntas basadas en issues
+        technical = session_analysis.get('technical', {})
+        issues_by_priority = technical.get('issues_by_priority', {})
+
+        if issues_by_priority.get('critical'):
+            questions.append({
+                "question": "¿Los problemas críticos detectados son intencionales o necesitan corrección?",
+                "context": "critical_issues",
+                "priority": "high"
+            })
+
+        # Preguntas de objetivo
+        questions.append({
+            "question": "¿Cuál es el objetivo principal de esta producción? (streaming, álbum, demo, etc.)",
+            "context": "production_goal",
+            "priority": "high"
+        })
+
+        return questions
+
+    async def _make_initial_decisions(self, session_analysis: Dict[str, Any],
+                                    questions: List[Dict[str, Any]]) -> List[EngineerDecision]:
+        """Tomar decisiones iniciales basadas en análisis"""
+        decisions = []
+
+        # Decisión 1: Prioridad de procesamiento
+        priority_decision = await self._make_priority_decision(session_analysis)
+        decisions.append(priority_decision)
+
+        # Decisión 2: Enfoque de procesamiento
+        approach_decision = await self._make_approach_decision(session_analysis)
+        decisions.append(approach_decision)
+
+        # Decisión 3: Delegación a Switch
+        delegation_decision = await self._make_delegation_decision(session_analysis, questions)
+        decisions.append(delegation_decision)
+
+        return decisions
+
+    async def _make_priority_decision(self, session_analysis: Dict[str, Any]) -> EngineerDecision:
+        """Decidir prioridad de procesamiento"""
+        technical = session_analysis.get('technical', {})
+        issues_by_priority = technical.get('issues_by_priority', {})
+
+        reasoning = []
+
+        if issues_by_priority.get('critical'):
+            action = "process_critical_first"
+            confidence = 0.9
+            reasoning.append("Issues críticos detectados que requieren atención inmediata")
+        elif issues_by_priority.get('high'):
+            action = "process_high_priority"
+            confidence = 0.7
+            reasoning.append("Issues de alta prioridad presentes")
+        else:
+            action = "process_normal"
+            confidence = 0.8
+            reasoning.append("Sin issues críticos, procesamiento normal")
+
+        return EngineerDecision(
+            decision_id=f"priority_{datetime.now().timestamp()}",
+            timestamp=datetime.now(),
+            context={"analysis": technical},
+            reasoning=reasoning,
+            action=action,
+            parameters={"order": ["critical", "high", "medium", "low"]},
+            confidence=confidence,
+            alternatives=[
+                {"action": "process_all_at_once", "confidence": 0.3},
+                {"action": "manual_review_first", "confidence": 0.2}
+            ],
+            expected_outcome={"time_saving": 0.3, "quality_improvement": 0.4}
+        )
+
+    async def _make_approach_decision(self, session_analysis: Dict[str, Any]) -> EngineerDecision:
+        """Decidir enfoque de procesamiento"""
+        artistic = session_analysis.get('artistic', {})
+        practical = session_analysis.get('practical', {})
+
+        style_match = artistic.get('style_match', {})
+        complexity = practical.get('processing_complexity', "medium")
+
+        reasoning = []
+
+        if style_match.get('coherence_score', 1.0) < 0.6:
+            action = "corrective_approach"
+            confidence = 0.8
+            reasoning.append("Baja coherencia de estilo detectada, enfoque correctivo necesario")
+        elif complexity == "high":
+            action = "iterative_approach"
+            confidence = 0.7
+            reasoning.append("Alta complejidad de procesamiento, requiere enfoque iterativo")
+        else:
+            action = "standard_approach"
+            confidence = 0.9
+            reasoning.append("Condiciones normales, enfoque estándar apropiado")
+
+        return EngineerDecision(
+            decision_id=f"approach_{datetime.now().timestamp()}",
+            timestamp=datetime.now(),
+            context={"artistic": artistic, "practical": practical},
+            reasoning=reasoning,
+            action=action,
+            parameters={"max_iterations": 3 if complexity == "high" else 1},
+            confidence=confidence,
+            alternatives=[
+                {"action": "aggressive_approach", "confidence": 0.4},
+                {"action": "conservative_approach", "confidence": 0.3}
+            ],
+            expected_outcome={"quality_gain": 0.6, "processing_time": practical.get('time_estimate', 300)}
+        )
+
+    async def _make_delegation_decision(self, session_analysis: Dict[str, Any],
+                                      questions: List[Dict[str, Any]]) -> EngineerDecision:
+        """Decidir delegación a Switch"""
+        commercial = session_analysis.get('artistic', {}).get('commercial_potential', {})
+        streaming_readiness = commercial.get('streaming_readiness', 0.5)
+
+        reasoning = []
+
+        if streaming_readiness < 0.6:
+            action = "delegate_to_switch"
+            confidence = 0.8
+            reasoning.append("Baja preparación para streaming, requiere optimización de Switch")
+            parameters = {
+                "switch_module": "audio_optimizer",
+                "task": "streaming_preparation",
+                "priority": "high"
+            }
+        elif any(q['priority'] == 'high' for q in questions):
+            action = "delegate_for_clarification"
+            confidence = 0.7
+            reasoning.append("Preguntas de alta prioridad que requieren clarificación")
+            parameters = {
+                "switch_module": "dialogue_manager",
+                "task": "user_clarification",
+                "questions": [q['question'] for q in questions if q['priority'] == 'high']
+            }
+        else:
+            action = "process_locally"
+            confidence = 0.9
+            reasoning.append("Condiciones óptimas para procesamiento local")
+            parameters = {"local_processing": True}
+
+        return EngineerDecision(
+            decision_id=f"delegation_{datetime.now().timestamp()}",
+            timestamp=datetime.now(),
+            context={"commercial": commercial, "questions": questions},
+            reasoning=reasoning,
+            action=action,
+            parameters=parameters,
+            confidence=confidence,
+            alternatives=[
+                {"action": "always_delegate", "confidence": 0.2},
+                {"action": "never_delegate", "confidence": 0.1}
+            ],
+            expected_outcome={"efficiency_gain": 0.4, "quality_improvement": 0.3}
+        )
+
+    async def process_with_answers(self, session: EngineerSession,
+                                 answers: Dict[str, Any]) -> Dict[str, Any]:
+        """Procesar sesión con respuestas del usuario"""
+
+        # Actualizar análisis con respuestas
+        updated_analysis = await self._integrate_answers(session.audio_analysis, answers)
+
+        # Tomar decisiones finales
+        final_decisions = await self._make_final_decisions(updated_analysis, session.decisions)
+        session.decisions.extend(final_decisions)
+
+        # Generar recomendaciones finales
+        final_recommendations = await self._generate_final_recommendations(
+            updated_analysis, session.decisions
+        )
+        session.final_recommendations = final_recommendations
+
+        # Extraer puntos de aprendizaje
+        learning_points = await self._extract_learning_points(session)
+        session.learning_points = learning_points
+
+        # Guardar sesión
+        await self._save_session(session)
+
+        return {
+            "session_id": session.session_id,
+            "decisions": [d.__dict__ for d in session.decisions],
+            "recommendations": final_recommendations,
+            "next_actions": self._determine_next_actions(session)
+        }
+
+    async def _integrate_answers(self, analysis: Dict[str, Any],
+                               answers: Dict[str, Any]) -> Dict[str, Any]:
+        """Integrar respuestas en el análisis"""
+        updated = analysis.copy()
+
+        if 'production_goal' in answers:
+            updated['production_goal'] = answers['production_goal']
+
+        if 'style_intention' in answers:
+            # Ajustar análisis de estilo basado en intención
+            pass
+
+        return updated
+
+    async def _make_final_decisions(self, analysis: Dict[str, Any],
+                                  previous_decisions: List[EngineerDecision]) -> List[EngineerDecision]:
+        """Tomar decisiones finales basadas en análisis actualizado"""
+        decisions = []
+
+        # Decisión de mastering
+        mastering_decision = await self._make_mastering_decision(analysis)
+        decisions.append(mastering_decision)
+
+        # Decisión de export
+        export_decision = await self._make_export_decision(analysis)
+        decisions.append(export_decision)
+
+        return decisions
+
+    async def _make_mastering_decision(self, analysis: Dict[str, Any]) -> EngineerDecision:
+        """Decidir enfoque de mastering"""
+        production_goal = analysis.get('production_goal', 'streaming')
+        commercial = analysis.get('artistic', {}).get('commercial_potential', {})
+        platform_compliance = commercial.get('platform_compliance', {})
+
+        reasoning = []
+
+        if production_goal == 'streaming':
+            action = "streaming_optimized_mastering"
+            confidence = 0.9
+            reasoning.append("Objetivo de streaming detectado, mastering optimizado requerido")
+            parameters = {
+                "target_lufs": -14,
+                "true_peak_limit": -1,
+                "platforms": list(platform_compliance.keys())
+            }
+        elif production_goal == 'album':
+            action = "album_mastering"
+            confidence = 0.8
+            reasoning.append("Mastering para álbum con consistencia entre tracks")
+            parameters = {
+                "target_lufs": -16,
+                "true_peak_limit": -1,
+                "consistency": True
+            }
+        else:
+            action = "general_mastering"
+            confidence = 0.7
+            reasoning.append("Mastering general para propósito desconocido")
+            parameters = {
+                "target_lufs": -14,
+                "true_peak_limit": -1
+            }
+
+        return EngineerDecision(
+            decision_id=f"mastering_{datetime.now().timestamp()}",
+            timestamp=datetime.now(),
+            context={"production_goal": production_goal, "commercial": commercial},
+            reasoning=reasoning,
+            action=action,
+            parameters=parameters,
+            confidence=confidence,
+            alternatives=[
+                {"action": "light_mastering", "confidence": 0.3},
+                {"action": "heavy_mastering", "confidence": 0.4}
+            ],
+            expected_outcome={"lufs_compliance": 0.9, "platform_ready": True}
+        )
+
+    async def _make_export_decision(self, analysis: Dict[str, Any]) -> EngineerDecision:
+        """Decidir formato y calidad de export"""
+        production_goal = analysis.get('production_goal', 'streaming')
+
+        reasoning = []
+
+        if production_goal == 'streaming':
+            action = "multi_format_export"
+            confidence = 0.9
+            reasoning.append("Exportar múltiples formatos para diferentes plataformas")
+            parameters = {
+                "formats": ["wav_24bit", "mp3_320", "flac"],
+                "sample_rates": [44100, 48000]
+            }
+        elif production_goal == 'archive':
+            action = "lossless_export"
+            confidence = 0.8
+            reasoning.append("Exportar formatos sin pérdida para archivo")
+            parameters = {
+                "formats": ["wav_32bit", "flac", "aiff"],
+                "sample_rates": [96000, 192000]
+            }
+        else:
+            action = "standard_export"
+            confidence = 0.7
+            reasoning.append("Exportar formato estándar")
+            parameters = {
+                "formats": ["wav_24bit", "mp3_320"],
+                "sample_rates": [44100]
+            }
+
+        return EngineerDecision(
+            decision_id=f"export_{datetime.now().timestamp()}",
+            timestamp=datetime.now(),
+            context={"production_goal": production_goal},
+            reasoning=reasoning,
+            action=action,
+            parameters=parameters,
+            confidence=confidence,
+            alternatives=[
+                {"action": "minimal_export", "confidence": 0.2},
+                {"action": "maximum_export", "confidence": 0.3}
+            ],
+            expected_outcome={"file_size": "varía", "quality": "high"}
+        )
+
+    async def _generate_final_recommendations(self, analysis: Dict[str, Any],
+                                            decisions: List[EngineerDecision]) -> Dict[str, Any]:
+        """Generar recomendaciones finales"""
+        recommendations = {
+            "technical": [],
+            "artistic": [],
+            "workflow": [],
+            "next_steps": []
+        }
+
+        # Recomendaciones técnicas basadas en issues
+        issues = analysis.get('issues', [])
+        for issue in issues[:5]:  # Top 5 issues
+            if issue.get('severity', 0) > 0.6:
+                recommendations["technical"].append({
+                    "issue": issue['type'],
+                    "description": issue['description'],
+                    "action": f"Reparar {issue['type']}",
+                    "priority": "high" if issue['severity'] > 0.8 else "medium"
+                })
+
+        # Recomendaciones artísticas basadas en estilo
+        artistic = analysis.get('artistic', {})
+        style_match = artistic.get('style_match', {})
+
+        if style_match.get('coherence_score', 1.0) < 0.7:
+            recommendations["artistic"].append({
+                "aspect": "coherencia_estilo",
+                "description": f"Baja coherencia entre {style_match.get('main_instrument')} y {style_match.get('main_genre')}",
+                "suggestion": "Revisar selección de instrumentos o género objetivo"
+            })
+
+        # Recomendaciones de workflow basadas en decisiones
+        for decision in decisions:
+            if decision.action.startswith("delegate"):
+                recommendations["workflow"].append({
+                    "action": "Delegación",
+                    "module": decision.parameters.get("switch_module"),
+                    "reason": "Eficiencia del sistema"
+                })
+
+        # Próximos pasos
+        recommendations["next_steps"] = [
+            "Aplicar cadena de efectos recomendada",
+            "Revisar análisis de mastering",
+            "Exportar en formatos apropiados"
+        ]
+
+        return recommendations
+
+    async def _extract_learning_points(self, session: EngineerSession) -> List[Dict[str, Any]]:
+        """Extraer puntos de aprendizaje de la sesión"""
+        learning_points = []
+
+        # Aprender de decisiones efectivas
+        effective_decisions = [d for d in session.decisions if d.confidence > 0.8]
+        for decision in effective_decisions:
+            learning_points.append({
+                "type": "effective_decision",
+                "decision": decision.action,
+                "context": list(decision.context.keys()),
+                "confidence": decision.confidence
+            })
+
+        # Aprender de issues frecuentes
+        issues = session.audio_analysis.get('issues', [])
+        issue_types = {}
+        for issue in issues:
+            issue_type = issue['type']
+            issue_types[issue_type] = issue_types.get(issue_type, 0) + 1
+
+        for issue_type, count in issue_types.items():
+            if count > 1:
+                learning_points.append({
+                    "type": "frequent_issue",
+                    "issue": issue_type,
+                    "frequency": count,
+                    "suggestion": f"Considerar detección temprana de {issue_type}"
+                })
+
+        return learning_points
+
+    async def _save_session(self, session: EngineerSession):
+        """Guardar sesión en base de datos"""
+        # Implementar guardado en BD
+        async with self.db_session_factory() as db:
+            # Guardar sesión y decisiones
+            pass
+
+    def _determine_next_actions(self, session: EngineerSession) -> List[Dict[str, Any]]:
+        """Determinar siguientes acciones"""
+        actions = []
+
+        # Acción 1: Procesar con decisiones tomadas
+        actions.append({
+            "action": "apply_processing",
+            "description": "Aplicar procesamiento basado en decisiones del ingeniero",
+            "priority": "high",
+            "estimated_time": session.audio_analysis.get('duration', 180) * 2
+        })
+
+        # Acción 2: Revisar resultados
+        actions.append({
+            "action": "review_results",
+            "description": "Revisar resultados del procesamiento",
+            "priority": "medium",
+            "estimated_time": 60
+        })
+
+        # Acción 3: Ajustar basado en feedback
+        actions.append({
+            "action": "adjust_processing",
+            "description": "Ajustar procesamiento basado en revisión",
+            "priority": "low",
+            "estimated_time": session.audio_analysis.get('duration', 180)
+        })
+
+        return actions
+
+    async def learn_from_feedback(self, session_id: str, feedback: Dict[str, Any]):
+        """Aprender de feedback del usuario"""
+        # Encontrar sesión
+        session = next((s for s in self.session_history if s.session_id == session_id), None)
+
+        if session:
+            # Actualizar decisiones basadas en feedback
+            for decision in session.decisions:
+                if decision.decision_id in feedback.get('decisions_feedback', {}):
+                    fb = feedback['decisions_feedback'][decision.decision_id]
+
+                    # Ajustar confianza basada en feedback
+                    if fb.get('correct', True):
+                        decision.confidence = min(1.0, decision.confidence + 0.1)
+                    else:
+                        decision.confidence = max(0.0, decision.confidence - 0.2)
+
+                    # Agregar a patrones de aprendizaje
+                    self.learned_patterns.append({
+                        "decision_pattern": decision.action,
+                        "context_keys": list(decision.context.keys()),
+                        "outcome": fb.get('outcome', 'unknown'),
+                        "adjusted_confidence": decision.confidence
+                    })
+
+            # Guardar aprendizaje
+            await self._save_learning_patterns()
+```
+
+```python
+# shub/mode_c_pipeline.py
+import asyncio
+from typing import Dict, List, Any, Optional
+from dataclasses import dataclass
+import numpy as np
+from datetime import datetime
+
+@dataclass
+class ModeCResult:
+    """Resultado del pipeline Modo C"""
+    input_hash: str
+    raw_data: Optional[np.ndarray]
+    normalization_applied: bool
+    fft_results: Dict[str, Any]
+    classification: Dict[str, Any]
+    issues_detected: List[Dict[str, Any]]
+    fx_chain_generated: bool
+    preset_created: bool
+    vx11_json: Dict[str, Any]
+    processing_stages: List[str]
+    errors: List[str]
+
+class ModeCPipeline:
+    """Pipeline específico del Modo C (Híbrido)"""
+
+    def __init__(self, dsp_pipeline, config):
+        self.dsp_pipeline = dsp_pipeline
+        self.config = config
+        self.stage_handlers = {
+            "raw": self._process_raw,
+            "normalize": self._process_normalize,
+            "fft": self._process_fft,
+            "classify": self._process_classify,
+            "issues": self._process_issues,
+            "fx_chain": self._process_fx_chain,
+            "preset": self._process_preset,
+            "vx11": self._process_vx11
+        }
+
+    async def execute_pipeline(self, audio_data: np.ndarray,
+                             sample_rate: int = 48000,
+                             metadata: Dict[str, Any] = None) -> ModeCResult:
+        """Ejecutar pipeline completo Modo C"""
+        result = ModeCResult(
+            input_hash=self._hash_audio(audio_data),
+            raw_data=audio_data.copy() if self.config.get('keep_raw_data', False) else None,
+            normalization_applied=False,
+            fft_results={},
+            classification={},
+            issues_detected=[],
+            fx_chain_generated=False,
+            preset_created=False,
+            vx11_json={},
+            processing_stages=[],
+            errors=[]
+        )
+
+        # Ejecutar etapas en secuencia
+        stages = ["raw", "normalize", "fft", "classify", "issues", "fx_chain", "preset", "vx11"]
+
+        for stage in stages:
+            try:
+                await self.stage_handlers[stage](audio_data, sample_rate, metadata, result)
+                result.processing_stages.append(f"{stage}_completed")
+            except Exception as e:
+                result.errors.append(f"Stage {stage} failed: {str(e)}")
+                result.processing_stages.append(f"{stage}_failed")
+
+                # Si la etapa es crítica, detener el pipeline
+                if stage in ["raw", "normalize", "fft"]:
+                    break
+
+        return result
+
+    def _hash_audio(self, audio_data: np.ndarray) -> str:
+        """Generar hash del audio para identificación"""
+        import hashlib
+        # Usar primeros y últimos 1024 samples para hash rápido
+        if len(audio_data) > 2048:
+            sample_points = np.concatenate([audio_data[:1024], audio_data[-1024:]])
+        else:
+            sample_points = audio_data
+
+        # Convertir a bytes y hash
+        audio_bytes = sample_points.tobytes()
+        return hashlib.md5(audio_bytes).hexdigest()
+
+    async def _process_raw(self, audio_data: np.ndarray, sample_rate: int,
+                         metadata: Dict[str, Any], result: ModeCResult):
+        """Procesamiento RAW: Validación y análisis básico"""
+        # Validar datos de audio
+        if audio_data is None or len(audio_data) == 0:
+            raise ValueError("Datos de audio vacíos o nulos")
+
+        if sample_rate < 8000 or sample_rate > 192000:
+            raise ValueError(f"Sample rate {sample_rate} fuera de rango aceptable")
+
+        # Análisis RAW básico
+        max_amplitude = np.max(np.abs(audio_data))
+        if max_amplitude > 1.5:  # Posible clipping digital
+            result.issues_detected.append({
+                "stage": "raw",
+                "type": "possible_digital_clipping",
+                "severity": 0.8,
+                "description": f"Amplitud máxima {max_amplitude:.2f} > 1.0"
+            })
+
+        # Verificar NaN o Inf
+        if np.any(np.isnan(audio_data)) or np.any(np.isinf(audio_data)):
+            raise ValueError("Datos de audio contienen NaN o Inf")
+
+    async def _process_normalize(self, audio_data: np.ndarray, sample_rate: int,
+                               metadata: Dict[str, Any], result: ModeCResult):
+        """Normalización del audio"""
+        # Peak normalization a -3 dBFS inicial
+        peak = np.max(np.abs(audio_data))
+        if peak > 0:
+            target_peak = 10 ** (-3 / 20)  # -3 dBFS = ~0.7079
+            gain = target_peak / peak
+            audio_data_normalized = audio_data * gain
+        else:
+            audio_data_normalized = audio_data.copy()
+
+        # DC offset removal
+        dc_offset = np.mean(audio_data_normalized)
+        audio_data_normalized = audio_data_normalized - dc_offset
+
+        if abs(dc_offset) > 0.001:
+            result.issues_detected.append({
+                "stage": "normalize",
+                "type": "dc_offset_removed",
+                "severity": 0.3,
+                "description": f"DC offset de {dc_offset:.4f} removido"
+            })
+
+        result.normalization_applied = True
+        # Nota: En producción real, audio_data sería modificado
+
+    async def _process_fft(self, audio_data: np.ndarray, sample_rate: int,
+                         metadata: Dict[str, Any], result: ModeCResult):
+        """Análisis FFT multi-resolución"""
+        fft_sizes = [1024, 2048, 4096]
+
+        for fft_size in fft_sizes:
+            if len(audio_data) >= fft_size:
+                segment = audio_data[:fft_size]
+                fft_result = np.fft.rfft(segment)
+                magnitudes = np.abs(fft_result)
+                frequencies = np.fft.rfftfreq(fft_size, 1/sample_rate)
+
+                # Análisis por bandas de frecuencia
+                bands = {
+                    "sub_bass": (20, 60),
+                    "bass": (60, 250),
+                    "low_mid": (250, 500),
+                    "mid": (500, 2000),
+                    "high_mid": (2000, 4000),
+                    "presence": (4000, 6000),
+                    "brilliance": (6000, 20000)
+                }
+
+                band_energies = {}
+                for band_name, (f_low, f_high) in bands.items():
+                    mask = (frequencies >= f_low) & (frequencies <= f_high)
+                    if np.any(mask):
+                        energy = np.sum(magnitudes[mask] ** 2)
+                        band_energies[band_name] = float(energy)
+
+                result.fft_results[f"fft_{fft_size}"] = {
+                    "band_energies": band_energies,
+                    "total_energy": float(np.sum(magnitudes ** 2)),
+                    "spectral_centroid": self._calculate_spectral_centroid(frequencies, magnitudes),
+                    "peak_frequency": float(frequencies[np.argmax(magnitudes)])
+                }
+
+    def _calculate_spectral_centroid(self, frequencies: np.ndarray,
+                                   magnitudes: np.ndarray) -> float:
+        """Calcular centroide espectral"""
+        if np.sum(magnitudes) > 0:
+            return float(np.sum(frequencies * magnitudes) / np.sum(magnitudes))
+        return 0.0
+
+    async def _process_classify(self, audio_data: np.ndarray, sample_rate: int,
+                              metadata: Dict[str, Any], result: ModeCResult):
+        """Clasificación del contenido de audio"""
+        # Usar resultados FFT para clasificación
+        if "fft_4096" in result.fft_results:
+            fft_data = result.fft_results["fft_4096"]
+            band_energies = fft_data.get("band_energies", {})
+
+            # Calcular distribución espectral
+            total_energy = fft_data.get("total_energy", 1.0)
+            spectral_distribution = {}
+
+            for band, energy in band_energies.items():
+                spectral_distribution[band] = energy / total_energy
+
+            # Clasificación basada en distribución
+            if spectral_distribution.get("bass", 0) > 0.4:
+                result.classification["primary_category"] = "bass_heavy"
+            elif spectral_distribution.get("high_mid", 0) > 0.3:
+                result.classification["primary_category"] = "vocal_forward"
+            elif spectral_distribution.get("mid", 0) > 0.5:
+                result.classification["primary_category"] = "mid_range"
+            else:
+                result.classification["primary_category"] = "balanced"
+
+            result.classification["spectral_distribution"] = spectral_distribution
+            result.classification["centroid"] = fft_data.get("spectral_centroid", 0)
+
+    async def _process_issues(self, audio_data: np.ndarray, sample_rate: int,
+                            metadata: Dict[str, Any], result: ModeCResult):
+        """Detección de issues específicos del Modo C"""
+        # Issues espectrales
+        if "fft_4096" in result.fft_results:
+            fft_data = result.fft_results["fft_4096"]
+            band_energies = fft_data.get("band_energies", {})
+
+            # Detectar imbalance espectral
+            if band_energies.get("sub_bass", 0) > band_energies.get("mid", 0) * 2:
+                result.issues_detected.append({
+                    "stage": "issues",
+                    "type": "spectral_imbalance",
+                    "severity": 0.6,
+                    "description": "Excesivo contenido en sub-bass",
+                    "suggestion": "Considerar EQ cut en 20-60Hz"
+                })
+
+            if band_energies.get("brilliance", 0) < band_energies.get("mid", 0) * 0.1:
+                result.issues_detected.append({
+                    "stage": "issues",
+                    "type": "lack_of_highs",
+                    "severity": 0.5,
+                    "description": "Falta de contenido en frecuencias altas",
+                    "suggestion": "Considerar EQ boost en 6-20kHz"
+                })
+
+        # Issues de dinámica (simplificado)
+        window_size = sample_rate // 10  # 100ms
+        if len(audio_data) > window_size:
+            num_windows = len(audio_data) // window_size
+            rms_values = []
+
+            for i in range(num_windows):
+                window = audio_data[i*window_size:(i+1)*window_size]
+                rms = np.sqrt(np.mean(window ** 2))
+                rms_values.append(rms)
+
+            dynamic_range = np.max(rms_values) / np.min(rms_values) if np.min(rms_values) > 0 else 1
+
+            if dynamic_range > 100:
+                result.issues_detected.append({
+                    "stage": "issues",
+                    "type": "high_dynamic_range",
+                    "severity": 0.4,
+                    "description": "Rango dinámico muy alto",
+                    "suggestion": "Considerar compresión ligera"
+                })
+            elif dynamic_range < 5:
+                result.issues_detected.append({
+                    "stage": "issues",
+                    "type": "over_compressed",
+                    "severity": 0.7,
+                    "description": "Audio posiblemente sobre-comprimido",
+                    "suggestion": "Revisar procesamiento dinámico"
+                })
+
+    async def _process_fx_chain(self, audio_data: np.ndarray, sample_rate: int,
+                              metadata: Dict[str, Any], result: ModeCResult):
+        """Generación de cadena de efectos"""
+        # Generar FX chain basada en clasificación y issues
+        if result.classification and result.issues_detected:
+            # Determinar tipo de FX chain necesaria
+            primary_category = result.classification.get("primary_category", "balanced")
+
+            fx_chain_type = {
+                "bass_heavy": "bass_management",
+                "vocal_forward": "vocal_clarity",
+                "mid_range": "mid_enhancement",
+                "balanced": "general_enhancement"
+            }.get(primary_category, "general_enhancement")
+
+            # Contar issues por tipo
+            issue_types = {}
+            for issue in result.issues_detected:
+                issue_type = issue.get("type", "unknown")
+                issue_types[issue_type] = issue_types.get(issue_type, 0) + 1
+
+            # Determinar plugins necesarios
+            plugins = []
+
+            if "spectral_imbalance" in issue_types:
+                plugins.append({
+                    "type": "eq",
+                    "purpose": "balance_spectrum",
+                    "parameters": {"type": "dynamic_eq", "bands": 4}
+                })
+
+            if "over_compressed" in issue_types:
+                plugins.append({
+                    "type": "expander",
+                    "purpose": "restore_dynamics",
+                    "parameters": {"ratio": 0.5, "threshold": -30}
+                })
+
+            if "lack_of_highs" in issue_types:
+                plugins.append({
+                    "type": "eq",
+                    "purpose": "add_air",
+                    "parameters": {"type": "high_shelf", "frequency": 8000, "gain": 2}
+                })
+
+            result.fx_chain_generated = True
+            result.vx11_json["fx_chain"] = {
+                "type": fx_chain_type,
+                "plugins": plugins,
+                "auto_generated": True
+            }
+
+    async def _process_preset(self, audio_data: np.ndarray, sample_rate: int,
+                            metadata: Dict[str, Any], result: ModeCResult):
+        """Generación de preset REAPER"""
+        if result.fx_chain_generated:
+            # Crear preset básico
+            preset = {
+                "project_name": f"Shub_ModoC_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                "sample_rate": sample_rate,
+                "bit_depth": 24,
+                "tracks": [
+                    {
+                        "name": "Audio",
+                        "volume": 0.0,
+                        "pan": 0.0,
+                        "fx_chain": result.vx11_json.get("fx_chain", {}),
+                        "routing": "Master"
+                    }
+                ],
+                "master_track": {
+                    "fx_chain": {
+                        "type": "mastering",
+                        "plugins": [
+                            {
+                                "type": "limiter",
+                                "purpose": "true_peak",
+                                "parameters": {"threshold": -1.0, "ceiling": -1.0}
+                            }
+                        ]
+                    }
+                }
+            }
+
+            result.preset_created = True
+            result.vx11_json["reaper_preset"] = preset
+
+    async def _process_vx11(self, audio_data: np.ndarray, sample_rate: int,
+                          metadata: Dict[str, Any], result: ModeCResult):
+        """Generación de JSON final para VX11"""
+        # Construir JSON final
+        vx11_json = {
+            "mode": "C",
+            "pipeline_version": "1.0.0",
+            "timestamp": datetime.now().isoformat(),
+            "input_hash": result.input_hash,
+            "processing_summary": {
+                "stages_completed": len([s for s in result.processing_stages if "completed" in s]),
+                "stages_failed": len([s for s in result.processing_stages if "failed" in s]),
+                "total_stages": len(result.processing_stages)
+            },
+            "analysis_results": {
+                "classification": result.classification,
+                "fft_analysis": result.fft_results.get("fft_4096", {}),
+                "issues_detected": result.issues_detected
+            },
+            "recommendations": {
+                "fx_chain": result.vx11_json.get("fx_chain", {}),
+                "preset": result.vx11_json.get("reaper_preset", {})
+            },
+            "metadata": metadata or {},
+            "system_info": {
+                "pipeline": "mode_c_hybrid",
+                "audio_duration": len(audio_data) / sample_rate if sample_rate > 0 else 0,
+                "sample_rate": sample_rate
+            }
+        }
+
+        result.vx11_json = vx11_json
+
+    async def execute_parallel(self, audio_data: np.ndarray,
+                             sample_rate: int = 48000,
+                             metadata: Dict[str, Any] = None) -> ModeCResult:
+        """Ejecutar pipeline en paralelo cuando sea posible"""
+        # Etapas que pueden ejecutarse en paralelo
+        parallel_stages = [
+            self._process_fft,
+            self._process_classify,
+            self._process_issues
+        ]
+
+        result = ModeCResult(
+            input_hash=self._hash_audio(audio_data),
+            raw_data=None,
+            normalization_applied=False,
+            fft_results={},
+            classification={},
+            issues_detected=[],
+            fx_chain_generated=False,
+            preset_created=False,
+            vx11_json={},
+            processing_stages=[],
+            errors=[]
+        )
+
+        # Ejecutar etapas secuenciales primero
+        try:
+            await self._process_raw(audio_data, sample_rate, metadata, result)
+            await self._process_normalize(audio_data, sample_rate, metadata, result)
+        except Exception as e:
+            result.errors.append(f"Initial stages failed: {str(e)}")
+            return result
+
+        # Ejecutar etapas paralelas
+        parallel_tasks = []
+        for stage_func in parallel_stages:
+            task = stage_func(audio_data, sample_rate, metadata, result)
+            parallel_tasks.append(task)
+
+        try:
+            await asyncio.gather(*parallel_tasks, return_exceptions=True)
+        except Exception as e:
+            result.errors.append(f"Parallel stages failed: {str(e)}")
+
+        # Etapas finales secuenciales
+        if not result.errors:
+            try:
+                await self._process_fx_chain(audio_data, sample_rate, metadata, result)
+                if result.fx_chain_generated:
+                    await self._process_preset(audio_data, sample_rate, metadata, result)
+                await self._process_vx11(audio_data, sample_rate, metadata, result)
+            except Exception as e:
+                result.errors.append(f"Final stages failed: {str(e)}")
+
+        return result
+```
+
+```python
+# shub/shub_db.py
+import asyncio
+from typing import Dict, List, Any, Optional
+from datetime import datetime
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker, relationship
+from sqlalchemy import Column, Integer, String, Float, DateTime, Text, JSON, Boolean, ForeignKey
+from sqlalchemy import create_engine, MetaData
+import json
+
+Base = declarative_base()
+
+class Project(Base):
+    __tablename__ = 'shub_projects'
+
+    id = Column(String, primary_key=True)
+    name = Column(String, nullable=False)
+    description = Column(Text)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    metadata = Column(JSON)
+
+    # Relaciones
+    tracks = relationship("Track", back_populates="project", cascade="all, delete-orphan")
+    analyses = relationship("Analysis", back_populates="project", cascade="all, delete-orphan")
+
+class Track(Base):
+    __tablename__ = 'shub_tracks'
+
+    id = Column(String, primary_key=True)
+    project_id = Column(String, ForeignKey('shub_projects.id'), nullable=False)
+    name = Column(String, nullable=False)
+    file_path = Column(String)
+    duration = Column(Float)
+    sample_rate = Column(Integer)
+    channels = Column(Integer)
+    metadata = Column(JSON)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    # Relaciones
+    project = relationship("Project", back_populates="tracks")
+    analyses = relationship("Analysis", back_populates="track", cascade="all, delete-orphan")
+    assets = relationship("Asset", back_populates="track", cascade="all, delete-orphan")
+
+class Analysis(Base):
+    __tablename__ = 'shub_analyses'
+
+    id = Column(String, primary_key=True)
+    project_id = Column(String, ForeignKey('shub_projects.id'), nullable=False)
+    track_id = Column(String, ForeignKey('shub_tracks.id'))
+    analysis_type = Column(String, nullable=False)  # 'full', 'quick', 'mode_c'
+    results = Column(JSON, nullable=False)
+    quality_score = Column(Float)
+    issues_count = Column(Integer, default=0)
+    processing_time = Column(Float)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    # Relaciones
+    project = relationship("Project", back_populates="analyses")
+    track = relationship("Track", back_populates="analyses")
+    fx_chains = relationship("FXChain", back_populates="analysis", cascade="all, delete-orphan")
+    decisions = relationship("Decision", back_populates="analysis", cascade="all, delete-orphan")
+
+class FXChain(Base):
+    __tablename__ = 'shub_fx_chains'
+
+    id = Column(String, primary_key=True)
+    analysis_id = Column(String, ForeignKey('shub_analyses.id'), nullable=False)
+    name = Column(String, nullable=False)
+    chain_type = Column(String)  # 'track', 'bus', 'master', 'parallel'
+    plugins = Column(JSON, nullable=False)
+    parameters = Column(JSON)
+    presets = Column(JSON)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    # Relaciones
+    analysis = relationship("Analysis", back_populates="fx_chains")
+    presets_rel = relationship("Preset", back_populates="fx_chain", cascade="all, delete-orphan")
+
+class Preset(Base):
+    __tablename__ = 'shub_presets'
+
+    id = Column(String, primary_key=True)
+    fx_chain_id = Column(String, ForeignKey('shub_fx_chains.id'), nullable=False)
+    name = Column(String, nullable=False)
+    preset_type = Column(String)  # 'reaper', 'ableton', 'generic'
+    data = Column(JSON, nullable=False)
+    description = Column(Text)
+    rating = Column(Float, default=0.0)
+    usage_count = Column(Integer, default=0)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relaciones
+    fx_chain = relationship("FXChain", back_populates="presets_rel")
+
+class Issue(Base):
+    __tablename__ = 'shub_issues'
+
+    id = Column(String, primary_key=True)
+    analysis_id = Column(String, ForeignKey('shub_analyses.id'), nullable=False)
+    issue_type = Column(String, nullable=False)  # 'clipping', 'sibilance', 'noise', etc.
+    severity = Column(Float, nullable=False)
+    description = Column(Text)
+    frequency_range = Column(String)
+    timestamp = Column(Float)  # En segundos dentro del audio
+    suggested_fix = Column(JSON)
+    fixed = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    # Relaciones
+    analysis = relationship("Analysis")
+
+class Asset(Base):
+    __tablename__ = 'shub_assets'
+
+    id = Column(String, primary_key=True)
+    track_id = Column(String, ForeignKey('shub_tracks.id'), nullable=False)
+    asset_type = Column(String, nullable=False)  # 'audio', 'midi', 'preset', 'analysis'
+    file_path = Column(String)
+    file_hash = Column(String)
+    metadata = Column(JSON)
+    size_bytes = Column(Integer)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    # Relaciones
+    track = relationship("Track", back_populates="assets")
+
+class Decision(Base):
+    __tablename__ = 'shub_decisions'
+
+    id = Column(String, primary_key=True)
+    analysis_id = Column(String, ForeignKey('shub_analyses.id'), nullable=False)
+    decision_type = Column(String, nullable=False)  # 'processing', 'fx', 'mastering', 'export'
+    context = Column(JSON)
+    reasoning = Column(JSON)  # Lista de razones
+    action = Column(String, nullable=False)
+    parameters = Column(JSON)
+    confidence = Column(Float)
+    alternatives = Column(JSON)
+    expected_outcome = Column(JSON)
+    actual_outcome = Column(JSON)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    # Relaciones
+    analysis = relationship("Analysis", back_populates="decisions")
+
+class AutolearnMemory(Base):
+    __tablename__ = 'shub_autolearn_memory'
+
+    id = Column(String, primary_key=True)
+    pattern_type = Column(String, nullable=False)  # 'decision', 'issue', 'fx_chain'
+    pattern_data = Column(JSON, nullable=False)
+    context = Column(JSON)
+    success_rate = Column(Float, default=0.0)
+    usage_count = Column(Integer, default=0)
+    last_used = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+class History(Base):
+    __tablename__ = 'shub_history'
+
+    id = Column(String, primary_key=True)
+    entity_type = Column(String, nullable=False)  # 'project', 'track', 'analysis', etc.
+    entity_id = Column(String, nullable=False)
+    action = Column(String, nullable=False)  # 'create', 'update', 'delete', 'process'
+    details = Column(JSON)
+    user_id = Column(String)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+# Funciones de utilidad para la base de datos
+class ShubDatabase:
+    """Manejador de base de datos para Shub"""
+
+    def __init__(self, db_url: str):
+        self.db_url = db_url
+        self.engine = None
+        self.session_factory = None
+
+    async def initialize(self):
+        """Inicializar conexión a base de datos"""
+        self.engine = create_async_engine(self.db_url, echo=False)
+        self.session_factory = sessionmaker(
+            self.engine, class_=AsyncSession, expire_on_commit=False
+        )
+
+        # Crear tablas si no existen
+        async with self.engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+
+    async def save_analysis(self, project_id: str, track_id: str,
+                          analysis_type: str, results: Dict[str, Any],
+                          processing_time: float) -> str:
+        """Guardar análisis en base de datos"""
+        import uuid
+        from sqlalchemy import select
+
+        analysis_id = str(uuid.uuid4())
+
+        async with self.session_factory() as session:
+            # Contar issues
+            issues_count = len(results.get('issues', []))
+
+            # Calcular quality score
+            quality_score = self._calculate_quality_score(results)
+
+            analysis = Analysis(
+                id=analysis_id,
+                project_id=project_id,
+                track_id=track_id,
+                analysis_type=analysis_type,
+                results=results,
+                quality_score=quality_score,
+                issues_count=issues_count,
+                processing_time=processing_time
+            )
+
+            session.add(analysis)
+            await session.commit()
+
+            # Guardar issues individualmente
+            for issue_data in results.get('issues', []):
+                issue_id = str(uuid.uuid4())
+                issue = Issue(
+                    id=issue_id,
+                    analysis_id=analysis_id,
+                    issue_type=issue_data.get('type', 'unknown'),
+                    severity=issue_data.get('severity', 0.5),
+                    description=issue_data.get('description', ''),
+                    frequency_range=issue_data.get('frequency_range'),
+                    timestamp=issue_data.get('timestamp'),
+                    suggested_fix=issue_data.get('suggestion')
+                )
+                session.add(issue)
+
+            await session.commit()
+
+        return analysis_id
+
+    def _calculate_quality_score(self, results: Dict[str, Any]) -> float:
+        """Calcular puntuación de calidad basada en análisis"""
+        score = 1.0
+
+        # Penalizar por issues
+        issues = results.get('issues', [])
+        for issue in issues:
+            severity = issue.get('severity', 0.5)
+            score -= severity * 0.1
+
+        # Recompensar buen rango dinámico
+        dynamic_range = results.get('dynamic_range', 10)
+        if 8 <= dynamic_range <= 12:
+            score += 0.1
+
+        # Recompensar buen LUFS
+        lufs = results.get('lufs_integrated', -14)
+        if -16 <= lufs <= -12:
+            score += 0.1
+
+        return max(0.0, min(1.0, score))
+
+    async def save_fx_chain(self, analysis_id: str, name: str,
+                          chain_type: str, plugins: List[Dict[str, Any]],
+                          parameters: Dict[str, Any] = None) -> str:
+        """Guardar cadena de efectos"""
+        import uuid
+
+        fx_chain_id = str(uuid.uuid4())
+
+        async with self.session_factory() as session:
+            fx_chain = FXChain(
+                id=fx_chain_id,
+                analysis_id=analysis_id,
+                name=name,
+                chain_type=chain_type,
+                plugins=plugins,
+                parameters=parameters or {}
+            )
+
+            session.add(fx_chain)
+            await session.commit()
+
+        return fx_chain_id
+
+    async def save_decision(self, analysis_id: str, decision_type: str,
+                          context: Dict[str, Any], reasoning: List[str],
+                          action: str, parameters: Dict[str, Any],
+                          confidence: float) -> str:
+        """Guardar decisión del ingeniero virtual"""
+        import uuid
+
+        decision_id = str(uuid.uuid4())
+
+        async with self.session_factory() as session:
+            decision = Decision(
+                id=decision_id,
+                analysis_id=analysis_id,
+                decision_type=decision_type,
+                context=context,
+                reasoning=reasoning,
+                action=action,
+                parameters=parameters,
+                confidence=confidence
+            )
+
+            session.add(decision)
+            await session.commit()
+
+        return decision_id
+
+    async def get_project_analyses(self, project_id: str,
+                                 limit: int = 10) -> List[Dict[str, Any]]:
+        """Obtener análisis de un proyecto"""
+        from sqlalchemy import select
+
+        async with self.session_factory() as session:
+            stmt = select(Analysis).where(
+                Analysis.project_id == project_id
+            ).order_by(Analysis.created_at.desc()).limit(limit)
+
+            result = await session.execute(stmt)
+            analyses = result.scalars().all()
+
+            return [
+                {
+                    "id": a.id,
+                    "type": a.analysis_type,
+                    "quality_score": a.quality_score,
+                    "issues_count": a.issues_count,
+                    "processing_time": a.processing_time,
+                    "created_at": a.created_at.isoformat()
+                }
+                for a in analyses
+            ]
+
+    async def get_analysis_details(self, analysis_id: str) -> Optional[Dict[str, Any]]:
+        """Obtener detalles completos de un análisis"""
+        from sqlalchemy import select
+
+        async with self.session_factory() as session:
+            # Obtener análisis
+            stmt = select(Analysis).where(Analysis.id == analysis_id)
+            result = await session.execute(stmt)
+            analysis = result.scalar_one_or_none()
+
+            if not analysis:
+                return None
+
+            # Obtener issues relacionados
+            stmt_issues = select(Issue).where(Issue.analysis_id == analysis_id)
+            result_issues = await session.execute(stmt_issues)
+            issues = result_issues.scalars().all()
+
+            # Obtener decisiones relacionadas
+            stmt_decisions = select(Decision).where(Decision.analysis_id == analysis_id)
+            result_decisions = await session.execute(stmt_decisions)
+            decisions = result_decisions.scalars().all()
+
+            return {
+                "analysis": {
+                    "id": analysis.id,
+                    "type": analysis.analysis_type,
+                    "results": analysis.results,
+                    "quality_score": analysis.quality_score,
+                    "processing_time": analysis.processing_time,
+                    "created_at": analysis.created_at.isoformat()
+                },
+                "issues": [
+                    {
+                        "type": i.issue_type,
+                        "severity": i.severity,
+                        "description": i.description,
+                        "fixed": i.fixed
+                    }
+                    for i in issues
+                ],
+                "decisions": [
+                    {
+                        "type": d.decision_type,
+                        "action": d.action,
+                        "confidence": d.confidence,
+                        "created_at": d.created_at.isoformat()
+                    }
+                    for d in decisions
+                ]
+            }
+
+    async def update_issue_status(self, issue_id: str, fixed: bool = True):
+        """Actualizar estado de un issue"""
+        from sqlalchemy import update
+
+        async with self.session_factory() as session:
+            stmt = update(Issue).where(Issue.id == issue_id).values(fixed=fixed)
+            await session.execute(stmt)
+            await session.commit()
+
+    async def increment_preset_usage(self, preset_id: str):
+        """Incrementar contador de uso de un preset"""
+        from sqlalchemy import update, select
+
+        async with self.session_factory() as session:
+            # Obtener uso actual
+            stmt = select(Preset).where(Preset.id == preset_id)
+            result = await session.execute(stmt)
+            preset = result.scalar_one_or_none()
+
+            if preset:
+                # Incrementar y actualizar
+                new_count = preset.usage_count + 1
+                stmt_update = update(Preset).where(
+                    Preset.id == preset_id
+                ).values(
+                    usage_count=new_count,
+                    last_used=datetime.utcnow()
+                )
+                await session.execute(stmt_update)
+                await session.commit()
+
+async def init_database(engine):
+    """Inicializar tablas de la base de datos"""
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+    # Crear instancia de base de datos
+    db = ShubDatabase(str(engine.url))
+    return db
+```
+
+Estos archivos completan el sistema Shub-Niggurath para VX11 v6.3:
+
+1. **shub_core_init.py** - Inicializador principal del núcleo DSP
+2. **dsp_engine.py** - Motor DSP avanzado con análisis completo de audio
+3. **dsp_fx.py** - Generación de cadenas de efectos y presets REAPER
+4. **dsp_pipeline_full.py** - Pipeline completo de procesamiento DSP
+5. **virtual_engineer.py** - Ingeniero virtual con razonamiento y aprendizaje
+6. **mode_c_pipeline.py** - Pipeline específico del Modo C (Híbrido)
+7. **shub_db.py** - Esquema de base de datos y operaciones
+
+El sistema está diseñado para integrarse perfectamente con VX11 existente, usando la misma base de datos, tokens y estructura de archivos, sin modificar servicios existentes.

@@ -1,0 +1,15 @@
+### VX11 Manifestator - Drift
+@manifestator = http://127.0.0.1:52115
+
+GET {{manifestator}}/drift
+
+### VX11 Manifestator - Generate patch
+POST {{manifestator}}/generate-patch
+Content-Type: application/json
+
+{
+	"auto_suggest": true
+}
+
+### VX11 Manifestator - Apply patch
+POST {{manifestator}}/apply-patch

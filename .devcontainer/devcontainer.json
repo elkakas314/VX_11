@@ -1,0 +1,29 @@
+{
+    "name": "VX11 Dev Container",
+    "build": {
+        "dockerfile": "Dockerfile",
+        "context": ".."
+    },
+    "settings": {
+        "python.pythonPath": "/usr/local/bin/python",
+        "terminal.integrated.shell.linux": "/bin/bash"
+    },
+    "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "redhat.vscode-yaml",
+        "humao.rest-client",
+        "github.copilot"
+    ],
+    "forwardPorts": [
+        52111,
+        52112,
+        52113,
+        52114,
+        52115,
+        52116,
+        52117,
+        52118
+    ],
+    "postCreateCommand": "python -m pip install --upgrade pip && pip install -r requirements.txt || true"
+}

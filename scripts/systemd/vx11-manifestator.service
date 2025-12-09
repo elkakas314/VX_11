@@ -1,0 +1,27 @@
+[Unit]
+Description=VX11 Manifestator
+After=network.target
+
+[Service]
+Type=simple
+User=%i
+WorkingDirectory=/home/elkakas314/vx11
+ExecStart=/home/elkakas314/vx11/build/.venv/bin/uvicorn manifestator.main:app --host 127.0.0.1 --port 52115
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+[Unit]
+Description=VX11 Manifestator service
+After=network.target
+
+[Service]
+Type=simple
+User=${USER}
+WorkingDirectory=/home/elkakas314/vx11
+ExecStart=/home/elkakas314/vx11/build/.venv/bin/uvicorn manifestator.main:app --host 0.0.0.0 --port 52115
+Restart=on-failure
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target

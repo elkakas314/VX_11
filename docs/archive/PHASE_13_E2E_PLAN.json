@@ -1,0 +1,66 @@
+{
+    "fase": 13,
+    "nombre": "E2E Tests Execution",
+    "timestamp": "2025-12-01T11:30:00Z",
+    "status": "PLANNED",
+    "nota": "Ejecución requiere servicios en vivo. Script de prueba creado en tests/test_phase12_fases2_10.py",
+    "instrucciones": [
+        "1. Arrancar todos los servicios: ./scripts/run_all_dev.sh",
+        "2. Esperar 30 segundos para estabilización",
+        "3. Ejecutar: pytest tests/test_phase12_fases2_10.py -v --tb=short",
+        "4. Recolectar output en logs/PHASE_13_E2E_RESULTS.log"
+    ],
+    "test_categories": {
+        "Context7_FASE2": {
+            "tests": 1,
+            "descripcion": "Validación context-7 en madre/chat"
+        },
+        "Scoring_FASE3": {
+            "tests": 1,
+            "descripcion": "Engine scoring con peso y fórmula canónica"
+        },
+        "Pheromones_FASE4": {
+            "tests": 2,
+            "descripcion": "Update y summary de feromonas"
+        },
+        "GeneticAlgorithm_FASE5": {
+            "tests": 2,
+            "descripcion": "GA optimization en hormiguero"
+        },
+        "Playwright_FASE6": {
+            "tests": 1,
+            "descripcion": "Browser automation endpoints"
+        },
+        "Orchestration_FASE7": {
+            "tests": 1,
+            "descripcion": "Pipeline completo de orquestación"
+        },
+        "MCP_FASE8": {
+            "tests": 2,
+            "descripcion": "LIST_TOOLS y POST /chat en Copilot bridge"
+        },
+        "CopilotValidation_FASE9": {
+            "tests": 1,
+            "descripcion": "Suite de validación MCP"
+        },
+        "Shubniggurath_FASE10": {
+            "tests": 2,
+            "descripcion": "Estado y activación a STANDBY"
+        },
+        "HealthControl_Core": {
+            "tests": 1,
+            "descripcion": "Endpoints obligatorios en todos los módulos"
+        }
+    },
+    "total_tests": 14,
+    "expected_results": {
+        "pass_rate": "100% (si todos los servicios están activos)",
+        "timeout_scenarios": "Máximo 5s por endpoint, 30s para validación completa",
+        "failure_modes": [
+            "Servicios no iniciados → HTTP 503/Connection refused",
+            "Context-7 inválido → HTTP 400/422",
+            "Auth failures → HTTP 401/403",
+            "Overflow→ manejo graceful en todos los endpoints"
+        ]
+    }
+}

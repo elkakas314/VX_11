@@ -1,0 +1,87 @@
+{
+    "catalog": [
+        {
+            "name": "general-7b",
+            "engine": "llama.cpp",
+            "size_mb": 700,
+            "task_type": "chat",
+            "max_context": 2048,
+            "source": "huggingface",
+            "url": "https://huggingface.co/models?other=gguf&sort=downloads",
+            "enabled": true
+        },
+        {
+            "name": "audio-engineering",
+            "engine": "transformers",
+            "size_mb": 800,
+            "task_type": "audio-engineer",
+            "max_context": 1024,
+            "source": "local",
+            "enabled": true
+        },
+        {
+            "name": "summarization-3b",
+            "engine": "llama.cpp",
+            "size_mb": 300,
+            "task_type": "summarization",
+            "max_context": 4096,
+            "source": "huggingface",
+            "enabled": true
+        },
+        {
+            "name": "audio-analysis",
+            "engine": "local",
+            "size_mb": 200,
+            "task_type": "audio-analysis",
+            "max_context": 512,
+            "source": "local",
+            "enabled": false,
+            "note": "Placeholder para análisis de audio (Shub backend)"
+        },
+        {
+            "name": "code-llama-7b",
+            "engine": "llama.cpp",
+            "size_mb": 750,
+            "task_type": "code",
+            "max_context": 8192,
+            "source": "huggingface",
+            "enabled": true
+        }
+    ],
+    "cli_providers": [
+        {
+            "name": "deepseek_r1",
+            "base_url": "https://api.deepseek.com/v1",
+            "api_key_env": "DEEPSEEK_API_KEY",
+            "task_types": [
+                "chat",
+                "audio-engineer",
+                "code"
+            ],
+            "daily_limit_tokens": 100000,
+            "monthly_limit_tokens": 3000000,
+            "reset_hour_utc": 0,
+            "enabled": true
+        },
+        {
+            "name": "openrouter",
+            "base_url": "https://openrouter.ai/api/v1",
+            "api_key_env": "OPENROUTER_API_KEY",
+            "task_types": [
+                "chat",
+                "code"
+            ],
+            "daily_limit_tokens": 50000,
+            "monthly_limit_tokens": 1000000,
+            "reset_hour_utc": 0,
+            "enabled": false,
+            "note": "Configurable si se obtiene token"
+        }
+    ],
+    "metadata": {
+        "version": "7.0",
+        "updated_at": "2025-12-09T00:00:00Z",
+        "max_local_models_mb": 2048,
+        "description": "Catálogo de recursos para Switch/Hermes v7.0"
+    }
+}

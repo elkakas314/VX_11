@@ -1,0 +1,134 @@
+{
+    "rock": {
+        "target_lufs": -12.0,
+        "target_true_peak": -1.0,
+        "spectral_balance": {
+            "low": 0.4,
+            "mid": 0.4,
+            "high": 0.2
+        },
+        "dynamic_range": 10.0,
+        "eq_suggestions": {
+            "low_shelf": {
+                "frequency": 80,
+                "gain": 2.0,
+                "q": 0.7
+            },
+            "mid_peak": {
+                "frequency": 1000,
+                "gain": -2.0,
+                "q": 1.0
+            },
+            "high_shelf": {
+                "frequency": 8000,
+                "gain": 1.0,
+                "q": 0.7
+            }
+        },
+        "compression": {
+            "threshold": -18.0,
+            "ratio": 3.0,
+            "attack": 5.0,
+            "release": 100.0
+        }
+    },
+    "pop": {
+        "target_lufs": -14.0,
+        "target_true_peak": -1.0,
+        "spectral_balance": {
+            "low": 0.3,
+            "mid": 0.4,
+            "high": 0.3
+        },
+        "dynamic_range": 8.0,
+        "eq_suggestions": {
+            "low_shelf": {
+                "frequency": 100,
+                "gain": 1.0,
+                "q": 0.7
+            },
+            "mid_peak": {
+                "frequency": 500,
+                "gain": 2.0,
+                "q": 1.0
+            },
+            "high_shelf": {
+                "frequency": 5000,
+                "gain": 2.0,
+                "q": 0.7
+            }
+        },
+        "compression": {
+            "threshold": -20.0,
+            "ratio": 2.5,
+            "attack": 10.0,
+            "release": 80.0
+        }
+    },
+    "electronic": {
+        "target_lufs": -8.0,
+        "target_true_peak": -1.0,
+        "spectral_balance": {
+            "low": 0.5,
+            "mid": 0.3,
+            "high": 0.2
+        },
+        "dynamic_range": 6.0,
+        "eq_suggestions": {
+            "low_shelf": {
+                "frequency": 60,
+                "gain": 4.0,
+                "q": 0.7
+            },
+            "mid_peak": {
+                "frequency": 200,
+                "gain": -1.0,
+                "q": 1.0
+            },
+            "high_shelf": {
+                "frequency": 3000,
+                "gain": 1.0,
+                "q": 0.7
+            }
+        },
+        "compression": {
+            "threshold": -15.0,
+            "ratio": 4.0,
+            "attack": 2.0,
+            "release": 50.0
+        }
+    },
+    "acoustic": {
+        "target_lufs": -16.0,
+        "target_true_peak": -1.0,
+        "spectral_balance": {
+            "low": 0.3,
+            "mid": 0.5,
+            "high": 0.2
+        },
+        "dynamic_range": 12.0,
+        "eq_suggestions": {
+            "low_shelf": {
+                "frequency": 200,
+                "gain": -1.0,
+                "q": 0.7
+            },
+            "mid_peak": {
+                "frequency": 2000,
+                "gain": 1.0,
+                "q": 1.0
+            },
+            "high_shelf": {
+                "frequency": 4000,
+                "gain": 1.0,
+                "q": 0.7
+            }
+        },
+        "compression": {
+            "threshold": -22.0,
+            "ratio": 2.0,
+            "attack": 20.0,
+            "release": 150.0
+        }
+    }
+}

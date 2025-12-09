@@ -1,0 +1,21 @@
+{
+    "name": "vx11-manifestator",
+    "displayName": "VX11 Manifestator",
+    "description": "Integration extension for VX11 Manifestator",
+    "version": "0.0.1",
+    "engines": {
+        "vscode": "^1.75.0"
+    },
+    "categories": [
+        "Other"
+    ],
+    "main": "./src/extension.js",
+    "contributes": {
+        "commands": [
+            {
+                "command": "vx11.manifestator.drift",
+                "title": "VX11: Run Manifestator Drift"
+            }
+        ]
+    }
+}

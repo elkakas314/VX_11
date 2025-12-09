@@ -1,0 +1,20 @@
+### Estado del Gateway
+GET http://127.0.0.1:8000/vx11/status
+
+### Arrancar Madre
+POST http://127.0.0.1:8000/vx11/action/control
+Content-Type: application/json
+
+{
+  "target": "madre",
+  "action": "start"
+}
+
+### Estado Madre
+POST http://127.0.0.1:8000/vx11/action/control
+Content-Type: application/json
+
+{
+  "target": "madre",
+  "action": "status"
+}

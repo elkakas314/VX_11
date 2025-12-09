@@ -1,0 +1,119 @@
+{
+    "module": "madre",
+    "version": "6.1",
+    "role": "orquestador_central_supervisor",
+    "description": "Cerebro central: recibe com-prompt, coordina con switch/hermes/hormiguero, orquesta workflows",
+    "style": {
+        "language": "es",
+        "verbosity": "media",
+        "format": "json",
+        "tone": "analytical"
+    },
+    "templates": {
+        "decision_making": {
+            "system": "Eres Madre VX11 v6.1, orquestador central.\n\nTu flujo:\n1. Recibe com-prompt (user_text normalizado)\n2. Consulta switch para elegir motor IA o herramienta\n3. Si route=tool: delega a hermes\n4. Si route=local|remote: llama motor IA para razonar\n5. Coordina con hormiguero para aprendizaje continuo\n6. Retorna respuesta + actions (sugerencias de edit, comandos, etc.)\n\nResponde SIEMPRE con JSON válido.",
+            "rules": [
+                "Validar que com-prompt tenga todos los campos requeridos (intent, target_module, constraints)",
+                "Llamar a switch con context-7 completo",
+                "Si switch retorna route=tool, pasar a hermes manteniendo context-7",
+                "Coordinar con hormiguero para actualizar pheromone después de cada uso",
+                "Si outcome=success, disparar +0.2 pheromone reward",
+                "Si outcome=failure, disparar -0.3 pheromone penalty",
+                "Loguear todas las decisiones para auditoría"
+            ],
+            "workflow": {
+                "step1_parse": "Normalizar user_text a com-prompt",
+                "step2_route": "Consultar /switch/query con context-7",
+                "step3_execute": "Ejecutar según route (motor IA o herramienta)",
+                "step4_learn": "Notificar a hormiguero del outcome",
+                "step5_respond": "Retornar respuesta + actions al cliente"
+            }
+        },
+        "task_creation": {
+            "system": "Crear tarea persistente en BD para workflows complejos",
+            "fields": {
+                "task_id": "UUID v4",
+                "com_prompt": "objeto com-prompt original",
+                "state": "pending|running|completed|failed|partial",
+                "result": "respuesta final",
+                "created_at": "ISO8601",
+                "updated_at": "ISO8601",
+                "duration_ms": "tiempo de ejecución"
+            }
+        },
+        "action_suggestions": {
+            "description": "Acciones que madre puede sugerir (para Copilot/VS Code)",
+            "types": [
+                {
+                    "type": "suggest_edit",
+                    "fields": [
+                        "file",
+                        "range",
+                        "replacement"
+                    ],
+                    "description": "Sugerir modificación de archivo"
+                },
+                {
+                    "type": "run_command",
+                    "fields": [
+                        "command",
+                        "cwd"
+                    ],
+                    "description": "Sugerir ejecución de comando"
+                },
+                {
+                    "type": "open_file",
+                    "fields": [
+                        "file",
+                        "line"
+                    ],
+                    "description": "Abrir archivo en editor"
+                },
+                {
+                    "type": "research",
+                    "fields": [
+                        "query",
+                        "sources"
+                    ],
+                    "description": "Búsqueda de información"
+                }
+            ]
+        }
+    },
+    "endpoints": {
+        "POST /chat": {
+            "description": "Chat con historial de sesión",
+            "request": {
+                "messages": "array[{role, content}]",
+                "context7": "object (recomendado)",
+                "session_id": "string (opcional, para recuperar historial)"
+            },
+            "response": {
+                "reply": "string (respuesta en natural)",
+                "actions": "array (sugerencias de edit/command/etc)",
+                "context_used": "object (engines, tools, duration_ms)"
+            }
+        },
+        "POST /task": {
+            "description": "Crear tarea persistente",
+            "request": {
+                "com_prompt": "object",
+                "context7": "object"
+            },
+            "response": {
+                "task_id": "UUID",
+                "state": "pending",
+                "created_at": "ISO8601"
+            }
+        },
+        "GET /task/{task_id}": {
+            "description": "Consultar estado de tarea",
+            "response": {
+                "task_id": "UUID",
+                "state": "pending|running|completed|failed",
+                "result": "object",
+                "duration_ms": "integer"
+            }
+        }
+    }
+}

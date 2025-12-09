@@ -1,0 +1,369 @@
+version: "3.9"
+
+services:
+  # ========== TENTACULO LINK (PORT 8000) ==========
+  tentaculo_link:
+    build:
+      context: .
+      dockerfile: tentaculo_link/Dockerfile
+      args:
+        - REQUIREMENTS_FILE=requirements_tentaculo.txt
+    image: vx11-tentaculo-link:v6.7
+    container_name: vx11-tentaculo-link
+    hostname: tentaculo-link
+    networks:
+      default:
+        aliases:
+          - tentaculo_link
+          - gateway
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./build/artifacts/logs:/app/logs
+      - ./data/runtime:/app/data/runtime
+      - ./build/artifacts/sandbox:/app/sandbox
+      - ./models:/app/models
+    environment:
+      - ULTRA_LOW_MEMORY=true
+      - LOG_LEVEL=INFO
+      - PYTHONUNBUFFERED=1
+      - API_TOKEN=vx11-local-token
+      - VX11_GATEWAY_TOKEN=vx11-local-token
+      - VX11_TENTACULO_LINK_TOKEN=vx11-local-token
+      - VX11_OPERATOR_TOKEN=vx11-local-token
+      - VX11_LOCAL_TOKEN=vx11-local-token
+    mem_limit: 512m
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # ========== MADRE (PORT 8001) ==========
+  madre:
+    build:
+      context: .
+      dockerfile: madre/Dockerfile
+    image: vx11-madre:v6.7
+    container_name: vx11-madre
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./build/artifacts/logs:/app/logs
+      - ./data/runtime:/app/data/runtime
+      - ./build/artifacts/sandbox:/app/sandbox
+      - ./models:/app/models
+    environment:
+      - ULTRA_LOW_MEMORY=true
+      - LOG_LEVEL=INFO
+      - PYTHONUNBUFFERED=1
+      - API_TOKEN=vx11-local-token
+      - VX11_GATEWAY_TOKEN=vx11-local-token
+      - VX11_TENTACULO_LINK_TOKEN=vx11-local-token
+      - VX11_OPERATOR_TOKEN=vx11-local-token
+      - VX11_LOCAL_TOKEN=vx11-local-token
+    mem_limit: 512m
+    depends_on:
+      - tentaculo_link
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # ========== SWITCH (PORT 8002) ==========
+  switch:
+    build:
+      context: .
+      dockerfile: switch/Dockerfile
+    image: vx11-switch:v6.7
+    container_name: vx11-switch
+    ports:
+      - "8002:8002"
+    volumes:
+      - ./build/artifacts/logs:/app/logs
+      - ./data/runtime:/app/data/runtime
+      - ./models:/app/models
+    environment:
+      - ULTRA_LOW_MEMORY=true
+      - LOG_LEVEL=INFO
+      - PYTHONUNBUFFERED=1
+      - API_TOKEN=vx11-local-token
+      - VX11_GATEWAY_TOKEN=vx11-local-token
+      - VX11_TENTACULO_LINK_TOKEN=vx11-local-token
+      - VX11_OPERATOR_TOKEN=vx11-local-token
+      - VX11_LOCAL_TOKEN=vx11-local-token
+    mem_limit: 512m
+    depends_on:
+      - tentaculo_link
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # ========== HERMES (PORT 8003) ==========
+  hermes:
+    build:
+      context: .
+      dockerfile: switch/hermes/Dockerfile
+    image: vx11-hermes:v6.7
+    container_name: vx11-hermes
+    ports:
+      - "8003:8003"
+    volumes:
+      - ./build/artifacts/logs:/app/logs
+      - ./data/runtime:/app/data/runtime
+      - ./models:/app/models
+    environment:
+      - ULTRA_LOW_MEMORY=true
+      - LOG_LEVEL=INFO
+      - PYTHONUNBUFFERED=1
+      - API_TOKEN=vx11-local-token
+      - VX11_GATEWAY_TOKEN=vx11-local-token
+      - VX11_TENTACULO_LINK_TOKEN=vx11-local-token
+      - VX11_OPERATOR_TOKEN=vx11-local-token
+      - VX11_LOCAL_TOKEN=vx11-local-token
+    mem_limit: 512m
+    depends_on:
+      - tentaculo_link
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # ========== HORMIGUERO (PORT 8004) ==========
+  hormiguero:
+    build:
+      context: .
+      dockerfile: hormiguero/Dockerfile
+    image: vx11-hormiguero:v6.7
+    container_name: vx11-hormiguero
+    ports:
+      - "8004:8004"
+    volumes:
+      - ./build/artifacts/logs:/app/logs
+      - ./data/runtime:/app/data/runtime
+    environment:
+      - ULTRA_LOW_MEMORY=true
+      - LOG_LEVEL=INFO
+      - PYTHONUNBUFFERED=1
+      - API_TOKEN=vx11-local-token
+      - VX11_GATEWAY_TOKEN=vx11-local-token
+      - VX11_TENTACULO_LINK_TOKEN=vx11-local-token
+      - VX11_OPERATOR_TOKEN=vx11-local-token
+      - VX11_LOCAL_TOKEN=vx11-local-token
+    mem_limit: 512m
+    depends_on:
+      - tentaculo_link
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # ========== MANIFESTATOR (PORT 8005) ==========
+  manifestator:
+    build:
+      context: .
+      dockerfile: manifestator/Dockerfile
+    image: vx11-manifestator:v6.7
+    container_name: vx11-manifestator
+    profiles: ["disabled"]
+    ports:
+      - "8005:8005"
+    volumes:
+      - ./build/artifacts/logs:/app/logs
+      - ./data/runtime:/app/data/runtime
+      - .:/app/vx11:ro # Read-only access to repo
+    environment:
+      - ULTRA_LOW_MEMORY=true
+      - LOG_LEVEL=INFO
+      - PYTHONUNBUFFERED=1
+      - API_TOKEN=vx11-local-token
+      - VX11_GATEWAY_TOKEN=vx11-local-token
+      - VX11_TENTACULO_LINK_TOKEN=vx11-local-token
+      - VX11_OPERATOR_TOKEN=vx11-local-token
+      - VX11_LOCAL_TOKEN=vx11-local-token
+    mem_limit: 512m
+    depends_on:
+      - tentaculo_link
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8005/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # ========== MCP (PORT 8006) ==========
+  mcp:
+    build:
+      context: .
+      dockerfile: mcp/Dockerfile
+    image: vx11-mcp:v6.7
+    container_name: vx11-mcp
+    ports:
+      - "8006:8006"
+    volumes:
+      - ./build/artifacts/logs:/app/logs
+      - ./data/runtime:/app/data/runtime
+    environment:
+      - ULTRA_LOW_MEMORY=true
+      - LOG_LEVEL=INFO
+      - PYTHONUNBUFFERED=1
+      - API_TOKEN=vx11-local-token
+      - VX11_GATEWAY_TOKEN=vx11-local-token
+      - VX11_TENTACULO_LINK_TOKEN=vx11-local-token
+      - VX11_OPERATOR_TOKEN=vx11-local-token
+      - VX11_LOCAL_TOKEN=vx11-local-token
+    mem_limit: 512m
+    depends_on:
+      - tentaculo_link
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8006/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # ========== SHUB NIGGURATH (PORT 8007) ==========
+  shubniggurath:
+    build:
+      context: .
+      dockerfile: shubniggurath/Dockerfile
+    image: vx11-shub:v6.7
+    container_name: vx11-shubniggurath
+    ports:
+      - "8007:8007"
+    volumes:
+      - ./build/artifacts/logs:/app/logs
+      - ./data/runtime:/app/data/runtime
+      - ./models:/app/models
+      - ./build/artifacts/sandbox:/app/sandbox
+    environment:
+      - ULTRA_LOW_MEMORY=true
+      - LOG_LEVEL=INFO
+      - PYTHONUNBUFFERED=1
+      - API_TOKEN=vx11-local-token
+      - VX11_GATEWAY_TOKEN=vx11-local-token
+      - VX11_TENTACULO_LINK_TOKEN=vx11-local-token
+      - VX11_OPERATOR_TOKEN=vx11-local-token
+      - VX11_LOCAL_TOKEN=vx11-local-token
+    mem_limit: 512m
+    depends_on:
+      - tentaculo_link
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8007/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # ========== SPAWNER (PORT 8008) ==========
+  spawner:
+    build:
+      context: .
+      dockerfile: spawner/Dockerfile
+    image: vx11-spawner:v6.7
+    container_name: vx11-spawner
+    ports:
+      - "8008:8008"
+    volumes:
+      - ./build/artifacts/logs:/app/logs
+      - ./data/runtime:/app/data/runtime
+      - ./build/artifacts/sandbox:/app/sandbox
+    environment:
+      - ULTRA_LOW_MEMORY=true
+      - LOG_LEVEL=INFO
+      - PYTHONUNBUFFERED=1
+      - API_TOKEN=vx11-local-token
+      - VX11_GATEWAY_TOKEN=vx11-local-token
+      - VX11_TENTACULO_LINK_TOKEN=vx11-local-token
+      - VX11_OPERATOR_TOKEN=vx11-local-token
+      - VX11_LOCAL_TOKEN=vx11-local-token
+    mem_limit: 512m
+    depends_on:
+      - tentaculo_link
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8008/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # ========== OPERATOR BACKEND (PORT 8011) ==========
+  operator-backend:
+    build:
+      context: .
+      dockerfile: operator_backend/backend/Dockerfile
+    image: vx11-operator-backend:v7.0
+    container_name: vx11-operator-backend
+    ports:
+      - "8011:8011"
+    volumes:
+      - ./build/artifacts/logs:/app/logs
+      - ./data:/app/data
+      - ./models:/app/models
+    environment:
+      - ULTRA_LOW_MEMORY=true
+      - LOG_LEVEL=INFO
+      - PYTHONUNBUFFERED=1
+      - API_TOKEN=vx11-local-token
+      - VX11_GATEWAY_TOKEN=vx11-local-token
+      - VX11_TENTACULO_LINK_TOKEN=vx11-local-token
+      - VX11_OPERATOR_TOKEN=vx11-local-token
+      - VX11_LOCAL_TOKEN=vx11-local-token
+    mem_limit: 512m
+    depends_on:
+      - tentaculo_link
+      - switch
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8011/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # ========== OPERATOR FRONTEND (PORT 8020) ==========
+  operator-frontend:
+    build:
+      context: operator/frontend
+      dockerfile: Dockerfile
+    container_name: vx11-operator-frontend
+    ports:
+      - "8020:8020"
+    depends_on:
+      - operator-backend
+    restart: unless-stopped
+    environment:
+      - API_TOKEN=vx11-local-token
+      - VX11_GATEWAY_TOKEN=vx11-local-token
+      - VX11_TENTACULO_LINK_TOKEN=vx11-local-token
+      - VX11_OPERATOR_TOKEN=vx11-local-token
+      - VX11_LOCAL_TOKEN=vx11-local-token
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8020"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  logs:
+    driver: local
+  data:
+    driver: local
+  models:
+    driver: local
+  sandbox:
+    driver: local
+
+networks:
+  default:
+    name: vx11-network
+    driver: bridge
