@@ -39,6 +39,14 @@ from switch.hermes import CLISelector, CLIFusion, ExecutionMode, get_metrics_col
 # FASE 6: Importar Shub Forwarder (Wiring)
 from switch.shub_forwarder import get_switch_shub_forwarder
 
+# PASO 2.1: Importar Intelligence Layer y GA Router
+from switch.intelligence_layer import (
+    get_switch_intelligence_layer,
+    RoutingContext,
+    RoutingDecision,
+)
+from switch.ga_router import get_ga_router
+
 # Logger
 log = logging.getLogger("vx11.switch")
 
@@ -535,7 +543,14 @@ async def _startup_consumer():
     # Iniciar warmup periódico en background
     asyncio.create_task(warm_up_engine.warmup_periodic())
     
-    log.info("✓ Switch v6.3 (PASO 3) completamente inicializado")
+    # Inicializar Intelligence Layer y GA Router (PASO 2.1)
+    log.info("Inicializando Switch Intelligence Layer...")
+    sil = get_switch_intelligence_layer()
+    
+    log.info("Inicializando GA Router...")
+    ga_router = get_ga_router(ga_optimizer)
+    
+    log.info("✓ Switch v7.1 (PASO 2.1) completamente inicializado con Intelligence Layer")
 
 
 @app.on_event("shutdown")
@@ -925,129 +940,173 @@ class ChatRequest(BaseModel):
 @app.post("/switch/chat")
 async def switch_chat(req: ChatRequest):
     """
-    Chat estable: stub IA local + CLI remoto (selección híbrida).
-    Integración Shub: si task_type==audio o provider_hint==shub, delega a Shub pipeline.
-    Integración Madre: si task_type==system, delega a Madre.
-    Integración Manifestator: si task_type==drift|audit, delega a Manifestator.
+    Chat mejorado con Intelligence Layer (PASO 2.1).
+    
+    Flujo:
+    1. Crear RoutingContext con metadata completa
+    2. Consultar SwitchIntelligenceLayer para decisión inteligente
+    3. Ejecutar con fallbacks
+    4. Registrar en GA metrics para optimización
     """
-    provider_hint = (req.provider_hint or req.provider or "").strip().lower() or None
-    task_type = req.metadata.get("task_type", "").strip().lower() if req.metadata else ""
     
-    # Detectar tarea de sistema → delegar a Madre
-    if task_type == "system" or provider_hint == "madre":
-        try:
-            start = time.monotonic()
-            async with httpx.AsyncClient(timeout=30.0, headers=AUTH_HEADERS) as client:
-                madre_payload = {
-                    "messages": [m.model_dump() for m in req.messages],
-                    "metadata": req.metadata or {},
-                    "action": req.metadata.get("action") if req.metadata else None,
-                }
-                resp = await client.post(
-                    f"{settings.madre_url.rstrip('/')}/madre/route-system",
-                    json=madre_payload,
-                    headers=AUTH_HEADERS,
-                )
-                if resp.status_code == 200:
-                    madre_result = resp.json()
-                    latency_ms = (time.monotonic() - start) * 1000
-                    _record_scoring("madre", latency_ms=latency_ms, status_ok=True)
-                    write_log("switch", f"chat:system_delegated_to_madre:latency={latency_ms}ms")
-                    return {
-                        "status": "ok",
-                        "provider": "madre",
-                        "content": madre_result.get("content", ""),
-                        "latency_ms": latency_ms,
-                    }
-        except Exception as exc:
-            write_log("switch", f"chat:madre_delegation_error:{exc}", level="WARNING")
+    start_time = time.monotonic()
+    sil = get_switch_intelligence_layer()
+    ga_router = get_ga_router(ga_optimizer)  # ga_optimizer es global
     
-    # Detectar tarea de análisis de estructura (manifestator)
-    if task_type in ("drift", "audit", "manifest") or provider_hint == "manifestator":
-        try:
-            start = time.monotonic()
-            async with httpx.AsyncClient(timeout=30.0, headers=AUTH_HEADERS) as client:
-                manifest_payload = {
-                    "messages": [m.model_dump() for m in req.messages],
-                    "metadata": req.metadata or {},
-                    "action": req.metadata.get("action") if req.metadata else "analyze",
-                }
-                resp = await client.post(
-                    f"{settings.manifestator_url.rstrip('/')}/detect-drift",
-                    json=manifest_payload,
-                    headers=AUTH_HEADERS,
-                )
-                if resp.status_code == 200:
-                    manifest_result = resp.json()
-                    latency_ms = (time.monotonic() - start) * 1000
-                    _record_scoring("manifestator", latency_ms=latency_ms, status_ok=True)
-                    write_log("switch", f"chat:drift_delegated_to_manifestator:latency={latency_ms}ms")
-                    return {
-                        "status": "ok",
-                        "provider": "manifestator",
-                        "content": manifest_result.get("details", ""),
-                        "latency_ms": latency_ms,
-                    }
-        except Exception as exc:
-            write_log("switch", f"chat:manifestator_delegation_error:{exc}", level="WARNING")
-    
-    # Detectar si es tarea de audio → delegar a Shub
-    if task_type == "audio" or provider_hint in ("shub", "shub-audio"):
-        try:
-            start = time.monotonic()
-            
-            # Usar Shub Forwarder (FASE 6 Wiring)
-            forwarder = get_switch_shub_forwarder()
-            prompt_text = req.messages[0].content if req.messages else ""
-            
-            shub_result = await forwarder.route_to_shub(
-                query=prompt_text,
-                context=req.metadata or {}
+    try:
+        # Extraer metadata
+        task_type = req.metadata.get("task_type", "general").strip().lower() if req.metadata else "general"
+        source = req.metadata.get("source", "operator").strip().lower() if req.metadata else "operator"
+        provider_hint = (req.provider_hint or req.provider or "").strip().lower() or None
+        
+        prompt_text = req.messages[0].content if req.messages else ""
+        
+        # PASO 1: Crear contexto de routing
+        context = RoutingContext(
+            task_type=task_type,
+            source=source,
+            messages=[m.model_dump() for m in req.messages],
+            metadata=req.metadata or {},
+            provider_hint=provider_hint,
+            max_tokens=req.metadata.get("max_tokens", 4096) if req.metadata else 4096,
+            require_streaming=req.metadata.get("require_streaming", False) if req.metadata else False,
+        )
+        
+        # PASO 2: Consultar Intelligence Layer para decisión
+        routing_decision = await sil.make_routing_decision(context)
+        
+        log.info(f"Routing decision: {routing_decision.decision}, engine: {routing_decision.primary_engine}")
+        
+        # PASO 3: Ejecutar según decisión
+        latency_ms = 0
+        result = None
+        success = False
+        
+        if routing_decision.decision == RoutingDecision.MADRE:
+            result, latency_ms, success = await _execute_madre_task_chat(prompt_text, req.metadata or {})
+        
+        elif routing_decision.decision == RoutingDecision.MANIFESTATOR:
+            result, latency_ms, success = await _execute_manifestator_task_chat(prompt_text, req.metadata or {})
+        
+        elif routing_decision.decision == RoutingDecision.SHUB:
+            result, latency_ms, success = await _execute_shub_task_chat(prompt_text, req.metadata or {})
+        
+        else:  # CLI, LOCAL, HYBRID, FALLBACK
+            result, latency_ms, success = await _execute_hermes_task_chat(
+                engine_name=routing_decision.primary_engine,
+                prompt=prompt_text,
+                metadata=req.metadata or {}
             )
-            
-            if shub_result.get("status") in ("ok", "skip"):
-                latency_ms = (time.monotonic() - start) * 1000
-                _record_scoring("shub-audio", latency_ms=latency_ms, status_ok=True)
-                _update_chat_stats("shub-audio", True, latency_ms)
-                usage = _get_chat_stats("shub-audio")
-                usage["score"] = _score_provider("shub-audio")
-                write_log("switch", f"chat:audio_delegated_to_shub:latency={latency_ms}ms:decision={shub_result.get('routing_decision')}")
-                
-                # Si routing_decision es skip, continuar con fallback
-                if shub_result.get("routing_decision") != "skip":
-                    return {
-                        "status": "ok",
-                        "provider": "shub-audio",
-                        "content": str(shub_result.get("result", {})),
-                        "usage": usage,
-                        "latency_ms": latency_ms,
-                    }
-            else:
-                write_log("switch", f"chat:shub_error:{shub_result.get('status')}", level="WARNING")
-        except Exception as exc:
-            write_log("switch", f"chat:shub_delegation_error:{exc}", level="WARNING")
+        
+        # PASO 4: Registrar en GA metrics
+        ga_router.record_execution_result(
+            engine_name=routing_decision.primary_engine,
+            task_type=task_type,
+            latency_ms=latency_ms,
+            success=success,
+            cost=0.0,
+            tokens=req.metadata.get("tokens_used", 0) if req.metadata else 0,
+        )
+        
+        # Registrar scoring tradicional también
+        _record_scoring(routing_decision.primary_engine, latency_ms=latency_ms, status_ok=success)
+        _update_chat_stats(routing_decision.primary_engine, success, latency_ms)
+        
+        return {
+            "status": "ok" if success else "partial",
+            "provider": routing_decision.primary_engine,
+            "decision": routing_decision.decision.value,
+            "content": result.get("content", "") if isinstance(result, dict) else str(result),
+            "latency_ms": latency_ms,
+            "reasoning": routing_decision.reasoning,
+        }
     
-    # Fallback: chat híbrido local + CLI
-    provider = _select_chat_backend(provider_hint)
-    if not _throttle(provider):
-        return {"status": "throttled"}
+    except Exception as exc:
+        latency_ms = int((time.monotonic() - start_time) * 1000)
+        write_log("switch", f"chat_error:{exc}", level="ERROR")
+        
+        return {
+            "status": "error",
+            "provider": "fallback",
+            "content": f"Error: {str(exc)}",
+            "latency_ms": latency_ms,
+        }
+
+
+# ============ Helper functions para /switch/chat (PASO 2.1) ============
+
+async def _execute_madre_task_chat(prompt: str, metadata: Dict) -> Tuple[Dict, int, bool]:
+    """Ejecutar tarea en Madre."""
     start = time.monotonic()
-    if provider == "cli":
-        reply_obj = _cli_chat([m.model_dump() for m in req.messages])
-    else:
-        reply_obj = _local_llm_chat([m.model_dump() for m in req.messages])
-    latency_ms = (time.monotonic() - start) * 1000
-    _record_scoring(provider, latency_ms=latency_ms, status_ok=True)
-    _update_chat_stats(provider, True, latency_ms)
-    usage = _get_chat_stats(provider)
-    usage["score"] = _score_provider(provider)
-    return {
-        "status": "ok",
-        "provider": provider,
-        "content": reply_obj.get("content", ""),
-        "usage": usage,
-        "latency_ms": latency_ms,
-    }
+    try:
+        async with httpx.AsyncClient(timeout=30.0, headers=AUTH_HEADERS) as client:
+            resp = await client.post(
+                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+                json={"messages": [{"role": "user", "content": prompt}], "metadata": metadata},
+                headers=AUTH_HEADERS,
+            )
+            if resp.status_code == 200:
+                result = resp.json()
+                latency_ms = int((time.monotonic() - start) * 1000)
+                return result, latency_ms, True
+    except Exception as e:
+        log.error(f"Madre task error: {e}")
+    
+    return {"content": "Error en Madre"}, int((time.monotonic() - start) * 1000), False
+
+
+async def _execute_manifestator_task_chat(prompt: str, metadata: Dict) -> Tuple[Dict, int, bool]:
+    """Ejecutar tarea en Manifestator."""
+    start = time.monotonic()
+    try:
+        async with httpx.AsyncClient(timeout=30.0, headers=AUTH_HEADERS) as client:
+            resp = await client.post(
+                f"{settings.manifestator_url.rstrip('/')}/detect-drift",
+                json={"messages": [{"role": "user", "content": prompt}], "metadata": metadata},
+                headers=AUTH_HEADERS,
+            )
+            if resp.status_code == 200:
+                result = resp.json()
+                latency_ms = int((time.monotonic() - start) * 1000)
+                return result, latency_ms, True
+    except Exception as e:
+        log.error(f"Manifestator task error: {e}")
+    
+    return {"content": "Error en Manifestator"}, int((time.monotonic() - start) * 1000), False
+
+
+async def _execute_shub_task_chat(prompt: str, metadata: Dict) -> Tuple[Dict, int, bool]:
+    """Ejecutar tarea en Shub."""
+    start = time.monotonic()
+    try:
+        forwarder = get_switch_shub_forwarder()
+        result = await forwarder.route_to_shub(query=prompt, context=metadata)
+        latency_ms = int((time.monotonic() - start) * 1000)
+        return result, latency_ms, result.get("status") in ("ok", "skip")
+    except Exception as e:
+        log.error(f"Shub task error: {e}")
+    
+    return {"content": "Error en Shub"}, int((time.monotonic() - start) * 1000), False
+
+
+async def _execute_hermes_task_chat(engine_name: str, prompt: str, metadata: Dict) -> Tuple[Dict, int, bool]:
+    """Ejecutar tarea en Hermes o CLI."""
+    start = time.monotonic()
+    try:
+        async with httpx.AsyncClient(timeout=30.0, headers=AUTH_HEADERS) as client:
+            resp = await client.post(
+                f"{settings.hermes_url.rstrip('/')}/hermes/execute",
+                json={"engine": engine_name, "prompt": prompt, "metadata": metadata},
+                headers=AUTH_HEADERS,
+            )
+            if resp.status_code == 200:
+                result = resp.json()
+                latency_ms = int((time.monotonic() - start) * 1000)
+                return result, latency_ms, True
+    except Exception as e:
+        log.error(f"Hermes task error: {e}")
+    
+    return {"content": "Error en Hermes"}, int((time.monotonic() - start) * 1000), False
 
 
 class TaskRequest(BaseModel):
