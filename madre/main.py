@@ -955,6 +955,202 @@ async def spawn_ephemeral_child(req: EphemeralChildRequest, db_session = Depends
     return result
 
 
+# ========== Daughter Management (PASO 4) ==========
+
+@app.post("/madre/daughter/spawn")
+async def spawn_real_daughter(req: Dict[str, Any]):
+    """
+    Crear y lanzar hija real via Spawner (PASO 4).
+    
+    Input:
+      {
+        "task_name": "audio_restore",
+        "task_type": "audio_restore",
+        "parameters": {"file": "/audio.wav", "preset": "default"},
+        "ttl_seconds": 300
+      }
+    
+    Output:
+      {
+        "status": "ok",
+        "daughter_id": "uuid",
+        "spawner_pid": 12345,
+        "created_at": "ISO8601"
+      }
+    """
+    from madre.daughters import get_daughter_manager
+    
+    try:
+        manager = get_daughter_manager()
+        
+        daughter = await manager.spawn_daughter(
+            task_name=req.get("task_name", "unnamed"),
+            task_type=req.get("task_type", "generic"),
+            parameters=req.get("parameters", {}),
+            ttl_seconds=req.get("ttl_seconds", 300)
+        )
+        
+        if not daughter:
+            return {"status": "error", "error": "Failed to spawn daughter"}
+        
+        write_log("madre", f"daughter_spawn_api:{daughter.id}")
+        return {
+            "status": "ok",
+            "daughter_id": daughter.id,
+            "spawner_pid": daughter.spawner_pid,
+            "created_at": daughter.created_at.isoformat(),
+            "ttl_seconds": daughter.ttl_seconds,
+        }
+    except Exception as e:
+        write_log("madre", f"daughter_spawn_api_error:{e}", level="ERROR")
+        return {"status": "error", "error": str(e)}
+
+
+@app.post("/madre/daughter/{daughter_id}/heartbeat")
+async def daughter_heartbeat(daughter_id: str, req: Dict[str, Any] = None):
+    """
+    Recibir heartbeat de hija ejecutándose.
+    
+    Input:
+      {
+        "progress": 0.45
+      }
+    
+    Output:
+      {"status": "ok"} o {"status": "error"}
+    """
+    from madre.daughters import get_daughter_manager
+    
+    try:
+        manager = get_daughter_manager()
+        progress = (req or {}).get("progress", 0.0) if req else 0.0
+        
+        if await manager.heartbeat_daughter(daughter_id, progress):
+            return {"status": "ok"}
+        else:
+            return {"status": "error", "error": "Daughter not found or expired"}
+    except Exception as e:
+        write_log("madre", f"daughter_heartbeat_error:{daughter_id}:{e}", level="ERROR")
+        return {"status": "error", "error": str(e)}
+
+
+@app.post("/madre/daughter/{daughter_id}/complete")
+async def daughter_complete(daughter_id: str, req: Dict[str, Any]):
+    """
+    Marcar hija como completada con resultado.
+    
+    Input:
+      {
+        "result": {...}
+      }
+    """
+    from madre.daughters import get_daughter_manager
+    
+    try:
+        manager = get_daughter_manager()
+        result = req.get("result", {})
+        
+        if await manager.complete_daughter(daughter_id, result):
+            write_log("madre", f"daughter_complete_api:{daughter_id}")
+            return {"status": "ok"}
+        else:
+            return {"status": "error", "error": "Daughter not found"}
+    except Exception as e:
+        write_log("madre", f"daughter_complete_error:{daughter_id}:{e}", level="ERROR")
+        return {"status": "error", "error": str(e)}
+
+
+@app.post("/madre/daughter/{daughter_id}/fail")
+async def daughter_fail(daughter_id: str, req: Dict[str, Any]):
+    """
+    Marcar hija como fallida.
+    
+    Input:
+      {
+        "error": "Error description"
+      }
+    """
+    from madre.daughters import get_daughter_manager
+    
+    try:
+        manager = get_daughter_manager()
+        error = req.get("error", "Unknown error")
+        
+        if await manager.fail_daughter(daughter_id, error):
+            write_log("madre", f"daughter_fail_api:{daughter_id}:{error}", level="WARNING")
+            return {"status": "ok"}
+        else:
+            return {"status": "error", "error": "Daughter not found"}
+    except Exception as e:
+        write_log("madre", f"daughter_fail_error:{daughter_id}:{e}", level="ERROR")
+        return {"status": "error", "error": str(e)}
+
+
+@app.get("/madre/daughter/{daughter_id}")
+async def get_daughter_status(daughter_id: str):
+    """Obtener estado de hija específica."""
+    from madre.daughters import get_daughter_manager
+    
+    try:
+        manager = get_daughter_manager()
+        status = await manager.get_daughter_status(daughter_id)
+        
+        if status is None:
+            return {"status": "not_found"}
+        
+        return {"status": "ok", "daughter": status}
+    except Exception as e:
+        write_log("madre", f"get_daughter_error:{daughter_id}:{e}", level="ERROR")
+        return {"status": "error", "error": str(e)}
+
+
+@app.get("/madre/daughters")
+async def list_all_daughters(status_filter: Optional[str] = None):
+    """Listar todas las hijas."""
+    from madre.daughters import get_daughter_manager
+    
+    try:
+        manager = get_daughter_manager()
+        daughters = await manager.list_daughters(status_filter=status_filter)
+        
+        write_log("madre", f"list_daughters:{len(daughters)}")
+        return {
+            "status": "ok",
+            "count": len(daughters),
+            "daughters": daughters,
+        }
+    except Exception as e:
+        write_log("madre", f"list_daughters_error:{e}", level="ERROR")
+        return {"status": "error", "error": str(e)}
+
+
+@app.post("/madre/daughter/{daughter_id}/wait")
+async def wait_for_daughter(daughter_id: str, req: Dict[str, Any] = None):
+    """
+    Esperar a que hija se complete (blocking).
+    
+    Input:
+      {
+        "timeout": 300.0
+      }
+    """
+    from madre.daughters import get_daughter_manager
+    
+    try:
+        manager = get_daughter_manager()
+        timeout = (req or {}).get("timeout", 300.0) if req else 300.0
+        
+        status = await manager.wait_for_daughter(daughter_id, timeout=timeout)
+        
+        if status is None:
+            return {"status": "timeout"}
+        
+        return {"status": "ok", "daughter": status}
+    except Exception as e:
+        write_log("madre", f"wait_daughter_error:{daughter_id}:{e}", level="ERROR")
+        return {"status": "error", "error": str(e)}
+
+
 @app.post("/chat")
 async def madre_chat(req: MadreChatRequest, db_session = Depends(lambda: get_session("madre"))):
     """
