@@ -1,0 +1,36 @@
+{
+  "enabled": true,
+  "startup_warmup": true,
+  "periodic_warmup_minutes": 60,
+  "models": [
+    {
+      "name": "local_gguf_small",
+      "priority": 1,
+      "warmup_tokens": 50,
+      "timeout_seconds": 10,
+      "enabled": true
+    },
+    {
+      "name": "deepseek_r1",
+      "priority": 2,
+      "warmup_tokens": 100,
+      "timeout_seconds": 30,
+      "enabled": true
+    },
+    {
+      "name": "ollama_local",
+      "priority": 1,
+      "warmup_tokens": 50,
+      "timeout_seconds": 10,
+      "enabled": true
+    }
+  ],
+  "cli_tools": [
+    {
+      "name": "cli_registry",
+      "warmup_command": "list",
+      "timeout_seconds": 5,
+      "enabled": true
+    }
+  ]
+}
