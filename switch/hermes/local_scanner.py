@@ -1,0 +1,274 @@
+"""
+Local Scanner — Indexador de modelos locales en /models.
+
+Características:
+- Scan automático de /models
+- Detección de formatos (GGUF, SafeTensors, PyTorch)
+- Cálculo de tamaño
+- Detección de tipo de tarea desde metadatos
+- Verificación de integridad (hash)
+
+Hermes proporciona. Switch decide.
+"""
+
+import logging
+import json
+import hashlib
+from pathlib import Path
+from typing import Dict, List, Optional, Any
+from dataclasses import dataclass
+from datetime import datetime
+
+logger = logging.getLogger(__name__)
+
+
+@dataclass
+class LocalModel:
+    """Metadata de modelo local."""
+    
+    model_path: str            # Ruta relativa en /models
+    model_name: str
+    task: str                  # text-generation, summarization, etc.
+    format: str                # gguf, safetensors, pytorch, etc.
+    size_mb: float
+    sha256_hash: str = ""
+    created_at: str = ""
+    is_valid: bool = True
+    
+    def full_path(self) -> Path:
+        """Obtener ruta absoluta."""
+        return Path("models") / self.model_path
+    
+    def size_gb(self) -> float:
+        """Tamaño en GB."""
+        return self.size_mb / 1024
+
+
+class LocalScanner:
+    """Scanner de modelos locales."""
+    
+    def __init__(self, models_dir: str = "models"):
+        self.models_dir = Path(models_dir)
+        self.models_dir.mkdir(parents=True, exist_ok=True)
+        
+        self.index_file = self.models_dir / ".index.json"
+        self.models: Dict[str, LocalModel] = {}
+        
+        self._load_index()
+    
+    def _load_index(self) -> None:
+        """Cargar índice local de modelos."""
+        if self.index_file.exists():
+            try:
+                with open(self.index_file) as f:
+                    data = json.load(f)
+                    for model_id, model_data in data.items():
+                        self.models[model_id] = LocalModel(**model_data)
+                    logger.info(f"Loaded {len(self.models)} indexed models")
+            except Exception as e:
+                logger.warning(f"Failed to load index: {e}")
+    
+    def _save_index(self) -> None:
+        """Guardar índice."""
+        try:
+            index_data = {
+                model_id: {
+                    "model_path": m.model_path,
+                    "model_name": m.model_name,
+                    "task": m.task,
+                    "format": m.format,
+                    "size_mb": m.size_mb,
+                    "sha256_hash": m.sha256_hash,
+                    "created_at": m.created_at,
+                    "is_valid": m.is_valid,
+                }
+                for model_id, m in self.models.items()
+            }
+            with open(self.index_file, 'w') as f:
+                json.dump(index_data, f, indent=2)
+        except Exception as e:
+            logger.warning(f"Failed to save index: {e}")
+    
+    def scan_directory(self) -> int:
+        """
+        Scanear directorio /models y actualizar índice.
+        
+        Returns:
+            Número de modelos encontrados/actualizados
+        """
+        logger.info(f"Scanning {self.models_dir} for models...")
+        
+        found_count = 0
+        
+        # Search for known formats
+        formats = {
+            ".gguf": "gguf",
+            ".safetensors": "safetensors",
+            ".bin": "pytorch",
+            ".pt": "pytorch",
+            ".pth": "pytorch",
+            ".model": "generic",
+        }
+        
+        for format_ext, format_name in formats.items():
+            for model_file in self.models_dir.glob(f"**/*{format_ext}"):
+                if not model_file.is_file():
+                    continue
+                
+                model_id = self._generate_model_id(model_file)
+                
+                # Skip if already indexed and unchanged
+                if model_id in self.models:
+                    existing = self.models[model_id]
+                    if existing.sha256_hash and self._verify_hash(model_file, existing.sha256_hash):
+                        continue
+                
+                # Create model entry
+                local_model = LocalModel(
+                    model_path=str(model_file.relative_to(self.models_dir)),
+                    model_name=model_file.stem,
+                    task=self._infer_task(model_file),
+                    format=format_name,
+                    size_mb=model_file.stat().st_size / (1024 * 1024),
+                    created_at=datetime.now().isoformat(),
+                    is_valid=True,
+                )
+                
+                # Calculate hash
+                local_model.sha256_hash = self._calculate_hash(model_file)
+                
+                self.models[model_id] = local_model
+                found_count += 1
+                logger.info(f"Indexed: {model_id} ({format_name}, {local_model.size_mb:.1f}MB)")
+        
+        self._save_index()
+        logger.info(f"✓ Scanned complete: {found_count} models indexed")
+        return found_count
+    
+    def _generate_model_id(self, model_file: Path) -> str:
+        """Generar ID único para modelo."""
+        relative_path = model_file.relative_to(self.models_dir)
+        return str(relative_path).replace("/", "__").replace("\\", "__")
+    
+    def _infer_task(self, model_file: Path) -> str:
+        """Inferir tarea desde nombre/path del modelo."""
+        name_lower = model_file.name.lower()
+        
+        if "text-gen" in name_lower or "gpt" in name_lower or "llm" in name_lower:
+            return "text-generation"
+        elif "code" in name_lower or "codex" in name_lower:
+            return "code-generation"
+        elif "summary" in name_lower or "bart" in name_lower:
+            return "summarization"
+        elif "translation" in name_lower or "translate" in name_lower:
+            return "translation"
+        elif "embed" in name_lower:
+            return "feature-extraction"
+        elif "object-detect" in name_lower or "detection" in name_lower:
+            return "object-detection"
+        else:
+            return "text-generation"  # default
+    
+    def _calculate_hash(self, model_file: Path, chunk_size: int = 65536) -> str:
+        """Calcular SHA256 hash del archivo."""
+        hasher = hashlib.sha256()
+        try:
+            with open(model_file, 'rb') as f:
+                while True:
+                    chunk = f.read(chunk_size)
+                    if not chunk:
+                        break
+                    hasher.update(chunk)
+            return hasher.hexdigest()
+        except Exception as e:
+            logger.warning(f"Failed to hash {model_file}: {e}")
+            return ""
+    
+    def _verify_hash(self, model_file: Path, expected_hash: str) -> bool:
+        """Verificar hash de archivo."""
+        actual_hash = self._calculate_hash(model_file)
+        return actual_hash == expected_hash
+    
+    def get_model(self, model_id: str) -> Optional[LocalModel]:
+        """Obtener modelo por ID."""
+        return self.models.get(model_id)
+    
+    def list_models(self, task: Optional[str] = None, format: Optional[str] = None) -> List[LocalModel]:
+        """Listar modelos, opcionalmente filtrados."""
+        models = list(self.models.values())
+        
+        if task:
+            models = [m for m in models if m.task == task]
+        
+        if format:
+            models = [m for m in models if m.format == format]
+        
+        return sorted(models, key=lambda m: m.size_mb)
+    
+    def get_model_by_task(self, task: str) -> Optional[LocalModel]:
+        """Obtener modelo más pequeño para una tarea."""
+        candidates = self.list_models(task=task)
+        if candidates:
+            return candidates[0]  # Smallest one
+        return None
+    
+    def validate_all(self) -> Dict[str, bool]:
+        """Validar integridad de todos los modelos."""
+        validation_results = {}
+        
+        for model_id, model in self.models.items():
+            model_path = model.full_path()
+            
+            if not model_path.exists():
+                model.is_valid = False
+                logger.warning(f"Model file not found: {model_path}")
+            else:
+                is_valid = self._verify_hash(model_path, model.sha256_hash)
+                model.is_valid = is_valid
+            
+            validation_results[model_id] = model.is_valid
+        
+        self._save_index()
+        return validation_results
+    
+    def get_stats(self) -> Dict[str, Any]:
+        """Obtener estadísticas de modelos locales."""
+        total_models = len(self.models)
+        total_size_mb = sum(m.size_mb for m in self.models.values())
+        
+        tasks_count = {}
+        for model in self.models.values():
+            tasks_count[model.task] = tasks_count.get(model.task, 0) + 1
+        
+        return {
+            "total_models": total_models,
+            "total_size_gb": round(total_size_mb / 1024, 2),
+            "tasks": tasks_count,
+            "formats": {fmt: len([m for m in self.models.values() if m.format == fmt]) 
+                       for fmt in set(m.format for m in self.models.values())},
+        }
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Serializar índice completo."""
+        return {
+            model_id: {
+                "path": m.model_path,
+                "name": m.model_name,
+                "task": m.task,
+                "format": m.format,
+                "size_gb": round(m.size_gb(), 2),
+            }
+            for model_id, m in self.models.items()
+        }
+
+
+# Instancia global
+_local_scanner: Optional[LocalScanner] = None
+
+
+def get_local_scanner() -> LocalScanner:
+    """Obtener instancia global del local scanner."""
+    global _local_scanner
+    if _local_scanner is None:
+        _local_scanner = LocalScanner()
+    return _local_scanner
