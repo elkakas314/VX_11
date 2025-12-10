@@ -1,6 +1,12 @@
 """
-VX11 Switch v6.3
-Router de modelos con cola priorizada y rotación de modelos locales.
+VX11 Switch v6.3 - PASO 3
+Router IA con Hermes integration, GA optimization, warm-up y Shub routing.
+
+Features:
+- Hermes integration: CLI registry, model scanners, selection
+- GA optimizer: población evoluciona según fitness
+- Warm-up engine: precalienta modelos en startup
+- Shub router: detecta audio/DSP y enruta hacia Shubniggurath
 """
 
 import asyncio
@@ -8,6 +14,7 @@ import json
 import heapq
 import time
 import sqlite3
+import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Dict, Any, Optional, List, Tuple
@@ -22,6 +29,15 @@ from config.settings import settings
 from config.tokens import load_tokens, get_token
 from config.forensics import write_log
 from config.db_schema import get_session, TaskQueue, ModelRegistry, CLIRegistry, SystemState
+
+# PASO 3: Importar componentes nuevos
+from switch.ga_optimizer import GeneticAlgorithmOptimizer, GAIndividual
+from switch.warm_up import WarmUpEngine
+from switch.shub_router import ShubRouter, AudioDomain
+from switch.hermes import CLISelector, CLIFusion, ExecutionMode, get_metrics_collector
+
+# Logger
+log = logging.getLogger("vx11.switch")
 
 # Cargar tokens
 load_tokens()
@@ -467,11 +483,65 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# PASO 3: Inicializar GA, Warm-up, Shub Router
+ga_optimizer: Optional[GeneticAlgorithmOptimizer] = None
+warm_up_engine: Optional[WarmUpEngine] = None
+shub_router: Optional[ShubRouter] = None
+cli_selector: Optional[CLISelector] = None
+cli_fusion: Optional[CLIFusion] = None
+
 
 @app.on_event("startup")
 async def _startup_consumer():
+    """Startup completo con GA, Warm-up y Hermes integration"""
+    global ga_optimizer, warm_up_engine, shub_router, cli_selector, cli_fusion
+    
     _ensure_chat_stats_table()
+    
+    # Inicializar GA Optimizer
+    log.info("Inicializando GA Optimizer...")
+    ga_optimizer = GeneticAlgorithmOptimizer(
+        population_size=10,
+        engine_ids=["local_gguf", "deepseek_r1", "cli", "shub"],
+        persistence_path="switch/ga_population.json"
+    )
+    log.info(f"GA: {ga_optimizer.get_population_summary()}")
+    
+    # Inicializar Warm-up Engine
+    log.info("Inicializando Warm-up Engine...")
+    warm_up_engine = WarmUpEngine(
+        hermes_endpoint=settings.hermes_url or "http://switch:8003"
+    )
+    warmup_results = await warm_up_engine.warmup_startup()
+    log.info(f"Warm-up completado: {warmup_results}")
+    
+    # Inicializar Shub Router
+    log.info("Inicializando Shub Router...")
+    shub_router = ShubRouter(
+        shub_endpoint=settings.shub_url or "http://switch:8007"
+    )
+    
+    # Inicializar CLI Selector y Fusion
+    log.info("Inicializando Hermes CLI components...")
+    cli_selector = CLISelector()
+    cli_fusion = CLIFusion()
+    
+    # Iniciar consumer loop
     asyncio.create_task(_consumer_loop())
+    
+    # Iniciar warmup periódico en background
+    asyncio.create_task(warm_up_engine.warmup_periodic())
+    
+    log.info("✓ Switch v6.3 (PASO 3) completamente inicializado")
+
+
+@app.on_event("shutdown")
+async def _shutdown():
+    """Cleanup en shutdown"""
+    global ga_optimizer
+    if ga_optimizer:
+        ga_optimizer._persist()
+        log.info("GA Population persistida")
 
 
 @app.get("/health")
@@ -489,6 +559,136 @@ async def health():
 async def metrics_stub(suffix: str = ""):
     """Lightweight stub to silence missing metrics probes."""
     return {"status": "ok", "module": "switch", "metrics": "stub", "path": suffix or "/metrics"}
+
+
+# PASO 3: GA Optimizer endpoints
+@app.get("/switch/ga/status")
+async def ga_status():
+    """Retorna estado del GA Optimizer"""
+    if not ga_optimizer:
+        return {"error": "GA no inicializado"}
+    return {
+        "enabled": True,
+        "population_summary": ga_optimizer.get_population_summary(),
+        "elite_weights": ga_optimizer.get_best_weights(),
+        "history_length": len(ga_optimizer.history),
+    }
+
+
+@app.post("/switch/ga/evolve")
+async def ga_evolve():
+    """Dispara evolución de población GA (normalmente automático)"""
+    if not ga_optimizer:
+        return {"error": "GA no inicializado"}
+    ga_optimizer.evolve()
+    return {
+        "status": "ok",
+        "generation": ga_optimizer.generation,
+        "population_summary": ga_optimizer.get_population_summary(),
+    }
+
+
+# PASO 3: Warm-up endpoints
+@app.get("/switch/warmup/status")
+async def warmup_status():
+    """Retorna estado del Warm-up Engine"""
+    if not warm_up_engine:
+        return {"error": "Warm-up no inicializado"}
+    return warm_up_engine.get_health()
+
+
+@app.post("/switch/warmup/manual")
+async def warmup_manual():
+    """Ejecuta precalentamiento manual"""
+    if not warm_up_engine:
+        return {"error": "Warm-up no inicializado"}
+    results = await warm_up_engine.warmup_startup()
+    return {
+        "status": "ok",
+        "results": results,
+        "health": warm_up_engine.get_health(),
+    }
+
+
+# PASO 3: Shub Router endpoints
+@app.post("/switch/shub/detect")
+async def shub_detect(req: RouteRequest):
+    """Detecta si una tarea debe ir a Shub y retorna plan de enrutamiento"""
+    if not shub_router:
+        return {"error": "Shub Router no inicializado"}
+    
+    should_route = shub_router.should_route_to_shub(
+        req.prompt,
+        req.metadata
+    )
+    
+    if not should_route:
+        return {
+            "should_route_to_shub": False,
+            "reason": "No se detectó tarea de audio",
+        }
+    
+    domain = shub_router.detect_audio_domain(req.prompt, req.metadata)
+    payload = shub_router.build_shub_payload(req.prompt, domain, req.metadata)
+    endpoint = shub_router.get_shub_endpoint(domain)
+    
+    return {
+        "should_route_to_shub": True,
+        "domain": domain.value if domain else None,
+        "endpoint": endpoint,
+        "payload": payload,
+    }
+
+
+@app.post("/switch/shub/route")
+async def shub_route(req: RouteRequest):
+    """
+    Enruta tarea hacia Shub si es audio/DSP.
+    Si no es audio, retorna error.
+    """
+    if not shub_router:
+        return {"error": "Shub Router no inicializado"}
+    
+    should_route = shub_router.should_route_to_shub(req.prompt, req.metadata)
+    
+    if not should_route:
+        return {
+            "status": "not_audio",
+            "error": "Esta tarea no es de audio/DSP",
+        }
+    
+    domain = shub_router.detect_audio_domain(req.prompt, req.metadata)
+    payload = shub_router.build_shub_payload(req.prompt, domain, req.metadata)
+    endpoint = shub_router.get_shub_endpoint(domain)
+    
+    try:
+        async with httpx.AsyncClient(timeout=60.0, headers=AUTH_HEADERS) as client:
+            resp = await client.post(
+                endpoint,
+                json=payload,
+                headers=AUTH_HEADERS,
+            )
+            
+            if resp.status_code == 200:
+                shub_result = resp.json()
+                return {
+                    "status": "ok",
+                    "domain": domain.value if domain else None,
+                    "endpoint": endpoint,
+                    "result": shub_result,
+                }
+            else:
+                return {
+                    "status": "error",
+                    "code": resp.status_code,
+                    "detail": resp.text[:200],
+                }
+    except Exception as e:
+        return {
+            "status": "error",
+            "error": str(e),
+        }
+
 
 
 def _should_use_cli(metadata: Dict[str, Any], queue_size: int, model_name: str) -> bool:
