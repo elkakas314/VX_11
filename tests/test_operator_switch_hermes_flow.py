@@ -15,7 +15,7 @@ sin romper imports ni headers obligatorios.
 """
 from fastapi.testclient import TestClient
 
-from operator_backend.backend.main import app, VX11_TOKEN, settings
+from operator_backend.backend.main_v7 import app, VX11_TOKEN, settings
 
 
 class DummyResp:

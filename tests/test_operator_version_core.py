@@ -9,7 +9,7 @@ if str(REPO_ROOT) not in sys.path:
 if "operator" in sys.modules and not hasattr(sys.modules["operator"], "__path__"):
     sys.modules.pop("operator")
 
-from operator_backend.backend.main import app, settings  # noqa: E402
+from operator_backend.backend.main_v7 import app, settings  # noqa: E402
 
 
 client = TestClient(app)

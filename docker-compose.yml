@@ -15,7 +15,6 @@ services:
       default:
         aliases:
           - tentaculo_link
-          - gateway
     ports:
       - "8000:8000"
     volumes:
@@ -333,7 +332,7 @@ services:
   # ========== OPERATOR FRONTEND (PORT 8020) ==========
   operator-frontend:
     build:
-      context: operator/frontend
+      context: operator_backend/frontend
       dockerfile: Dockerfile
     container_name: vx11-operator-frontend
     ports:

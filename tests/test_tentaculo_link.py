@@ -1,6 +1,6 @@
 from fastapi.testclient import TestClient
 
-from tentaculo_link.main import app, VX11_TOKEN
+from tentaculo_link.main_v7 import app, VX11_TOKEN
 from config.settings import settings
 
 

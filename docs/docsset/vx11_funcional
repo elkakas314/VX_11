@@ -1,0 +1,2447 @@
+ACTÚA COMO:
+GPT-5.1 Codex-Max en modo AGENTE OPERADOR/AUDITOR AVANZADO para un sistema de microservicios llamado VX11.
+
+TU ENTORNO:
+– Estás dentro del repo local VX11 (VS Code).
+– Tienes acceso a todo el código, Dockerfiles, tests, docs, etc.
+– No debes romper nada que funcione, pero SÍ puedes refactorizar, mejorar y añadir módulos nuevos, siempre de forma coherente.
+
+OBJETIVO GLOBAL (RESUMEN DURO):
+1) Auditar TODO VX11 (código + Docker + flujos + seguridad + Shub + Manifestator + Switch + Hormiguero + Madre + Spawner + MCP).
+2) Integrar y terminar de construir el **nuevo módulo OPERATOR VX11 v6.2** (frontend + backend) como operador conversacional principal de VX11 (sustituye a Copilot / Actions GPT como “operadores externos”).
+3) Alinear VX11 entero a la versión **canónica v6.2**:
+   – 9 módulos: gateway, madre, switch, hermes, hormiguero, manifestator, mcp, spawner, shub-niggurath.
+   – Puertos 8000–8008, contenedores 512MB, health checks, auth, etc.
+4) Integrar **SHUB** (motor audio/REAPER) según el diseño y el TXT adjunto (Modo C Híbrido), alinearlo con VX11 y el nuevo Operator.
+5) Diseñar e implementar el uso de **DeepSeek R1** como proveedor IA principal (vía código) leyendo el token de `tokens.env` (`/home/elkakas314/vx11/tokens.env` en el host, adaptado a contenedor).
+6) Limpiar estructura, duplicados, forensics, BDs, y unificar documentación a “justo lo necesario”: clara, breve y actualizada.
+7) Dejar VX11 **listo para producción**: scripts de arranque, tests, Docker, seguridad, observabilidad.
+8) Al final, ejecutar una **AUDITORÍA FINAL** + informe ultra-detallado explicando:
+   – Estado inicial vs final.
+   – Alineación real vs VX11 canónico.
+   – Qué se ha arreglado, qué queda pendiente y cómo.
+
+REGLAS GENERALES (OBLIGATORIAS):
+1. No destruyas nada que funcione; si refactorizas, hazlo de forma compatible.
+2. Ningún servicio debe llamar a otro vía `import` directo entre contenedores → siempre vía HTTP / WebSocket / API.
+3. Autenticación obligatoria entre módulos vía token (mínimo token simple HTTP header) cuando aplique.
+4. Nada de ejecución peligrosa de CLI (docker, kubectl, etc.) sin política estricta de seguridad y/o sandbox.
+5. Toda lógica nueva en módulos reales, sin pseudocódigo. Código ejecutable, limpio y modular.
+6. Respeta el patrón VX11: Madre, Switch, Hermes, Hormiguero, Manifestator, MCP, Spawner, Shub.
+7. Mantén los servicios independientes (pensados para Docker) pero también ejecutables en local.
+8. Toda modificación importante debe ir acompañada de:
+   – Doc corta (README o sección).
+   – Tests mínimos (unit o integración).
+9. Usa DeepSeek R1 **solo vía código**, no como “otro operador” de usuario. Tú diseñas los clientes/API para llamarlo desde VX11.
+10. Al final, debes generar un informe de auditoría exhaustivo.
+
+────────────────────────────────────────
+SECCIÓN A — CONTEXTO VX11 CANÓNICO v6.2
+────────────────────────────────────────
+
+VX11 CANÓNICO (estado deseado):
+
+– Versión: v6.2 (canónica).
+– 9 módulos obligatorios:
+  1. gateway
+  2. madre
+  3. switch
+  4. hermes
+  5. hormiguero
+  6. manifestator
+  7. mcp
+  8. spawner
+  9. shub-niggurath
+
+– Puertos estándar:
+  – 8000: gateway
+  – 8001: madre
+  – 8002: switch
+  – 8003: hermes
+  – 8004: hormiguero
+  – 8005: manifestator
+  – 8006: mcp
+  – 8007: shub-niggurath
+  – 8008: spawner
+
+– Características clave esperadas:
+  – Madre controla `container_state` + `should_process` (modo P&P).
+  – Switch hace routing adaptativo IA/CLI, scoring, feromonas, models rotation.
+  – Hermes concentra CLI + modelos locales (CLI bridge) con seguridad fuerte.
+  – Hormiguero = reina + hormigas + hijas efímeras creadas SOLO por Madre/Spawner.
+  – Manifestator valida manifiestos, detecta drift y aplica parches (real o simulados).
+  – MCP es el puente tentacular (acciones, orquestación conversacional).
+  – Spawner ejecuta procesos efímeros en sandbox (hijas / tasks).
+  – Shub-Niggurath es el motor audio/REAPER, integrado con VX11.
+  – Todos los servicios con health checks, logs estructurados y mínima observabilidad.
+
+────────────────────────────────────────
+SECCIÓN B — AUDITORÍA VX11 ACTUAL (APORTADA)
+────────────────────────────────────────
+
+ESTA AUDITORÍA ES TU PUNTO DE PARTIDA.
+DEBES LEERLA, VERIFICARLA CONTRA EL CÓDIGO REAL, AMPLIARLA Y USARLA COMO BASE.
+
+[AQUÍ VA LA AUDITORÍA ÍNTEGRA DEL USUARIO]
+
+Estructura y versiones: config/settings.py (line 20) declara v5.0.0 y puertos 8000–8008, pero la documentación proclama v6.0/6.2 y 9 módulos; falta coherencia global. El docker-compose.yml no define spawner y apunta a shubniggurath/Dockerfile (carpeta inexistente; el código real está en shub/), por lo que el build v6.2 falla antes de levantar servicios. gateway/main.py omite el puerto spawner en PORTS, rompiendo control/health centralizado. Volumenes y cientos de archivos en forensic/** añaden ruido y posibles residuos de ejecuciones previas.
+Módulo gateway (gateway/main.py): Solo aplica token si enable_auth=True; el resto de módulos no validan token, creando bypass fácil. No expone control para spawner ni health aggregation real; /vx11/orchestrate depende de orchestration_bridge pero este no usa estados de contenedor ni auth. Endpoints operator mode están comentados; la guía Operator Mode queda sin ejecución.
+Madre (madre/main.py): create_ephemeral_child lanza NotImplementedError (spawner no configurado), por lo que HIJAS efímeras y tasks spawn fallan siempre. /status consulta puertos 5211x duros (incompatibles con 800x), devolviendo unreachable. Control P&P existe pero no se verifica en los flujos (no se usa should_process). Ciclo adaptativo arranca en startup sin guardias de modo/operator y sin cancelación limpia; sin persistencia de métricas.
+Switch (switch/main.py): Circuit breaker sólo para deepseek; resto de proveedores sin protección. _selector y scoring funcionan in-memory; el learner persiste en switch/learner.json pero no hay rotación/compacción. /switch/query y /route-v5 no consultan container_state ni auth. Métricas mínimas; no hay health de proveedores. Ruta MCP from_mcp es stub.
+Hermes (hermes/main.py): Exec real de comandos del host tras check_permission; SAFE_COMMANDS y SAFE_PREFIXES incluyen docker run/kubectl get, permitiendo llamadas reales sin autenticación ni sandbox adicional. /route devuelve texto invertido (stub), no IA; integración con deepseek opcional pero no validada. Registry inicial registra motores aunque no existan; no hay cleanup de _JOBS persistente a disco; contexto-7 apenas se valida.
+Hormiguero (hormiguero/main.py): Usa BD (config/database.py) con sqlite ./data/vx11_test.db, distinta de la BD unificada de config/db_schema.py; genera doble esquema y confusión. Queen/ants en memoria; reina IA depende de switch HTTP pero no maneja estados off/standby. GA usa random sin seed ni validación de fitness real; posible ruido. Control scale_workers sólo manipula estructuras in-memory.
+Manifestator (manifestator/main.py): Busca blueprint en .tmp_copilot/vx11_union (probablemente ausente), por lo que /drift devuelve listas irrelevantes (módulos extra/duplicados). Health probes asumen servicios en localhost; sin auth ni tiempos configurables. Parches se guardan en .tmp_copilot/manifestator/patches sin expiración ni validación de contenido real; apply solo cambia JSON, no ejecuta patch.
+MCP (mcp/main.py): Importa dispatch_route directamente de switch.main, rompiendo aislamiento entre contenedores; si se despliega separado, falla. Routing tentacular es heurístico simple (palabras clave), sin seguridad. Tools registry tiene context7/playwright desactivados por defecto; streaming no implementado (solo placeholder). No hay control de sesiones en disco ni expiración.
+Spawner (spawner/main.py): Servicio existe en código pero no en compose ni en PORTS de gateway. Sin auth ni aislamiento; Popen directo con cualquier binario permitido. cleanup no ejecuta background GC. Tests (tests/test_spawner_endpoints.py) asumen servicio levantado en 8008, hoy imposible.
+Shub-Niggurath (shub/main.py y routers): El servicio real está en shub/, pero compose busca shubniggurath/. Integración VX11 depende de shub_vx11_bridge y health en runtime; sin ese contenedor no se levanta. Puertos esperados 8007 pero app corre 9000 por defecto (__main__).
+Config y datos: tokens.env.sample presente pero no tokens.env/tokens.env.master; sin claves deepseek/openrouter la mayoría de rutas IA fallan silenciosamente. config/settings.py paths apuntan a /app/* pero código local usa ./data, generando doble jerarquía en contenedor. config/container_state.py marca manifestator/shubniggurath/spawner en standby pero los módulos no respetan should_process.
+Documentación: Múltiples reportes y checklists (v4–v6.2) pero no sincronizados con código (ej. claims de auto-repair, P&P funcional, tests e2e) que no existen. Índices (DOCUMENTATION_INDEX.md, VX11_NAVIGATION_GUIDE.md) no reflejan ausencia de spawner/shubniggurath contenedores ni la versión 5.0 en settings.
+Automatización/health: Scripts scripts/start_all.sh, run_all_dev.sh, restart_all.sh no contemplan spawner ni shub real; scripts/validate_canon_v6.1.sh y validate_adaptive_optimization.sh asumen endpoints activos con auth inexistente. Systemd units en scripts/systemd/ incluyen servicios para todos los módulos, pero shubniggurath/mcp/hermes/etc. no tienen archivos de entorno ni tokens. Limpieza (scripts/cleanup.sh) borra logs/data sin confirmación.
+Testing: Suite tests/ depende de servicios levantados (HTTP a localhost). No se ejecutó pytest para evitar side effects y por falta de deps instaladas; riesgo alto de fallos inmediatos (spawner inexistente, puertos duros en madre, compose roto). No hay mocks ni fixtures de BD; tests integran con sqlite real.
+[Fin del bloque de auditoría proporcionada]
+
+DEBES:
+– Verificar cada punto contra el código real.
+– Añadir divergencias adicionales que encuentres.
+– Usar esto como base para el plan de reparación.
+
+────────────────────────────────────────
+SECCIÓN C — DISEÑO DEL NUEVO OPERATOR VX11 v6.2
+────────────────────────────────────────
+
+ESTE ES EL NUEVO OPERADOR CENTRAL DE VX11:
+Frontend + Backend, UI conversacional, dashboard, modos Shub/Manifestator, integración con Switch/Hermes/Hormiguero/Madre/MCP.
+
+TOMA EL SIGUIENTE DISEÑO COMO ESPECIFICACIÓN BASE.
+DEBES IMPLEMENTARLO (BACKEND + FRONTEND) AJUSTÁNDOLO A LA ESTRUCTURA REAL DE VX11.
+PUEDES MEJORARLO SIEMPRE QUE NO ROMPAS SUS PROPÓSITOS.
+
+# DISEÑO TÉCNICO AVANZADO: MÓDULO OPERATOR VX11 v6.2
+## Interface Completo y Arquitectura Funcional
+
+---
+
+## 1. ARQUITECTURA COMPLETA DEL MÓDULO OPERATOR
+
+### 1.1 Diagrama de Arquitectura VX11 Extendida
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    OPERATOR VX11 v6.2                        │
+├─────────────┬─────────────┬────────────────┬────────────────┤
+│   GATEWAY   │    MADRE    │     SWITCH     │   HORMIGUERO   │
+│  (nginx)    │ (orquest.)  │  (router IA)   │  (workers)     │
+├─────────────┼─────────────┼────────────────┼────────────────┤
+│             │             │                │                │
+│  Frontend   │  Backend    │   Modelos      │   Procesos     │
+│  React      │  FastAPI    │   Locales      │   Paralelos    │
+│             │             │   (4B/7B/8B)   │                │
+└─────────────┴─────────────┴────────────────┴────────────────┘
+                              │           │
+                    ┌─────────┴───────────┴─────────┐
+                    │                                │
+            ┌───────▼──────┐              ┌─────────▼────────┐
+            │ SHUB-NIGGURATH│              │   MANIFESTATOR   │
+            │ (Audio IA)    │              │ (Validación)     │
+            └───────────────┘              └──────────────────┘
+```
+
+### 1.2 Componentes Principales y Conexiones
+```
+Operator Core (Python/FastAPI)
+├── API Gateway (FastAPI + WebSockets)
+├── Motor Conversacional (Operator Brain)
+├── Gestor de Modelos (Model Rotator)
+├── CLI Bridge (Switch Integration)
+├── Cache de Contexto (LRU + Redis)
+└── Monitor de Recursos (CPU/GPU/RAM)
+```
+
+---
+
+## 2. DISEÑO DE UI/UX EN DETALLE
+
+### 2.1 Layout Principal (Wireframe)
+```
+┌─────────────────────────────────────────────────────────────┐
+│ OPERATOR VX11 v6.2                        [⚙][⎋][_][□][✕]  │
+├────────────────┬────────────────────────────────────────────┤
+│ NAV LATERAL    │                                            │
+│                │                CONTENIDO PRINCIPAL         │
+│ • 🏠 Dashboard  │                                            │
+│ • 💬 Chat       │   ┌──────────────────────────────────┐    │
+│ • 🔊 Shub       │   │                                  │    │
+│ • 📋 Manifest   │   │  [Área dinámica por modo]        │    │
+│ • ⚙ Config      │   │                                  │    │
+│                │   └──────────────────────────────────┘    │
+│ [🔄] Estado    │                                            │
+│ CPU: ███░░ 32% │   Barra Inferior:                         │
+│ RAM: ██░░░ 45% │   [Modelo: qwen2.5-7b] [Tokens: 142/4k]   │
+│ GPU: █░░░░ 12% │   [Modo: Bajo Consumo] [Conexión: ✓]      │
+└────────────────┴────────────────────────────────────────────┘
+```
+
+### 2.2 Componentes React (Estructura)
+```typescript
+// frontend/src/components/
+├── layout/
+│   ├── MainLayout.tsx           // Layout principal
+│   ├── Sidebar.tsx              // Navegación lateral
+│   └── StatusBar.tsx            // Barra de estado inferior
+├── pages/
+│   ├── Dashboard/
+│   │   ├── ResourceMonitor.tsx  // Monitoreo recursos
+│   │   ├── QuickActions.tsx     // Acciones rápidas
+│   │   └── SystemLogs.tsx       // Logs del sistema
+│   ├── Chat/
+│   │   ├── ChatWindow.tsx       // Ventana conversación
+│   │   ├── MessageList.tsx      // Lista mensajes
+│   │   ├── InputBar.tsx         // Entrada texto/voz
+│   │   └── Suggestions.tsx      // Sugerencias IA
+│   ├── ShubNiggurath/
+│   │   ├── AudioAnalyzer.tsx    // Analizador audio
+│   │   ├── FXPanel.tsx          // Panel efectos
+│   │   ├── WaveformView.tsx     // Visualizador onda
+│   │   └── Recommendations.tsx  // Recomendaciones IA
+│   ├── Manifestator/
+│   │   ├── ManifestEditor.tsx   // Editor manifiestos
+│   │   ├── ValidatorPanel.tsx   // Panel validación
+│   │   ├── DiffViewer.tsx       // Comparador diff
+│   │   └── TemplateGenerator.tsx// Generador plantillas
+│   └── Config/
+│       ├── ModelManager.tsx     // Gestor modelos
+│       ├── SystemSettings.tsx   // Config sistema
+│       └── IntegrationPanel.tsx // Integraciones
+└── services/
+    ├── websocket.ts            // Conexión WebSocket
+    ├── api.ts                  // Cliente API
+    └── state.ts                // Gestión estado
+```
+
+### 2.3 Flujos entre Pantallas
+```
+Usuario inicia → Dashboard (predeterminado)
+     ↓
+Click en tab → Carga diferida del módulo
+     ↓
+Interacción → WebSocket → Backend
+     ↓
+Respuesta → Actualización estado → Re-render mínimo
+     ↓
+Cambio modo → Liberación recursos modo anterior
+```
+
+---
+
+## 3. FLUJOS OPERATIVOS Y DIAGRAMAS
+
+### 3.1 Flujo Principal del Sistema
+```
+sequenceDiagram
+    Usuario->>Frontend: Interacción (click/teclado/voz)
+    Frontend->>WebSocket: Evento serializado
+    WebSocket->>Operator Core: Routing automático
+    Operator Core->>Motor IA: Procesar intención
+    Motor IA->>Switch VX11: Consultar ruta óptima
+    Switch VX11->>Model Rotator: Seleccionar modelo
+    Model Rotator->>LLM Local: Ejecutar inferencia
+    LLM Local->>Operator Core: Respuesta + acción
+    Operator Core->>CLI Bridge: Ejecutar comando (si aplica)
+    CLI Bridge->>Sistema VX11: Interactuar con módulos
+    Sistema VX11->>Operator Core: Resultado ejecución
+    Operator Core->>Frontend: Respuesta + actualización
+    Frontend->>Usuario: Mostrar resultado
+```
+
+### 3.2 Diagrama de Estados Motor Conversacional
+```
+Estados:
+  IDLE → Esperando entrada
+  PROCESSING → Procesando intención
+  EXECUTING → Ejecutando acción CLI
+  VALIDATING → Validando resultado
+  RESPONDING → Generando respuesta
+  ERROR → Manejo de errores
+
+Transiciones:
+  onInput() → PROCESSING
+  intentDetected() → EXECUTING o RESPONDING
+  actionCompleted() → VALIDATING
+  validationPassed() → RESPONDING
+  errorOccurred() → ERROR → IDLE (after timeout)
+```
+
+---
+
+## 4. DISEÑO DE FUNCIONES CLAVE CON PSEUDO-CÓDIGO
+
+### 4.1 Motor Conversacional (Operator Brain)
+```python
+# backend/services/operator_brain.py
+
+class OperatorBrain:
+    def __init__(self):
+        self.context_buffer = ContextBuffer(max_tokens=4000)
+        self.intent_classifier = IntentClassifier()
+        self.action_planner = ActionPlanner()
+        self.model_selector = ModelSelector()
+
+    async def process_input(self, user_input: str, context: dict) -> dict:
+        """
+        Procesa entrada del usuario y genera respuesta + acción
+        """
+        # Paso 1: Comprimir contexto (Context-7)
+        compressed_ctx = self.compress_context(context)
+
+        # Paso 2: Detectar intención
+        intent = await self.classify_intent(user_input, compressed_ctx)
+
+        # Paso 3: Seleccionar modelo según carga/intención
+        model = self.model_selector.select(
+            intent=intent,
+            system_load=get_system_load(),
+            priority="low_power" if intent == "chat" else "accuracy"
+        )
+
+        # Paso 4: Generar respuesta y acción
+        if intent in ["control", "system_command"]:
+            # Usar modelo pequeño para parsear comando
+            parsed_cmd = await self.parse_command(user_input, model="deepseek-r1-mini")
+            action = self.generate_cli_action(parsed_cmd)
+            response = await self.generate_confirmation(action)
+
+        elif intent == "audio_analysis":
+            # Delegar a Shub-Niggurath
+            action = {"type": "delegate", "module": "shub", "input": user_input}
+            response = await self.generate_delegation_message()
+
+        elif intent == "manifest_validation":
+            # Delegar a Manifestator
+            action = {"type": "delegate", "module": "manifestator", "input": user_input}
+            response = await self.generate_delegation_message()
+
+        else:  # Conversación general
+            response = await self.generate_chat_response(
+                user_input,
+                model=model,
+                context=compressed_ctx
+            )
+            action = {"type": "none"}
+
+        # Paso 5: Actualizar feromonas en Switch
+        await self.update_switch_feromones(intent, model, success=True)
+
+        return {
+            "response": response,
+            "action": action,
+            "model_used": model,
+            "intent": intent,
+            "tokens_used": self.context_buffer.token_count
+        }
+
+    def compress_context(self, context: dict, max_tokens: int = 512) -> str:
+        """
+        Implementa algoritmo Context-7 para compresión
+        1. Resumen de últimos 7 intercambios
+        2. Extracción de entidades clave
+        3. Mantenimiento de estado de diálogo
+        """
+        # Pseudo-código de compresión
+        if len(context["history"]) > 7:
+            # Resumir intercambios antiguos
+            old_context = summarize_with_llm(context["history"][:-7], model="4b")
+            recent_context = context["history"][-7:]
+            compressed = f"[Resumen: {old_context}] + {recent_context}"
+        else:
+            compressed = context["history"]
+
+        return truncate_to_tokens(compressed, max_tokens)
+```
+
+### 4.2 Selector y Rotador de Modelos
+```python
+# backend/services/model_rotator.py
+
+class ModelRotator:
+    def __init__(self):
+        self.available_models = {
+            "ultra_light": {
+                "name": "deepseek-r1-mini",
+                "params": "1.5B",
+                "ram_usage": "1GB",
+                "latency": "50ms",
+                "tasks": ["command_parsing", "context_summary", "simple_qa"]
+            },
+            "light": {
+                "name": "qwen2.5-3b",
+                "params": "3B",
+                "ram_usage": "3GB",
+                "latency": "200ms",
+                "tasks": ["chat", "analysis", "code_generation"]
+            },
+            "balanced": {
+                "name": "llama-3.1-8b-instruct",
+                "params": "8B",
+                "ram_usage": "8GB",
+                "latency": "500ms",
+                "tasks": ["complex_reasoning", "manifest_analysis", "audio_recommendations"]
+            }
+        }
+
+        self.model_instances = {}  # Carga perezosa
+        self.performance_history = []  # Para aprendizaje
+
+    def select_model(self, intent: str, system_load: dict, priority: str = "balanced") -> str:
+        """
+        Selecciona modelo óptimo basado en:
+        - Intención del usuario
+        - Carga actual del sistema
+        - Prioridad (velocidad/precisión)
+        - Historial de performance
+        """
+
+        # Filtrar por tareas compatibles
+        compatible = []
+        for model_id, specs in self.available_models.items():
+            if intent in specs["tasks"]:
+                compatible.append((model_id, specs))
+
+        if not compatible:
+            # Fallback al más ligero
+            return "ultra_light"
+
+        # Calcular score para cada modelo compatible
+        scores = []
+        for model_id, specs in compatible:
+            score = 0
+
+            # Factor: Carga del sistema
+            ram_available = system_load["ram_available_gb"]
+            if ram_available >= specs["ram_usage"] * 1.5:
+                score += 3
+            elif ram_available >= specs["ram_usage"]:
+                score += 1
+
+            # Factor: Prioridad
+            if priority == "low_power" and model_id == "ultra_light":
+                score += 5
+            elif priority == "accuracy" and model_id == "balanced":
+                score += 5
+            elif priority == "balanced" and model_id == "light":
+                score += 5
+
+            # Factor: Historial de latency
+            avg_latency = self.get_avg_latency(model_id)
+            if avg_latency < 300:  # ms
+                score += 2
+
+            scores.append((model_id, score))
+
+        # Seleccionar mejor score
+        best_model = max(scores, key=lambda x: x[1])[0]
+
+        # Verificar si necesitamos cargar el modelo
+        if best_model not in self.model_instances:
+            self.load_model(best_model)
+
+        return best_model
+
+    async def load_model(self, model_id: str):
+        """Carga perezosa del modelo con gestión de memoria"""
+        if model_id in self.model_instances:
+            return
+
+        # Descargar si no existe (pseudo-código)
+        model_path = f"./models/{model_id}"
+        if not os.path.exists(model_path):
+            await self.download_model(model_id)
+
+        # Cargar con optimizaciones
+        if model_id == "ultra_light":
+            # GGUF 4-bit quantization
+            self.model_instances[model_id] = load_gguf(model_path, n_gpu_layers=0)
+        elif model_id == "light":
+            # GGUF Q4_K_M
+            self.model_instances[model_id] = load_gguf(model_path, n_gpu_layers=10)
+        else:
+            # GGUF Q4_K_S
+            self.model_instances[model_id] = load_gguf(model_path, n_gpu_layers=20)
+
+        # Registrar en monitor de recursos
+        monitor.register_model(model_id, self.model_instances[model_id])
+```
+
+### 4.3 Integración con Switch VX11 (CLI Bridge)
+```python
+# backend/services/cli_bridge.py
+
+class CLIBridge:
+    """
+    Puente seguro entre Operator y CLI del sistema VX11
+    """
+
+    ALLOWED_COMMANDS = {
+        "gateway": ["status", "restart", "config_reload"],
+        "madre": ["workers", "scale", "health"],
+        "hormiguero": ["queue", "pause", "resume"],
+        "switch": ["feromones", "routes", "model_stats"],
+        "shubniggurath": ["analyze", "plugins", "presets"],
+        "manifestator": ["validate", "generate", "diff"]
+    }
+
+    async def execute_command(self, command: dict, user_context: str = "") -> dict:
+        """
+        Ejecuta comando CLI con validación y seguridad
+
+        command: {
+            "module": "gateway",
+            "action": "status",
+            "params": {},
+            "confirm_required": true
+        }
+        """
+
+        # Validar comando permitido
+        if not self.is_command_allowed(command):
+            return {
+                "success": False,
+                "error": f"Comando no permitido: {command['module']}.{command['action']}",
+                "suggestion": "Consulta /help para comandos disponibles"
+            }
+
+        # Si requiere confirmación y no fue confirmado
+        if command.get("confirm_required") and not command.get("confirmed"):
+            return {
+                "success": False,
+                "requires_confirmation": True,
+                "confirmation_message": self.generate_confirmation_message(command)
+            }
+
+        # Ejecutar a través del Switch
+        try:
+            # Formatear comando para CLI VX11
+            cli_command = self.format_for_vx11_cli(command)
+
+            # Ejecutar a través de subprocess con timeout
+            result = await self.run_subprocess(cli_command, timeout=30)
+
+            # Parsear resultado
+            parsed_result = self.parse_cli_output(result)
+
+            # Actualizar feromonas en Switch
+            await self.update_feromones(
+                module=command["module"],
+                action=command["action"],
+                success=True,
+                user_context=user_context
+            )
+
+            return {
+                "success": True,
+                "result": parsed_result,
+                "raw_output": result[:1000],  # Limitar tamaño
+                "execution_time": result.execution_time
+            }
+
+        except TimeoutError:
+            return {"success": False, "error": "Timeout ejecutando comando"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    def format_for_vx11_cli(self, command: dict) -> str:
+        """Convierte comando interno a CLI VX11"""
+        base_cmd = f"vx11 {command['module']} {command['action']}"
+
+        # Agregar parámetros
+        params = command.get("params", {})
+        for key, value in params.items():
+            if isinstance(value, bool) and value:
+                base_cmd += f" --{key}"
+            elif isinstance(value, (int, float)):
+                base_cmd += f" --{key}={value}"
+            else:
+                base_cmd += f" --{key}='{value}'"
+
+        return base_cmd
+```
+
+---
+
+## 5. DISEÑO DE APIs Y MODOS
+
+### 5.1 API REST/WebSocket del Operator
+```python
+# backend/routes/operator.py
+
+"""
+Endpoints principales del Operator VX11 v6.2
+"""
+
+# WebSocket para comunicación en tiempo real
+@router.websocket("/ws/{client_id}")
+async def websocket_endpoint(websocket: WebSocket, client_id: str):
+    await websocket.accept()
+
+    # Registrar conexión
+    connections_manager.register(client_id, websocket)
+
+    try:
+        while True:
+            # Recibir mensaje
+            data = await websocket.receive_json()
+
+            # Procesar según tipo
+            message_type = data.get("type", "chat")
+
+            if message_type == "chat":
+                result = await operator_brain.process_input(
+                    data["message"],
+                    context=data.get("context", {})
+                )
+
+            elif message_type == "command":
+                result = await cli_bridge.execute_command(
+                    data["command"],
+                    user_context=data.get("context", "")
+                )
+
+            elif message_type == "audio_analysis":
+                # Delegar a servicio Shub
+                result = await shub_service.analyze_audio(
+                    data["audio_metadata"],
+                    mode=data.get("mode", "light")
+                )
+
+            elif message_type == "manifest_validation":
+                # Delegar a Manifestator
+                result = await manifestator.validate(
+                    data["manifest_content"],
+                    strict=data.get("strict", False)
+                )
+
+            # Enviar respuesta
+            await websocket.send_json({
+                "type": message_type,
+                "data": result,
+                "timestamp": datetime.now().isoformat(),
+                "message_id": data.get("message_id")
+            })
+
+    except WebSocketDisconnect:
+        connections_manager.unregister(client_id)
+
+# Endpoints REST para operaciones específicas
+@router.post("/api/analyze-intent")
+async def analyze_intent(request: IntentRequest):
+    """Analiza intención sin ejecutar acción"""
+    intent = await intent_classifier.classify(request.text)
+    return {
+        "intent": intent,
+        "confidence": intent.confidence,
+        "suggested_actions": intent.suggested_actions
+    }
+
+@router.get("/api/system-status")
+async def system_status():
+    """Obtiene estado completo del sistema"""
+    return {
+        "operator": operator_brain.get_status(),
+        "models": model_rotator.get_status(),
+        "resources": resource_monitor.get_metrics(),
+        "connections": connections_manager.get_stats()
+    }
+
+@router.post("/api/switch-model")
+async def switch_model(request: ModelSwitchRequest):
+    """Cambia modelo activo manualmente"""
+    result = model_rotator.switch_to(
+        request.model_id,
+        unload_previous=request.unload_previous
+    )
+    return result
+```
+
+### 5.2 Modo Shub-Niggurath (Audio IA)
+```python
+# backend/modes/shub_niggurath.py
+
+class ShubNiggurathMode:
+    """
+    Modo especializado para análisis y recomendación de audio
+    """
+
+    def __init__(self):
+        self.audio_analyzers = {
+            "light": LightAudioAnalyzer(),      # Análisis básico
+            "detailed": DetailedAudioAnalyzer(), # Análisis espectral
+            "ai_enhanced": AIAudioAnalyzer()    # Con modelos IA
+        }
+
+        self.fx_recommender = FXRecommender()
+        self.preset_generator = PresetGenerator()
+
+    async def analyze_audio(self, audio_metadata: dict, mode: str = "light") -> dict:
+        """
+        Analiza audio y genera recomendaciones
+
+        audio_metadata: {
+            "path": "/audio/file.wav",
+            "duration": 180.5,
+            "sample_rate": 44100,
+            "channels": 2,
+            "format": "wav"
+        }
+        """
+
+        # Paso 1: Análisis según modo
+        analyzer = self.audio_analyzers.get(mode, self.audio_analyzers["light"])
+        analysis = await analyzer.analyze(audio_metadata)
+
+        # Paso 2: Recomendaciones de FX usando IA ligera
+        if mode != "light":
+            recommendations = await self.fx_recommender.recommend(
+                analysis=analysis,
+                target_genre=audio_metadata.get("genre", "unknown"),
+                complexity=audio_metadata.get("complexity", "medium")
+            )
+        else:
+            recommendations = {"basic_eq": analysis.get("eq_suggestions", [])}
+
+        # Paso 3: Generar preset para Reaper si se solicita
+        presets = []
+        if audio_metadata.get("generate_preset", False):
+            presets = await self.preset_generator.generate(
+                analysis=analysis,
+                daw="reaper",
+                plugin_set=audio_metadata.get("plugins", ["stock"])
+            )
+
+        return {
+            "analysis": analysis,
+            "recommendations": recommendations,
+            "presets": presets,
+            "processing_mode": mode,
+            "estimated_improvement": self.calculate_improvement_score(analysis)
+        }
+
+    async def fx_recommender.recommend(self, analysis: dict, **kwargs) -> dict:
+        """Recomienda plugins y configuraciones usando modelos 4B/7B"""
+
+        # Construir prompt para modelo pequeño
+        prompt = f"""
+        Analiza este audio y recomienda plugins de efectos:
+
+        Características:
+        - RMS: {analysis['loudness']['rms']} dB
+        - Pico: {analysis['loudness']['peak']} dB
+        - Espectro: {analysis['spectral']['balance']}
+        - Dinámica: {analysis['dynamic_range']} dB
+
+        Género objetivo: {kwargs.get('target_genre')}
+        Complejidad: {kwargs.get('complexity')}
+
+        Recomienda máximo 3 plugins de esta lista:
+        [REAPER stock, SWS, JSFX, Helgoboss, VST comunes]
+
+        Formato respuesta JSON:
+        {{
+          "eq": {{"plugin": "...", "settings": "...", "razón": "..."}},
+          "compression": {{...}},
+          "effects": [...]
+        }}
+        """
+
+        # Usar modelo pequeño (4B) para recomendaciones
+        response = await model_rotator.query(
+            model="ultra_light",
+            prompt=prompt,
+            max_tokens=500,
+            temperature=0.3
+        )
+
+        return self.parse_recommendations(response)
+```
+
+### 5.3 Modo Manifestator (Validación)
+```python
+# backend/modes/manifestator.py
+
+class ManifestatorMode:
+    """
+    Modo para validación y generación de manifiestos VX11
+    """
+
+    def __init__(self):
+        self.validator = ManifestValidator()
+        self.explainer = ManifestExplainer()
+        self.differ = ManifestDiffer()
+        self.generator = TemplateGenerator()
+
+    async def validate_manifest(self, manifest_content: str, strict: bool = True) -> dict:
+        """
+        Valida manifiesto contra esquema VX11
+        """
+
+        # Paso 1: Validación sintáctica
+        syntax_result = self.validator.validate_syntax(manifest_content)
+        if not syntax_result["valid"]:
+            return {
+                "valid": False,
+                "errors": syntax_result["errors"],
+                "step": "syntax",
+                "suggestions": self.generate_syntax_suggestions(syntax_result["errors"])
+            }
+
+        # Paso 2: Validación de esquema
+        schema_result = self.validator.validate_schema(manifest_content)
+        if not schema_result["valid"]:
+            return {
+                "valid": False,
+                "errors": schema_result["errors"],
+                "step": "schema",
+                "suggestions": self.generate_schema_suggestions(schema_result["errors"])
+            }
+
+        # Paso 3: Validación semántica (si strict)
+        if strict:
+            semantic_result = await self.validator.validate_semantic(manifest_content)
+            if not semantic_result["valid"]:
+                return {
+                    "valid": False,
+                    "errors": semantic_result["errors"],
+                    "step": "semantic",
+                    "suggestions": semantic_result["suggestions"]
+                }
+
+        # Paso 4: Análisis de rendimiento (opcional)
+        performance_notes = []
+        if strict:
+            performance_notes = await self.analyze_performance(manifest_content)
+
+        return {
+            "valid": True,
+            "warnings": schema_result.get("warnings", []),
+            "performance_notes": performance_notes,
+            "estimated_resources": self.estimate_resources(manifest_content),
+            "compatibility": self.check_compatibility(manifest_content)
+        }
+
+    async def explain_manifest(self, manifest_content: str, detail_level: str = "normal") -> dict:
+        """
+        Explica manifiesto en lenguaje natural usando IA
+        """
+
+        # Construir prompt para explicación
+        prompt = f"""
+        Explica este manifiesto VX11 en lenguaje simple:
+
+        {manifest_content}
+
+        Nivel de detalle: {detail_level}
+
+        Incluye:
+        1. Qué hace este módulo
+        2. Cómo se integra en VX11
+        3. Recursos que consume
+        4. Posibles problemas
+        5. Recomendaciones de optimización
+
+        Formato respuesta JSON.
+        """
+
+        # Usar modelo 7B para explicación
+        explanation = await model_rotator.query(
+            model="light",
+            prompt=prompt,
+            max_tokens=800,
+            temperature=0.2
+        )
+
+        return {
+            "explanation": explanation,
+            "key_points": self.extract_key_points(explanation),
+            "complexity_score": self.calculate_complexity(manifest_content),
+            "learning_resources": self.suggest_learning_resources(manifest_content)
+        }
+
+    async def generate_diff(self, old_manifest: str, new_manifest: str) -> dict:
+        """
+        Genera diff inteligente entre versiones
+        """
+        diff = self.differ.compute_diff(old_manifest, new_manifest)
+
+        # Analizar impacto de cambios usando IA
+        impact_analysis = await self.analyze_impact(diff)
+
+        return {
+            "diff": diff,
+            "impact_analysis": impact_analysis,
+            "breaking_changes": self.identify_breaking_changes(diff),
+            "migration_steps": self.generate_migration_steps(diff)
+        }
+```
+
+---
+
+## 6. DISEÑO DE COLAS IA/CLI + ROTACIÓN DE MODELOS
+
+### 6.1 Sistema de Colas Inteligente
+```python
+# backend/services/task_queue.py
+
+class IntelligentTaskQueue:
+    """
+    Sistema de colas con prioridad y rotación automática de modelos
+    """
+
+    def __init__(self):
+        self.queues = {
+            "high_priority": asyncio.Queue(maxsize=50),
+            "normal": asyncio.Queue(maxsize=100),
+            "low_priority": asyncio.Queue(maxsize=200),
+            "batch": asyncio.Queue(maxsize=1000)
+        }
+
+        self.workers = {}
+        self.model_pools = {
+            "ultra_light": ModelPool(size=3, model_type="ultra_light"),
+            "light": ModelPool(size=2, model_type="light"),
+            "balanced": ModelPool(size=1, model_type="balanced")
+        }
+
+    async def submit_task(self, task: Task) -> str:
+        """
+        Encola tarea según prioridad y tipo
+        """
+        task_id = generate_uuid()
+        task_data = {
+            "id": task_id,
+            "task": task,
+            "status": "queued",
+            "timestamp": time.time(),
+            "priority": self.calculate_priority(task)
+        }
+
+        # Seleccionar cola basada en prioridad
+        queue_name = self.select_queue(task_data)
+        await self.queues[queue_name].put(task_data)
+
+        # Iniciar worker si no está activo
+        await self.ensure_workers(queue_name)
+
+        return task_id
+
+    def calculate_priority(self, task: Task) -> int:
+        """
+        Calcula prioridad basada en:
+        - Tipo de tarea
+        - Urgencia
+        - Recursos requeridos
+        - Usuario (admin vs regular)
+        """
+        priority_score = 0
+
+        # Tipo de tarea
+        type_weights = {
+            "system_command": 90,
+            "real_time_chat": 80,
+            "audio_analysis": 70,
+            "manifest_validation": 60,
+            "batch_processing": 10
+        }
+
+        priority_score += type_weights.get(task.type, 50)
+
+        # Factor de urgencia
+        if task.metadata.get("urgent", False):
+            priority_score += 20
+
+        # Factor de usuario
+        if task.user_role == "admin":
+            priority_score += 15
+
+        return priority_score
+
+    async def ensure_workers(self, queue_name: str):
+        """Mantiene pool de workers activos"""
+        if queue_name not in self.workers or len(self.workers[queue_name]) < self.get_optimal_worker_count(queue_name):
+            # Crear nuevo worker
+            worker = TaskWorker(
+                queue=self.queues[queue_name],
+                model_pool=self.select_model_pool(queue_name),
+                max_tasks=self.get_max_tasks(queue_name)
+            )
+
+            if queue_name not in self.workers:
+                self.workers[queue_name] = []
+
+            self.workers[queue_name].append(worker)
+            asyncio.create_task(worker.start())
+
+    def select_model_pool(self, queue_name: str) -> ModelPool:
+        """
+        Selecciona pool de modelos según tipo de cola
+        """
+        if queue_name == "high_priority":
+            return self.model_pools["ultra_light"]  # Rápido
+        elif queue_name == "normal":
+            return self.model_pools["light"]  # Balanceado
+        else:
+            return self.model_pools["balanced"]  # Precisión
+```
+
+### 6.2 Gestor de Feromonas (Switch Integration)
+```python
+# backend/services/feromone_manager.py
+
+class FeromoneManager:
+    """
+    Implementa sistema de feromonas para aprendizaje de rutas óptimas
+    """
+
+    def __init__(self):
+        self.feromone_trails = {
+            "model_selection": {},  # Qué modelo funciona mejor para cada tarea
+            "command_routing": {},  # Qué ruta es más eficiente para cada comando
+            "error_patterns": {},   # Patrones de error comunes
+            "performance_cache": {} # Cache de performance por combinación
+        }
+
+        self.evaporation_rate = 0.1  # Las feromonas se evaporan con el tiempo
+        self.learning_rate = 0.3     # Tasa de aprendizaje
+
+    async def update_trail(self, trail_type: str, key: str, success: bool, metrics: dict):
+        """
+        Actualiza feromonas basado en resultado
+
+        trail_type: "model_selection", "command_routing", etc.
+        key: "intent:audio_analysis->model:qwen2.5-3b"
+        success: Si la acción fue exitosa
+        metrics: Métricas de performance (latency, accuracy, etc.)
+        """
+
+        if trail_type not in self.feromone_trails:
+            self.feromone_trails[trail_type] = {}
+
+        if key not in self.feromone_trails[trail_type]:
+            self.feromone_trails[trail_type][key] = {
+                "strength": 1.0,
+                "success_count": 0,
+                "total_count": 0,
+                "avg_latency": 0,
+                "last_updated": time.time()
+            }
+
+        trail = self.feromone_trails[trail_type][key]
+        trail["total_count"] += 1
+
+        if success:
+            # Aumentar feromonas por éxito
+            reward = self.calculate_reward(metrics)
+            trail["strength"] += reward * self.learning_rate
+            trail["success_count"] += 1
+
+            # Actualizar métricas
+            old_avg = trail["avg_latency"]
+            new_latency = metrics.get("latency", 0)
+            trail["avg_latency"] = (old_avg * (trail["total_count"] - 1) + new_latency) / trail["total_count"]
+        else:
+            # Disminuir feromonas por fracaso
+            trail["strength"] *= 0.7
+
+        trail["last_updated"] = time.time()
+
+        # Aplicar evaporación periódica
+        await self.apply_evaporation()
+
+    async def get_best_option(self, trail_type: str, context: dict) -> str:
+        """
+        Consulta feromonas para obtener mejor opción dado un contexto
+        """
+        relevant_trails = self.get_relevant_trails(trail_type, context)
+
+        if not relevant_trails:
+            return None
+
+        # Seleccionar basado en fortaleza de feromonas
+        best_trail = max(relevant_trails.items(), key=lambda x: x[1]["strength"])
+
+        # Considerar también latency reciente
+        if best_trail[1]["avg_latency"] > 1000:  # ms
+            # Buscar alternativa más rápida
+            fast_trails = {k: v for k, v in relevant_trails.items() if v["avg_latency"] < 500}
+            if fast_trails:
+                best_trail = max(fast_trails.items(), key=lambda x: x[1]["strength"])
+
+        return best_trail[0]
+
+    async def apply_evaporation(self):
+        """Aplica evaporación periódica de feromonas"""
+        current_time = time.time()
+
+        for trail_type in self.feromone_trails:
+            for key, trail in self.feromone_trails[trail_type].items():
+                # Feromonas más viejas se evaporan más
+                age = current_time - trail["last_updated"]
+                evaporation = self.evaporation_rate * (age / 3600)  # Horas
+
+                trail["strength"] = max(0.1, trail["strength"] - evaporation)
+```
+
+---
+
+## 7. INTEGRACIÓN CON SHUB-NIGGURATH
+
+### 7.1 API de Integración
+```python
+# backend/integrations/shub_integration.py
+
+class ShubNiggurathIntegration:
+    """
+    Cliente para integración con módulo Shub-Niggurath
+    """
+
+    SHUB_API_BASE = "http://shub-niggurath:8000"
+
+    async def analyze_audio_file(self, file_path: str, analysis_mode: str = "standard") -> dict:
+        """
+        Envía archivo de audio a Shub-Niggurath para análisis
+        """
+
+        # Verificar que el archivo existe
+        if not os.path.exists(file_path):
+            raise FileNotFoundError(f"Audio file not found: {file_path}")
+
+        # Leer metadatos básicos
+        metadata = await self.extract_audio_metadata(file_path)
+
+        # Llamar a API de Shub
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                f"{self.SHUB_API_BASE}/api/analyze",
+                json={
+                    "file_path": file_path,
+                    "mode": analysis_mode,
+                    "metadata": metadata,
+                    "request_id": generate_uuid()
+                },
+                timeout=60
+            ) as response:
+
+                if response.status == 200:
+                    result = await response.json()
+
+                    # Enriquecer resultado con recomendaciones de Operator
+                    enriched = await self.enrich_with_recommendations(result)
+                    return enriched
+                else:
+                    error_text = await response.text()
+                    raise Exception(f"Shub API error: {error_text}")
+
+    async def enrich_with_recommendations(self, shub_result: dict) -> dict:
+        """
+        Añade recomendaciones inteligentes usando modelos locales
+        """
+
+        # Usar modelo pequeño para generar sugerencias
+        prompt = f"""
+        Basado en este análisis de audio, sugiere mejoras:
+
+        Análisis:
+        {json.dumps(shub_result['analysis'], indent=2)}
+
+        Problemas detectados:
+        {shub_result.get('issues', [])}
+
+        Sugiere:
+        1. Ajustes de EQ específicos
+        2. Compresión necesaria
+        3. Efectos creativos apropiados
+        4. Orden de procesamiento recomendado
+
+        Mantén las sugerencias prácticas y ejecutables en REAPER.
+        """
+
+        recommendations = await model_rotator.query(
+            model="ultra_light",
+            prompt=prompt,
+            max_tokens=400,
+            temperature=0.4
+        )
+
+        # Parsear recomendaciones a estructura JSON
+        parsed_recs = self.parse_recommendations(recommendations)
+
+        # Combinar con resultado original
+        shub_result["operator_recommendations"] = parsed_recs
+        shub_result["enhanced"] = True
+
+        return shub_result
+
+    async def generate_reaper_preset(self, analysis: dict, template: str = "standard") -> str:
+        """
+        Genera preset de REAPER basado en análisis
+        """
+        # Construir RPP (REAPER Project) con ajustes recomendados
+        rpp_content = self.build_rpp_template()
+
+        # Añadir FX chains basadas en recomendaciones
+        for fx in analysis.get("recommended_fx", []):
+            rpp_content += self.generate_fx_chain(fx)
+
+        # Añadir ajustes de track
+        rpp_content += self.generate_track_settings(analysis)
+
+        return rpp_content
+```
+
+### 7.2 Flujo de Trabajo Conjunto
+```
+Usuario sube audio → Operator recibe → Delegar a Shub
+     ↓
+Shub analiza → Devuelve análisis técnico
+     ↓
+Operator enriquece con IA → Recomendaciones específicas
+     ↓
+Usuario revisa → Aplica cambios → Feedback
+     ↓
+Operator aprende de resultados → Actualiza feromonas
+```
+
+---
+
+## 8. INTEGRACIÓN CON MANIFESTATOR
+
+### 8.1 API de Validación
+```python
+# backend/integrations/manifestator_integration.py
+
+class ManifestatorIntegration:
+    """
+    Cliente para integración con módulo Manifestator
+    """
+
+    MANIFESTATOR_API_BASE = "http://manifestator:8000"
+
+    async def validate_manifest(self, manifest_content: str,
+                                schema_version: str = "vx11-1.0") -> dict:
+        """
+        Valida manifiesto a través del Manifestator
+        """
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                f"{self.MANIFESTATOR_API_BASE}/api/validate",
+                json={
+                    "manifest": manifest_content,
+                    "schema": schema_version,
+                    "strict": True,
+                    "generate_suggestions": True
+                },
+                timeout=30
+            ) as response:
+
+                if response.status == 200:
+                    validation_result = await response.json()
+
+                    # Añadir explicación generada por IA
+                    if validation_result.get("valid", False):
+                        explanation = await self.generate_explanation(manifest_content)
+                        validation_result["explanation"] = explanation
+
+                    return validation_result
+                else:
+                    error_text = await response.text()
+                    raise Exception(f"Manifestator API error: {error_text}")
+
+    async def generate_explanation(self, manifest_content: str) -> dict:
+        """
+        Genera explicación en lenguaje natural usando modelo 7B
+        """
+        prompt = f"""
+        Explica este manifiesto VX11 como si enseñaras a un nuevo desarrollador:
+
+        {manifest_content[:2000]}
+
+        Incluye:
+        1. Propósito del módulo
+        2. Componentes principales
+        3. Dependencias críticas
+        4. Consideraciones de rendimiento
+        5. Ejemplo de uso
+
+        Sé claro y conciso.
+        """
+
+        explanation = await model_rotator.query(
+            model="light",
+            prompt=prompt,
+            max_tokens=600,
+            temperature=0.3
+        )
+
+        return {
+            "summary": explanation[:200],
+            "detailed": explanation,
+            "key_concepts": self.extract_concepts(explanation),
+            "learning_path": self.suggest_learning_path(manifest_content)
+        }
+
+    async def compare_manifests(self, old_manifest: str, new_manifest: str) -> dict:
+        """
+        Compara dos versiones de manifiesto
+        """
+        # Primero validar ambos
+        old_valid = await self.validate_manifest(old_manifest, strict=False)
+        new_valid = await self.validate_manifest(new_manifest, strict=False)
+
+        if not old_valid["valid"] or not new_valid["valid"]:
+            return {
+                "comparable": False,
+                "errors": {
+                    "old": old_valid.get("errors", []),
+                    "new": new_valid.get("errors", [])
+                }
+            }
+
+        # Solicitar diff al Manifestator
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                f"{self.MANIFESTATOR_API_BASE}/api/diff",
+                json={
+                    "old": old_manifest,
+                    "new": new_manifest
+                }
+            ) as response:
+
+                diff_result = await response.json()
+
+                # Analizar impacto de cambios
+                impact = await self.analyze_impact(diff_result)
+
+                return {
+                    "comparable": True,
+                    "diff": diff_result,
+                    "impact_analysis": impact,
+                    "migration_required": self.needs_migration(diff_result),
+                    "estimated_work": self.estimate_work(diff_result)
+                }
+```
+
+---
+
+## 9. INTEGRACIÓN CON SWITCH VX11
+
+### 9.1 Sistema de Routing Inteligente
+```python
+# backend/integrations/switch_integration.py
+
+class SwitchVX11Integration:
+    """
+    Integración con el Switch central de VX11
+    """
+
+    def __init__(self):
+        self.switch_client = SwitchClient()
+        self.route_cache = LRUCache(maxsize=1000)
+        self.fallback_routes = self.load_fallback_routes()
+
+    async def route_request(self, request_type: str, payload: dict,
+                           priority: str = "normal") -> dict:
+        """
+        Enruta solicitud a través del Switch VX11
+        """
+
+        # Generar clave de cache
+        cache_key = f"{request_type}:{hash(json.dumps(payload, sort_keys=True))}"
+
+        # Verificar cache primero
+        cached = self.route_cache.get(cache_key)
+        if cached and not self.is_cache_expired(cached):
+            return cached
+
+        # Consultar Switch para ruta óptima
+        try:
+            route_info = await self.switch_client.get_optimal_route(
+                request_type=request_type,
+                payload_size=len(json.dumps(payload)),
+                priority=priority,
+                constraints={
+                    "max_latency": 5000,
+                    "required_accuracy": 0.8,
+                    "privacy_level": "internal"
+                }
+            )
+
+            # Ejecutar según ruta
+            if route_info["route_type"] == "direct":
+                result = await self.execute_direct(route_info, payload)
+            elif route_info["route_type"] == "delegated":
+                result = await self.execute_delegated(route_info, payload)
+            elif route_info["route_type"] == "parallel":
+                result = await self.execute_parallel(route_info, payload)
+            else:
+                result = await self.execute_fallback(request_type, payload)
+
+            # Cachear resultado
+            self.route_cache.set(cache_key, {
+                "result": result,
+                "route_used": route_info,
+                "timestamp": time.time()
+            })
+
+            # Actualizar métricas en Switch
+            await self.update_switch_metrics(
+                route_info["route_id"],
+                success=True,
+                latency=result.get("execution_time", 0)
+            )
+
+            return result
+
+        except Exception as e:
+            # Fallback a ruta predefinida
+            logger.error(f"Switch routing failed: {e}")
+            return await self.execute_fallback(request_type, payload)
+
+    async def execute_direct(self, route_info: dict, payload: dict) -> dict:
+        """Ejecución directa en módulo destino"""
+        target_module = route_info["target"]
+
+        if target_module == "operator":
+            # Procesar localmente
+            return await operator_brain.process_direct(payload)
+        else:
+            # Llamar a módulo externo
+            return await self.call_external_module(target_module, payload)
+
+    async def update_switch_metrics(self, route_id: str, success: bool, latency: float):
+        """Reporta métricas de performance al Switch"""
+        await self.switch_client.report_metrics({
+            "route_id": route_id,
+            "success": success,
+            "latency_ms": latency,
+            "timestamp": time.time(),
+            "resource_usage": resource_monitor.get_current_usage()
+        })
+```
+
+### 9.2 Sistema de Feromonas Distribuido
+```python
+# backend/services/distributed_feromones.py
+
+class DistributedFeromoneSystem:
+    """
+    Sistema de feromonas sincronizado con el Switch central
+    """
+
+    def __init__(self):
+        self.local_trails = {}
+        self.switch_client = SwitchClient()
+        self.sync_interval = 60  # segundos
+        self.sync_task = None
+
+    async def start_sync(self):
+        """Inicia sincronización periódica con Switch"""
+        self.sync_task = asyncio.create_task(self.sync_loop())
+
+    async def sync_loop(self):
+        """Loop de sincronización"""
+        while True:
+            try:
+                await self.sync_with_switch()
+                await asyncio.sleep(self.sync_interval)
+            except Exception as e:
+                logger.error(f"Sync failed: {e}")
+                await asyncio.sleep(self.sync_interval * 2)  # Backoff
+
+    async def sync_with_switch(self):
+        """Sincroniza feromonas locales con el Switch"""
+        # Obtener feromonas globales
+        global_trails = await self.switch_client.get_feromones(
+            module="operator",
+            trail_types=["model_selection", "command_routing"]
+        )
+
+        # Fusionar con locales (promedio ponderado)
+        for trail_type, global_data in global_trails.items():
+            if trail_type not in self.local_trails:
+                self.local_trails[trail_type] = {}
+
+            for key, global_strength in global_data.items():
+                local_strength = self.local_trails[trail_type].get(key, {}).get("strength", 1.0)
+
+                # Fusión: 70% local, 30% global (ajustable)
+                merged = (local_strength * 0.7) + (global_strength * 0.3)
+                self.local_trails[trail_type][key] = {
+                    "strength": merged,
+                    "source": "merged",
+                    "last_sync": time.time()
+                }
+
+        # Enviar feromonas locales al Switch
+        await self.switch_client.update_feromones(
+            module="operator",
+            trails=self.get_significant_trails()
+        )
+
+    def get_significant_trails(self, threshold: float = 0.7) -> dict:
+        """Obtiene feromonas significativas para compartir"""
+        significant = {}
+
+        for trail_type, trails in self.local_trails.items():
+            significant[trail_type] = {}
+
+            for key, data in trails.items():
+                if data["strength"] >= threshold and data.get("total_count", 0) > 5:
+                    significant[trail_type][key] = {
+                        "strength": data["strength"],
+                        "success_rate": data.get("success_rate", 0),
+                        "sample_size": data.get("total_count", 0)
+                    }
+
+        return significant
+```
+
+---
+
+## 10. DOCKER PLUG-AND-PLAY
+
+### 10.1 Dockerfile Diseño
+```dockerfile
+# backend/Dockerfile.operator
+FROM python:3.11-slim as base
+
+# Configuración de bajo consumo
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    OMP_NUM_THREADS=2 \
+    MKL_NUM_THREADS=2 \
+    OPENBLAS_NUM_THREADS=2
+
+WORKDIR /app
+
+# Instalar dependencias del sistema mínimas
+RUN apt-get update && apt-get install -y \
+    curl \
+    git \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copiar requirements
+COPY requirements.txt .
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+
+# Crear usuario no-root
+RUN useradd -m -u 1000 operator && \
+    chown -R operator:operator /app
+USER operator
+
+# Copiar código
+COPY --chown=operator:operator . .
+
+# Configuración de salud
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+# Comando de inicio con modo bajo consumo
+CMD ["python", "-m", "uvicorn", "main:app", \
+     "--host", "0.0.0.0", \
+     "--port", "8000", \
+     "--workers", "2", \
+     "--limit-concurrency", "100", \
+     "--timeout-keep-alive", "30"]
+```
+
+### 10.2 docker-compose.yml Diseño
+```yaml
+# docker-compose.operator.yml
+version: '3.8'
+
+services:
+  operator-vx11:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.operator
+    container_name: operator-vx11-6.2
+    restart: unless-stopped
+    ports:
+      - "8011:8000"  # API principal
+      - "8012:8001"  # WebSocket
+    environment:
+      - NODE_ENV=production
+      - LOG_LEVEL=info
+      - MAX_WORKERS=4
+      - LOW_POWER_MODE=true
+      - MODEL_CACHE_SIZE=2
+      - REDIS_URL=redis://redis:6379/0
+    volumes:
+      - ./models:/app/models:ro  # Modelos pre-descargados
+      - ./data:/app/data:rw     # Datos persistentes
+      - ./logs:/app/logs:rw     # Logs
+    networks:
+      - vx11-network
+    depends_on:
+      redis:
+        condition: service_healthy
+      switch-vx11:
+        condition: service_started
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 8G
+        reservations:
+          cpus: '0.5'
+          memory: 2G
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  redis:
+    image: redis:7-alpine
+    container_name: operator-redis
+    restart: unless-stopped
+    command: redis-server --maxmemory 512mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis-data:/data
+    networks:
+      - vx11-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Frontend estático (build separado)
+  operator-frontend:
+    image: nginx:alpine
+    container_name: operator-frontend
+    restart: unless-stopped
+    ports:
+      - "8020:80"
+    volumes:
+      - ./frontend/dist:/usr/share/nginx/html:ro
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - vx11-network
+    depends_on:
+      - operator-vx11
+
+networks:
+  vx11-network:
+    external: true  # Conecta a red existente VX11
+
+volumes:
+  redis-data:
+  model-cache:
+```
+
+### 10.3 Configuración de Bajo Consumo
+```yaml
+# config/low_power.yaml
+operator:
+  low_power_mode: true
+  model_rotation:
+    enabled: true
+    default_model: "ultra_light"
+    auto_downgrade: true
+    downgrade_threshold_cpu: 70
+    downgrade_threshold_ram: 80
+
+  inference:
+    max_tokens: 512
+    temperature: 0.3
+    top_p: 0.9
+    repetition_penalty: 1.1
+
+  caching:
+    enabled: true
+    ttl_short: 300     # 5 minutos
+    ttl_medium: 3600   # 1 hora
+    ttl_long: 86400    # 1 día
+
+  monitoring:
+    sample_interval: 60  # segundos
+    alert_threshold_cpu: 85
+    alert_threshold_ram: 90
+    alert_threshold_gpu: 95
+
+  websocket:
+    ping_interval: 30
+    ping_timeout: 10
+    max_connections: 100
+    max_message_size: 1048576  # 1MB
+```
+
+---
+
+## 11. ESTRUCTURA FINAL DE CARPETAS COMPLETA
+
+### 11.1 Backend (Estructura Detallada)
+```
+backend/
+├── main.py                          # Punto de entrada FastAPI
+├── config/
+│   ├── __init__.py
+│   ├── settings.py                  # Configuración principal
+│   ├── low_power.py                 # Config bajo consumo
+│   └── security.py                  # Config seguridad
+├── routes/
+│   ├── __init__.py
+│   ├── operator.py                  # Endpoints Operator
+│   ├── chat.py                      # Endpoints chat
+│   ├── audio.py                     # Endpoints audio
+│   ├── manifest.py                  # Endpoints manifiestos
+│   └── system.py                    # Endpoints sistema
+├── services/
+│   ├── __init__.py
+│   ├── operator_brain.py            # Motor conversacional
+│   ├── model_rotator.py             # Rotador de modelos
+│   ├── task_queue.py                # Sistema de colas
+│   ├── feromone_manager.py          # Gestor feromonas
+│   ├── cli_bridge.py                # Puente CLI
+│   ├── context_manager.py           # Gestor contexto
+│   ├── resource_monitor.py          # Monitor recursos
+│   └── cache_manager.py             # Gestor cache
+├── modes/
+│   ├── __init__.py
+│   ├── shub_niggurath.py            # Modo audio IA
+│   ├── manifestator.py              # Modo validación
+│   ├── chat_mode.py                 # Modo conversación
+│   └── dashboard_mode.py            # Modo dashboard
+├── integrations/
+│   ├── __init__.py
+│   ├── switch_integration.py        # Integración Switch
+│   ├── shub_integration.py          # Integración Shub
+│   ├── manifestator_integration.py  # Integración Manifestator
+│   └── vx11_system.py               # Integración sistema VX11
+├── llm/
+│   ├── __init__.py
+│   ├── model_loader.py              # Cargador modelos
+│   ├── inference_engine.py          # Motor inferencia
+│   ├── prompt_templates.py          # Templates prompts
+│   └── model_pool.py                # Pool de modelos
+├── cli/
+│   ├── __init__.py
+│   ├── command_parser.py            # Parser comandos
+│   ├── executor.py                  # Ejecutor comandos
+│   └── safety_check.py              # Verificación seguridad
+├── schema/
+│   ├── __init__.py
+│   ├── request_schema.py            # Esquemas request
+│   ├── response_schema.py           # Esquemas response
+│   └── validation.py                # Validación
+├── websockets/
+│   ├── __init__.py
+│   ├── connection_manager.py        # Gestor conexiones
+│   ├── message_handler.py           # Manejador mensajes
+│   └── broadcast.py                 # Broadcast mensajes
+├── cache/
+│   ├── __init__.py
+│   ├── lru_cache.py                 # Cache LRU
+│   ├── redis_client.py              # Cliente Redis
+│   └── response_cache.py            # Cache respuestas
+├── logs/
+│   ├── __init__.py
+│   ├── structured_logger.py         # Logger estructurado
+│   ├── audit_log.py                 # Log auditoría
+│   └── performance_log.py           # Log performance
+├── utils/
+│   ├── __init__.py
+│   ├── helpers.py                   # Funciones helper
+│   ├── validators.py                # Validadores
+│   ├── formatters.py                # Formateadores
+│   └── security.py                  # Utilidades seguridad
+├── tests/
+│   ├── __init__.py
+│   ├── test_operator.py
+│   ├── test_integrations.py
+│   └── test_performance.py
+├── requirements.txt
+├── Dockerfile
+└── README.md
+```
+
+### 11.2 Frontend (Estructura Detallada)
+```
+frontend/
+├── src/
+│   ├── main.tsx                    # Punto entrada React
+│   ├── App.tsx                     # Componente raíz
+│   ├── index.css                   # Estilos globales
+│   ├── layout/
+│   │   ├── MainLayout.tsx          # Layout principal
+│   │   ├── Sidebar.tsx             # Barra lateral
+│   │   ├── TopBar.tsx              # Barra superior
+│   │   ├── StatusBar.tsx           # Barra estado
+│   │   └── TabManager.tsx          # Gestor pestañas
+│   ├── pages/
+│   │   ├── Dashboard/
+│   │   │   ├── index.tsx
+│   │   │   ├── ResourceMonitor.tsx # Monitor recursos
+│   │   │   ├── QuickActions.tsx    # Acciones rápidas
+│   │   │   ├── SystemLogs.tsx      # Visualizador logs
+│   │   │   └── StatsPanel.tsx      # Panel estadísticas
+│   │   ├── Chat/
+│   │   │   ├── index.tsx
+│   │   │   ├── ChatWindow.tsx      # Ventana chat
+│   │   │   ├── MessageList.tsx     # Lista mensajes
+│   │   │   ├── InputBar.tsx        # Entrada texto/voz
+│   │   │   ├── Suggestions.tsx     # Sugerencias IA
+│   │   │   └── HistoryPanel.tsx    # Historial chat
+│   │   ├── ShubNiggurath/
+│   │   │   ├── index.tsx
+│   │   │   ├── AudioUploader.tsx   # Subida audio
+│   │   │   ├── WaveformView.tsx    # Visualizador onda
+│   │   │   ├── AnalysisPanel.tsx   # Panel análisis
+│   │   │   ├── FXRecommender.tsx   # Recomendador FX
+│   │   │   ├── PresetGenerator.tsx # Generador presets
+│   │   │   └── ExportPanel.tsx     # Panel exportación
+│   │   ├── Manifestator/
+│   │   │   ├── index.tsx
+│   │   │   ├── ManifestEditor.tsx  # Editor código
+│   │   │   ├── ValidatorPanel.tsx  # Panel validación
+│   │   │   ├── DiffViewer.tsx      # Comparador diff
+│   │   │   ├── TemplateGallery.tsx # Galería plantillas
+│   │   │   └── DocsPanel.tsx       # Panel documentación
+│   │   └── Config/
+│   │       ├── index.tsx
+│   │       ├── ModelManager.tsx    # Gestor modelos
+│   │       ├── SystemSettings.tsx  # Config sistema
+│   │       ├── IntegrationPanel.tsx# Panel integraciones
+│   │       ├── PerformanceTab.tsx  # Pestaña rendimiento
+│   │       └── AboutPanel.tsx      # Panel información
+│   ├── components/
+│   │   ├── common/
+│   │   │   ├── Button.tsx          # Botón reutilizable
+│   │   │   ├── Input.tsx           # Input controlado
+│   │   │   ├── Select.tsx          # Selector
+│   │   │   ├── Modal.tsx           # Modal
+│   │   │   ├── Toast.tsx           # Notificaciones
+│   │   │   └── Loading.tsx         # Indicador carga
+│   │   ├── ui/
+│   │   │   ├── Card.tsx            # Tarjeta UI
+│   │   │   ├── Tabs.tsx            # Pestañas
+│   │   │   ├── Tooltip.tsx         # Tooltip
+│   │   │   └── ProgressBar.tsx     # Barra progreso
+│   │   └── charts/
+│   │       ├── ResourceChart.tsx   # Gráfico recursos
+│   │       ├── WaveformChart.tsx   # Gráfico onda
+│   │       └── TimelineChart.tsx   # Gráfico línea tiempo
+│   ├── services/
+│   │   ├── websocket.ts            # Cliente WebSocket
+│   │   ├── api.ts                  # Cliente API REST
+│   │   ├── audioService.ts         # Servicio audio
+│   │   ├── manifestService.ts      # Servicio manifiestos
+│   │   └── modelService.ts         # Servicio modelos
+│   ├── store/
+│   │   ├── index.ts                # Store principal
+│   │   ├── chatStore.ts            # Estado chat
+│   │   ├── audioStore.ts           # Estado audio
+│   │   ├── manifestStore.ts        # Estado manifiestos
+│   │   ├── configStore.ts          # Estado configuración
+│   │   └── systemStore.ts          # Estado sistema
+│   ├── hooks/
+│   │   ├── useWebSocket.ts         # Hook WebSocket
+│   │   ├── useAudio.ts             # Hook audio
+│   │   ├── useModels.ts            # Hook modelos
+│   │   └── useSystem.ts            # Hook sistema
+│   ├── types/
+│   │   ├── index.ts                # Tipos globales
+│   │   ├── api.types.ts            # Tipos API
+│   │   ├── chat.types.ts           # Tipos chat
+│   │   ├── audio.types.ts          # Tipos audio
+│   │   └── manifest.types.ts       # Tipos manifiestos
+│   └── utils/
+│       ├── formatters.ts           # Utilidades formato
+│       ├── validators.ts           # Utilidades validación
+│       ├── audioUtils.ts           # Utilidades audio
+│       └── manifestUtils.ts        # Utilidades manifiestos
+├── public/
+│   ├── index.html
+│   ├── favicon.ico
+│   └── manifest.json
+├── package.json
+├── tsconfig.json
+├── vite.config.ts                  # Config Vite
+├── Dockerfile
+└── README.md
+```
+
+---
+
+## 12. DIAGRAMAS DE SECUENCIA Y FLUJO
+
+### 12.1 Flujo Completo de una Consulta
+```
+Usuario: "Analiza este audio y sugiere mejoras EQ"
+     ↓
+Frontend: Envía por WebSocket con metadata
+     ↓
+Operator Core: Detecta intención "audio_analysis"
+     ↓
+Model Rotator: Selecciona qwen2.5-3b (balance)
+     ↓
+LLM: Parse prompt → Delegar a Shub-Niggurath
+     ↓
+Shub Integration: Llama API Shub con audio
+     ↓
+Shub-Niggurath: Analiza → Devuelve métricas
+     ↓
+Operator: Enriquece con recomendaciones IA
+     ↓
+Feromone Manager: Actualiza éxito ruta
+     ↓
+Frontend: Muestra análisis + recomendaciones
+     ↓
+Usuario: Aplica EQ sugerido → Feedback positivo
+     ↓
+Switch: Aprende patrón para futuras consultas similares
+```
+
+### 12.2 Flujo de Validación de Manifiesto
+```
+Usuario: Pega código manifiesto
+     ↓
+Frontend: Envía a endpoint /api/validate
+     ↓
+Manifestator Integration: Valida sintaxis
+     ↓
+Si errores → Sugiere correcciones inmediatas
+     ↓
+Si válido → Valida esquema VX11
+     ↓
+Si warnings → Explica en lenguaje natural
+     ↓
+Si strict mode → Análisis semántico IA
+     ↓
+Resultado: JSON con validación + explicación
+     ↓
+Frontend: Muestra con colores y sugerencias clickeables
+```
+
+---
+
+## 13. CONSIDERACIONES DE SEGURIDAD
+
+### 13.1 Capas de Seguridad Implementadas
+```
+1. Autenticación:
+   - Tokens JWT con corta expiración
+   - Refresh tokens rotativos
+   - Validación origen (CORS estricto)
+
+2. Autorización:
+   - RBAC (Roles: admin, operator, user)
+   - Comandos CLI permitidos por rol
+   - Validación de parámetros
+
+3. Input Sanitization:
+   - Escape de comandos shell
+   - Validación de tipos estricta
+   - Límites de tamaño
+
+4. Network Security:
+   - WebSocket con TLS
+   - Rate limiting por IP/usuario
+   - Timeouts configurados
+
+5. Data Protection:
+   - Cache en memoria cifrado
+   - Logs sin datos sensibles
+   - Auditoría de acciones
+```
+
+### 13.2 Política de Comandos Seguros
+```python
+# backend/security/command_policy.py
+
+SAFE_COMMAND_PATTERNS = {
+    "gateway": r'^(status|restart|config-test)$',
+    "madre": r'^(workers list|scale \d+)$',
+    "hormiguero": r'^(queue status|pause|resume)$',
+    "switch": r'^(feromones|routes)$'
+}
+
+def validate_command_safety(command: str, user_role: str) -> bool:
+    """
+    Valida que comando sea seguro para ejecutar
+    """
+    # Descomponer comando
+    parts = command.split()
+    if len(parts) < 2:
+        return False
+
+    module, action = parts[0], " ".join(parts[1:])
+
+    # Verificar módulo permitido
+    if module not in SAFE_COMMAND_PATTERNS:
+        return False
+
+    # Verificar patrón de acción
+    pattern = SAFE_COMMAND_PATTERNS[module]
+    if not re.match(pattern, action):
+        return False
+
+    # Verificar permisos de rol
+    if module == "gateway" and user_role != "admin":
+        return False  # Solo admins pueden tocar gateway
+
+    return True
+```
+
+---
+
+## 14. ESTRATEGIA DE BAJO CONSUMO
+
+### 14.1 Optimizaciones Implementadas
+```
+1. Modelos:
+   - GGUF 4-bit quantization
+   - Carga perezosa (lazy loading)
+   - Descarga automática de modelos inactivos
+   - Cache de inferencias frecuentes
+
+2. Procesamiento:
+   - Batch processing para tareas no críticas
+   - Priorización inteligente de colas
+   - Timeouts agresivos
+   - Circuit breaker pattern
+
+3. Memoria:
+   - LRU cache con límites estrictos
+   - Pool de conexiones reutilizables
+   - Garbage collection forzado periódico
+   - Memory mapping para modelos grandes
+
+4. CPU:
+   - Thread pool limitado
+   - Operaciones asíncronas
+   - Cálculos diferidos
+   - Uso de numpy optimizado
+```
+
+### 14.2 Monitor de Recursos Inteligente
+```python
+# backend/services/resource_monitor.py
+
+class IntelligentResourceMonitor:
+    """
+    Monitor que ajusta automáticamente el consumo
+    """
+
+    def __init__(self):
+        self.metrics_history = deque(maxlen=100)
+        self.thresholds = {
+            "cpu_warning": 70,
+            "cpu_critical": 85,
+            "ram_warning": 75,
+            "ram_critical": 90,
+            "gpu_warning": 80,
+            "gpu_critical": 95
+        }
+
+    async def adjust_operation_mode(self, current_metrics: dict):
+        """
+        Ajusta modo operativo basado en métricas actuales
+        """
+        # Calcular carga promedio
+        avg_cpu = current_metrics.get("cpu_percent", 0)
+        avg_ram = current_metrics.get("ram_percent", 0)
+
+        # Determinar modo
+        if avg_cpu > self.thresholds["cpu_critical"] or avg_ram > self.thresholds["ram_critical"]:
+            return "ultra_low_power"
+        elif avg_cpu > self.thresholds["cpu_warning"] or avg_ram > self.thresholds["ram_warning"]:
+            return "low_power"
+        else:
+            return "normal"
+
+    def apply_power_mode(self, mode: str):
+        """
+        Aplica configuraciones de modo de potencia
+        """
+        config_changes = {}
+
+        if mode == "ultra_low_power":
+            config_changes.update({
+                "model_rotation.default_model": "ultra_light",
+                "inference.max_tokens": 256,
+                "caching.enabled": True,
+                "websocket.ping_interval": 60,
+                "task_queue.max_workers": 1
+            })
+        elif mode == "low_power":
+            config_changes.update({
+                "model_rotation.default_model": "light",
+                "inference.max_tokens": 512,
+                "caching.enabled": True,
+                "websocket.ping_interval": 45,
+                "task_queue.max_workers": 2
+            })
+
+        # Aplicar cambios
+        config_manager.update(config_changes)
+
+        # Notificar a componentes
+        event_bus.publish("power_mode_changed", {"mode": mode})
+```
+
+---
+
+## 15. PLAN DE IMPLEMENTACIÓN POR FASES
+
+### Fase 1: Core Operator (Semanas 1-2)
+```
+- Backend básico FastAPI
+- Motor conversacional simple
+- Integración Switch mínima
+- Frontend layout básico
+- Dockerización simple
+```
+
+### Fase 2: Modos Especializados (Semanas 3-4)
+```
+- Integración Shub-Niggurath
+- Integración Manifestator
+- Sistema de colas IA
+- Rotador de modelos básico
+```
+
+### Fase 3: Optimizaciones (Semanas 5-6)
+```
+- Sistema de feromonas
+- Bajo consumo avanzado
+- Cache inteligente
+- Monitor de recursos
+- WebSocket robusto
+```
+
+### Fase 4: Producción (Semanas 7-8)
+```
+- Testing exhaustivo
+- Documentación completa
+- Políticas seguridad
+- Backup/recuperación
+- Monitoring producción
+```
+
+---
+
+## 16. MÉTRICAS DE ÉXITO Y MONITORING
+
+### 16.1 KPIs Principales
+```
+1. Rendimiento:
+   - Latencia p95 < 2s (chat), < 5s (análisis)
+   - Uptime > 99.5%
+   - CPU promedio < 60%
+   - RAM promedio < 70%
+
+2. Calidad:
+   - Precisión detección intención > 85%
+   - Satisfacción usuario (feedback) > 4/5
+   - Tasa éxito comandos > 90%
+
+3. Eficiencia:
+   - Modelos cargados < 3 (simultáneos)
+   - Memoria modelos < 8GB total
+   - Cache hit rate > 65%
+```
+
+### 16.2 Dashboard de Monitoring
+```
+Secciones:
+1. Sistema:
+   - CPU/RAM/GPU/Disco
+   - Red: conexiones, throughput
+   - Temperatura (si aplica)
+
+2. Operator:
+   - Requests activos
+   - Colas de tareas
+   - Modelos cargados
+   - Cache hit/miss
+
+3. IA:
+   - Tokens procesados
+   - Latencia por modelo
+   - Accuracy por tarea
+   - Coste estimado
+
+4. Integraciones:
+   - Estado Shub/Manifestator
+   - Latencia API externas
+   - Tasa error por módulo
+```
+
+---
+
+## CONCLUSIÓN DEL DISEÑO
+
+Este documento técnico presenta el diseño completo del **Operator VX11 v6.2**, un interface avanzado que cumple con todos los requisitos especificados:
+
+### ✅ Características Implementadas:
+1. **Dashboard VX11 avanzado** con monitoreo en tiempo real
+2. **Modo Shub-Niggurath** para análisis de audio con IA
+3. **Modo Manifestator** para validación inteligente de manifiestos
+4. **Chat conversacional** con detección de intención y acciones
+5. **Integración con modelos locales** (4B/7B/8B) + rotación automática
+6. **Integración con CLI VX11** a través del Switch
+7. **Bajo consumo** optimizado (CPU/GPU/RAM)
+8. **Arquitectura modular** plug-and-play vía Docker
+9. **Estructura completa** backend + frontend
+10. **Flujos claros** entre todos los componentes
+
+### 🔧 Características Técnicas Clave:
+- **Frontend React** minimalista con carga diferida
+- **Backend FastAPI** asíncrono y eficiente
+- **WebSocket** para comunicación en tiempo real
+- **Sistema de feromonas** para aprendizaje continuo
+- **Cache inteligente** multi-nivel
+- **Seguridad por capas** (auth, validación, sanitización)
+- **Health checks** y auto-recuperación
+- **Logging estructurado** para debugging
+
+### 🐋 Dockerización Completa:
+- Imágenes optimizadas para bajo consumo
+- docker-compose para despliegue fácil
+- Health checks integrados
+- Volúmenes persistentes configurados
+- Redes aisladas pero conectables
+
+Este diseño está **100% alineado con la arquitectura VX11 canónica** y listo para ser implementado mediante herramientas de generación de código como GitHub Copilot y DeepSeek R1, manteniendo la compatibilidad con los módulos existentes sin modificarlos.
+
+---
+
+
+Ejemplo (resumen, tú debes usar el documento completo que hay en el workspace):
+
+– Operator Core (backend FastAPI) con:
+  – Motor conversacional (OperatorBrain).
+  – ModelRotator / ModelPool.
+  – TaskQueue inteligente.
+  – FeromoneManager / sistema de aprendizaje.
+  – Integraciones con Switch, Shub, Manifestator, VX11 CLI/HTTP.
+– Frontend React tipo dashboard:
+  – Tabs: Dashboard, Chat, Shub, Manifest, Config.
+  – WebSocket con backend.
+  – Modo bajo consumo.
+– Docker plug & play para Operator + frontend.
+
+En el workspace debe existir un archivo tipo `docs/OPERATOR_VX11_DESIGN.md` con este diseño completo.
+Si no existe, créalo como parte del proceso (en SANDBOX primero, luego muévelo).
+
+────────────────────────────────────────
+SECCIÓN D — SHUB (MOTOR AUDIO/REAPER) – TXT “MODO C HÍBRIDO”
+────────────────────────────────────────
+
+El usuario ha proporcionado un TXT con el diseño avanzado de SHUB (Modo C — Híbrido), que describe:
+
+– SHUB como motor audio IA avanzado.
+– Integración con REAPER (análisis, FX, presets, pipelines).
+– Integración con VX11: puentes, endpoints, flujos, seguridad.
+– Reglas de operación (no ejecución peligrosa, sandbox, etc.).
+– Estrategia para usar DeepSeek/otros modelos dentro de Shub.
+
+DEBES:
+1) Localizar en el workspace el fichero con ese contenido (por ejemplo `docs/SHUB_MODE_C_HIBRIDO.md` o similar).
+2) Auditar todo el contenido y compararlo con:
+   – El código real en `shub/`.
+   – La integración actual con VX11 (gateway, mcp, etc.).
+3) Alinear Shub a:
+   – VX11 canónico v6.2 (puerto 8007, Docker, health, auth).
+   – Modo C Híbrido (todo lo que define ese TXT).
+   – El nuevo Operator VX11 (modo Shub en la UI).
+4) Arreglar:
+   – docker-compose (ruta a Dockerfile correcta).
+   – Puertos (8007, no 9000 salvo override controlado).
+   – Integración con REAPER y puente VX11.
+   – Seguridad (tokens, sandbox CLI, nada peligroso sin control).
+5) Documentar Shub:
+   – README único.
+   – Flujos de trabajo (REAPER ↔ Shub ↔ VX11 ↔ Operator).
+
+────────────────────────────────────────
+SECCIÓN E — DEEPSEEK R1 COMO MOTOR IA
+────────────────────────────────────────
+
+Debes DISEÑAR e IMPLEMENTAR el uso de **DeepSeek R1** como uno de los motores IA de VX11.
+
+CONDICIONES:
+– El token está en `/home/elkakas314/vx11/tokens.env` en el host.
+– Debes:
+  1) Diseñar un módulo cliente (ej. `vx11/ai_providers/deepseek_client.py`) que:
+     – Cargue las credenciales desde `.env`/`tokens.env`.
+     – Exponga funciones tipo `generate(...)`, `chat(...)`, etc.
+     – Respete timeouts, reintentos y límites.
+  2) Integrarlo principalmente en:
+     – OperatorBrain (razonamiento complejo, generación de código/pipelines).
+     – Manifestator (validación semántica, explicación de manifiestos).
+     – Shub (recomendaciones avanzadas, presets, análisis complejos).
+     – Switch (como provider más “heavy” cuando se requiera alta calidad).
+  3) Mantener siempre un FALBACK en modelos locales (7B/8B) si DeepSeek falla o no está disponible.
+– NUNCA expondrás el token directamente en el código. Todo vía `.env`.
+
+NOTA:
+Cuando en este prompt se dice “usa DeepSeek R1 para generar código o flujos”, significa:
+– Implementa clientes y lógica para que VX11 pueda llamar a DeepSeek R1 via API.
+– NO que tú “delegues” tu trabajo a otro modelo ahora. Haz tú el diseño; el código solo prepara el sistema para usar DeepSeek R1.
+
+────────────────────────────────────────
+SECCIÓN F — TAREAS QUE DEBES REALIZAR (FASES)
+────────────────────────────────────────
+
+FASE 1 — AUDITORÍA REAL DEL WORKSPACE
+1. Escanea estructura completa de VX11:
+   – Config, módulos, scripts, Docker, tests, docs.
+2. Verifica cada punto de la auditoría aportada.
+3. Añade problemas adicionales que encuentres:
+   – Duplicados.
+   – Forensics basura.
+   – BDs duplicadas.
+   – Imports cruzados entre servicios.
+   – Seguridad débil, CORS abierto, etc.
+4. Genera un primer resumen técnico (no es aún el informe final).
+
+FASE 2 — ALINEACIÓN DE TOPOLOGÍA VX11 v6.2
+1. Arregla `docker-compose.yml`:
+   – Añade servicio `spawner`.
+   – Corrige servicio `shub` (ruta real, Dockerfile correcto, puerto 8007).
+   – Verifica que todos los módulos estén definidos (8000–8008).
+2. Alinea `config/settings.py` a v6.2:
+   – VERSION v6.2.
+   – Puertos correctos.
+   – Paths consistentes (`/app/...` dentro contenedor, `./...` en local).
+3. Arregla Madre, MCP, Gateway:
+   – Madre: `/status` usando 800x, no 5211x.
+   – Gateway: añade puerto spawner en PORTS.
+   – MCP: deja de importar `dispatch_route` directo de switch; usa HTTP.
+
+FASE 3 — SEGURIDAD MÍNIMA
+1. Aplica token/auth en:
+   – Gateway (ya semi-hecho).
+   – Madre, Switch, Hermes, Hormiguero, Manifestator, MCP, Spawner, Shub.
+2. Hermes/Spawner:
+   – Restringir comandos peligrosos.
+   – Crear política fuerte (whitelist, regex segura).
+   – Nada de `docker run`, `kubectl`, etc., salvo si están ultra controlados y documentados.
+3. CORS:
+   – Solo origenes necesarios (frontend Operator, si aplica).
+
+FASE 4 — IMPLEMENTACIÓN DEL OPERATOR VX11 v6.2
+1. Backend:
+   – Crear módulo `operator/` con la estructura del diseño:
+     – `services/operator_brain.py`
+     – `services/model_rotator.py`
+     – `services/task_queue.py`
+     – `services/feromone_manager.py`
+     – `integrations/*` (Switch, Shub, Manifestator, VX11 system).
+     – `routes/operator.py`, `routes/chat.py`, etc.
+   – Encajar con VX11:
+     – Dockerfile propio.
+     – Entrada en docker-compose (puerto, recursos).
+     – Integración con Switch/Hermes/Hormiguero/Madre/MCP vía HTTP.
+2. Frontend:
+   – Crear `operator-frontend/` (o `frontend/`) con estructura React del diseño.
+   – Implementar layout principal, tabs, WebSocket client, etc.
+   – Integrar con backend operator (`/ws`, `/api/*`).
+   – Pensado para bajo consumo (lazy load, etc.).
+3. Sustituir “Operator Mode” antiguo:
+   – Los endpoints viejos de gateway para “Operator Mode” se consideran obsoletos.
+   – Documenta que el nuevo Operator VX11 v6.2 es el operador principal.
+
+FASE 5 — INTEGRACIÓN SHUB (MODO C HÍBRIDO)
+1. Leer y auditar el TXT Modo C Híbrido de Shub.
+2. Comparar lo que dice con:
+   – Código actual en `shub/`.
+   – Integración actual (si existe).
+3. Arreglar:
+   – API de Shub para análisis de audio, recomendaciones, presets REAPER.
+   – Bridge `Shub <-> VX11 <-> Operator`.
+4. Añadir:
+   – Endpoint(s) específicos para Operator.
+   – Tipos y esquemas claros.
+5. Documentar flujos:
+   – Desde la UI del Operator (tab Shub) hasta REAPER.
+
+FASE 6 — INTEGRACIÓN DEEPSEEK R1
+1. Crear cliente DeepSeek (`ai_providers/deepseek_client.py` o similar).
+2. Usarlo:
+   – En OperatorBrain para razonamiento avanzado (cuando proceda).
+   – En Manifestator para validaciones semánticas pesadas.
+   – En Shub para recomendaciones y presets avanzados.
+3. Añadir config para activar/desactivar DeepSeek por entorno.
+4. Mantener modelos locales como fallback (nunca dependas 100% de la nube).
+
+FASE 7 — LIMPIEZA, DOCS Y TESTS
+1. Limpieza:
+   – Forensic/** antiguos → mover a `archive/` o limpiar según política.
+   – BDs duplicadas: unificar esquema (ej. `data/vx11.db`).
+   – Archivos de reporte viejos → marcar como legacy.
+2. Documentación:
+   – Unificar a unos pocos documentos clave:
+     – `README.md` global VX11.
+     – `docs/VX11_ARCHITECTURE.md`.
+     – `docs/OPERATOR_VX11.md`.
+     – `docs/SHUB_VX11.md`.
+   – Actualizar versiones y puertos.
+   – Eliminar/archivar docs contradictorios.
+3. Tests:
+   – Añadir tests unit básicos para Operator, integraciones, Shub.
+   – Añadir tests de integración mínimos para los nuevos flujos.
+   – No hace falta 100% coverage, pero sí comprobar que:
+     – Los endpoints clave responden.
+     – DeepSeek client tiene al menos un test (sin token real, usar mock).
+     – Los Dockerfiles son coherentes (al menos revisión estática).
+
+FASE 8 — AUDITORÍA FINAL E INFORME
+1. Re-audita todo VX11:
+   – Estructura.
+   – Config.
+   – Seguridad.
+   – Flujos entre módulos.
+   – Shub.
+   – Operator.
+   – DeepSeek integration.
+2. Genera un INFORME ULTRA DETALLADO que incluya:
+   – Estado inicial vs estado final.
+   – Alineación real vs VX11 canónico v6.2.
+   – Riesgos que quedan.
+   – Prioridades futuras.
+   – Cómo se usa ahora el Operator VX11 como interfaz principal.
+3. El informe debe ser un solo documento grande, bien estructurado, listo para leer.
+
+────────────────────────────────────────
+SECCIÓN G — FORMATO DE TUS RESPUESTAS
+────────────────────────────────────────
+
+Durante el trabajo:
+– Puedes responder en varias iteraciones dentro de VS Code, pero:
+  – Cada vez que hagas cambios en archivos, explica:
+    – Qué has tocado.
+    – Por qué.
+    – Cómo se integra.
+– Para el usuario, lo importante es:
+  – La lista de archivos creados/modificados.
+  – Instrucciones para levantar servicios (Docker / local).
+  – El informe final.
+
+AL FINAL:
+– Entrega SIEMPRE:
+  1. Resumen ejecutivo (muy corto).
+  2. Detalle técnico (largo).
+  3. Lista de archivos clave.
+  4. Comandos para levantar el sistema completo.
+  5. Posibles TODOs reales.
+
+────────────────────────────────────────
+
+COMIENZA:
+1) Empieza por FASE 1: auditoría real del workspace vs la auditoría aportada.
+2) Después, sigue el orden de Fase 2 → Fase 8.
+3) No pidas aclaraciones al usuario: decide tú la mejor opción manteniendo siempre la coherencia con VX11 v6.2 y el diseño de Operator + Shub.

@@ -35,7 +35,7 @@ class SmartRouter:
         # Use settings if no endpoint provided
         if hermes_endpoint is None:
             hermes_port = settings.PORTS.get("hermes", 8003)
-            hermes_endpoint = f"http://127.0.0.1:{hermes_port}"
+            hermes_endpoint = f"http://switch:{hermes_port}"  # Use Docker hostname
         self.hermes_endpoint = hermes_endpoint
         self.client = None
     

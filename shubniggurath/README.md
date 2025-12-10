@@ -1,26 +1,36 @@
-# Shub-Niggurath Ultimate v3.0
+# Shub-Niggurath v7.1
 
 **The Infinite Black Goat of the Woods with a Thousand Young**  
 Audio AI Assistant for VX11
 
 ---
 
+## Status (v7.1)
+
+- ✅ **VIGENTE:** FastAPI mock server (lazy initialization)
+- ✅ **STABLE:** 9 endpoints, token auth, health check
+- 🔜 **v8 ROADMAP:** Real DSP, REAPER integration, multi-tenant
+
+---
+
 ## Quick Start
 
 ```bash
-# Copy to VX11
-# (Already done: /home/sam/vx11/shub/)
-
-# Start Shub (standalone)
-cd /home/sam/vx11/shub
-python3 -m pip install -r requirements.txt  # (if separate env needed)
-python3 main.py
-
-# Or with Docker (internal cluster)
-docker-compose -f docker/shub_compose.yml up -d
+# Start Shub (docker)
+docker-compose up shubniggurath
 
 # Test health
-curl http://localhost:9000/health
+curl -s http://localhost:8007/health | jq .
+
+# Expected: {"status": "healthy", "initialized": false, "version": "7.0"}
+
+# Analyze audio (mock)
+curl -X POST http://localhost:8007/shub/analyze \
+  -H "X-VX11-Token: $VX11_GATEWAY_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"file": "song.wav"}'
+
+# Expected: {"status": "queued", "task_id": "mock-task-001"}
 ```
 
 ---

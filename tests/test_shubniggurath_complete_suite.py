@@ -100,7 +100,7 @@ class TestVX11Integration:
     
     @pytest.mark.asyncio
     async def test_hermes_shub_provider(self):
-        from hermes.hermes_shub_provider import ShubAudioProvider
+        from shubniggurath.integrations.hermes_shub_provider import ShubAudioProvider
         
         provider = ShubAudioProvider({})
         assert await provider.is_available()

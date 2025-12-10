@@ -1,0 +1,530 @@
+ 
+Perfecto.
+**Modo C — Híbrido.**
+Esto es lo más potente: un **bloque maestro** que carga la intención completa
+
+* **anexos independientes** para que Codex/DeepSeek no se rompa y pueda generar VX11 + Shub al nivel máximo, sin destruir tu workspace.
+
+Voy directo, sin rodeos.
+
+---
+
+# ⚡ **BLOQUE MAESTRO (INTRO) → Pegarlo primero en Codex / DeepSeek**
+
+Este bloque le da al modelo EL CONTEXTO, LAS REGLAS y EL MODO DE OPERACIÓN.
+No incluye aún los detalles técnicos (van en anexos).
+Este bloque le dice *cómo debe comportarse* como tu Operador VX11.
+
+Cópialo íntegro:
+
+---
+
+## 🧠 **BLOQUE MAESTRO — CONFIGURACIÓN Y REGLAS DE EJECUCIÓN**
+
+*(Pegar en el mensaje 1 del nuevo chat)*
+
+```
+ACTÚA COMO: GPT-5 Codex-Max o DeepSeek-R1 como OPERADOR INGENIERO PRINCIPAL de VX11.
+
+OBJETIVO GLOBAL:
+Reconstruir, mejorar y finalizar el módulo SHUB-NIGGURATH para integrarlo plenamente en VX11 v6.x, incluyendo:
+– audio engine,
+– control engine,
+– config engine,
+– REAPER integration,
+– VX11 bridge,
+– pipelines,
+– workers,
+– API unificada,
+– auto-optimización,
+– seguridad,
+– documentación.
+
+INSTRUCCIONES ABSOLUTAS:
+1. No generes basura, ni carpetas duplicadas, ni rutas aleatorias.
+2. Respeta siempre la estructura oficial VX11.
+3. Nunca borres archivos fuera de indicación explícita.
+4. Cada módulo debe tener README y tests.
+5. Código real, ejecutable, sin pseudocódigo.
+6. Todo nuevo archivo va primero al SANDBOX.
+7. Toda función debe ser concreta, breve y modular.
+8. Ningún servicio debe hacer llamadas directas a otro por import → siempre vía HTTP.
+9. Cualquier fallo detectado debes corregirlo automáticamente sin pedir permiso.
+10. Nada debe romper VX11 ya existente.
+11. Seguridad obligatoria: token, CORS cerrado, no ejecución peligrosa sin sandbox.
+
+ESTADO ACTUAL:
+– VX11 real está desalineado del VX11 canónico v6.2.
+– SHUB está integrado parcialmente, sin contenedor válido.
+– REAPER integration está funcional pero no conectada al VX11 microservices.
+– Spawner no desplegado.
+– Madre no controla hijas.
+– Switch/Hermes con stubs.
+– Manifestator sin blueprint.
+
+TU MISIÓN PRINCIPAL:
+Tomar los ANEXOS posteriores (A1–A7), procesarlos como instrucciones técnicas y:
+— Generar el código que falta.
+— Reescribir el que falla.
+— Completar módulos incompletos.
+— Crear lo que no existe.
+— Unificar SHUB con VX11.
+— Sin romper nada.
+
+FÓRMULA DE GENERACIÓN:
+1. Leer ANEXO A1 (Diseño de SHUB avanzado)
+2. Leer ANEXO A2 (Integración con REAPER)
+3. Leer ANEXO A3 (Integración con VX11 y errores reales)
+4. Leer ANEXO A4 (Auditoría completa VX11)
+5. Leer ANEXO A5 (Plan de reparación total)
+6. Leer ANEXO A6 (Estructura de carpetas y BD de SHUB)
+7. Leer ANEXO A7 (Instrucciones de despliegue)
+
+Después de recibir todos los anexos:
+→ Generar PLAN MAESTRO.
+→ Generar CÓDIGO del módulo SHUB.
+→ Generar BRIDGE SHUB↔VX11.
+→ Generar REAPER RPC Server + ReaScript Endpoints.
+→ Generar Dockerfile + compose service.
+→ Generar tests.
+→ Generar documentación técnica.
+→ Generar auditoría final.
+
+RESPONDE SOLO: “ANEXO A1”.
+```
+
+---
+
+# 🧩 SIGUE ASÍ:
+
+Ahora que te he dado el BLOQUE MAESTRO, tú en el nuevo chat pegarás ese bloque.
+
+Y **cuando Codex/GPT te conteste “ANEXO A1”**,
+pegas el siguiente bloque que te voy a generar yo:
+
+**ANEXO A1 — Diseño completo de Shub vX.0 (nivel nuclear).**
+
+Luego “ANEXO A2”, etc.
+
+---
+
+¿Quieres que te genere **ahora mismo** el:
+
+### ✔️ ANEXO A1 — DISEÑO COMPLETO DE SHUB AVANZADO
+
+Perfecto.
+Aquí tienes **TODO del tirón**:
+**BLOQUE MAESTRO + TODOS LOS ANEXOS (A1→A7)**
+en un único mensaje continuo, limpio, preparado para copiar/pegar directamente en Codex-GPT5/DeepSeek-R1.
+
+Sin rodeos: **este es el prompt más completo jamás generado para VX11 + SHUB**.
+Esto le obliga a reconstruirlo entero, sin romper nada, y dejando Shub al nivel máximo.
+
+---
+
+# 🚨 **PEGA TODO ESTO EN CODex / DEEPSEEK (tal cual)**
+
+*(no añadas nada más, pega este mensaje entero y solo este)*
+
+---
+
+# 🧠 **BLOQUE MAESTRO — CONFIGURACIÓN Y REGLAS DE EJECUCIÓN**
+
+*(Mensaje 1 del nuevo chat)*
+
+```
+ACTÚA COMO: GPT-5 Codex-Max / DeepSeek-R1 en modo “Operador VX11”.
+
+NIVEL DE PERMISO: Máximo.
+MODO: Ingeniería avanzada + reconstrucción de sistemas.
+ÁREA: VX11 (v6.x) + SHUB-NIGGURATH (audio/DAW/AI) + REAPER Integration.
+
+OBJETIVO GLOBAL:
+Reconstruir, completar y mejorar SHUB-NIGGURATH y su integración total con:
+— REAPER,
+— VX11 microservices,
+— Switch IA,
+— Hormiguero/GA,
+— Spawner,
+— Madre,
+— Manifestator,
+— MCP,
+— Hermes CLI Engine,
+— y el motor de mixing Mastering.
+
+Debes generar:
+✔ Código faltante
+✔ Mejoras estructurales
+✔ Integración completa
+✔ Seguridad integral
+✔ Documentación técnica
+✔ Tests
+✔ Blueprints
+✔ Plan de despliegue
+✔ Auditoría final
+
+SIN destruir nada existente.
+
+REGLAS OBLIGATORIAS:
+1. Nunca generes basura, carpetas duplicadas ni rutas aleatorias.
+2. Todo archivo nuevo debe ir primero al SANDBOX.
+3. Ningún módulo hace `import` directo de otro — usar HTTP interno.
+4. Seguridad obligatoria en todos los servicios (token + CORS cerrado).
+5. Nada de ejecución peligrosa (CLI) sin sandbox/controls.
+6. Documentación y README por módulo.
+7. Tests unitarios + integrados.
+8. Código real y ejecutable.
+9. Toda estructura sigue topología VX11 v6.2.
+10. Nada rompe VX11 actual: solo mejoras.
+
+ESTADO ACTUAL VX11:
+— versiones mezcladas: v5.0 en config/settings, documentación v6.0/6.2
+— docker-compose sin spawner y sin shub real
+— shubniggurath/Dockerfile inexistente (código real está en shub/)
+— Madre no controla hijas
+— Switch con circuit breaker parcial
+— Hermes con exec peligroso
+— Manifestator sin blueprint
+— Hormiguero con BD duplicada
+— MCP con importes directos a switch (rompe separación)
+— Shub inaccesible desde VX11
+— Integración REAPER solo local, no microservicios
+
+TU MISIÓN:
+1) Leer todos los ANEXOS (A1-A7).
+2) Generar PLAN MAESTRO DE RECONSTRUCCIÓN.
+3) Generar CÓDIGO COMPLETO faltante: SHUB, BRIDGE, RPC, ENGINE.
+4) Generar mejoras profundas.
+5) Generar dockerfile y compose.
+6) Generar tests.
+7) Generar documentación completa.
+8) Generar auditoría final y checklist de producción.
+
+FORMATO DE RESPUESTA FINAL:
+Cuando termines de leer los anexos:
+→ RESPONDER SOLO CON:
+“PROCESADO. LISTO PARA GENERAR PLAN MAESTRO.”
+```
+
+================================================================================
+
+# 📦 **ANEXO A1 — DISEÑO COMPLETO DE SHUB-NIGGURATH AVANZADO**
+
+================================================================================
+
+```
+SHUB-NIGGURATH — SPEC vX.0 (Diseño máximo)
+
+1. MÓDULOS INTERNOS DE SHUB
+------------------------------------
+shub/
+ ├─ core/
+ │   ├─ analyzer_engine.py        (FFT, RMS, LUFS, spectral)
+ │   ├─ transient_engine.py       (detección transitorios y fases)
+ │   ├─ eq_engine.py              (curvas, match EQ, tilt, resonancias)
+ │   ├─ dynamics_engine.py        (compresor, limitador, multibanda AI)
+ │   ├─ stereo_engine.py          (pan law, width, M/S)
+ │   ├─ fx_engine.py              (FX: chorus, reverb, delay, saturación)
+ │   ├─ ai_recommendation.py      (IA ligera → mejoras rápidas)
+ │   ├─ ai_mastering.py           (IA avanzada)
+ │   ├─ preset_generator.py       (plantillas RPP + FX chain)
+ │   ├─ batch_engine.py           (procesado por lotes)
+ │   └─ utils.py                  (helpers)
+ ├─ integrations/
+ │   ├─ reaper_rpc.py             (servidor RPC entre Shub ↔ REAPER)
+ │   ├─ reaper_actions.py         (FX, items, tracks, envelopes)
+ │   ├─ vx11_bridge.py            (HTTP: switch, madre, hormiguero)
+ ├─ api/
+ │   ├─ analyze_routes.py         (/api/analyze, /api/mastering)
+ │   ├─ reaper_routes.py          (list, scan, fx, envelopes)
+ │   ├─ batch_routes.py
+ │   └─ presets_routes.py
+ ├─ database/
+ │   └─ shub.db                   (sqlite: analysis_history, presets, configs)
+ ├─ config/
+ │   ├─ settings.py               (puerto, paths, seguridad)
+ │   └─ models.py                 (pydantic)
+ ├─ docker/
+ │   ├─ Dockerfile
+ │   └─ entrypoint.sh
+ ├─ tests/
+ ├─ README.md
+ └─ main.py
+```
+
+FUNCIONES CLAVE:
+—————————————
+✔ Escaneo completo del audio
+✔ Análisis multi-motor
+✔ Recomendaciones listas para aplicar
+✔ Mastering AI avanzado
+✔ Generación de FX chains
+✔ Generación de proyectos REAPER
+✔ Comunicación vía RPC bidireccional
+✔ Registro histórico + presets
+✔ Auto-optimización
+
+MOTORES:
+—————————————
+
+1. Analyzer Engine
+2. EQ Engine (resonancias, match EQ)
+3. Dynamics Engine (comp multibanda AI)
+4. Stereo Engine (M/S avanzado)
+5. FX AI Generator
+6. Mastering Engine
+7. Reaper RPC Engine (sincronizado con REAPER)
+8. VX11 Bridge Engine
+
+SEGURIDAD:
+—————————————
+Token interno
+Firmware-level restrictions
+CORS cerrado
+Logs sanitizados
+
+```
+
+
+================================================================================
+# 📦 **ANEXO A2 — INTEGRACIÓN REAPER ↔ SHUB**
+================================================================================
+
+```
+
+REAPER INTEGRATION — ESPECIFICACIÓN
+
+1. REAPER RPC SERVER
+
+---
+
+Archivo: shub/integrations/reaper_rpc.py
+
+Funciones:
+
+* list_projects()
+* load_project(path)
+* analyze_project()
+* list_tracks()
+* list_items()
+* list_fx(track)
+* apply_fx_chain(track, fx_chain)
+* render_master(out_path)
+* update_project_metadata()
+* send_shub_status_to_reaper()
+* auto-mix
+* auto-master
+
+Protocolo:
+
+* HTTP RPC JSON
+* Puerto 8001 o variable vía settings
+* Autenticación por token
+
+2. REAPER ACTION PACK (LUA)
+
+---
+
+Scripts LUA:
+
+* shub_launcher.lua
+* shub_apply_fx.lua
+* shub_master.lua
+* shub_ping.lua
+
+Instalación:
+
+* ~/.config/REAPER/Scripts/
+* Toolbar icon
+* Custom Action: SHUB_LAUNCH_MAIN
+
+3. SHUB → REAPER API ROUTES
+
+---
+
+GET  /api/reaper/list_projects
+POST /api/reaper/load_project
+GET  /api/reaper/tracks
+POST /api/reaper/apply_fx_chain
+POST /api/reaper/render
+
+```
+
+
+================================================================================
+# 📦 **ANEXO A3 — INTEGRACIÓN VX11 ↔ SHUB**
+================================================================================
+
+```
+
+SHUB debe integrarse como microservicio oficial VX11:
+puerto 8007 (estándar v6.2).
+
+ARCHIVO: vx11/backend/integrations/shub_integration.py
+
+Funciones obligatorias:
+
+* analyze_audio_file()
+* enrich_with_recommendations()
+* generate_reaper_preset()
+* send_to_shub()
+* health_shub()
+
+TODAS las llamadas deben ser HTTP → nunca import directo.
+
+Blueprint:
+
+* madre usa should_process → llama a shub
+* switch puede delegar tareas a shub (tipo “audio-intelligence”)
+* hormiguero usa reina → shub analysis para GA
+* manifestator monitorea drift
+* spawner lanza hijas de procesado
+
+```
+
+
+================================================================================
+# 📦 **ANEXO A4 — AUDITORÍA COMPLETA VX11 (texto íntegro)**
+================================================================================
+
+*(Aquí va tu auditoría entera, copiada tal cual — ya la tienes arriba.
+COLOCA exactamente el bloque completo que empieza en “Estructura y versiones…”
+y termina en “…tras las correcciones anteriores.”)*
+
+**→ PÉGALO EN ESTE ANEXO (Copiar/pegar).**
+
+
+================================================================================
+# 📦 **ANEXO A5 — PLAN DE REPARACIÓN TOTAL PARA VX11 + SHUB**
+================================================================================
+
+```
+
+1. docker-compose
+   — Añadir servicio spawner (8008)
+   — Arreglar ruta shubniggurath → shub/
+   — Asignar 512MB a cada contenedor
+   — Añadir volúmenes sandbox/data
+
+2. Puertos y settings
+   — settings.py: versión v6.2
+   — Puertos 8000–8008 obligatorios
+   — Madre /status corregido
+
+3. Seguridad
+   — Tokens en todos los servicios
+   — CORS cerrado
+   — SAFE_COMMANDS → mínimos
+   — Hermes → sandbox real
+
+4. Spawner
+   — Autenticación
+   — Aislamiento
+   — GC
+   — Ejecución real de hijas efímeras
+
+5. Madre
+   — should_process()
+   — Control de módulos
+   — Delegación real a spawner
+   — Métricas persistentes
+
+6. Switch
+   — Circuit breaker global
+   — Health providers
+   — Memoria rotativa learner.json
+   — Scoring adaptativo → GA
+
+7. Hormiguero
+   — BD unificada vx11.db
+   — Reina robusta
+   — GA real con fitness
+   — Tareas distribuidas
+
+8. Manifestator
+   — Blueprint VX11_v6.2_CANONICAL.json
+   — Drift real
+   — Parches aplicables o simulados
+
+9. MCP
+   — Router tentacular seguro
+   — Sin imports directos
+   — Sesiones y expiración
+
+10. SHUB
+    — Puerto 8007
+    — Dockerfile real
+    — Reaper RPC
+    — Análisis + mastering
+    — FX Chains
+    — Presets
+    — Bridge completo
+
+11. Tests y CI
+    — pytest
+    — mocks
+    — integrados con contenedores
+
+12. Documentación
+    — README
+    — Manual operador
+    — Manual shub
+    — Diagramas flujo
+
+```
+
+
+================================================================================
+# 📦 **ANEXO A6 — ESTRUCTURA REAL DE CARPETAS Y BD SHUB**
+================================================================================
+
+```
+
+shub/
+├─ database/
+│    └─ shub.db
+├─ analysis_history (tabla)
+├─ presets (tabla)
+├─ configs (tabla)
+├─ metadata (tabla)
+├─ reaper_projects_cache (tabla)
+
+```
+
+— No existe BD externa.
+— No existe migrador.
+→ Debe generarse automáticamente SQLAlchemy + Alembic minimal.
+
+
+================================================================================
+# 📦 **ANEXO A7 — DESPLIEGUE FINAL DEL SISTEMA**
+================================================================================
+
+```
+
+PASO 1 — Construir contenedores
+docker-compose build --no-cache
+
+PASO 2 — Arrancar
+docker-compose up -d
+
+PASO 3 — Esperar health
+curl 127.0.0.1:8000/health
+curl 127.0.0.1:8007/health
+
+PASO 4 — Integrar con REAPER
+scripts/install_reaper_integration.sh
+
+PASO 5 — Pruebas
+pytest -q
+
+PASO 6 — Certificación
+scripts/certify_vx11_shub.sh
+
+```
+
+
+
+
+
+

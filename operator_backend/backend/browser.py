@@ -9,7 +9,16 @@ from pathlib import Path
 from typing import Optional, Dict, Any
 from datetime import datetime
 
-from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
+# Conditional Playwright import (optional dependency)
+try:
+    from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
+    PLAYWRIGHT_AVAILABLE = True
+except ImportError:
+    PLAYWRIGHT_AVAILABLE = False
+    # Create dummy objects for testing
+    class TimeoutError(Exception):
+        pass
+    PlaywrightTimeoutError = TimeoutError
 
 from config.forensics import write_log
 from config.settings import settings
@@ -102,6 +111,13 @@ class BrowserClient:
         """Navigate with Playwright (real)."""
         import time
         start = time.time()
+        
+        # Check if Playwright is available
+        if not PLAYWRIGHT_AVAILABLE:
+            result.status = "unavailable"
+            result.error = "playwright_not_installed"
+            write_log("operator_backend", f"browser:playwright_unavailable", level="WARNING")
+            return result.to_dict()
         
         try:
             async with async_playwright() as p:

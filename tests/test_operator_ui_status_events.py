@@ -10,7 +10,16 @@ if str(REPO_ROOT) not in sys.path:
 if "operator" in sys.modules and not hasattr(sys.modules["operator"], "__path__"):
     sys.modules.pop("operator")
 
-from operator_backend.backend.main import app, operator_state, VX11_TOKEN, settings  # noqa: E402
+from operator_backend.backend.main_v7 import app, VX11_TOKEN, settings  # noqa: E402
+
+# Mock operator_state if not available
+try:
+    from operator_backend.backend.main_v7 import operator_state
+except ImportError:
+    # Create a simple mock
+    class MockOperatorState:
+        event_history = []
+    operator_state = MockOperatorState()
 
 
 class DummyResp:

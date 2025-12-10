@@ -7,6 +7,12 @@ type Message = {
   timestamp: string;
 };
 
+type Session = {
+  id: string;
+  name: string;
+  createdAt: string;
+};
+
 type Props = {
   onSend?: (msg: string, mode: string, metadata?: any) => Promise<void>;
   events: any[];
@@ -19,18 +25,46 @@ export function ChatPanel({ onSend, events }: Props) {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sessionId, setSessionId] = useState<string>("");
+  const [sessions, setSessions] = useState<Session[]>([]);
+  const [activeSessionId, setActiveSessionId] = useState<string>("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const errorTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Initialize session ID on mount
+  // Initialize session on mount
   useEffect(() => {
-    const id = `session_${Date.now()}`;
-    setSessionId(id);
+    const newSessionId = `session_${Date.now()}`;
+    setSessionId(newSessionId);
+    setActiveSessionId(newSessionId);
+
+    // Load sessions from localStorage
+    const saved = localStorage.getItem("chatSessions");
+    const prevSessions: Session[] = saved ? JSON.parse(saved) : [];
+    setSessions(prevSessions);
   }, []);
 
-  // Auto-scroll to bottom
+  // Save sessions to localStorage
+  useEffect(() => {
+    if (sessions.length > 0) {
+      localStorage.setItem("chatSessions", JSON.stringify(sessions));
+    }
+  }, [sessions]);
+
+  // Auto-scroll
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  const formatTime = (isoString: string) => {
+    try {
+      const date = new Date(isoString);
+      return date.toLocaleTimeString("es-ES", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    } catch {
+      return "";
+    }
+  };
 
   const send = async () => {
     if (!input.trim()) return;
@@ -38,7 +72,6 @@ export function ChatPanel({ onSend, events }: Props) {
     setSending(true);
     setError(null);
 
-    // Add user message immediately
     const userMsg: Message = {
       role: "user",
       content: input,
@@ -48,13 +81,11 @@ export function ChatPanel({ onSend, events }: Props) {
     setInput("");
 
     try {
-      // Call sendChat
       const resp = await sendChat(input, mode, { session_id: sessionId });
 
       if (resp?.error) {
         setError(`Error: ${resp.error}`);
       } else {
-        // Extract response text
         const responseText = resp?.response || resp?.message || "No response";
         const assistantMsg: Message = {
           role: "assistant",
@@ -71,6 +102,12 @@ export function ChatPanel({ onSend, events }: Props) {
     } finally {
       setSending(false);
     }
+
+    // Auto-clear error after 5s
+    if (errorTimeoutRef.current) {
+      clearTimeout(errorTimeoutRef.current);
+    }
+    errorTimeoutRef.current = setTimeout(() => setError(null), 5000);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -80,206 +117,112 @@ export function ChatPanel({ onSend, events }: Props) {
     }
   };
 
+  const createNewSession = () => {
+    const newId = `session_${Date.now()}`;
+    const newSession: Session = {
+      id: newId,
+      name: `Sesión ${new Date().toLocaleTimeString("es-ES")}`,
+      createdAt: new Date().toISOString(),
+    };
+    setSessions((prev) => [newSession, ...prev]);
+    setSessionId(newId);
+    setActiveSessionId(newId);
+    setMessages([]);
+  };
+
+  const switchSession = (id: string) => {
+    setActiveSessionId(id);
+    setSessionId(id);
+    setMessages([]);
+  };
+
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        height: "100%",
-        background: "#1e1e1e",
-        borderRadius: "8px",
-        overflow: "hidden",
-        boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
-      }}
-    >
-      {/* Header */}
-      <div
-        style={{
-          padding: "16px",
-          background: "#2d2d2d",
-          borderBottom: "1px solid #444",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <h2 style={{ margin: 0, fontSize: "16px", color: "#fff", fontWeight: 600 }}>
-          💬 Chat (Operator)
-        </h2>
-        <select
-          value={mode}
-          onChange={(e) => setMode(e.target.value)}
-          style={{
-            padding: "6px 12px",
-            background: "#404040",
-            color: "#fff",
-            border: "1px solid #555",
-            borderRadius: "4px",
-            fontSize: "12px",
-            cursor: "pointer",
-          }}
-        >
-          <option value="chat">General</option>
-          <option value="mix">Mezcla</option>
-          <option value="system">Sistema</option>
-        </select>
+    <div className="chat-container">
+      {/* SIDEBAR */}
+      <div className="chat-sidebar">
+        <div className="chat-sidebar-header">
+          <h2>💬 SESIONES</h2>
+          <button onClick={createNewSession} title="Nueva sesión">
+            ⊕
+          </button>
+        </div>
+        <ul className="chat-sidebar-list">
+          {sessions.map((session) => (
+            <li
+              key={session.id}
+              className={`chat-sidebar-item ${activeSessionId === session.id ? "active" : ""
+                }`}
+              onClick={() => switchSession(session.id)}
+            >
+              {session.name}
+            </li>
+          ))}
+        </ul>
+        <div className="chat-sidebar-new" onClick={createNewSession}>
+          + Nueva sesión
+        </div>
       </div>
 
-      {/* Session Info */}
-      {sessionId && (
-        <div
-          style={{
-            padding: "8px 16px",
-            fontSize: "11px",
-            color: "#888",
-            background: "#252525",
-            borderBottom: "1px solid #333",
-          }}
-        >
-          Session: {sessionId.slice(-12)}
-        </div>
-      )}
-
-      {/* Messages Area */}
-      <div
-        style={{
-          flex: 1,
-          overflowY: "auto",
-          padding: "16px",
-          display: "flex",
-          flexDirection: "column",
-          gap: "12px",
-        }}
-      >
-        {messages.length === 0 ? (
-          <div
-            style={{
-              textAlign: "center",
-              color: "#666",
-              fontSize: "14px",
-              marginTop: "24px",
-            }}
-          >
-            No messages yet. Start typing to begin.
-          </div>
-        ) : (
-          messages.map((msg, idx) => (
-            <div
-              key={idx}
-              style={{
-                display: "flex",
-                justifyContent: msg.role === "user" ? "flex-end" : "flex-start",
-                gap: "8px",
-              }}
-            >
-              <div
-                style={{
-                  maxWidth: "70%",
-                  padding: "12px 16px",
-                  background: msg.role === "user" ? "#0d7377" : "#404040",
-                  color: "#fff",
-                  borderRadius: "12px",
-                  wordWrap: "break-word",
-                  fontSize: "14px",
-                  lineHeight: "1.4",
-                }}
-              >
-                {msg.content}
+      {/* MAIN CHAT */}
+      <div className="chat-main">
+        {/* MESSAGES */}
+        <div className="chat-messages">
+          {messages.length === 0 && (
+            <div style={{ textAlign: "center", color: "#999", marginTop: "auto", marginBottom: "auto" }}>
+              <p>Inicia una conversación...</p>
+            </div>
+          )}
+          {messages.map((msg, idx) => (
+            <div key={idx} className={`message ${msg.role}`}>
+              <div className="message-avatar">{msg.role === "user" ? "👤" : "🤖"}</div>
+              <div style={{ flex: 1 }}>
+                <div className="message-bubble">{msg.content}</div>
+                <div className="message-timestamp">{formatTime(msg.timestamp)}</div>
               </div>
             </div>
-          ))
-        )}
-        {sending && (
-          <div style={{ display: "flex", justifyContent: "flex-start", gap: "8px" }}>
-            <div
-              style={{
-                padding: "12px 16px",
-                background: "#404040",
-                color: "#aaa",
-                borderRadius: "12px",
-                fontSize: "14px",
-              }}
-            >
-              ⏳ Typing...
+          ))}
+          {sending && (
+            <div className="message assistant">
+              <div className="message-avatar">🤖</div>
+              <div style={{ flex: 1 }}>
+                <div className="message-bubble">
+                  <div className="typing-indicator">
+                    <div className="typing-dot"></div>
+                    <div className="typing-dot"></div>
+                    <div className="typing-dot"></div>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
-        )}
-        <div ref={messagesEndRef} />
-      </div>
-
-      {/* Error Display */}
-      {error && (
-        <div
-          style={{
-            padding: "12px 16px",
-            background: "#5d3d3d",
-            color: "#ffb3b3",
-            fontSize: "12px",
-            borderTop: "1px solid #444",
-          }}
-        >
-          ⚠️ {error}
+          )}
+          <div ref={messagesEndRef} />
         </div>
-      )}
 
-      {/* Input Area */}
-      <div
-        style={{
-          padding: "16px",
-          background: "#2d2d2d",
-          borderTop: "1px solid #444",
-          display: "flex",
-          gap: "8px",
-        }}
-      >
-        <textarea
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Type a message... (Shift+Enter for newline)"
-          style={{
-            flex: 1,
-            padding: "10px 12px",
-            background: "#404040",
-            color: "#fff",
-            border: "1px solid #555",
-            borderRadius: "6px",
-            fontSize: "14px",
-            fontFamily: "inherit",
-            resize: "none",
-            minHeight: "40px",
-            maxHeight: "80px",
-          }}
-          rows={1}
-        />
-        <button
-          onClick={send}
-          disabled={sending || !input.trim()}
-          style={{
-            padding: "10px 16px",
-            background: sending || !input.trim() ? "#555" : "#0d7377",
-            color: "#fff",
-            border: "none",
-            borderRadius: "6px",
-            cursor: sending || !input.trim() ? "not-allowed" : "pointer",
-            fontSize: "14px",
-            fontWeight: 500,
-            transition: "background 0.2s",
-          }}
-          onMouseOver={(e) => {
-            if (!sending && input.trim()) {
-              (e.target as HTMLButtonElement).style.background = "#0a5f6f";
-            }
-          }}
-          onMouseOut={(e) => {
-            if (!sending && input.trim()) {
-              (e.target as HTMLButtonElement).style.background = "#0d7377";
-            }
-          }}
-        >
-          {sending ? "⏳" : "→"}
-        </button>
+        {/* INPUT */}
+        <div className="chat-input-area">
+          <div className="chat-input-wrapper">
+            <textarea
+              className="chat-input"
+              placeholder="Escribe tu mensaje aquí... (Shift+Enter para nueva línea)"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              disabled={sending}
+              rows={1}
+            />
+            <button
+              className="chat-send-button"
+              onClick={send}
+              disabled={sending || !input.trim()}
+            >
+              →
+            </button>
+          </div>
+        </div>
       </div>
+
+      {/* ERROR TOAST */}
+      {error && <div className="toast">{error}</div>}
     </div>
   );
 }

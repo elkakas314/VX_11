@@ -49,7 +49,7 @@ async def test_quality_check():
 @pytest.mark.asyncio
 async def test_hermes_shub_provider():
     """Test Hermes Shub audio provider"""
-    from hermes.hermes_shub_provider import ShubAudioProvider
+    from shubniggurath.integrations.hermes_shub_provider import ShubAudioProvider
     
     provider = ShubAudioProvider({})
     
@@ -64,7 +64,7 @@ async def test_hermes_shub_provider():
 @pytest.mark.asyncio
 async def test_hermes_eq_generation():
     """Test EQ generation via Hermes"""
-    from hermes.hermes_shub_provider import ShubAudioProvider
+    from shubniggurath.integrations.hermes_shub_provider import ShubAudioProvider
     
     provider = ShubAudioProvider({})
     
