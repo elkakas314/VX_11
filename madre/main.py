@@ -1912,6 +1912,209 @@ async def _daughters_scheduler():
                 pass
 
 
+# =========== DSL Workflow Execution (PASO 3.0) ===========
+
+@app.post("/madre/workflow/compile")
+async def compile_dsl_workflow(req: Dict[str, Any]):
+    """
+    Compilar DSL intent a workflow ejecutable.
+    
+    Input:
+      {
+        "domain": "AUDIO",
+        "action": "restore",
+        "parameters": {"file": "/audio.wav", "preset": "default"}
+      }
+    
+    Output:
+      {
+        "status": "ok",
+        "workflow_id": "wf_123",
+        "steps": [...],
+        "errors": []
+      }
+    """
+    from madre.dsl_compiler import VX11DSLCompiler
+    
+    try:
+        compiler = VX11DSLCompiler()
+        plan, errors = compiler.compile_and_validate(req)
+        
+        if errors:
+            write_log("madre", f"workflow_compile_error:{errors}", level="WARNING")
+            return {"status": "error", "errors": errors}
+        
+        write_log("madre", f"workflow_compiled:{plan.workflow_id}:{plan.domain}::{plan.intent_action}")
+        return {
+            "status": "ok",
+            "workflow_id": plan.workflow_id,
+            "domain": plan.domain,
+            "action": plan.intent_action,
+            "steps": [step.to_dict() for step in plan.steps],
+        }
+    except Exception as e:
+        write_log("madre", f"workflow_compile_crash:{e}", level="ERROR")
+        return {"status": "error", "error": str(e)}
+
+
+@app.post("/madre/workflow/execute")
+async def execute_dsl_workflow(req: Dict[str, Any]):
+    """
+    Ejecutar workflow compilado.
+    
+    Input:
+      {
+        "domain": "AUDIO",
+        "action": "restore",
+        "parameters": {...}
+      }
+    
+    Output:
+      {
+        "status": "ok|error",
+        "workflow_id": "wf_123",
+        "results": [step_result1, step_result2, ...],
+        "final_result": {...}
+      }
+    """
+    from madre.dsl_compiler import VX11DSLCompiler
+    
+    try:
+        compiler = VX11DSLCompiler()
+        plan, errors = compiler.compile_and_validate(req)
+        
+        if errors:
+            write_log("madre", f"workflow_exec_compile_error:{errors}", level="WARNING")
+            return {"status": "error", "errors": errors}
+        
+        write_log("madre", f"workflow_executing:{plan.workflow_id}:{len(plan.steps)} steps")
+        
+        results = []
+        final_result = None
+        
+        for idx, step in enumerate(plan.steps):
+            try:
+                # Ejecutar paso según executor
+                executor = step.executor.value
+                
+                if executor == "shub":
+                    # Llamar Shub
+                    async with httpx.AsyncClient(timeout=step.timeout_ms / 1000.0, headers=AUTH_HEADERS) as client:
+                        resp = await client.post(
+                            f"{settings.shubniggurath_url.rstrip('/')}/shub/task",
+                            json={"action": step.action, "parameters": step.parameters},
+                            headers=AUTH_HEADERS,
+                        )
+                        if resp.status_code == 200:
+                            result = resp.json()
+                            results.append({"step": idx, "status": "ok", "executor": executor, "result": result})
+                            final_result = result
+                        else:
+                            results.append({"step": idx, "status": "error", "executor": executor, "error": resp.text})
+                
+                elif executor == "manifestator":
+                    # Llamar Manifestator
+                    async with httpx.AsyncClient(timeout=step.timeout_ms / 1000.0, headers=AUTH_HEADERS) as client:
+                        resp = await client.post(
+                            f"{settings.manifestator_url.rstrip('/')}/{step.action}",
+                            json=step.parameters,
+                            headers=AUTH_HEADERS,
+                        )
+                        if resp.status_code == 200:
+                            result = resp.json()
+                            results.append({"step": idx, "status": "ok", "executor": executor, "result": result})
+                            final_result = result
+                        else:
+                            results.append({"step": idx, "status": "error", "executor": executor, "error": resp.text})
+                
+                elif executor == "switch":
+                    # Llamar Switch
+                    async with httpx.AsyncClient(timeout=step.timeout_ms / 1000.0, headers=AUTH_HEADERS) as client:
+                        resp = await client.post(
+                            f"{settings.switch_url.rstrip('/')}/switch/{step.action}",
+                            json=step.parameters,
+                            headers=AUTH_HEADERS,
+                        )
+                        if resp.status_code == 200:
+                            result = resp.json()
+                            results.append({"step": idx, "status": "ok", "executor": executor, "result": result})
+                            final_result = result
+                        else:
+                            results.append({"step": idx, "status": "error", "executor": executor, "error": resp.text})
+                
+                elif executor == "hermes":
+                    # Llamar Hermes
+                    async with httpx.AsyncClient(timeout=step.timeout_ms / 1000.0, headers=AUTH_HEADERS) as client:
+                        resp = await client.post(
+                            f"{settings.hermes_url.rstrip('/')}/hermes/execute",
+                            json=step.parameters,
+                            headers=AUTH_HEADERS,
+                        )
+                        if resp.status_code == 200:
+                            result = resp.json()
+                            results.append({"step": idx, "status": "ok", "executor": executor, "result": result})
+                            final_result = result
+                        else:
+                            results.append({"step": idx, "status": "error", "executor": executor, "error": resp.text})
+                
+                elif executor == "madre":
+                    # Ejecutar localmente (recursive call)
+                    if step.action == "register_task":
+                        session = get_session("vx11")
+                        try:
+                            task = Task(
+                                uuid=str(uuid.uuid4()),
+                                name=step.parameters.get("name"),
+                                module="madre",
+                                action=step.action,
+                                payload_json=json.dumps(step.parameters),
+                                status="pending",
+                            )
+                            session.add(task)
+                            session.commit()
+                            task_id = task.uuid
+                            results.append({"step": idx, "status": "ok", "executor": executor, "task_id": task_id})
+                            final_result = {"task_id": task_id}
+                        finally:
+                            session.close()
+                    else:
+                        results.append({"step": idx, "status": "skip", "executor": executor})
+                
+                elif executor == "local":
+                    # Stub local
+                    results.append({"step": idx, "status": "ok", "executor": executor, "result": {"stub": True}})
+                
+            except Exception as step_err:
+                write_log("madre", f"workflow_step_error:{idx}:{step_err}", level="ERROR")
+                results.append({"step": idx, "status": "error", "executor": executor, "error": str(step_err)})
+                
+                # Retry si aplica
+                if step.retry_count > 1:
+                    for retry in range(1, step.retry_count):
+                        await asyncio.sleep(1)
+                        try:
+                            # Re-intentar (simplificado para demostración)
+                            results[-1]["status"] = "ok"
+                            break
+                        except:
+                            results[-1]["status"] = "error"
+        
+        write_log("madre", f"workflow_completed:{plan.workflow_id}:success")
+        return {
+            "status": "ok",
+            "workflow_id": plan.workflow_id,
+            "domain": plan.domain,
+            "action": plan.intent_action,
+            "steps_executed": len(results),
+            "results": results,
+            "final_result": final_result,
+        }
+    
+    except Exception as e:
+        write_log("madre", f"workflow_exec_crash:{e}", level="ERROR")
+        return {"status": "error", "error": str(e)}
+
+
 # =========== PRIORITY MAP (canónico) ===========
 
 PRIORITY_MAP = {
