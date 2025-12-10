@@ -28,6 +28,14 @@ from config.forensics import write_log, record_crash
 from shubniggurath.core.dsp_pipeline_full import pipeline
 from shubniggurath.integrations.vx11_bridge import VX11Bridge
 
+# FASE 6: Import Hormiguero Pheromone Reporter (Wiring)
+try:
+    from hormiguero.shub_audio_pheromones import get_shub_audio_batch_reporter
+except ImportError:
+    # Fallback si no está disponible
+    def get_shub_audio_batch_reporter():
+        return None
+
 # =============================================================================
 # LOGGING & CONSTANTS
 # =============================================================================
@@ -399,6 +407,23 @@ class AudioBatchEngine:
                 
                 # Persistir
                 await self._save_job_to_db(job)
+                
+                # FASE 6: Reportar issues a Hormiguero si hay fallos
+                if job.failed_files > 0 or job.status == JOB_STATUS_FAILED:
+                    try:
+                        reporter = get_shub_audio_batch_reporter()
+                        if reporter:
+                            issues = {
+                                "total_issues": job.failed_files,
+                                "denoise_required": job.failed_files > 0,
+                                "declip_required": job.failed_files > 0,
+                                "restoration_needed": job.failed_files > 0,
+                                "files_affected": job.failed_files,
+                            }
+                            report_result = await reporter.report_batch_issues(job_id, issues)
+                            write_log("audio_batch_engine", f"BATCH_REPORT_TO_HORMIGUERO: {report_result.get('status')}", level="INFO")
+                    except Exception as e:
+                        write_log("audio_batch_engine", f"BATCH_HORMIGUERO_REPORT_ERROR: {str(e)}", level="WARNING")
                 
                 # Remover de cola
                 self.queue.pop(0)

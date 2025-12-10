@@ -36,6 +36,9 @@ from switch.warm_up import WarmUpEngine
 from switch.shub_router import ShubRouter, AudioDomain
 from switch.hermes import CLISelector, CLIFusion, ExecutionMode, get_metrics_collector
 
+# FASE 6: Importar Shub Forwarder (Wiring)
+from switch.shub_forwarder import get_switch_shub_forwarder
+
 # Logger
 log = logging.getLogger("vx11.switch")
 
@@ -992,33 +995,35 @@ async def switch_chat(req: ChatRequest):
     if task_type == "audio" or provider_hint in ("shub", "shub-audio"):
         try:
             start = time.monotonic()
-            async with httpx.AsyncClient(timeout=30.0, headers=AUTH_HEADERS) as client:
-                shub_payload = {
-                    "messages": [m.model_dump() for m in req.messages],
-                    "metadata": req.metadata or {},
-                    "provider_hint": provider_hint,
-                }
-                resp = await client.post(
-                    f"{settings.shub_url.rstrip('/')}/shub/execute",
-                    json=shub_payload,
-                )
-                if resp.status_code == 200:
-                    shub_result = resp.json()
-                    latency_ms = (time.monotonic() - start) * 1000
-                    _record_scoring("shub-audio", latency_ms=latency_ms, status_ok=True)
-                    _update_chat_stats("shub-audio", True, latency_ms)
-                    usage = _get_chat_stats("shub-audio")
-                    usage["score"] = _score_provider("shub-audio")
-                    write_log("switch", f"chat:audio_delegated_to_shub:latency={latency_ms}ms")
+            
+            # Usar Shub Forwarder (FASE 6 Wiring)
+            forwarder = get_switch_shub_forwarder()
+            prompt_text = req.messages[0].content if req.messages else ""
+            
+            shub_result = await forwarder.route_to_shub(
+                query=prompt_text,
+                context=req.metadata or {}
+            )
+            
+            if shub_result.get("status") in ("ok", "skip"):
+                latency_ms = (time.monotonic() - start) * 1000
+                _record_scoring("shub-audio", latency_ms=latency_ms, status_ok=True)
+                _update_chat_stats("shub-audio", True, latency_ms)
+                usage = _get_chat_stats("shub-audio")
+                usage["score"] = _score_provider("shub-audio")
+                write_log("switch", f"chat:audio_delegated_to_shub:latency={latency_ms}ms:decision={shub_result.get('routing_decision')}")
+                
+                # Si routing_decision es skip, continuar con fallback
+                if shub_result.get("routing_decision") != "skip":
                     return {
                         "status": "ok",
                         "provider": "shub-audio",
-                        "content": shub_result.get("content", ""),
+                        "content": str(shub_result.get("result", {})),
                         "usage": usage,
                         "latency_ms": latency_ms,
                     }
-                else:
-                    write_log("switch", f"chat:shub_error:{resp.status_code}", level="WARNING")
+            else:
+                write_log("switch", f"chat:shub_error:{shub_result.get('status')}", level="WARNING")
         except Exception as exc:
             write_log("switch", f"chat:shub_delegation_error:{exc}", level="WARNING")
     

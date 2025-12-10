@@ -21,6 +21,9 @@ from config.tokens import load_tokens, get_token
 from config.forensics import write_log
 from config.db_schema import get_session, ModelsLocal, ModelsRemoteCLI, ModelRegistry, CLIRegistry
 
+# FASE 6: Hermes Shub Registration (Wiring)
+from switch.hermes_shub_registration import get_hermes_shub_registrar
+
 REPO_ROOT = Path(__file__).resolve().parents[2]
 models_base = Path(settings.MODELS_PATH)
 if not models_base.exists() or not os.access(models_base, os.W_OK):
@@ -748,6 +751,62 @@ async def register_local_model_v2(body: Dict[str, Any]):
         session.commit()
         
         write_log("hermes", f"local_model_registered:{name}")
+        
+        return {"status": "ok", "model": name, "registered": True}
+    finally:
+        session.close()
+
+
+@app.post("/hermes/register/shub")
+async def register_shub_resource():
+    """
+    FASE 6: Registra Shub-Niggurath como recurso de DSP remoto en catálogo de Hermes.
+    
+    Response:
+    {
+        "status": "ok",
+        "resource_id": "remote_audio_dsp",
+        "registered": true,
+        "metadata": {...}
+    }
+    """
+    try:
+        registrar = get_hermes_shub_registrar()
+        result = await registrar.register_shub()
+        
+        write_log("hermes", f"shub_registration:{result.get('status')}")
+        return result
+        
+    except Exception as exc:
+        write_log("hermes", f"shub_registration_error:{exc}", level="ERROR")
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.get("/hermes/shub/health")
+async def shub_health_check():
+    """
+    FASE 6: Health check de Shub desde Hermes.
+    
+    Response:
+    {
+        "status": "ok",
+        "health": "ok|degraded|offline",
+        "modules": {...}
+    }
+    """
+    try:
+        registrar = get_hermes_shub_registrar()
+        health = await registrar.report_shub_health()
+        
+        return health
+        
+    except Exception as exc:
+        write_log("hermes", f"shub_health_error:{exc}", level="ERROR")
+        return {
+            "status": "error",
+            "health": "offline",
+            "error": str(exc),
+        }
         return {
             "status": "ok",
             "message": f"Model '{name}' registered",

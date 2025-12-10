@@ -34,6 +34,9 @@ from shubniggurath.engines_paso8 import (
 )
 from shubniggurath.integrations.vx11_bridge import VX11Bridge
 
+# Shub API Routers (Wiring VX11)
+from shubniggurath.api.madre_shub_router import router as madre_router
+
 # =============================================================================
 # GLOBAL STATE
 # =============================================================================
@@ -215,6 +218,9 @@ app.add_middleware(
     allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["*"],
 )
+
+# Register Shub API Routers (FASE 6: Wiring)
+app.include_router(madre_router, tags=["madre-integration"])
 
 
 # =============================================================================
