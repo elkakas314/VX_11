@@ -1,14 +1,10 @@
 """
-CLI Selector — Lógica de selección y fusión de engines.
+CLI Selector — Lógica de selección y fusión de engines (solo Hermes).
 
-Decide cuál engine usar basándose en:
-- Tipo de tarea
-- Presupuesto (tokens, dinero)
-- Latencia requerida
-- Disponibilidad
-- Performance histórica
-
-Usado por Switch para enrutar solicitudes.
+Rol:
+- Seleccionar motor según task_type, presupuesto, latencia y disponibilidad
+- Construir plan con fallback chain basada en registry Hermes
+- Exponer decisión canónica para HermesCore (Switch solo consulta HermesCore)
 """
 
 import logging
@@ -19,6 +15,7 @@ from enum import Enum
 from .cli_registry import get_cli_registry, EngineType
 from .local_scanner import get_local_scanner
 from .hf_scanner import get_hf_scanner
+from .cli_metrics import get_metrics_collector
 
 logger = logging.getLogger(__name__)
 
@@ -44,6 +41,21 @@ class ExecutionPlan:
     reasoning: str              # Por qué se eligió este plan
 
 
+@dataclass
+class SelectionDecision:
+    """Decisión canónica de Hermes."""
+
+    mode: ExecutionMode
+    primary_engine: str
+    fallback_engines: List[str]
+    estimated_cost: float
+    estimated_latency_ms: int
+    reasoning: str
+    task_type: str
+    source: str = "hermes"
+    allow_shub: bool = True
+
+
 class CLISelector:
     """Selector de engines para el Switch."""
     
@@ -51,6 +63,45 @@ class CLISelector:
         self.cli_registry = get_cli_registry()
         self.local_scanner = get_local_scanner()
         self.hf_scanner = get_hf_scanner()
+        self.metrics = get_metrics_collector()
+
+    def decide_from_intent(self, intent: Dict[str, Any]) -> SelectionDecision:
+        """
+        Recibe intent estándar y produce decisión canónica.
+
+        intent esperado:
+        {
+            "task_type": str,
+            "prompt": str,
+            "max_tokens": int,
+            "max_cost": float,
+            "max_latency_ms": int,
+            "require_streaming": bool,
+            "allow_shub": bool,
+            "prefer_local": bool
+        }
+        """
+        task_type = (intent.get("task_type") or "general").lower()
+        plan = self.select_engine_for_task(
+            task=intent.get("prompt") or "",
+            task_type=task_type,
+            max_tokens=intent.get("max_tokens", 4096),
+            max_cost=intent.get("max_cost"),
+            max_latency_ms=intent.get("max_latency_ms"),
+            require_streaming=intent.get("require_streaming", False),
+            allow_shub=intent.get("allow_shub", True),
+            prefer_local=intent.get("prefer_local", False),
+        )
+        return SelectionDecision(
+            mode=plan.mode,
+            primary_engine=plan.primary_engine,
+            fallback_engines=plan.fallback_engines,
+            estimated_cost=plan.estimated_cost,
+            estimated_latency_ms=plan.estimated_latency_ms,
+            reasoning=plan.reasoning,
+            task_type=task_type,
+            allow_shub=intent.get("allow_shub", True),
+        )
     
     def select_engine_for_task(
         self,
@@ -60,6 +111,8 @@ class CLISelector:
         max_cost: Optional[float] = None,
         max_latency_ms: Optional[int] = None,
         require_streaming: bool = False,
+        allow_shub: bool = True,
+        prefer_local: bool = False,
     ) -> ExecutionPlan:
         """
         Seleccionar motor para tarea específica.
@@ -78,8 +131,19 @@ class CLISelector:
         
         logger.info(f"Selecting engine for task_type={task_type}, tokens={max_tokens}")
         
+        # Paso 0: DSP audio → delegar Shub
+        if allow_shub and task_type in ("audio", "dsp", "music"):
+            return ExecutionPlan(
+                mode=ExecutionMode.SHUB,
+                primary_engine="shub",
+                fallback_engines=["gpt4"],
+                estimated_cost=0.0,
+                estimated_latency_ms=900,
+                reasoning="Dominio audio/dsp → Shub-Niggurath",
+            )
+
         # Paso 1: Intentar local primero si es posible
-        local_plan = self._try_local_first(task_type)
+        local_plan = self._try_local_first(task_type, prefer_local=prefer_local)
         if local_plan:
             return local_plan
         
@@ -93,8 +157,8 @@ class CLISelector:
         )
         return cli_plan
     
-    def _try_local_first(self, task_type: str) -> Optional[ExecutionPlan]:
-        """Intentar usar modelo local."""
+    def _try_local_first(self, task_type: str, prefer_local: bool = False) -> Optional[ExecutionPlan]:
+        """Intentar usar modelo local (solo si se solicita o si existe recurso válido)."""
         local_model = self.local_scanner.get_model_by_task(task_type)
         
         if local_model and local_model.is_valid:
@@ -110,7 +174,9 @@ class CLISelector:
             )
             logger.info(f"✓ Selected LOCAL: {plan.reasoning}")
             return plan
-        
+        # Solo forzar local si prefer_local aunque no haya modelo validado (fallback inmediato)
+        if prefer_local:
+            logger.info("prefer_local solicitado pero no hay modelo válido; se continuará con CLI fallback")
         return None
     
     def _select_cli_engine(
@@ -124,6 +190,10 @@ class CLISelector:
         """Seleccionar motor CLI."""
         
         candidates = self.cli_registry.list_available_engines()
+
+        # Usar ranking histórico si existe
+        ranking = self.metrics.generate_report()["ranking"] if self.metrics.engines else []
+        ranked_names = [r["engine"] for r in ranking]
         
         # Filtrar por requisitos
         if require_streaming:
@@ -156,6 +226,12 @@ class CLISelector:
             for e in candidates:
                 if e.supports_vision:
                     return self._create_plan(e, "Vision task → Gemini")
+
+        # Selección por métricas históricas si existen
+        for name in ranked_names:
+            candidate = next((e for e in candidates if e.name == name), None)
+            if candidate:
+                return self._create_plan(candidate, f"Selected {candidate.name} (metrics ranking)")
         
         # Default: lowest cost
         cheapest = min(candidates, key=lambda e: e.cost_per_1k_input) if candidates else None
@@ -193,6 +269,26 @@ class CLISelector:
         # - Pre-procesamiento local + inference remoto
         
         return task_type in ("analysis", "preprocessing", "complex_reasoning")
+
+    def build_decision_payload(self, intent: Dict[str, Any]) -> Dict[str, Any]:
+        """Construye payload estándar de decisión Hermes."""
+        decision = self.decide_from_intent(intent)
+        ranking = self.cli_registry.rank_engines()
+        metrics = self.metrics.generate_report() if self.metrics.engines else {}
+
+        return {
+            "decision": {
+                "mode": decision.mode.value,
+                "primary_engine": decision.primary_engine,
+                "fallbacks": decision.fallback_engines,
+                "estimated_cost": decision.estimated_cost,
+                "estimated_latency_ms": decision.estimated_latency_ms,
+                "reasoning": decision.reasoning,
+                "task_type": decision.task_type,
+            },
+            "ranking": ranking,
+            "metrics": metrics.get("engines") if metrics else {},
+        }
 
 
 class CLIFusion:

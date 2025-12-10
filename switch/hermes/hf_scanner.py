@@ -2,22 +2,24 @@
 HuggingFace Scanner — Buscador automático de modelos <2GB en HF.
 
 Características:
-- Búsqueda por tarea (text-generation, summarization, translation, etc.)
-- Filtro: modelos <2GB solamente
-- Cache local de búsquedas
-- Scoring por descarga/puntuación/recencia
-- Download URL generation
+- Búsqueda real contra API de HuggingFace
+- Filtro estricto <2GB
+- Cache local de búsquedas con TTL
+- Ranking simple por descargas/puntuación
 
-Hermes proporciona. Switch decide.
+Hermes proporciona. Switch decide vía HermesCore.
 """
 
-import logging
-import asyncio
-from typing import Dict, List, Optional, Any
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta
 import json
+import logging
+from dataclasses import dataclass
+from datetime import datetime, timedelta
 from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+import httpx
+
+from config.tokens import get_token
 
 logger = logging.getLogger(__name__)
 
@@ -25,122 +27,173 @@ logger = logging.getLogger(__name__)
 @dataclass
 class HFModel:
     """Metadata de modelo HuggingFace."""
-    
-    model_id: str              # e.g., "mistral/mistral-7b"
-    task: str                  # text-generation, summarization, etc.
+
+    model_id: str  # e.g., "mistral/mistral-7b"
+    task: str  # text-generation, summarization, etc.
     model_name: str
-    size_gb: float             # Size in GB
-    downloads: int = 0         # Download count
-    score: float = 0.0         # Community score (0-10)
-    last_modified: str = ""    # ISO timestamp
-    pipeline_tag: str = ""     # Task type tag
-    gated: bool = False        # Requires approval
-    
+    size_gb: float  # Size in GB
+    downloads: int = 0  # Download count
+    score: float = 0.0  # Community score (0-10)
+    last_modified: str = ""  # ISO timestamp
+    pipeline_tag: str = ""  # Task type tag
+    gated: bool = False  # Requires approval
+
     # Rankings
     download_rank: int = 0
     score_rank: int = 0
-    
+
     def download_url(self) -> str:
         """Generar URL de descarga."""
         return f"https://huggingface.co/{self.model_id}"
-    
+
     def gguf_url(self) -> Optional[str]:
         """Generar URL si tiene GGUF disponible."""
-        # Stub: en realidad buscaría en el repo
         return f"https://huggingface.co/{self.model_id}/blob/main/gguf"
 
 
 class HFScanner:
-    """Scanner de modelos HuggingFace."""
-    
+    """Scanner de modelos HuggingFace con cache y filtro <2GB."""
+
     def __init__(self, cache_dir: str = "data/hf_cache"):
         self.cache_dir = Path(cache_dir)
         self.cache_dir.mkdir(parents=True, exist_ok=True)
-        
+
         self.cache_file = self.cache_dir / "hf_models_cache.json"
-        self.cache_ttl = timedelta(hours=24)
-        
+        self.cache_ttl = timedelta(hours=12)
+
         self.models_cache: Dict[str, List[HFModel]] = {}
+        self.cache_updated_at: Dict[str, datetime] = {}
         self._load_cache()
-    
+
     def _load_cache(self) -> None:
         """Cargar cache local de búsquedas anteriores."""
         if self.cache_file.exists():
             try:
                 with open(self.cache_file) as f:
                     data = json.load(f)
-                    logger.info(f"Loaded {len(data)} cached model searches")
-                    # Parse back to HFModel objects
-                    for task, models in data.items():
+                    logger.info(f"Loaded {len(data.get('models', {}))} cached model searches")
+                    for task, models in data.get("models", {}).items():
                         self.models_cache[task] = [HFModel(**m) for m in models]
+                    # timestamps opcionales
+                    for task, ts in data.get("timestamps", {}).items():
+                        try:
+                            self.cache_updated_at[task] = datetime.fromisoformat(ts)
+                        except Exception:
+                            pass
             except Exception as e:
                 logger.warning(f"Failed to load HF cache: {e}")
-    
+
     def _save_cache(self) -> None:
         """Guardar cache local."""
         try:
             cache_data = {
-                task: [
-                    {
-                        "model_id": m.model_id,
-                        "task": m.task,
-                        "model_name": m.model_name,
-                        "size_gb": m.size_gb,
-                        "downloads": m.downloads,
-                        "score": m.score,
-                        "last_modified": m.last_modified,
-                    }
-                    for m in models
-                ]
-                for task, models in self.models_cache.items()
+                "models": {
+                    task: [
+                        {
+                            "model_id": m.model_id,
+                            "task": m.task,
+                            "model_name": m.model_name,
+                            "size_gb": m.size_gb,
+                            "downloads": m.downloads,
+                            "score": m.score,
+                            "last_modified": m.last_modified,
+                            "pipeline_tag": m.pipeline_tag,
+                            "gated": m.gated,
+                        }
+                        for m in models
+                    ]
+                    for task, models in self.models_cache.items()
+                },
+                "timestamps": {k: v.isoformat() for k, v in self.cache_updated_at.items()},
             }
-            with open(self.cache_file, 'w') as f:
-                json.dump(cache_data, f)
+            with open(self.cache_file, "w") as f:
+                json.dump(cache_data, f, indent=2)
         except Exception as e:
             logger.warning(f"Failed to save HF cache: {e}")
-    
+
+    def _cache_valid(self, task: str) -> bool:
+        ts = self.cache_updated_at.get(task)
+        if not ts:
+            return False
+        return datetime.utcnow() - ts < self.cache_ttl
+
     async def search_models(
-        self,
-        task: str,
-        max_size_gb: float = 2.0,
-        limit: int = 10,
-        use_cache: bool = True
+        self, task: str, max_size_gb: float = 2.0, limit: int = 10, use_cache: bool = True
     ) -> List[HFModel]:
         """
         Buscar modelos en HF para una tarea específica.
-        
-        Args:
-            task: Task type (text-generation, summarization, etc.)
-            max_size_gb: Máximo tamaño permitido (default 2GB)
-            limit: Máximo número de resultados
-            use_cache: Usar cache local si disponible
-            
-        Returns:
-            Lista de HFModel encontrados, ordenados por relevancia
+        Aplica filtro estricto <max_size_gb (default 2GB).
         """
-        
+
         logger.info(f"Searching HF models for task={task}, max_size={max_size_gb}GB")
-        
-        # Check cache
-        if use_cache and task in self.models_cache:
-            cached = self.models_cache[task]
-            filtered = [m for m in cached if m.size_gb <= max_size_gb]
-            logger.info(f"Using cached results: {len(filtered)} models")
-            return filtered[:limit]
-        
-        # Stub: en producción, queryaría API de HF
-        # Para demo, retornar modelos conocidos y pequeños
-        demo_models = await self._get_demo_models(task, max_size_gb)
-        
-        # Cache results
-        self.models_cache[task] = demo_models
+
+        if use_cache and self._cache_valid(task):
+            cached = [m for m in self.models_cache.get(task, []) if m.size_gb <= max_size_gb]
+            if cached:
+                return cached[:limit]
+
+        results = await self._query_hf_api(task, max_size_gb, limit)
+        self.models_cache[task] = results
+        self.cache_updated_at[task] = datetime.utcnow()
         self._save_cache()
-        
-        return demo_models[:limit]
-    
-    async def _get_demo_models(self, task: str, max_size_gb: float) -> List[HFModel]:
-        """Get demo models for testing (stub)."""
-        
+        return results[:limit]
+
+    async def _query_hf_api(self, task: str, max_size_gb: float, limit: int) -> List[HFModel]:
+        """Consulta real a la API de HuggingFace con filtro <2GB."""
+        api_url = "https://huggingface.co/api/models"
+        params = {"search": task, "limit": max(limit * 2, 20), "sort": "downloads"}
+        headers: Dict[str, str] = {}
+        hf_token = get_token("HF_TOKEN") or None
+        if hf_token:
+            headers["Authorization"] = f"Bearer {hf_token}"
+
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                resp = await client.get(api_url, params=params, headers=headers)
+                resp.raise_for_status()
+                data = resp.json()
+                return self._parse_models(data, task, max_size_gb)
+        except Exception as exc:  # pragma: no cover - network dependent
+            logger.warning(f"HF search fallback ({task}): {exc}")
+            return self._demo_models(task, max_size_gb)
+
+    def _parse_models(self, models: List[Dict[str, Any]], task: str, max_size_gb: float) -> List[HFModel]:
+        parsed: List[HFModel] = []
+        for model in models:
+            model_id = model.get("modelId") or model.get("id") or ""
+            if not model_id:
+                continue
+            size_bytes = self._estimate_size_bytes(model.get("siblings", []) or [])
+            size_gb = size_bytes / (1024**3) if size_bytes else max_size_gb
+            if size_gb > max_size_gb:
+                continue
+            parsed.append(
+                HFModel(
+                    model_id=model_id,
+                    task=model.get("pipeline_tag") or task,
+                    model_name=model_id.split("/")[-1],
+                    size_gb=round(size_gb, 2),
+                    downloads=model.get("downloads", 0) or model.get("likes", 0),
+                    score=float(model.get("likes", 0) or 0) / 100.0,
+                    last_modified=model.get("lastModified", "") or "",
+                    pipeline_tag=model.get("pipeline_tag", ""),
+                    gated=bool(model.get("gated")),
+                )
+            )
+        parsed.sort(key=lambda m: (m.downloads, m.score), reverse=True)
+        return parsed
+
+    def _estimate_size_bytes(self, siblings: List[Dict[str, Any]]) -> int:
+        """Calcular tamaño aproximado de un repo HF desde siblings."""
+        total = 0
+        for sibling in siblings:
+            size = sibling.get("size") or 0
+            if isinstance(size, (int, float)):
+                total += int(size)
+        return total
+
+    def _demo_models(self, task: str, max_size_gb: float) -> List[HFModel]:
+        """Fallback determinista para entornos sin red."""
         demo_registry = {
             "text-generation": [
                 HFModel(
@@ -163,83 +216,25 @@ class HFScanner:
             "code-generation": [
                 HFModel(
                     model_id="bigcode/starcoder",
-                    task="text-generation",
+                    task="code-generation",
                     model_name="StarCoder",
                     size_gb=1.5,
                     downloads=150000,
                     score=4.7,
                 ),
             ],
-            "summarization": [
-                HFModel(
-                    model_id="facebook/bart-large-cnn",
-                    task="summarization",
-                    model_name="BART Large CNN",
-                    size_gb=1.2,
-                    downloads=200000,
-                    score=4.6,
-                ),
-            ],
-            "translation": [
-                HFModel(
-                    model_id="Helsinki-NLP/opus-mt-en-es",
-                    task="translation",
-                    model_name="Opus-MT EN-ES",
-                    size_gb=0.5,
-                    downloads=100000,
-                    score=4.5,
-                ),
-            ],
         }
-        
-        models = demo_registry.get(task, [])
-        filtered = [m for m in models if m.size_gb <= max_size_gb]
-        return sorted(filtered, key=lambda m: m.downloads, reverse=True)
-    
+        models = demo_registry.get(task, demo_registry.get("text-generation", []))
+        return [m for m in models if m.size_gb <= max_size_gb]
+
     async def get_model_details(self, model_id: str) -> Optional[HFModel]:
-        """Obtener detalles de modelo específico."""
-        # Stub: queryaría API de HF por model_id
-        logger.info(f"Fetching details for {model_id}")
-        
-        # Search all cached models
+        """Obtener detalles de modelo específico desde cache."""
         for models in self.models_cache.values():
             for model in models:
                 if model.model_id == model_id:
                     return model
-        
         return None
-    
-    async def download_model(
-        self,
-        model_id: str,
-        target_dir: str = "models"
-    ) -> Optional[str]:
-        """
-        Descargar modelo desde HF.
-        
-        Args:
-            model_id: Model identifier
-            target_dir: Directorio de destino
-            
-        Returns:
-            Ruta del modelo descargado o None si falla
-        """
-        logger.info(f"Downloading model: {model_id} to {target_dir}")
-        
-        try:
-            target_path = Path(target_dir) / model_id.replace("/", "__")
-            target_path.mkdir(parents=True, exist_ok=True)
-            
-            # Stub: usaría huggingface_hub.snapshot_download()
-            # from huggingface_hub import snapshot_download
-            # snapshot_download(repo_id=model_id, local_dir=target_path)
-            
-            logger.info(f"✓ Downloaded to {target_path}")
-            return str(target_path)
-        except Exception as e:
-            logger.error(f"Failed to download {model_id}: {e}")
-            return None
-    
+
     async def list_all_tasks(self) -> List[str]:
         """Listar todas las tareas (tasks) soportadas en cache."""
         return list(self.models_cache.keys())

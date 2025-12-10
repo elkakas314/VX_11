@@ -8,18 +8,19 @@ import json
 import os
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, List, Optional
 
 import httpx
-from fastapi import FastAPI, HTTPException, Depends, Header, Request
+from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from config.settings import settings
-from config.tokens import load_tokens, get_token
+from config.tokens import get_token, load_tokens
 from config.forensics import write_log
-from config.db_schema import get_session, ModelsLocal, ModelsRemoteCLI, ModelRegistry, CLIRegistry
+from config.db_schema import CLIRegistry, ModelRegistry, ModelsLocal, ModelsRemoteCLI, get_session
+from switch.hermes.hermes_core import HermesCore, get_hermes_core, initialize_hermes
 
 # FASE 6: Hermes Shub Registration (Wiring)
 from switch.hermes_shub_registration import get_hermes_shub_registrar
@@ -50,6 +51,7 @@ VX11_TOKEN = (
     or settings.api_token
 )
 AUTH_HEADERS = {settings.token_header: VX11_TOKEN}
+_hermes_core: Optional[HermesCore] = None
 
 
 def check_token(x_vx11_token: str = Header(None), request: Request = None):
@@ -291,12 +293,25 @@ async def hermes_execute(body: Dict[str, Any]):
     Ejecutor ligero: registra uso de modelos/CLI.
     Rutea por provider si está disponible; mantiene stub seguro si no hay backends reales.
     """
+    core = _hermes_core or get_hermes_core()
     session: Session = get_session("vx11")
     try:
-        # Registrar uso en registry si hay selección sugerida
         selection = body.get("selection", {}) or {}
-        model_name = selection.get("model") or selection.get("engine_selected")
-        provider = selection.get("provider") or model_name
+        intent = {
+            "prompt": body.get("command") or body.get("prompt") or "",
+            "task_type": body.get("task_type") or body.get("metadata", {}).get("task_type") or "general",
+            "max_tokens": body.get("max_tokens") or body.get("metadata", {}).get("max_tokens"),
+            "max_cost": body.get("max_cost") or body.get("metadata", {}).get("max_cost"),
+            "max_latency_ms": body.get("max_latency_ms") or body.get("metadata", {}).get("max_latency_ms"),
+            "require_streaming": body.get("metadata", {}).get("require_streaming", False),
+            "allow_shub": body.get("metadata", {}).get("allow_shub", True),
+        }
+        decision = core.decide_best_engine(intent)
+        decision_info = decision.get("decision", {}) if isinstance(decision, dict) else {}
+        model_name = selection.get("model") or selection.get("engine_selected") or decision_info.get("primary_engine")
+        provider = selection.get("provider") or model_name or decision_info.get("mode")
+
+        # Registrar uso en registry si hay selección sugerida
         if model_name:
             rec = session.query(ModelRegistry).filter_by(name=model_name).first()
             if rec:
@@ -304,6 +319,7 @@ async def hermes_execute(body: Dict[str, Any]):
                 rec.updated_at = datetime.utcnow()
                 session.add(rec)
                 session.commit()
+
         # Ruteo mínimo: si provider es shub/shub-audio, delegar
         if provider in {"shub", "shub-audio"}:
             try:
@@ -327,7 +343,7 @@ async def hermes_execute(body: Dict[str, Any]):
             "engine": provider or "hermes_local",
             "echo": body.get("command") or body.get("prompt"),
             "model": model_name or "general-7b",
-            "metadata": body.get("metadata", {}),
+            "metadata": {**body.get("metadata", {}), "decision": decision_info},
         }
     except Exception as exc:
         write_log("hermes", f"execute_error:{exc}", level="ERROR")
@@ -356,6 +372,37 @@ async def cli_status():
 async def models_best(task_type: str = "general", max_size_mb: int = 2048):
     """Devuelve candidatos de modelo <2GB para un task_type (registry lite)."""
     return {"models": _best_models_for(task_type, max_size_mb)}
+
+
+class HermesDecisionRequest(BaseModel):
+    prompt: Optional[str] = ""
+    task_type: Optional[str] = "general"
+    max_tokens: Optional[int] = 4096
+    max_cost: Optional[float] = None
+    max_latency_ms: Optional[int] = None
+    require_streaming: Optional[bool] = False
+    allow_shub: Optional[bool] = True
+    prefer_local: Optional[bool] = False
+    metadata: Dict[str, Any] = {}
+
+
+@app.post("/hermes/decide")
+async def hermes_decide(req: HermesDecisionRequest):
+    """Decisión canónica de Hermes (Switch debe usar este endpoint)."""
+    core = _hermes_core or get_hermes_core()
+    intent = {
+        "prompt": req.prompt,
+        "task_type": req.task_type,
+        "max_tokens": req.max_tokens,
+        "max_cost": req.max_cost,
+        "max_latency_ms": req.max_latency_ms,
+        "require_streaming": req.require_streaming,
+        "allow_shub": req.allow_shub,
+        "prefer_local": req.prefer_local,
+        **(req.metadata or {}),
+    }
+    decision = core.decide_best_engine(intent)
+    return {"status": "ok", **decision}
 
 
 # VX11 v6.7 – catalog summary (lightweight, backward-compatible)
@@ -607,54 +654,9 @@ async def hermes_resources():
     """
     Retorna catálogo consolidado de recursos disponibles (CLI + modelos).
     """
-    session: Session = get_session("vx11")
-    try:
-        # Modelos locales
-        local_models_list = (
-            session.query(ModelsLocal)
-            .filter(ModelsLocal.size_mb <= 2048)
-            .filter(ModelsLocal.status != "deprecated")
-            .all()
-        )
-        
-        # CLI providers (desde ModelsRemoteCLI)
-        cli_list = session.query(ModelsRemoteCLI).filter(ModelsRemoteCLI.status == "active").all()
-        
-        # CLIRegistry entries
-        cli_registry_list = session.query(CLIRegistry).filter(CLIRegistry.available == True).all()  # noqa: E712
-        
-        return {
-            "status": "ok",
-            "local_models": [
-                {
-                    "name": m.name,
-                    "size_mb": m.size_mb,
-                    "category": m.category,
-                    "status": m.status,
-                    "compatibility": m.compatibility,
-                }
-                for m in local_models_list
-            ],
-            "cli_providers": [
-                {
-                    "provider": c.provider,
-                    "task_type": c.task_type,
-                    "limit_daily": c.limit_daily,
-                    "limit_weekly": c.limit_weekly,
-                }
-                for c in cli_list
-            ],
-            "cli_registry": [
-                {
-                    "name": c.name,
-                    "cli_type": c.cli_type,
-                    "available": c.available,
-                }
-                for c in cli_registry_list
-            ],
-        }
-    finally:
-        session.close()
+    core = _hermes_core or get_hermes_core()
+    inventory = core.inventory()
+    return {"status": "ok", **inventory}
 
 
 @app.post("/hermes/register/cli")
@@ -919,4 +921,7 @@ async def _hermes_background_tasks():
 @app.on_event("startup")
 async def startup_event():
     """Iniciar workers en background al startup."""
+    global _hermes_core
+    _hermes_core = get_hermes_core()
+    await initialize_hermes()
     asyncio.create_task(_hermes_background_tasks())

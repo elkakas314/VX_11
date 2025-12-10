@@ -110,9 +110,13 @@ class LocalScanner:
             ".model": "generic",
         }
         
+        max_size_bytes = 2 * 1024 * 1024 * 1024  # 2GB límite canónico
         for format_ext, format_name in formats.items():
             for model_file in self.models_dir.glob(f"**/*{format_ext}"):
                 if not model_file.is_file():
+                    continue
+                if model_file.stat().st_size > max_size_bytes:
+                    logger.warning(f"Skipping model >2GB: {model_file}")
                     continue
                 
                 model_id = self._generate_model_id(model_file)
@@ -123,7 +127,6 @@ class LocalScanner:
                     if existing.sha256_hash and self._verify_hash(model_file, existing.sha256_hash):
                         continue
                 
-                # Create model entry
                 local_model = LocalModel(
                     model_path=str(model_file.relative_to(self.models_dir)),
                     model_name=model_file.stem,
@@ -134,7 +137,6 @@ class LocalScanner:
                     is_valid=True,
                 )
                 
-                # Calculate hash
                 local_model.sha256_hash = self._calculate_hash(model_file)
                 
                 self.models[model_id] = local_model

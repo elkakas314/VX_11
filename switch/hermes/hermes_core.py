@@ -1,21 +1,21 @@
 """
-Hermes Core — Rol de gestor de recursos en VX11.
+Hermes Core — Gestor de recursos tentacular.
 
-Responsabilidades:
-- Proveer inventario de engines disponibles (CLI, HF, locales)
-- Mantener métricas de performance
-- Sugerir engines (NO decide, solo sugiere)
-- Gestionar caché y fallbacks
-
-Hermes es agnóstico. Switch es el que decide.
-Hermes proporciona información de calidad.
+Responsabilidades canónicas:
+- Inventario único de engines (CLI, HF, locales)
+- Health/metrics y ranking métrico
+- Selección canónica: decide_best_engine(intent) + especializaciones
+- Fallback chain token-aware
+- Proveedor universal para Switch (Switch consulta solo a HermesCore)
 """
 
 import logging
-from typing import Dict, List, Optional, Any
 from datetime import datetime
+from typing import Any, Dict, List, Optional
 
-from .cli_registry import get_cli_registry, EngineType
+from .cli_metrics import get_metrics_collector
+from .cli_registry import EngineType, get_cli_registry
+from .cli_selector import CLISelector
 from .hf_scanner import get_hf_scanner
 from .local_scanner import get_local_scanner
 
@@ -24,51 +24,47 @@ logger = logging.getLogger(__name__)
 
 class HermesCore:
     """Núcleo del rol Hermes."""
-    
-    def __init__(self):
+
+    def __init__(self) -> None:
         self.cli_registry = get_cli_registry()
         self.hf_scanner = get_hf_scanner()
         self.local_scanner = get_local_scanner()
-        
+        self.selector = CLISelector()
+        self.metrics = get_metrics_collector()
+
         self.initialized_at = datetime.now()
         self.request_count = 0
-    
+
     async def initialize(self) -> None:
-        """Inicializar Hermes (scan de modelos locales, etc.)."""
+        """Inicializar Hermes (scan de modelos locales, health de engines)."""
         logger.info("Initializing Hermes...")
-        
-        # Scan local models
+
         count = self.local_scanner.scan_directory()
         logger.info(f"✓ Scanned {count} local models")
-        
-        # Validate local models
+
         results = self.local_scanner.validate_all()
         valid_count = sum(1 for v in results.values() if v)
         logger.info(f"✓ Validated {valid_count}/{len(results)} models")
-    
-    def get_available_engines(self) -> Dict[str, Any]:
-        """Obtener inventario completo de engines disponibles."""
+
+        # Health check ligero
+        try:
+            await self.cli_registry.health_check()
+        except Exception as exc:  # pragma: no cover - health is best-effort
+            logger.warning(f"Hermes health check warning: {exc}")
+
+    def inventory(self) -> Dict[str, Any]:
+        """Inventario consolidado (CLI + local + HF)."""
         self.request_count += 1
-        
         return {
-            "cli_engines": [
-                {
-                    "name": e.name,
-                    "type": e.engine_type.value,
-                    "max_tokens": e.max_tokens,
-                    "latency_ms": e.avg_latency_ms,
-                    "cost_per_1k_input": e.cost_per_1k_input,
-                    "available": e.available,
-                }
-                for e in self.cli_registry.list_available_engines()
-            ],
-            "local_models": self.local_scanner.to_dict(),
-            "metadata": {
+            "cli": self.cli_registry.inventory(),
+            "local": self.local_scanner.to_dict(),
+            "hf_cached_tasks": list(self.hf_scanner.models_cache.keys()),
+            "meta": {
                 "uptime_seconds": (datetime.now() - self.initialized_at).total_seconds(),
                 "requests_served": self.request_count,
-            }
+            },
         }
-    
+
     def get_engine_by_type(self, engine_type: str) -> Optional[Dict[str, Any]]:
         """Obtener engine específico por tipo."""
         try:
@@ -81,21 +77,19 @@ class HermesCore:
                     "endpoint": engine.endpoint,
                     "max_tokens": engine.max_tokens,
                     "latency_ms": engine.avg_latency_ms,
+                    "available": engine.available,
+                    "healthy": engine.healthy,
                 }
             return None
         except ValueError:
             logger.warning(f"Unknown engine type: {engine_type}")
             return None
-    
+
     async def search_hf_models(
-        self,
-        task: str,
-        max_size_gb: float = 2.0,
-        limit: int = 10
+        self, task: str, max_size_gb: float = 2.0, limit: int = 10
     ) -> List[Dict[str, Any]]:
-        """Buscar modelos en HuggingFace."""
+        """Buscar modelos en HuggingFace (<2GB)."""
         models = await self.hf_scanner.search_models(task, max_size_gb, limit)
-        
         return [
             {
                 "model_id": m.model_id,
@@ -107,88 +101,34 @@ class HermesCore:
             }
             for m in models
         ]
-    
-    def get_local_models_by_task(self, task: str) -> List[Dict[str, Any]]:
-        """Obtener modelos locales para una tarea."""
-        models = self.local_scanner.list_models(task=task)
-        
-        return [
-            {
-                "model_id": model_id,
-                "path": m.model_path,
-                "format": m.format,
-                "size_gb": round(m.size_gb(), 2),
-            }
-            for model_id, m in [(self.local_scanner.models.get(k), v) for k, v in 
-                               [(model_id, m) for model_id, m in self.local_scanner.models.items()]]
-            if m is not None
-        ]
-    
-    def suggest_engine_for_task(
-        self,
-        task: str,
-        prefer_local: bool = False,
-        max_cost: Optional[float] = None
-    ) -> Optional[Dict[str, Any]]:
-        """Sugerir engine para tarea (informativo, Switch decide)."""
-        
-        logger.info(f"Suggesting engine for task={task} (prefer_local={prefer_local})")
-        
-        # Si se prefiere local, buscar modelo local
-        if prefer_local:
-            local_model = self.local_scanner.get_model_by_task(task)
-            if local_model:
-                return {
-                    "suggestion": "local",
-                    "model_id": local_model.model_path,
-                    "format": local_model.format,
-                    "size_gb": round(local_model.size_gb(), 2),
-                    "reason": "Locally available, no network latency",
-                }
-        
-        # Si no, sugerir CLI engine
-        cli_suggestion = self.cli_registry.suggest_engine_for_task(task, max_cost)
-        if cli_suggestion:
-            return {
-                "suggestion": "cli",
-                "engine_name": cli_suggestion.name,
-                "type": cli_suggestion.engine_type.value,
-                "max_tokens": cli_suggestion.max_tokens,
-                "latency_ms": cli_suggestion.avg_latency_ms,
-                "cost_per_1k_input": cli_suggestion.cost_per_1k_input,
-                "reason": f"Recommended for {task}",
-            }
-        
-        return None
-    
-    def get_fallback_chain(self, primary_engine: str) -> List[Dict[str, Any]]:
-        """Obtener cadena de fallback para engine."""
-        chain = self.cli_registry.get_fallback_chain(primary_engine)
-        
-        return [
-            {
-                "name": engine.name,
-                "type": engine.engine_type.value,
-                "available": engine.available,
-            }
-            for engine in chain
-        ]
-    
-    def report_engine_performance(
-        self,
-        engine_name: str,
-        latency_ms: float,
-        success: bool,
-        error_msg: Optional[str] = None
-    ) -> None:
-        """Reportar performance de engine (feedback loop)."""
-        self.cli_registry.update_metrics(engine_name, latency_ms, success, error_msg)
-        logger.info(f"Updated metrics for {engine_name}: latency={latency_ms}ms, success={success}")
-    
+
+    def decide_best_engine(self, intent: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        API única: decide el mejor engine para un intent.
+        intent esperado incluye task_type, prompt y restricciones.
+        """
+        self.request_count += 1
+        self.cli_registry.refresh_availability()
+        decision_payload = self.selector.build_decision_payload(intent)
+        decision_payload["metadata"] = {
+            "uptime_seconds": (datetime.now() - self.initialized_at).total_seconds(),
+            "requests_served": self.request_count,
+        }
+        return decision_payload
+
+    def decide_for_audio(self, intent: Dict[str, Any]) -> Dict[str, Any]:
+        """Atajo: decisión orientada a audio/DSP."""
+        intent = {**intent, "task_type": intent.get("task_type", "audio"), "allow_shub": True}
+        return self.decide_best_engine(intent)
+
+    def decide_for_task(self, task_type: str, prompt: str = "", **kwargs: Any) -> Dict[str, Any]:
+        """Atajo por tipo de tarea."""
+        intent = {"task_type": task_type, "prompt": prompt, **kwargs}
+        return self.decide_best_engine(intent)
+
     def get_status(self) -> Dict[str, Any]:
         """Obtener estado completo de Hermes."""
         local_stats = self.local_scanner.get_stats()
-        
         return {
             "status": "operational",
             "uptime_seconds": (datetime.now() - self.initialized_at).total_seconds(),
@@ -200,6 +140,14 @@ class HermesCore:
             "local_models": local_stats,
             "timestamp": datetime.now().isoformat(),
         }
+
+    def metrics_snapshot(self) -> Dict[str, Any]:
+        """Obtener métricas agregadas."""
+        return self.metrics.get_all_stats()
+
+    # Alias requerido por canon
+    def metrics_report(self) -> Dict[str, Any]:
+        return self.metrics_snapshot()
 
 
 # Instancia global de Hermes
