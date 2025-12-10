@@ -1119,8 +1119,8 @@ class TaskRequest(BaseModel):
 @app.post("/switch/task")
 async def switch_task(req: TaskRequest):
     """
-    Ejecución de tareas estructuradas con prioridades.
-    Lógica: Local-first para tareas, CLI-fallback si no hay modelo local.
+    Ejecución de tareas estructuradas con SwitchIntelligenceLayer.
+    PASO 2.2: Usa SIL para enrutamiento inteligente, retry + progress tracking.
     """
     import hashlib
     from config.db_schema import ModelUsageStat, SwitchQueueV2
@@ -1152,78 +1152,91 @@ async def switch_task(req: TaskRequest):
     finally:
         session.close()
     
-    # Seleccionar proveedor (local-first)
+    # Usar SwitchIntelligenceLayer para decisión inteligente
     provider_used = None
     result = None
     
     try:
-        # 1) Buscar modelo local para task_type
-        session = get_session("vx11")
-        try:
-            local_model = (
-                session.query(ModelRegistry)
-                .filter(ModelRegistry.type == task_type)
-                .filter(ModelRegistry.available == True)  # noqa: E712
-                .order_by(ModelRegistry.score.desc())
-                .first()
-            )
-        finally:
-            session.close()
+        # Crear RoutingContext para SIL
+        routing_context = RoutingContext(
+            task_type=task_type,
+            source=source,
+            messages=None,
+            metadata={
+                "payload": req.payload,
+                "priority": priority,
+                "queue_id": queue_id,
+                "task_uuid": str(req.task_id) if hasattr(req, 'task_id') else "unknown",
+            },
+            provider_hint=req.provider if hasattr(req, 'provider') else None,
+            max_latency_ms=req.max_latency_ms if hasattr(req, 'max_latency_ms') else 30000,
+            max_cost=req.max_cost if hasattr(req, 'max_cost') else 5.0,
+            max_tokens=req.max_tokens if hasattr(req, 'max_tokens') else 32768,
+        )
         
-        if local_model:
-            # Invocar modelo local (stub simple)
-            provider_used = local_model.name
-            result = {
-                "status": "ok",
-                "provider": provider_used,
-                "task_type": task_type,
-                "response": f"Stub response from {provider_used}",
-            }
-        else:
-            # 2) Fallback a CLI si no hay modelo local
-            # Solicitar al hermes qué CLI está disponible
-            try:
-                async with httpx.AsyncClient(timeout=5.0, headers=AUTH_HEADERS) as client:
-                    hermes_resp = await client.get(
-                        f"{settings.hermes_url.rstrip('/')}/hermes/models/best",
-                        params={"task_type": task_type, "max_size_mb": 2048},
-                        headers=AUTH_HEADERS,
-                    )
-                    if hermes_resp.status_code == 200:
-                        hermes_data = hermes_resp.json()
-                        candidates = hermes_data.get("models", [])
-                        if candidates:
-                            chosen = candidates[0]
-                            provider_used = chosen.get("name", "fallback")
-                            result = {
-                                "status": "ok",
-                                "provider": provider_used,
-                                "task_type": task_type,
-                                "response": f"Response from {provider_used}",
-                            }
-            except Exception as e:
-                write_log("switch", f"task_hermes_fallback_error:{e}", level="WARNING")
+        # Obtener SIL y GA Router
+        sil = get_switch_intelligence_layer()
+        ga_router = get_ga_router(ga_optimizer)
+        
+        # Tomar decisión de enrutamiento
+        routing_result = await sil.make_routing_decision(routing_context)
+        
+        # Log de decisión
+        write_log(
+            "switch",
+            f"task_routing:{task_type}:{routing_result.decision.name}:{routing_result.primary_engine}",
+            level="INFO"
+        )
+        
+        # Ejecutar según decisión
+        if routing_result.decision == RoutingDecision.MADRE:
+            result, latency_ms, success = await _execute_madre_task_chat(
+                json.dumps(req.payload),
+                routing_context.metadata
+            )
+            provider_used = "madre"
             
-            # Si aún no hay resultado, fallback stub
-            if not result:
-                provider_used = "stub"
-                result = {
-                    "status": "stub",
-                    "task_type": task_type,
-                    "response": "Task completed (stub mode)",
-                }
+        elif routing_result.decision == RoutingDecision.MANIFESTATOR:
+            result, latency_ms, success = await _execute_manifestator_task_chat(
+                json.dumps(req.payload),
+                routing_context.metadata
+            )
+            provider_used = "manifestator"
+            
+        elif routing_result.decision == RoutingDecision.SHUB:
+            result, latency_ms, success = await _execute_shub_task_chat(
+                json.dumps(req.payload),
+                routing_context.metadata
+            )
+            provider_used = "shub"
+            
+        else:  # LOCAL, CLI, HYBRID, FALLBACK
+            result, latency_ms, success = await _execute_hermes_task_chat(
+                routing_result.primary_engine,
+                json.dumps(req.payload),
+                routing_context.metadata
+            )
+            provider_used = routing_result.primary_engine
+        
+        # Registrar ejecución en GA
+        ga_router.record_execution_result(
+            engine_name=provider_used,
+            latency_ms=latency_ms,
+            success=success,
+            tokens_used=routing_result.cost,
+            task_type=task_type
+        )
         
         # Registrar uso
-        latency_ms = int((time.monotonic() - start) * 1000)
         session = get_session("vx11")
         try:
             usage_stat = ModelUsageStat(
-                model_or_cli_name=provider_used or "unknown",
-                kind="local" if local_model else "cli",
+                model_or_cli_name=provider_used,
+                kind="task",
                 task_type=task_type,
-                tokens_used=0,
+                tokens_used=int(routing_result.cost),
                 latency_ms=latency_ms,
-                success=True,
+                success=success,
             )
             session.add(usage_stat)
             session.commit()
@@ -1246,9 +1259,11 @@ async def switch_task(req: TaskRequest):
             "status": "ok",
             "task_type": task_type,
             "provider": provider_used,
+            "decision": routing_result.decision.name,
             "result": result,
             "latency_ms": latency_ms,
             "queue_id": queue_id,
+            "reasoning": routing_result.reasoning,
         }
     
     except Exception as e:
