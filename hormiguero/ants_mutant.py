@@ -33,7 +33,7 @@ import httpx
 from config.settings import settings
 from config.tokens import get_token
 from config.forensics import write_log
-from config.db_schema import get_session, AntsMetric
+from config.db_schema import get_session
 
 logger = logging.getLogger(__name__)
 VX11_TOKEN = get_token("VX11_GATEWAY_TOKEN") or settings.api_token
