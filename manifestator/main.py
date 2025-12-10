@@ -617,6 +617,158 @@ async def comprehensive_drift_detection() -> Dict[str, Any]:
     return report
 
 
+# ============ PASO 6: Real Patch Generation (Manifestator v7.1) ============
+
+@app.post("/manifestator/scan-drift")
+async def scan_drift_v2(req: Dict[str, Any] = None):
+    """
+    Detectar drift en sistema (PASO 6).
+    
+    Input:
+      {
+        "scope": "sistema"  // "sistema", "config", "data"
+      }
+    
+    Output:
+      {
+        "status": "ok",
+        "drift_id": "drift_...",
+        "files_changed": 5,
+        "severity": 0.4,
+        "diffs": [...]
+      }
+    """
+    from manifestator.patch_generator_v2 import get_drift_scanner
+    
+    try:
+        scope = (req or {}).get("scope", "sistema") if req else "sistema"
+        scanner = get_drift_scanner()
+        drift_report = await scanner.scan_drift(scope=scope)
+        
+        write_log("manifestator", f"scan_drift_api:{drift_report.drift_id}:scope={scope}")
+        return {
+            "status": "ok",
+            "drift": drift_report.to_dict(),
+        }
+    except Exception as e:
+        write_log("manifestator", f"scan_drift_error:{e}", level="ERROR")
+        return {"status": "error", "error": str(e)}
+
+
+@app.post("/manifestator/generate-patch")
+async def generate_patch_v2(req: Dict[str, Any]):
+    """
+    Generar patch desde reporte de drift (PASO 6).
+    
+    Input:
+      {
+        "drift_id": "drift_...",
+        "diffs": [...]
+      }
+    
+    Output:
+      {
+        "status": "ok",
+        "patch_id": "patch_...",
+        "operations": [...]
+      }
+    """
+    from manifestator.patch_generator_v2 import DriftScanner, DriftReport, FileDiff, PatchGenerator
+    
+    try:
+        # Reconstruir drift report desde input
+        diffs = []
+        for diff_data in req.get("diffs", []):
+            diffs.append(FileDiff(
+                file_path=diff_data.get("file"),
+                operation=diff_data.get("op"),
+                old_hash=diff_data.get("old_hash"),
+                new_hash=diff_data.get("new_hash"),
+            ))
+        
+        drift_report = DriftReport(
+            drift_id=req.get("drift_id", "drift_unknown"),
+            detected_at=datetime.utcnow().isoformat(),
+            scope="sistema",
+            diffs=diffs,
+            total_files_changed=len(diffs),
+            severity=0.5,
+        )
+        
+        # Generar patch
+        patch = PatchGenerator.generate_patch(drift_report)
+        
+        write_log("manifestator", f"generate_patch_api:{patch['patch_id']}:ops={patch['operation_count']}")
+        return {
+            "status": "ok",
+            "patch": patch,
+        }
+    except Exception as e:
+        write_log("manifestator", f"generate_patch_error:{e}", level="ERROR")
+        return {"status": "error", "error": str(e)}
+
+
+@app.post("/manifestator/validate-patch")
+async def validate_patch_v2(req: Dict[str, Any]):
+    """
+    Validar integridad de patch (PASO 6).
+    
+    Input:
+      {
+        "patch_id": "patch_...",
+        "operations": [...]
+      }
+    """
+    from manifestator.patch_generator_v2 import PatchValidator
+    
+    try:
+        is_valid, errors = await PatchValidator.validate_patch(req)
+        
+        write_log("manifestator", f"validate_patch_api:{req.get('patch_id')}:valid={is_valid}")
+        return {
+            "status": "ok",
+            "patch_id": req.get("patch_id"),
+            "valid": is_valid,
+            "errors": errors,
+        }
+    except Exception as e:
+        write_log("manifestator", f"validate_patch_error:{e}", level="ERROR")
+        return {"status": "error", "error": str(e)}
+
+
+@app.post("/manifestator/apply-patch-v2")
+async def apply_patch_v2(req: Dict[str, Any]):
+    """
+    Aplicar patch generado (PASO 6).
+    
+    Input:
+      {
+        "patch_id": "patch_...",
+        "operations": [...]
+      }
+    """
+    from manifestator.patch_generator_v2 import PatchGenerator, PatchValidator
+    
+    try:
+        # Validar primero
+        is_valid, errors = await PatchValidator.validate_patch(req)
+        if not is_valid:
+            return {"status": "error", "errors": errors}
+        
+        # Aplicar
+        result = await PatchGenerator.apply_patch(req)
+        
+        write_log("manifestator", f"apply_patch_api:{req.get('patch_id')}:applied={result['applied']}:failed={result['failed']}")
+        return {
+            "status": "ok",
+            "patch_id": req.get("patch_id"),
+            "result": result,
+        }
+    except Exception as e:
+        write_log("manifestator", f"apply_patch_error:{e}", level="ERROR")
+        return {"status": "error", "error": str(e)}
+
+
 @app.post("/detect-drift")
 async def detect_drift_advanced():
     """Detección avanzada de drift."""
