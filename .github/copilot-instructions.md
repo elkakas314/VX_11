@@ -321,7 +321,7 @@ docker-compose logs -f switch
 # SECCIÓN B: OPERATIVA (Editable en cada chat)
 **Esta sección contiene contexto puntual, auditorías y tareas temporales. PUEDE regenerarse sin tocar Sección A.**
 
-## 📋 Escaneo Actual de la Sesión (Actualización: 2025-12-12 17:30 UTC)
+## 📋 Cierre de Fase: 4 Puntos (Actualización: 2025-12-12 18:50 UTC — COMPLETADOS)
 
 ### GitHub CLI & Autenticación
 - ✅ GitHub CLI instalado: `gh version 2.4.0+dfsg1`
@@ -422,37 +422,34 @@ Sección B (OPERATIVA):
 
 ---
 
-## 📝 Resumen de Cambios Realizados (Sesión Actual)
+## � CIERRE DE 4 PUNTOS (Sesión 2025-12-12 18:50 UTC)
 
-### Archivos Creados
-```
-✅ tentaculo_link/systemd/vx11-autosync.service   (nueva plantilla systemd)
-✅ tentaculo_link/systemd/vx11-autosync.timer     (nueva plantilla systemd)
-```
+### ✅ FASE 1: Switch ↔ Hermes (API Alignment)
+**Problema:** Switch llamaba a `/hermes/cli/execute` (no existe en Hermes).
+**Cambio:** Línea 907 de `switch/main.py`:
+- ❌ Endpoint: `"/hermes/cli/execute"` → ✅ `"/hermes/execute"`
+- ❌ Payload key: `"prompt"` → ✅ `"command"` (compatible con Hermes)
+**Por qué:** Elimina error 404 y fallbacks innecesarios; alinea con API real.
+**Archivo modificado:** `switch/main.py` (+1 cambio)
 
-### Archivos Modificados
-```
-✅ .github/copilot-instructions.md
-   - Sección A: Ampliada con comportamiento Copilot obligatorio
-   - Sección B: Actualizada con estado TODAS LAS FASES COMPLETADAS
-```
+### ✅ FASE 2: Operator (Limpio y Estable)
+**Auditoría:** Operator backend usa `SwitchClient` → `/operator/chat` → `Switch` pipeline OK.
+**Cambio:** NINGUNO requerido (ya conectado correctamente).
+**Por qué:** No hay UI desconectada ni botones huérfanos; arquitectura válida.
 
-### Archivos Eliminados
-```
-[Ninguno en esta sesión — autosync ya estaba reubicado en sesiones previas]
-```
+### ✅ FASE 3: Shub (Arranque Siempre)
+**Auditoría:** Imports en `main.py` OK; numpy/DSP en `engines_paso8.py` (no bloquea arranque).
+**Cambio:** NINGUNO requerido (Shub arranca sin ejecutar DSP si no hay requests).
+**Por qué:** Bajo consumo CPU en idle; si falla, reporte específico de `engines_paso8.py`.
 
-### Estado de Autosync
-```
-Versión:           v2 (detecta cambios, lockfile, logging)
-Ubicación:         tentaculo_link/tools/autosync.sh
-Ejecutable:        ✅ Sí (-rwxrwxr-x)
-Funcionalidad:     ✅ Stash → Fetch → Rebase → Restore → Commit → Push
-Autonomía:         ✅ Detecta cambios reales antes de commitear
-Logging:           ✅ .autosync.log con timestamps
-Lock:              ✅ .autosync.lock previene loops
-Testing manual:    ✅ Ejecutable: ./tentaculo_link/tools/autosync.sh feature/ui/operator-advanced
-```
+### ✅ FASE 4: Autosync (Autonomía Real)
+**Auditoría:**
+- ✅ `tentaculo_link/tools/autosync.sh` ejecutable, única copia
+- ✅ Systemd templates: service + timer presentes
+- ✅ Lockfile + logging + detección cambios OK
+- ✅ Repo sync: 0 ahead / 0 behind
+**Cambio:** NINGUNO requerido (todo correcto).
+**Por qué:** Autosync ya autónomo; solo push cambio de Fase 1.
 
 ---
 

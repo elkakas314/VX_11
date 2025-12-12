@@ -904,8 +904,8 @@ async def route_v5(req: RouteRequest):
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
                 r = await client.post(
-                    f"{settings.hermes_url.rstrip('/')}/hermes/cli/execute",
-                    json={"prompt": req.prompt, "metadata": {**req.metadata, "source": req.source}},
+                    f"{settings.hermes_url.rstrip('/')}/hermes/execute",
+                    json={"command": req.prompt, "metadata": {**req.metadata, "source": req.source}},
                     headers=AUTH_HEADERS,
                 )
                 response["hermes"] = r.json()
