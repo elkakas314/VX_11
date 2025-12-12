@@ -14,6 +14,7 @@ import { DeepSeekHelper } from "./components/DeepSeekHelper";
 import { ShortcutsPanel } from "./components/ShortcutsPanel";
 import { SimpleApp } from "./simple/SimpleApp";
 import { useOperatorStreams } from "./hooks/useOperatorStreams";
+import { useWebSocket } from "./hooks/useWebSocket";
 import { MiniMapPanel } from "./components/MiniMapPanel";
 import { EventsTimelinePanel } from "./components/EventsTimelinePanel";
 import { LogsPanel } from "./components/LogsPanel";
@@ -21,6 +22,7 @@ import { ManifestatorPanel } from "./components/ManifestatorPanel";
 import { BrowserPanel } from "./components/BrowserPanel";
 import { HormigueroMapPanel } from "./components/HormigueroMapPanel";
 import { SelfOverviewPanel } from "./components/SelfOverviewPanel";
+import { BridgePanel } from "./components/BridgePanel";
 import { useOperatorStore } from "./store/operatorStore";
 
 // === SIMPLE MODE SUPPORT ===
@@ -32,6 +34,7 @@ const SIMPLE_MODE =
 type EventMessage = { channel?: string; type?: string; payload?: any; source?: string; data?: any; module?: string; level?: string; timestamp?: string };
 
 export default function App() {
+  useWebSocket();
   const { status, events, connected, statusError, eventsError, bridgeHealth } = useOperatorStreams();
   const activeTab = useOperatorStore((state) => state.ui.activeTab);
   const setActiveTab = useOperatorStore((state) => state.ui.setActiveTab);
@@ -119,16 +122,17 @@ export default function App() {
 
             <div className="column column-center">
               <ChatPanel onSend={handleSendChat} events={events as EventMessage[]} profile={activeProfile as any} activeTab={activeTab} bridgeHealth={bridgeHealth as any} />
-              <div className="card nested-panels">
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
-                  <ShortcutsPanel onSend={handleSendChat} />
-                  <DeepSeekHelper onSend={handleSendChat} />
-                </div>
-                <div style={{ marginTop: "10px" }}>
-                  <ShubPanel />
-                </div>
-              </div>
+          <div className="card nested-panels">
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+              <ShortcutsPanel onSend={handleSendChat} />
+              <DeepSeekHelper onSend={handleSendChat} />
             </div>
+            <div style={{ marginTop: "10px" }}>
+              <ShubPanel />
+              <BridgePanel />
+            </div>
+          </div>
+        </div>
 
             <div className="column column-right">
               <SelfOverviewPanel />

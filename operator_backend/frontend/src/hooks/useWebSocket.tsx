@@ -1,0 +1,42 @@
+import { useEffect } from "react";
+import { createOperatorWebSocket } from "../services/websocket";
+import { useOperatorStore } from "../store/operatorStore";
+import type { WsEvent } from "../types/api";
+
+export function useWebSocket() {
+  const { setStatus } = useOperatorStore((s) => s.system);
+  const { addEvent, setEvents } = useOperatorStore((s) => s.traces);
+  const { setEvents: setHormigueroEvents } = useOperatorStore((s) => s.hormiguero);
+
+  useEffect(() => {
+    const ws = createOperatorWebSocket({
+      onMessage: (msg) => {
+        try {
+          const data: WsEvent = JSON.parse(msg.data);
+          if (data.type === "bootstrap" && Array.isArray((data as any).events)) {
+            setEvents((data as any).events);
+            setHormigueroEvents((data as any).events);
+            return;
+          }
+          if (data.type === "status_update") {
+            setStatus((data as any).payload || (data as any).data || null);
+            return;
+          }
+          if (data.type === "hormiguero_event") {
+            setHormigueroEvents([(data as any).payload || data, ...(s => s)]);
+            addEvent(data);
+            return;
+          }
+          if (data.type === "shub_event") {
+            addEvent(data);
+            return;
+          }
+          addEvent(data);
+        } catch {
+          addEvent({ type: "raw", payload: msg.data, timestamp: new Date().toISOString() });
+        }
+      },
+    });
+    return () => ws.close();
+  }, [addEvent, setStatus, setEvents, setHormigueroEvents]);
+}
