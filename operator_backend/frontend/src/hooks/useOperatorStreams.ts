@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { EVENTS_LIMIT, POLL_INTERVAL_MS } from "../config";
-import { fetchSystemStatus, fetchUiEvents, wsConnect, fetchBridgeHealth } from "../services/api";
+import { fetchSystemStatus, fetchUiEvents, fetchBridgeHealth } from "../services/api";
+import { createOperatorWebSocket } from "../services/websocket";
 import { useOperatorStore } from "../store/operatorStore";
 
 type EventMessage = { type?: string; payload?: any; data?: any; timestamp?: string };
@@ -86,8 +87,8 @@ export function useOperatorStreams() {
     pollBridge();
     const interval = setInterval(pollEvents, POLL_INTERVAL_MS * 2);
     const bridgeInterval = setInterval(pollBridge, POLL_INTERVAL_MS * 3);
-    const socket = wsConnect(
-      (msg) => {
+    const socket = createOperatorWebSocket({
+      onMessage: (msg) => {
         try {
           const data = JSON.parse(msg.data);
           if (data?.type === "bootstrap" && Array.isArray(data.events)) {
@@ -100,13 +101,14 @@ export function useOperatorStreams() {
           setEvents((prev) => [normalized, ...prev].slice(0, EVENTS_LIMIT));
           addEvent(normalized);
         } catch {
-          setEvents((prev) => [{ type: "raw", payload: msg.data, timestamp: new Date().toISOString() }, ...prev].slice(0, EVENTS_LIMIT));
-          addEvent({ type: "raw", payload: msg.data, timestamp: new Date().toISOString() });
+          const fallback = { type: "raw", payload: msg.data, timestamp: new Date().toISOString() };
+          setEvents((prev) => [fallback, ...prev].slice(0, EVENTS_LIMIT));
+          addEvent(fallback);
         }
       },
-      () => setConnected(true),
-      () => setConnected(false)
-    );
+      onOpen: () => setConnected(true),
+      onClose: () => setConnected(false),
+    });
     return () => {
       active = false;
       clearInterval(interval);
