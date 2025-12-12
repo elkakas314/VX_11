@@ -1,0 +1,193 @@
+{
+  "generation": 0,
+  "elite": {
+    "id": "individual_000_0",
+    "weights": {
+      "local_gguf": 0.20690147597192673,
+      "deepseek_r1": 0.38654596900317584,
+      "cli": 0.20803247266586347,
+      "shub": 0.1985200823590339
+    },
+    "fitness": 0.0,
+    "generation": 0,
+    "age": 0,
+    "success_rate": 0.0,
+    "avg_latency": 0.0,
+    "avg_cost": 0.0,
+    "executions": 0,
+    "created_at": "2025-12-10T20:38:01.051642"
+  },
+  "population": [
+    {
+      "id": "individual_000_0",
+      "weights": {
+        "local_gguf": 0.20690147597192673,
+        "deepseek_r1": 0.38654596900317584,
+        "cli": 0.20803247266586347,
+        "shub": 0.1985200823590339
+      },
+      "fitness": 0.0,
+      "generation": 0,
+      "age": 0,
+      "success_rate": 0.0,
+      "avg_latency": 0.0,
+      "avg_cost": 0.0,
+      "executions": 0,
+      "created_at": "2025-12-10T20:38:01.051642"
+    },
+    {
+      "id": "individual_001_0",
+      "weights": {
+        "local_gguf": 0.32434619639819684,
+        "deepseek_r1": 0.09990944057587058,
+        "cli": 0.4596431899881906,
+        "shub": 0.11610117303774184
+      },
+      "fitness": 0.0,
+      "generation": 0,
+      "age": 0,
+      "success_rate": 0.0,
+      "avg_latency": 0.0,
+      "avg_cost": 0.0,
+      "executions": 0,
+      "created_at": "2025-12-10T20:38:01.051710"
+    },
+    {
+      "id": "individual_002_0",
+      "weights": {
+        "local_gguf": 0.12325354686003523,
+        "deepseek_r1": 0.5919047825066477,
+        "cli": 0.20903372231032047,
+        "shub": 0.07580794832299668
+      },
+      "fitness": 0.0,
+      "generation": 0,
+      "age": 0,
+      "success_rate": 0.0,
+      "avg_latency": 0.0,
+      "avg_cost": 0.0,
+      "executions": 0,
+      "created_at": "2025-12-10T20:38:01.051746"
+    },
+    {
+      "id": "individual_003_0",
+      "weights": {
+        "local_gguf": 0.41674436471267223,
+        "deepseek_r1": 0.11715454961527624,
+        "cli": 0.11565134917150158,
+        "shub": 0.3504497365005501
+      },
+      "fitness": 0.0,
+      "generation": 0,
+      "age": 0,
+      "success_rate": 0.0,
+      "avg_latency": 0.0,
+      "avg_cost": 0.0,
+      "executions": 0,
+      "created_at": "2025-12-10T20:38:01.051771"
+    },
+    {
+      "id": "individual_004_0",
+      "weights": {
+        "local_gguf": 0.16185080852030478,
+        "deepseek_r1": 0.3875865227777598,
+        "cli": 0.09194440051247521,
+        "shub": 0.35861826818946024
+      },
+      "fitness": 0.0,
+      "generation": 0,
+      "age": 0,
+      "success_rate": 0.0,
+      "avg_latency": 0.0,
+      "avg_cost": 0.0,
+      "executions": 0,
+      "created_at": "2025-12-10T20:38:01.051797"
+    },
+    {
+      "id": "individual_005_0",
+      "weights": {
+        "local_gguf": 0.1379272134261247,
+        "deepseek_r1": 0.38173674369791133,
+        "cli": 0.05880969722326441,
+        "shub": 0.4215263456526996
+      },
+      "fitness": 0.0,
+      "generation": 0,
+      "age": 0,
+      "success_rate": 0.0,
+      "avg_latency": 0.0,
+      "avg_cost": 0.0,
+      "executions": 0,
+      "created_at": "2025-12-10T20:38:01.051835"
+    },
+    {
+      "id": "individual_006_0",
+      "weights": {
+        "local_gguf": 0.42850464554532597,
+        "deepseek_r1": 0.09570783486893315,
+        "cli": 0.23279790578180332,
+        "shub": 0.24298961380393752
+      },
+      "fitness": 0.0,
+      "generation": 0,
+      "age": 0,
+      "success_rate": 0.0,
+      "avg_latency": 0.0,
+      "avg_cost": 0.0,
+      "executions": 0,
+      "created_at": "2025-12-10T20:38:01.051861"
+    },
+    {
+      "id": "individual_007_0",
+      "weights": {
+        "local_gguf": 0.15005982339877066,
+        "deepseek_r1": 0.35070634412507623,
+        "cli": 0.22416132280229878,
+        "shub": 0.2750725096738543
+      },
+      "fitness": 0.0,
+      "generation": 0,
+      "age": 0,
+      "success_rate": 0.0,
+      "avg_latency": 0.0,
+      "avg_cost": 0.0,
+      "executions": 0,
+      "created_at": "2025-12-10T20:38:01.051881"
+    },
+    {
+      "id": "individual_008_0",
+      "weights": {
+        "local_gguf": 0.2844981939957443,
+        "deepseek_r1": 0.31496517893334647,
+        "cli": 0.26055116715625903,
+        "shub": 0.13998545991465022
+      },
+      "fitness": 0.0,
+      "generation": 0,
+      "age": 0,
+      "success_rate": 0.0,
+      "avg_latency": 0.0,
+      "avg_cost": 0.0,
+      "executions": 0,
+      "created_at": "2025-12-10T20:38:01.051901"
+    },
+    {
+      "id": "individual_009_0",
+      "weights": {
+        "local_gguf": 0.14416298045715126,
+        "deepseek_r1": 0.3376580870508518,
+        "cli": 0.38110318327521714,
+        "shub": 0.13707574921677984
+      },
+      "fitness": 0.0,
+      "generation": 0,
+      "age": 0,
+      "success_rate": 0.0,
+      "avg_latency": 0.0,
+      "avg_cost": 0.0,
+      "executions": 0,
+      "created_at": "2025-12-10T20:38:01.051973"
+    }
+  ],
+  "history": []
+}

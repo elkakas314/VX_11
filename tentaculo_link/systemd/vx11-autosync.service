@@ -1,0 +1,17 @@
+[Unit]
+Description=VX11 Autosync Service (Tentaculo Link)
+Documentation=file:///home/elkakas314/vx11/tentaculo_link/tools/autosync.sh
+After=network-online.target
+Wants=vx11-autosync.timer
+
+[Service]
+Type=oneshot
+User=root
+WorkingDirectory=/home/elkakas314/vx11
+ExecStart=/bin/bash -c '[ -f .autosync.lock ] && sleep 2 || /home/elkakas314/vx11/tentaculo_link/tools/autosync.sh feature/ui/operator-advanced'
+StandardOutput=journal
+StandardError=journal
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target
