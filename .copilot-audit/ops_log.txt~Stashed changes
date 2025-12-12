@@ -1,0 +1,14 @@
+[vie 12 dic 2025 04:59:10 CET] FASE 2 - Ejecución iniciada. TS=20251212-045910
+[vie 12 dic 2025 04:59:49 CET] PASO 2 OK: tokens.env backed up and removed from index
+[vie 12 dic 2025 05:00:XX CET] FASE 3 - AUTO_RUN initiado. TS=20251212-050000
+[vie 12 dic 2025 05:00:XX CET] ⚠️  HALT: GITHUB_PAT no definido. Abortando Fases 3-12.
+[vie 12 dic 2025 05:00:XX CET] ACCIÓN: Define export GITHUB_PAT="..." e relanza. Ver .copilot-audit/ERROR_MISSING_PAT.md
+[vie 12 dic 2025 05:06:55 CET] HALT: GITHUB_PAT missing; refreshed .copilot-audit/ERROR_MISSING_PAT.md and aborted phases 3-12.
+[vie 12 dic 2025 09:17:41 CET] HALT: GITHUB_PAT missing
+2025-12-12T08:23:35Z - halt: GITHUB_PAT missing, automatic phases aborted2025-12-12T08:37:39Z - halt: GITHUB_PAT missing, automatic flow cannot proceed[20251212-093936] ABORT: GITHUB_PAT missing - automated run halted
+2025-12-12T08:40:53Z - HALT: GITHUB_PAT missing, requested automatic flow aborted[20251212-094145] ABORT: GITHUB_PAT missing - automated run halted
+[20251212-094713] ABORT: GITHUB_PAT missing - automated run halted
+[vie 12 dic 2025 08:49:22 UTC] START automated fixes TS=20251212-094922
+[vie 12 dic 2025 08:50:49 UTC] START automated fixes TS=20251212-095049
+[vie 12 dic 2025 08:51:30 UTC] START automated fixes TS=20251212-095130
+[vie 12 dic 2025 09:41:53 UTC] Stashed uncommitted changes: pre-sync-20251212-104153

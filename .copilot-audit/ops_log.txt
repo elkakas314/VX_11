@@ -1,0 +1,2 @@
+[vie 12 dic 2025 09:42:29 UTC] Updated remote URL with auth
+[vie 12 dic 2025 09:43:06 UTC] SYNC ABORT: Remote repository cannot be accessed/created - see ERROR_REMOTE_SETUP.md
