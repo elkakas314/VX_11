@@ -5,6 +5,7 @@ Pure proxy + auth + context-7 middleware + modular clients
 
 import asyncio
 import json
+import time
 import uuid
 from pathlib import Path
 from typing import Any, Dict, Optional
@@ -277,6 +278,24 @@ async def hormiguero_report(limit: int = 50, _: bool = Depends(token_guard)):
     return result
 
 
+# ============ OPERATOR EXTENSIONS (v8.1) ============
+
+@app.get("/operator/snapshot")
+async def operator_snapshot(t: int = 0, _: bool = Depends(token_guard)):
+    """Request VX11 state snapshot at timestamp t (v8.1 stub - returns current state if t=0)."""
+    # TODO: When BD snapshots are available, query data/runtime/vx11.db for state at timestamp t
+    # For now, return current state as fallback
+    write_log("tentaculo_link", f"operator_snapshot:request:t={t}")
+    return {
+        "timestamp": t if t > 0 else int(time.time() * 1000),
+        "state": {
+            "madre": {"status": "active"},
+            "switch": {"routing": "adaptive"},
+            "hormiguero": {"queen_alive": True},
+        },
+    }
+
+
 # ============ ERROR HANDLERS ============
 
 @app.exception_handler(HTTPException)
@@ -304,6 +323,15 @@ class ConnectionManager:
     async def disconnect(self, client_id: str):
         self.connections.pop(client_id, None)
         write_log("tentaculo_link", f"ws_disconnect:{client_id}")
+
+    async def broadcast(self, message_type: str, data: dict):
+        """Broadcast event to all connected clients (v8.1 stub for Operator updates)."""
+        for client_id, conn in list(self.connections.items()):
+            try:
+                await conn.send_json({"type": message_type, "data": data})
+            except Exception:
+                # Client disconnected or error; silently skip
+                pass
 
 
 manager = ConnectionManager()
