@@ -126,6 +126,14 @@ Esta sección contiene una guía práctica y concisa para agentes en sesión. Ma
 
 - Si algo no está claro: pide ejemplos concretos (líneas/funciones) y ampliaré esta sección.
 
+- **Arquitectura Canónica de Eventos (v8.0+):**
+  - WHITELIST: solo 7 eventos permitidos en Operator
+  - Validación en Tentáculo Link (rechaza non-canonical)
+  - Sintético: system.alert, system.correlation.updated, system.state.summary, forensic.snapshot.created
+  - Nativos: madre.decision.explained, switch.system.tension, shub.action.narrated
+  - Referencia: `/docs/VX11_EVENT_MAP_CANONICAL.md`
+  - Operator 100% pasivo (observation only, never execution)
+
 ---
 
 # >>> FIN SECCIÓN B: OPERATIVA <<<

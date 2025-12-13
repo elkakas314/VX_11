@@ -308,6 +308,74 @@ async def http_exception_handler(request, exc):
     )
 
 
+# ============ EVENT VALIDATION & CANONICALIZATION ============
+
+CANONICAL_EVENT_WHITELIST = {
+    "system.alert",
+    "system.correlation.updated",
+    "system.state.summary",
+    "forensic.snapshot.created",
+    "madre.decision.explained",
+    "switch.system.tension",
+    "shub.action.narrated",
+}
+
+def validate_event_type(event_type: str) -> bool:
+    """Check if event type is in canonical whitelist."""
+    return event_type in CANONICAL_EVENT_WHITELIST
+
+def log_event_rejection(event_type: str, reason: str):
+    """Log rejected events as DEBUG (not error)."""
+    write_log("tentaculo_link", f"event_rejected:type={event_type}:reason={reason}", level="DEBUG")
+
+async def create_system_alert(message: str, source: str, severity: str = "warning") -> dict:
+    """Synthesize system.alert event (ONLY in Tentáculo Link)."""
+    return {
+        "type": "system.alert",
+        "timestamp": int(time.time() * 1000),
+        "severity": severity,
+        "message": message,
+        "source": source,
+    }
+
+async def create_system_state_summary() -> dict:
+    """Synthesize system.state.summary event (ONLY in Tentáculo Link)."""
+    # TODO: Query Madre, Switch, Hormiguero for live status
+    return {
+        "type": "system.state.summary",
+        "timestamp": int(time.time() * 1000),
+        "data": {
+            "madre": {"status": "active"},
+            "switch": {"routing": "adaptive"},
+            "hormiguero": {"queen_alive": True, "ant_count": 8},
+        },
+    }
+
+async def validate_and_filter_event(event: dict) -> Optional[dict]:
+    """
+    Validate incoming event against whitelist.
+    Return None if invalid (rejected).
+    Return dict if valid (allowed to broadcast to Operator).
+    """
+    event_type = event.get("type")
+    
+    if not event_type:
+        log_event_rejection("unknown", "missing type field")
+        return None
+    
+    if not validate_event_type(event_type):
+        log_event_rejection(event_type, "not in canonical whitelist")
+        return None
+    
+    # Ensure timestamp exists
+    if "timestamp" not in event:
+        event["timestamp"] = int(time.time() * 1000)
+    
+    # Event is canonical; allow broadcasting
+    write_log("tentaculo_link", f"event_accepted:type={event_type}", level="DEBUG")
+    return event
+
+
 # ============ WEBSOCKET (PLACEHOLDER FOR FUTURE) ============
 
 class ConnectionManager:
@@ -324,13 +392,24 @@ class ConnectionManager:
         self.connections.pop(client_id, None)
         write_log("tentaculo_link", f"ws_disconnect:{client_id}")
 
-    async def broadcast(self, message_type: str, data: dict):
-        """Broadcast event to all connected clients (v8.1 stub for Operator updates)."""
+    async def broadcast(self, event: dict):
+        """
+        Broadcast canonical event to all connected Operator clients.
+        Event MUST be validated before calling this method.
+        """
+        event_type = event.get("type", "unknown")
+        
+        # Final validation before broadcast
+        if not validate_event_type(event_type):
+            log_event_rejection(event_type, "broadcast attempted with non-canonical type")
+            return
+        
         for client_id, conn in list(self.connections.items()):
             try:
-                await conn.send_json({"type": message_type, "data": data})
-            except Exception:
+                await conn.send_json(event)
+            except Exception as e:
                 # Client disconnected or error; silently skip
+                write_log("tentaculo_link", f"broadcast_failed:client={client_id}:error={str(e)}", level="DEBUG")
                 pass
 
 
@@ -339,13 +418,26 @@ manager = ConnectionManager()
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket, client_id: str = "anonymous"):
-    """WebSocket endpoint for real-time updates (stub)."""
+    """
+    WebSocket endpoint for Operator clients.
+    Receives and validates canonical events only.
+    Non-canonical events are rejected silently.
+    """
     await manager.connect(websocket, client_id)
     try:
         while True:
             data = await websocket.receive_text()
-            # Echo for now
-            await websocket.send_json({"type": "echo", "data": data})
+            try:
+                event = json.loads(data)
+                # Validate event against canonical whitelist
+                validated = await validate_and_filter_event(event)
+                if validated:
+                    # Event is canonical; broadcast to all clients
+                    await manager.broadcast(validated)
+                # else: event rejected; no broadcast, no echo
+            except json.JSONDecodeError:
+                log_event_rejection("malformed", "invalid JSON")
+                # Don't echo; connection stays open for next valid event
     except WebSocketDisconnect:
         await manager.disconnect(client_id)
 
