@@ -465,6 +465,120 @@ Sección B (OPERATIVA):
 
 ---
 
+## ✨ FASE HORMIGUERO DISEÑADA (Actualización: 2025-12-13 19:30 UTC)
+
+### Objetivo Alcanzado
+Diseño canónico del **Dashboard Hormiguero** como núcleo visual del Operator.
+
+### Componentes Implementados (React + TypeScript)
+```
+✅ operator/src/types/hormiguero.ts
+   └─ Enums (AntRole, SeverityLevel, IncidentType, PheromoneType, ...)
+   └─ Interfaces (Ant, Incident, Pheromone, QueenStatus, HormiguerReport, ...)
+   └─ UI State types (HormiguerUIState, GraphNode, GraphEdge)
+
+✅ operator/src/hooks/useHormiguero.ts
+   └─ State management con polling (5s interval)
+   └─ API integration: fetchQueenStatus(), fetchReport(), triggerScan(), dispatchDecision()
+   └─ WebSocket placeholder para actualizaciones en tiempo real
+
+✅ operator/src/components/Hormiguero/Dashboard.tsx
+   └─ Main container con header, métricas, controles
+   └─ Grid layout: Graph (full width) + Incidents (8col) + Ants (4col)
+
+✅ operator/src/components/Hormiguero/Graph.tsx
+   └─ React Flow DAG visualization
+   └─ Queen (centro) + Ants (círculo) + Incidents (edges animados)
+   └─ Color por severidad: Rojo (critical), Naranja (error), Amarillo (warning), Gris (info)
+
+✅ operator/src/components/Hormiguero/GraphNode.tsx
+   └─ Node renderer para Queen/Ant
+   └─ Status indicator (CPU%, incident count)
+
+✅ operator/src/components/Hormiguero/IncidentsTable.tsx
+   └─ Tabla filtrable (severity, status)
+   └─ Acciones: Select, Dispatch decision
+   └─ Row color por severidad
+
+✅ operator/src/components/Hormiguero/AntsList.tsx
+   └─ Panel de estado de hormigas
+   └─ Métricas: CPU%, RAM%, mutation level, last scan
+```
+
+### Documentación Canónica
+```
+✅ docs/HORMIGUERO_UI_CANONICAL.md (completo, 350+ líneas)
+   ├─ Architecture (component hierarchy, tech stack)
+   ├─ API Integration (4 endpoints existentes, ninguno nuevo)
+   ├─ Data Types (TypeScript types + Hormiguero enums)
+   ├─ Components (Dashboard, Graph, GraphNode, IncidentsTable, AntsList)
+   ├─ Custom Hook (useHormiguero con polling + WebSocket ready)
+   ├─ Styling (Tailwind CSS minimal, light mode)
+   ├─ Deployment (file structure, npm install, env vars)
+   ├─ Testing Checklist
+   └─ Future Enhancements (WebSocket real-time, animations, export)
+```
+
+### Endpoints Utilizados (Existentes, NINGUNO Nuevo)
+```
+✅ GET  /hormiguero/queen/status      → ants + queen metadata
+✅ GET  /hormiguero/report?limit=100  → incidents list with summary
+✅ POST /hormiguero/scan              → trigger scan cycle
+✅ POST /hormiguero/queen/dispatch?id → manual decision dispatch
+```
+
+### Stack Frontend (Minimal, Producción-Ready)
+```
+✅ React 18 + TypeScript
+✅ React Flow (DAG visualization)
+✅ Tailwind CSS (utility-first, no custom CSS)
+✅ Custom hooks (useHormiguero for state)
+✅ Fetch API (no axios, no heavy deps)
+```
+
+### Cambios Realizados en Operator
+```
+Creados (5 archivos):
+  + operator/src/types/hormiguero.ts              (200+ líneas)
+  + operator/src/hooks/useHormiguero.ts           (100+ líneas)
+  + operator/src/components/Hormiguero/Dashboard.tsx
+  + operator/src/components/Hormiguero/Graph.tsx
+  + operator/src/components/Hormiguero/GraphNode.tsx
+  + operator/src/components/Hormiguero/IncidentsTable.tsx
+  + operator/src/components/Hormiguero/AntsList.tsx
+
+Documentación:
+  + docs/HORMIGUERO_UI_CANONICAL.md               (350+ líneas)
+
+NO Modificado:
+  ✓ docker-compose.yml (intacto)
+  ✓ tokens.env (intacto)
+  ✓ Módulos (hormiguero, madre, switch, etc. sin tocar)
+  ✓ Backend endpoints (solo fetch existentes)
+```
+
+### Características del Diseño
+```
+✅ Real-time updates: Polling 5s + WebSocket ready
+✅ Low CPU: Minimal render cycles, efficient data fetching
+✅ Error handling: Toast + retry logic
+✅ Responsive: Desktop/tablet layout (Tailwind responsive)
+✅ Type-safe: Full TypeScript with interfaces
+✅ Accessibility: Semantic HTML, ARIA labels
+✅ Testable: Component props, hook isolated, data layer independent
+```
+
+### Status Final
+```
+Design:       ✅ COMPLETE
+Implementation: ✅ READY FOR BUILD
+Testing:      🟡 PENDING (unit + E2E)
+Deployment:   🟢 READY (npm install + build)
+Documentation: ✅ CANONICAL + COMPLETE
+```
+
+---
+
 # >>> FIN SECCIÓN B: OPERATIVA <<<
 
 ---
