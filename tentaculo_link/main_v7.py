@@ -488,6 +488,53 @@ async def create_system_state_summary() -> dict:
     }
 
 
+# ============ EVENT CARDINALITY TRACKING (DEBUG OBSERVABILITY) ============
+
+class EventCardinalityCounter:
+    """Track event frequencies for debugging and spam detection."""
+    def __init__(self):
+        self.counters: Dict[str, int] = {}
+        self.window_start = time.time()
+    
+    def increment(self, event_type: str):
+        """Increment counter for event type."""
+        if event_type not in self.counters:
+            self.counters[event_type] = 0
+        self.counters[event_type] += 1
+    
+    def get_stats(self) -> Dict[str, int]:
+        """Return events/min. Reset window if > 60s elapsed."""
+        now = time.time()
+        elapsed = now - self.window_start
+        
+        if elapsed > 60:
+            # Reset window
+            stats = self.counters.copy()
+            self.counters = {}
+            self.window_start = now
+            return stats
+        
+        return self.counters.copy()
+    
+    def get_stats_with_rate(self) -> Dict[str, Dict[str, float]]:
+        """Return counts and rates (events/min)."""
+        now = time.time()
+        elapsed = max(now - self.window_start, 1)  # Avoid division by zero
+        
+        result = {}
+        for event_type, count in self.counters.items():
+            rate_per_min = (count / elapsed) * 60
+            result[event_type] = {
+                "count": count,
+                "rate_per_min": round(rate_per_min, 2),
+            }
+        
+        return result
+
+
+cardinality_counter = EventCardinalityCounter()
+
+
 # ============ WEBSOCKET (PLACEHOLDER FOR FUTURE) ============
 
 class ConnectionManager:
@@ -509,6 +556,7 @@ class ConnectionManager:
         PHASE V3: Broadcast canonical event to Operator clients only.
         - Final validation before broadcast
         - Remove internal tags (_schema_version) before sending
+        - Track cardinality for observability
         - Log errors as DEBUG only
         """
         event_type = event.get("type", "unknown")
@@ -517,6 +565,9 @@ class ConnectionManager:
         if not validate_event_type(event_type):
             log_event_rejection(event_type, "broadcast attempted with non-canonical type")
             return
+        
+        # Track event frequency for DEBUG observability
+        cardinality_counter.increment(event_type)
         
         # Remove internal tags before sending to Operator
         event_clean = {k: v for k, v in event.items() if not k.startswith("_")}
@@ -531,6 +582,26 @@ class ConnectionManager:
 
 
 manager = ConnectionManager()
+
+
+# ============ DEBUG ENDPOINTS ============
+
+@app.get("/debug/events/cardinality")
+async def debug_events_cardinality():
+    """
+    DEBUG endpoint: Get event cardinality statistics.
+    Returns event counts and rates (events/min) for monitoring.
+    """
+    stats = cardinality_counter.get_stats_with_rate()
+    window_elapsed = time.time() - cardinality_counter.window_start
+    
+    return {
+        "status": "ok",
+        "timestamp": int(time.time() * 1000),
+        "window_seconds": round(window_elapsed, 2),
+        "events": stats,
+        "total_events": sum(s["count"] for s in stats.values()) if stats else 0,
+    }
 
 
 @app.websocket("/ws")
