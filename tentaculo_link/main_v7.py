@@ -437,12 +437,22 @@ def normalize_event(event: dict) -> dict:
     PHASE V2: Normalize and tag event internally.
     - Ensure timestamp (milliseconds)
     - Add schema_version (internal only, not sent to Operator UI)
+    - Add nature (semantic classification)
+    - Track in correlation graph
     """
     if "timestamp" not in event:
         event["timestamp"] = int(time.time() * 1000)
     
     # Tag with schema version for internal tracking
     event["_schema_version"] = "v1.0"
+    
+    # Add nature (from schema)
+    event_type = event.get("type")
+    if event_type in CANONICAL_EVENT_SCHEMAS:
+        event["_nature"] = CANONICAL_EVENT_SCHEMAS[event_type]["nature"]
+    
+    # Track in correlation graph for visualization
+    correlation_tracker.add_event(event)
     
     return event
 
@@ -535,6 +545,71 @@ class EventCardinalityCounter:
 cardinality_counter = EventCardinalityCounter()
 
 
+# ============ EVENT CORRELATION TRACKER (VISUALIZATION) ============
+
+class EventCorrelationTracker:
+    """Track event correlations for DAG visualization (lightweight)."""
+    def __init__(self, max_nodes: int = 50, ttl_seconds: int = 300):
+        self.edges: Dict[str, Dict[str, Any]] = {}  # {event_id: {target_id: strength, ...}}
+        self.nodes: Dict[str, Dict[str, Any]] = {}  # {event_id: {type, timestamp, ...}}
+        self.max_nodes = max_nodes
+        self.ttl_seconds = ttl_seconds
+    
+    def add_event(self, event: dict):
+        """Register event as node in correlation graph."""
+        event_id = event.get("alert_id") or event.get("decision_id") or event.get("snapshot_id") or str(uuid.uuid4())
+        now = int(time.time() * 1000)
+        
+        self.nodes[event_id] = {
+            "type": event.get("type", "unknown"),
+            "timestamp": event.get("timestamp", now),
+            "severity": event.get("severity", "L1"),
+            "nature": event.get("_nature", "default"),
+        }
+        
+        # Cleanup old nodes if exceeds max
+        if len(self.nodes) > self.max_nodes:
+            self._cleanup_old_nodes()
+    
+    def add_correlation(self, source_id: str, target_id: str, strength: float = 0.5):
+        """Add edge between two events (temporal correlation)."""
+        if source_id not in self.edges:
+            self.edges[source_id] = {}
+        self.edges[source_id][target_id] = round(min(strength, 1.0), 2)
+    
+    def get_graph(self) -> Dict[str, Any]:
+        """Export graph as {nodes, edges} for visualization."""
+        return {
+            "nodes": list(self.nodes.values()),
+            "edges": [
+                {"source": src, "target": tgt, "strength": str_dict[tgt]}
+                for src, str_dict in self.edges.items()
+                for tgt in str_dict
+            ],
+            "total_nodes": len(self.nodes),
+            "total_edges": sum(len(v) for v in self.edges.values()),
+        }
+    
+    def _cleanup_old_nodes(self):
+        """Remove oldest nodes when exceeding max_nodes."""
+        now = int(time.time() * 1000)
+        sorted_nodes = sorted(self.nodes.items(), key=lambda x: x[1]["timestamp"])
+        
+        # Keep newest 80% of nodes
+        to_keep = int(self.max_nodes * 0.8)
+        nodes_to_remove = sorted_nodes[:-to_keep]
+        
+        for node_id, _ in nodes_to_remove:
+            del self.nodes[node_id]
+            self.edges.pop(node_id, None)
+            # Remove references to this node
+            for src in self.edges:
+                self.edges[src].pop(node_id, None)
+
+
+correlation_tracker = EventCorrelationTracker(max_nodes=50)
+
+
 # ============ WEBSOCKET (PLACEHOLDER FOR FUTURE) ============
 
 class ConnectionManager:
@@ -601,6 +676,20 @@ async def debug_events_cardinality():
         "window_seconds": round(window_elapsed, 2),
         "events": stats,
         "total_events": sum(s["count"] for s in stats.values()) if stats else 0,
+    }
+
+
+@app.get("/debug/events/correlations")
+async def debug_events_correlations():
+    """
+    DEBUG endpoint: Get event correlation graph (DAG).
+    Returns nodes and edges for visualization (Operator timeline).
+    """
+    graph = correlation_tracker.get_graph()
+    return {
+        "status": "ok",
+        "timestamp": int(time.time() * 1000),
+        "graph": graph,
     }
 
 
