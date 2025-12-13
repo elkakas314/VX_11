@@ -308,27 +308,7 @@ async def http_exception_handler(request, exc):
     )
 
 
-# ============ EVENT VALIDATION & CANONICALIZATION ============
-
-CANONICAL_EVENT_WHITELIST = {
-    "system.alert",
-    "system.correlation.updated",
-    "system.state.summary",
-    "forensic.snapshot.created",
-    "madre.decision.explained",
-    "switch.system.tension",
-    "shub.action.narrated",
-}
-
-def validate_event_type(event_type: str) -> bool:
-    """Check if event type is in canonical whitelist."""
-    return event_type in CANONICAL_EVENT_WHITELIST
-
-def log_event_rejection(event_type: str, reason: str):
-    """Log rejected events as DEBUG (not error)."""
-    write_log("tentaculo_link", f"event_rejected:type={event_type}:reason={reason}", level="DEBUG")
-
-# ============ CANONICAL EVENT SCHEMAS (PHASE V1-V2) ============
+# ============ CANONICAL EVENT SCHEMAS & VALIDATION ============
 
 CANONICAL_EVENT_SCHEMAS = {
     "system.alert": {
@@ -436,8 +416,8 @@ def normalize_event(event: dict) -> dict:
     """
     PHASE V2: Normalize and tag event internally.
     - Ensure timestamp (milliseconds)
-    - Add schema_version (internal only, not sent to Operator UI)
-    - Add nature (semantic classification)
+    - Add _schema_version (internal tag, will be stripped before sending to UI)
+    - Add _nature (semantic classification, internal only)
     - Track in correlation graph
     """
     if "timestamp" not in event:
