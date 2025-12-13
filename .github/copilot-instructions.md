@@ -73,7 +73,7 @@ Este workspace tiene **sincronización automática** entre el repositorio local 
 ```
 
 **Mecanismo:**
-- Script: [../tentaculo_link/tools/autosync.sh](../tentaculo_link/tools/autosync.sh) — módulo tentaculo_link
+- Script: [tentaculo_link/tools/autosync.sh](tentaculo_link/tools/autosync.sh) — módulo tentaculo_link
 - Flujo: Stash → Fetch → Rebase → Restore → Commit → Push
 - Detección: Busca cambios reales antes de comprometer
 

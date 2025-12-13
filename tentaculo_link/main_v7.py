@@ -8,7 +8,7 @@ import json
 import time
 import uuid
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Set
 
 from contextlib import asynccontextmanager
 from fastapi import Depends, FastAPI, Header, HTTPException, WebSocket, WebSocketDisconnect
@@ -328,34 +328,68 @@ def log_event_rejection(event_type: str, reason: str):
     """Log rejected events as DEBUG (not error)."""
     write_log("tentaculo_link", f"event_rejected:type={event_type}:reason={reason}", level="DEBUG")
 
-async def create_system_alert(message: str, source: str, severity: str = "warning") -> dict:
-    """Synthesize system.alert event (ONLY in Tentáculo Link)."""
-    return {
-        "type": "system.alert",
-        "timestamp": int(time.time() * 1000),
-        "severity": severity,
-        "message": message,
-        "source": source,
-    }
+# ============ CANONICAL EVENT SCHEMAS (PHASE V1-V2) ============
 
-async def create_system_state_summary() -> dict:
-    """Synthesize system.state.summary event (ONLY in Tentáculo Link)."""
-    # TODO: Query Madre, Switch, Hormiguero for live status
-    return {
-        "type": "system.state.summary",
-        "timestamp": int(time.time() * 1000),
-        "data": {
-            "madre": {"status": "active"},
-            "switch": {"routing": "adaptive"},
-            "hormiguero": {"queen_alive": True, "ant_count": 8},
-        },
-    }
+CANONICAL_EVENT_SCHEMAS = {
+    "system.alert": {
+        "required": ["alert_id", "severity", "message", "timestamp"],
+        "types": {"alert_id": str, "severity": str, "message": str, "timestamp": int},
+        "nature": "incident",
+        "max_payload": 2048,
+    },
+    "system.correlation.updated": {
+        "required": ["correlation_id", "related_events", "strength", "timestamp"],
+        "types": {"correlation_id": str, "related_events": list, "strength": (int, float), "timestamp": int},
+        "nature": "meta",
+        "max_payload": 2048,
+    },
+    "forensic.snapshot.created": {
+        "required": ["snapshot_id", "reason", "timestamp"],
+        "types": {"snapshot_id": str, "reason": str, "timestamp": int},
+        "nature": "forensic",
+        "max_payload": 1024,
+    },
+    "madre.decision.explained": {
+        "required": ["decision_id", "summary", "confidence", "timestamp"],
+        "types": {"decision_id": str, "summary": str, "confidence": (int, float), "timestamp": int},
+        "nature": "decision",
+        "max_payload": 3072,
+    },
+    "switch.tension.updated": {
+        "required": ["value", "components", "timestamp"],
+        "types": {"value": int, "components": dict, "timestamp": int},
+        "nature": "state",
+        "max_payload": 1024,
+    },
+    "shub.action.narrated": {
+        "required": ["action", "reason", "next_step", "timestamp"],
+        "types": {"action": str, "reason": str, "next_step": str, "timestamp": int},
+        "nature": "narration",
+        "max_payload": 2048,
+    },
+}
 
-async def validate_and_filter_event(event: dict) -> Optional[dict]:
+CANONICAL_EVENT_WHITELIST: Set[str] = set(CANONICAL_EVENT_SCHEMAS.keys())
+
+
+def validate_event_type(event_type: str) -> bool:
+    """Check if event type is in canonical whitelist."""
+    return event_type in CANONICAL_EVENT_WHITELIST
+
+
+def log_event_rejection(event_type: str, reason: str):
+    """Log rejected event as DEBUG (minimal noise)."""
+    write_log("tentaculo_link", f"event_rejected:type={event_type}:reason={reason}", level="DEBUG")
+
+
+def validate_event_schema(event: dict) -> Optional[dict]:
     """
-    Validate incoming event against whitelist.
-    Return None if invalid (rejected).
-    Return dict if valid (allowed to broadcast to Operator).
+    PHASE V1: Validate event against canonical schema.
+    - Check required fields
+    - Validate basic types
+    - Check payload size
+    
+    Returns normalized event or None if invalid.
     """
     event_type = event.get("type")
     
@@ -367,13 +401,91 @@ async def validate_and_filter_event(event: dict) -> Optional[dict]:
         log_event_rejection(event_type, "not in canonical whitelist")
         return None
     
-    # Ensure timestamp exists
+    schema = CANONICAL_EVENT_SCHEMAS[event_type]
+    
+    # Check required fields
+    for field in schema["required"]:
+        if field not in event:
+            log_event_rejection(event_type, f"missing required field: {field}")
+            return None
+    
+    # Validate types
+    for field, expected_type in schema["types"].items():
+        if field in event:
+            value = event[field]
+            if isinstance(expected_type, tuple):
+                # Multiple types allowed (e.g., int or float)
+                if not isinstance(value, expected_type):
+                    log_event_rejection(event_type, f"invalid type for {field}: expected {expected_type}, got {type(value).__name__}")
+                    return None
+            else:
+                if not isinstance(value, expected_type):
+                    log_event_rejection(event_type, f"invalid type for {field}: expected {expected_type.__name__}, got {type(value).__name__}")
+                    return None
+    
+    # Check payload size
+    payload_json = json.dumps(event)
+    if len(payload_json.encode('utf-8')) > schema["max_payload"]:
+        log_event_rejection(event_type, f"payload exceeds max size: {len(payload_json)} > {schema['max_payload']}")
+        return None
+    
+    return event
+
+
+def normalize_event(event: dict) -> dict:
+    """
+    PHASE V2: Normalize and tag event internally.
+    - Ensure timestamp (milliseconds)
+    - Add schema_version (internal only, not sent to Operator UI)
+    """
     if "timestamp" not in event:
         event["timestamp"] = int(time.time() * 1000)
     
-    # Event is canonical; allow broadcasting
-    write_log("tentaculo_link", f"event_accepted:type={event_type}", level="DEBUG")
+    # Tag with schema version for internal tracking
+    event["_schema_version"] = "v1.0"
+    
     return event
+
+
+async def validate_and_filter_event(event: dict) -> Optional[dict]:
+    """
+    Complete event validation pipeline:
+    1. Schema validation (PHASE V1)
+    2. Normalization (PHASE V2)
+    3. Return None if invalid, dict if valid
+    """
+    validated = validate_event_schema(event)
+    if validated is None:
+        return None
+    
+    normalized = normalize_event(validated)
+    event_type = normalized.get("type", "unknown")
+    write_log("tentaculo_link", f"event_validated_and_normalized:type={event_type}", level="DEBUG")
+    return normalized
+
+
+async def create_system_alert(message: str, source: str, severity: str = "L3") -> dict:
+    """Synthesize system.alert event (ONLY in Tentáculo Link)."""
+    alert_id = str(uuid.uuid4())
+    return {
+        "type": "system.alert",
+        "alert_id": alert_id,
+        "severity": severity,
+        "message": message,
+        "timestamp": int(time.time() * 1000),
+    }
+
+
+async def create_system_state_summary() -> dict:
+    """Synthesize system.correlation.updated event (ONLY in Tentáculo Link)."""
+    correlation_id = str(uuid.uuid4())
+    return {
+        "type": "system.correlation.updated",
+        "correlation_id": correlation_id,
+        "related_events": [],
+        "strength": 0.0,
+        "timestamp": int(time.time() * 1000),
+    }
 
 
 # ============ WEBSOCKET (PLACEHOLDER FOR FUTURE) ============
@@ -394,23 +506,28 @@ class ConnectionManager:
 
     async def broadcast(self, event: dict):
         """
-        Broadcast canonical event to all connected Operator clients.
-        Event MUST be validated before calling this method.
+        PHASE V3: Broadcast canonical event to Operator clients only.
+        - Final validation before broadcast
+        - Remove internal tags (_schema_version) before sending
+        - Log errors as DEBUG only
         """
         event_type = event.get("type", "unknown")
         
-        # Final validation before broadcast
+        # Final validation (redundant but safe)
         if not validate_event_type(event_type):
             log_event_rejection(event_type, "broadcast attempted with non-canonical type")
             return
         
+        # Remove internal tags before sending to Operator
+        event_clean = {k: v for k, v in event.items() if not k.startswith("_")}
+        
         for client_id, conn in list(self.connections.items()):
             try:
-                await conn.send_json(event)
+                await conn.send_json(event_clean)
+                write_log("tentaculo_link", f"broadcast_sent:type={event_type}:client={client_id}", level="DEBUG")
             except Exception as e:
                 # Client disconnected or error; silently skip
                 write_log("tentaculo_link", f"broadcast_failed:client={client_id}:error={str(e)}", level="DEBUG")
-                pass
 
 
 manager = ConnectionManager()
