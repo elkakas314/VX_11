@@ -1,9 +1,9 @@
-# VX11-Operator Agent — Full Operational Execution
+# VX11-Operator Mode — Full Operational Execution (MODO OPERATOR-FULL)
 
-**Agent ID:** VX11-Operator  
-**Type:** Operational + Planning + Execution (EXECUTION-CAPABLE)  
+**Purpose:** Recipes for @vx11 operator-full mode (big changes + tests)  
+**Mode Selector:** Prefixes: `run`, `workflow`, `deploy`, `integrate`  
 **Scope:** Full VX11 system  
-**Version:** 7.1  
+**Agente Unificado:** Parte de `.github/agents/vx11.agent.md` (no archivo separado)  
 **Updated:** 2025-12-14
 
 ---

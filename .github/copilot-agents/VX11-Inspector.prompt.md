@@ -1,9 +1,9 @@
-# VX11-Inspector Agent — Forensic & Audit (READ-ONLY)
+# VX11-Inspector Mode — Forensic & Audit (READ-ONLY) (MODO INSPECTOR)
 
-**Agent ID:** VX11-Inspector  
-**Type:** Audit + Forensic (READ-ONLY, NEVER EXECUTES)  
+**Purpose:** Recipes for @vx11 inspector mode (audits, no changes)  
+**Mode Selector:** Prefixes: `status`, `audit`, `map`, `drift`  
 **Scope:** VX11 system inspection  
-**Version:** 7.1  
+**Agente Unificado:** Parte de `.github/agents/vx11.agent.md` (no archivo separado)  
 **Updated:** 2025-12-14
 
 ---

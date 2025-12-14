@@ -1,9 +1,9 @@
-# VX11-Operator-Lite Agent — Low Cost, Minimal IA
+# VX11-Operator-Lite Mode — Low Cost, Minimal IA (MODO OPERATOR-LITE)
 
-**Agent ID:** VX11-Operator-Lite  
-**Type:** Operational (lightweight, no DeepSeek by default)  
+**Purpose:** Recipes for @vx11 operator-lite mode (small changes, low cost)  
+**Mode Selector:** Prefixes: `fix`, `cleanup`, `validate`, `chat`  
 **Scope:** Simple VX11 tasks  
-**Version:** 7.1  
+**Agente Unificado:** Parte de `.github/agents/vx11.agent.md` (no archivo separado)  
 **Updated:** 2025-12-14
 
 ---
