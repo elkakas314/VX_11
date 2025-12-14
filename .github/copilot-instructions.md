@@ -1,30 +1,79 @@
-# VX11 v7.1 — Instrucciones Canónicas para Agentes de Código IA (Fase 0+)
+# VX11 v7.1 — Instrucciones Canónicas para Agentes de Código IA
 
 **Versión:** 7.1 | **Actualizado:** 2025-12-14  
-**Audiencia:** Agentes IA (GitHub Copilot, Claude, etc.) trabajando en el repositorio VX11.  
-**Objetivo:** Ser productivo inmediatamente sin hacer preguntas, respetando estructura canónica y seguridad.
+**Audiencia:** GitHub Copilot, Claude, y agentes IA trabajando en VX11.  
+**Objetivo:** Máxima productividad inmediata sin hacer preguntas, respetando arquitectura, seguridad y convenciones.
 
 ---
 
-## 📐 CANON VX11: Arquitectura y Layout
+## 🎯 TL;DR — Lo Esencial
+
+**Stack:** FastAPI (9 módulos Python) + React 18 (Vite) + SQLite + Docker Compose  
+**Puertos:** 8000–8008 (módulos), 8011 (Operator API), 8020 (Operator UI)  
+**DB:** `/data/runtime/vx11.db` (single-writer, todas las tablas unificadas)  
+**Token:** Header `X-VX11-Token: vx11-local-token` en todas las solicitudes HTTP  
+**Frontend:** TanStack Query (caching) + WebSocket (reconnection automática) + React 18  
+**Flujo típico:** Intent → Tentáculo Link → Switch (IA routing) → Executor (Hermes/Madre/Shub) → BD
+
+---
+
+## 🏗️ ARQUITECTURA CANÓNICA: 9 Módulos HTTP-Only
+
+### Topología Física
 
 ### Servicios Distribuidos (HTTP-Only, Zero Coupling)
 
-| Módulo | Puerto | Responsabilidad |
+```
+┌─────────────────────────────────────────────────────────────┐
+│             TENTÁCULO LINK (8000, alias "gateway")          │
+│  Gateway + Router Table + Circuit Breaker + Context-7 TTL   │
+│                                                               │
+│  ├─ Madre (8001)          ← Orquestación autónoma + P&P     │
+│  ├─ Switch (8002)         ← Router IA (selección modelos)   │
+│  ├─ Hermes (8003)         ← CLI + autodescubrimiento HF     │
+│  ├─ Hormiguero (8004)     ← Paralelización (Queen + Ants)   │
+│  ├─ Manifestator (8005)   ← Auditoría + parches automáticos │
+│  ├─ MCP (8006)            ← Conversacional                   │
+│  ├─ Shubniggurath (8007)  ← Procesamiento IA avanzado       │
+│  └─ Spawner (8008)        ← Hijas efímeras                   │
+│                                                               │
+│  ├─ Operator Backend (8011)    ← Chat persistido, BD         │
+│  └─ Operator Frontend (8020)   ← React 18 + WebSocket       │
+└─────────────────────────────────────────────────────────────┘
+```
+
+| Módulo | Puerto | Responsabilidad Clave |
 |--------|--------|---|
-| **Tentáculo Link** | 8000 | Gateway auth + router HTTP + circuit breaker + Context-7 TTL |
-| **Madre** | 8001 | Orquestación autónoma (planning, spawning, P&P control) |
-| **Switch** | 8002 | Router IA adaptativo (local/CLI/remote, token budgets) |
-| **Operator Backend API** | 8011 | `/operator/chat`, persistencia de sesiones |
-| **Operator Frontend** | 8020 | Nginx sirviendo dist/ (React 18, Vite) |
-| Otros módulos | 8003–8009 | Hermes, Hormiguero, Manifestator, MCP, Shubniggurath, Spawner |
+| **Tentáculo Link** | 8000 | HTTP gateway auth + route table + circuit breaker |
+| **Madre** | 8001 | Tareas autónomas, P&P (off/standby/active), toma decisiones |
+| **Switch** | 8002 | Router IA adaptativo: local/CLI/remote/DeepSeek selección |
+| **Hermes** | 8003 | CLI execution + HuggingFace autodiscovery + modelos locales |
+| **Hormiguero** | 8004 | Paralelización: Queen + Ant workers, escalado automático |
+| **Manifestator** | 8005 | Drift detection + patch generation/application |
+| **MCP** | 8006 | Conversational interface, intent parsing |
+| **Shubniggurath** | 8007 | Audio/video processing, IA pipelines |
+| **Spawner** | 8008 | Spawn/manage ephemeral child processes |
+| **Operator Backend** | 8011 | `/operator/chat` + session persistence (OperatorSession DB) |
+| **Operator Frontend** | 8020 | React 18 + TanStack Query caching + WebSocket reconnection |
+
+### Routing & Discovery
+
+- **Route Table:** `tentaculo_link/routes.py` (intent type → module endpoint mapping)
+  - IntentType: CHAT, CODE, AUDIO, ANALYSIS, TASK, SPAWN, STREAM
+  - Static configuration, versionable, performante
+- **Circuit Breaker:** `tentaculo_link/clients.py` (resiliente failover)
+  - Estados: CLOSED (normal) → OPEN (falla) → HALF_OPEN (recovery)
+  - Threshold: 3 fallos, recovery timeout: 60s
+- **Context-7 Sessions:** `tentaculo_link/context7_middleware.py` (TTL sessions con topic clustering)
+  - Persistencia en `data/runtime/context7_sessions.json` (append-only)
 
 ### Layout de Código (Producción vs Dev)
 
-- **`operator_backend/backend/`** — Backend Operator API (PRODUCCIÓN en docker-compose.yml puerto 8011)
-- **`operator_backend/frontend/`** — Frontend React compilado (PRODUCCIÓN, Docker Nginx puerto 8020)
-- **`operator/`** — Sandbox/dev (NO se usa en producción)
-- **Base de datos unificada** — `data/runtime/vx11.db` (SQLite single-writer)
+- **`tentaculo_link/`** — Gateway (8000), route table, circuit breaker, context-7
+- **`operator_backend/backend/`** — Backend API (8011): `/operator/chat`, session persistence
+- **`operator_backend/frontend/`** — React 18 (8020): TanStack Query + WebSocket + Monaco editor
+- **`config/`** — Shared: module_template, db_schema, settings, tokens, forensics
+- **`data/runtime/`** — BD unificada `vx11.db` (SQLite single-writer pattern)
 
 ### No Duplicados: Estructura Rígida
 
@@ -135,9 +184,9 @@ curl -s http://127.0.0.1:8001/madre/task/$TASK_ID \
 
 ## 🎓 Patrones Esenciales de Código
 
-### 1. Crear Nuevo Módulo / Endpoint
+### 1. Estructura de FastAPI Modules
 
-Usar [config/module_template.py](../config/module_template.py) como template:
+Todos los módulos siguen el mismo patrón. Usar [config/module_template.py](../../config/module_template.py):
 
 ```python
 from config.module_template import create_module_app
@@ -231,6 +280,62 @@ log.info("evento importante")
 write_log("mi_modulo", "evento_importante", level="INFO")
 ```
 
+### 6. Frontend: React 18 + TanStack Query
+
+**Arquitectura Operator UI:**
+- **Vite dev server** (port 5173) con HMR para desarrollo local
+- **React 18 con Concurrent features** activadas
+- **TanStack Query v5** para caching automático (ya instalado en package.json)
+- **Zustand** para state management (store.ts)
+- **WebSocket reconnection automática** con exponential backoff (hasta 30s)
+
+**Patrón: Custom Hooks con TanStack Query**
+
+```typescript
+// En operator_backend/frontend/src/services/api-improved.ts
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
+export function useChat(sessionId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (message: string) => {
+      const response = await fetch(`/operator/chat`, {
+        method: "POST",
+        headers: { "X-VX11-Token": TOKEN_VALUE, "Content-Type": "application/json" },
+        body: JSON.stringify({ session_id: sessionId, message }),
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      // Auto-invalidate session queries para refetch
+      queryClient.invalidateQueries({ queryKey: ["operatorSession", sessionId] });
+    },
+  });
+}
+
+export function useOperatorSession(sessionId: string) {
+  return useQuery({
+    queryKey: ["operatorSession", sessionId],
+    queryFn: async () => {
+      const response = await fetch(`/operator/session/${sessionId}`, {
+        headers: { "X-VX11-Token": TOKEN_VALUE },
+      });
+      return response.json();
+    },
+    staleTime: 30000, // 30s
+    cacheTime: 5 * 60 * 1000, // 5 min
+    retry: 1,
+  });
+}
+```
+
+**Reglas Frontend:**
+- Siempre usar `import.meta.env.VITE_*` para config (env vars en build time)
+- WebSocket URL: `${OPERATOR_BASE_URL.replace(/^http/, "ws")}/ws`
+- Token de config: `config.ts` centralizado
+- Componentes lazy-loaded si tamaño >30KB
+- Style: inline o CSS modules, NO Tailwind en componentes críticos
+
 ---
 
 ## 📋 MODO NO-PREGUNTAR (Copilot)
@@ -257,28 +362,28 @@ write_log("mi_modulo", "evento_importante", level="INFO")
 ## 🔍 Índice de Documentos Canónicos
 
 ### Arquitectura y Diseño
-- [docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md) — Visión general
-- [docs/API_REFERENCE.md](../docs/API_REFERENCE.md) — Endpoints detallados
-- [.copilot-audit/OPERATOR_AUDIT_FASE1_REAL_STATE.md](../.copilot-audit/OPERATOR_AUDIT_FASE1_REAL_STATE.md) — Auditoría Operator (qué existe, qué no)
+- [docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md) — Visión general
+- [docs/API_REFERENCE.md](../../docs/API_REFERENCE.md) — Endpoints detallados
+- [.copilot-audit/OPERATOR_AUDIT_FASE1_REAL_STATE.md](../../.copilot-audit/OPERATOR_AUDIT_FASE1_REAL_STATE.md) — Auditoría Operator (qué existe, qué no)
 
 ### Operativo y Deployment
-- [docs/DEPLOYMENT_TENTACULO_LINK.md](../docs/DEPLOYMENT_TENTACULO_LINK.md) — Tentáculo Link config
-- [docs/WORKFLOWS_VX11_LOW_COST.md](../docs/WORKFLOWS_VX11_LOW_COST.md) — Workflows a bajo costo (fase 0)
-- [docs/API_OPERATOR_CHAT.md](../docs/API_OPERATOR_CHAT.md) — Contrato `/operator/chat` (fase F)
-- [docs/OPERATOR_UI_RUNTIME.md](../docs/OPERATOR_UI_RUNTIME.md) — Cómo corre UI dev vs prod (fase H)
+- [docs/DEPLOYMENT_TENTACULO_LINK.md](../../docs/DEPLOYMENT_TENTACULO_LINK.md) — Tentáculo Link config
+- [docs/WORKFLOWS_VX11_LOW_COST.md](../../docs/WORKFLOWS_VX11_LOW_COST.md) — Workflows a bajo costo (fase 0)
+- [docs/API_OPERATOR_CHAT.md](../../docs/API_OPERATOR_CHAT.md) — Contrato `/operator/chat` (fase F)
+- [docs/OPERATOR_UI_RUNTIME.md](../../docs/OPERATOR_UI_RUNTIME.md) — Cómo corre UI dev vs prod (fase H)
 
 ### Código Referencia
-- [config/module_template.py](../config/module_template.py) — Template módulo FastAPI
-- [config/db_schema.py](../config/db_schema.py) — Schema BD, `get_session()`
-- [config/settings.py](../config/settings.py) — URLs, env vars
-- [config/tokens.py](../config/tokens.py) — Gestión tokens
-- [operator_backend/backend/main_v7.py](../operator_backend/backend/main_v7.py) — Backend API
+- [config/module_template.py](../../config/module_template.py) — Template módulo FastAPI
+- [config/db_schema.py](../../config/db_schema.py) — Schema BD, `get_session()`
+- [config/settings.py](../../config/settings.py) — URLs, env vars
+- [config/tokens.py](../../config/tokens.py) — Gestión tokens
+- [operator_backend/backend/main_v7.py](../../operator_backend/backend/main_v7.py) — Backend API
 
 ### Auditorías y Reportes de Fases
-- [docs/audit/PHASE0_COPILOT_CONTROLPLANE_REPORT.md](../docs/audit/PHASE0_COPILOT_CONTROLPLANE_REPORT.md)
-- [docs/audit/PHASEF_OPERATOR_CHAT_IMPLEMENTATION_REPORT.md](../docs/audit/PHASEF_OPERATOR_CHAT_IMPLEMENTATION_REPORT.md)
-- [docs/audit/PHASEH_OPERATOR_UI_TIER1_REPORT.md](../docs/audit/PHASEH_OPERATOR_UI_TIER1_REPORT.md)
-- [docs/audit/GFH_FINAL_SUMMARY.md](../docs/audit/GFH_FINAL_SUMMARY.md)
+- [docs/audit/PHASE0_COPILOT_CONTROLPLANE_REPORT.md](../../docs/audit/PHASE0_COPILOT_CONTROLPLANE_REPORT.md)
+- [docs/audit/PHASEF_OPERATOR_CHAT_IMPLEMENTATION_REPORT.md](../../docs/audit/PHASEF_OPERATOR_CHAT_IMPLEMENTATION_REPORT.md)
+- [docs/audit/PHASEH_OPERATOR_UI_TIER1_REPORT.md](../../docs/audit/PHASEH_OPERATOR_UI_TIER1_REPORT.md)
+- [docs/audit/GFH_FINAL_SUMMARY.md](../../docs/audit/GFH_FINAL_SUMMARY.md)
 
 ---
 
@@ -299,22 +404,29 @@ write_log("mi_modulo", "evento_importante", level="INFO")
 Antes de hacer push (o tras cada fase):
 
 ```bash
-# Compilar Python
-python -m compileall tentaculo_link operator_backend || exit 1
+# Compilar Python (syntax check)
+python -m compileall tentaculo_link operator_backend config || exit 1
 
 # Tests (si existen)
 pytest tests/ -q --tb=short || echo "⚠️ Tests failed, review"
 
 # Frontend (si cambias operator_backend/frontend)
-cd operator_backend/frontend && npm ci && npm run build 2>&1 | tail -20
+cd operator_backend/frontend && npm ci && npm run type-check && npm run build
 
 # Docker compose (si cambias docker-compose.yml)
 docker-compose config > /dev/null && echo "✓ Compose valid"
+
+# Health checks (si sistema running)
+for port in 8000 8001 8002 8011; do
+  curl -s http://127.0.0.1:$port/health | jq . || echo "Port $port down"
+done
 
 # Git status
 git status
 git diff --stat
 ```
+
+**En CI:** Ver `.github/workflows/ci.yml` — ejecuta py_compile, compose_validate, frontend_build automáticamente.
 
 ---
 
