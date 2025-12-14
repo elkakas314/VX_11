@@ -143,13 +143,32 @@ Thumbs.db
 *.dylib
 
 # ============================================================
-# Node (si se usa para frontend)
+# Node (si se usa para frontend) — STRICT RULES
 # ============================================================
 
+# Node modules NUNCA versionado
 node_modules/
+/operator/node_modules/
+/operator_backend/frontend/node_modules/
+/build/node_modules/
+
+# Build outputs
+/operator/dist/
+/operator/build/
+/operator_backend/frontend/dist/
+/operator_backend/frontend/build/
+/build/dist/
+
+# Vite cache
+.vite/
+.cache/
+.eslintcache
+
+# Logs
 npm-debug.log
 yarn-error.log
 package-lock.json
+pnpm-lock.yaml
 
 # ============================================================
 # IDE specific
