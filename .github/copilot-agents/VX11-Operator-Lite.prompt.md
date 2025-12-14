@@ -1,10 +1,11 @@
 # VX11-Operator-Lite Mode — Low Cost, Minimal IA (MODO OPERATOR-LITE)
 
-**Purpose:** Recipes for @vx11 operator-lite mode (small changes, low cost)  
-**Mode Selector:** Prefixes: `fix`, `cleanup`, `validate`, `chat`  
-**Scope:** Simple VX11 tasks  
-**Agente Unificado:** Parte de `.github/agents/vx11.agent.md` (no archivo separado)  
-**Updated:** 2025-12-14
+🔧 **Receta:** Se ejecuta con `@vx11 fix` | `@vx11 cleanup` | `@vx11 validate` | `@vx11 chat`  
+Parte de `.github/agents/vx11.agent.md` (agente único, modo OPERATOR-LITE = cambios pequeños, sin DeepSeek)
+
+**Prefijos:** `fix`, `cleanup`, `validate`, `chat`  
+**Scope:** Cambios pequeños, bajo costo, prohibido DeepSeek (salvo `USE_DEEPSEEK`)  
+**Actualizado:** 2025-12-14
 
 ---
 

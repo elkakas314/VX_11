@@ -1,10 +1,11 @@
 # VX11-Inspector Mode — Forensic & Audit (READ-ONLY) (MODO INSPECTOR)
 
-**Purpose:** Recipes for @vx11 inspector mode (audits, no changes)  
-**Mode Selector:** Prefixes: `status`, `audit`, `map`, `drift`  
-**Scope:** VX11 system inspection  
-**Agente Unificado:** Parte de `.github/agents/vx11.agent.md` (no archivo separado)  
-**Updated:** 2025-12-14
+🔍 **Receta:** Se ejecuta con `@vx11 status` | `@vx11 audit` | `@vx11 map` | `@vx11 drift`  
+Parte de `.github/agents/vx11.agent.md` (agente único, modo INSPECTOR = solo lectura)
+
+**Prefijos:** `status`, `audit`, `map`, `drift`  
+**Scope:** VX11 system inspection (sin modificaciones)  
+**Actualizado:** 2025-12-14
 
 ---
 

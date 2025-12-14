@@ -1,0 +1,12 @@
+Timestamp: 20251214T040226Z
+Exception:
+Traceback (most recent call last):
+  File "/home/elkakas314/vx11/shubniggurath/core/dsp_pipeline_full.py", line 148, in run_full_pipeline
+    audio_data = self._bytes_to_audio(audio_bytes, sample_rate)
+  File "/home/elkakas314/vx11/shubniggurath/core/dsp_pipeline_full.py", line 551, in _bytes_to_audio
+    return audio_array / (np.max(np.abs(audio_array)) + 1e-10)
+  File "/home/elkakas314/vx11/.venv/lib/python3.10/site-packages/numpy/core/fromnumeric.py", line 2810, in max
+    return _wrapreduction(a, np.maximum, 'max', axis, None, out,
+  File "/home/elkakas314/vx11/.venv/lib/python3.10/site-packages/numpy/core/fromnumeric.py", line 88, in _wrapreduction
+    return ufunc.reduce(obj, axis, dtype, out, **passkwargs)
+ValueError: zero-size array to reduction operation maximum which has no identity

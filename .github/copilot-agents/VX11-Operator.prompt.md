@@ -1,10 +1,11 @@
 # VX11-Operator Mode — Full Operational Execution (MODO OPERATOR-FULL)
 
-**Purpose:** Recipes for @vx11 operator-full mode (big changes + tests)  
-**Mode Selector:** Prefixes: `run`, `workflow`, `deploy`, `integrate`  
-**Scope:** Full VX11 system  
-**Agente Unificado:** Parte de `.github/agents/vx11.agent.md` (no archivo separado)  
-**Updated:** 2025-12-14
+⚡ **Receta:** Se ejecuta con `@vx11 run` | `@vx11 workflow` | `@vx11 deploy` | `@vx11 integrate`  
+Parte de `.github/agents/vx11.agent.md` (agente único, modo OPERATOR-FULL = cambios grandes + tests + razonamiento)
+
+**Prefijos:** `run`, `workflow`, `deploy`, `integrate`  
+**Scope:** Cambios grandes, tests, workflows (razonamiento permitido)  
+**Actualizado:** 2025-12-14
 
 ---
 
