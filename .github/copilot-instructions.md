@@ -335,6 +335,127 @@ git diff --stat
 
 ---
 
+## 🤖 VX11 AGENTS SUITE (v7.1)
+
+### Tres Agentes Operacionales Permanentes
+
+**Ubicación:** `.github/copilot-agents/`
+
+En Copilot Chat, escribe `@` y verás:
+- **VX11-Operator** — Full execution (validation + workflows + autosync)
+- **VX11-Inspector** — Audit only (read-only, never modifies)
+- **VX11-Operator-Lite** — Low cost (rules-based, optional DeepSeek)
+
+### VX11-Operator (FULL EXECUTION)
+
+Commands:
+```
+@vx11-operator status          → Module health + drift detection
+@vx11-operator validate        → Python + Docker + imports + tests
+@vx11-operator fix drift       → Auto-repair stale files + violations
+@vx11-operator run task: desc  → Execute via Madre (spawns hijas)
+@vx11-operator chat: msg       → Chat with /operator/chat
+@vx11-operator audit imports   → Deep import analysis
+@vx11-operator cleanup         → Auto-maintenance
+```
+
+**Autosync:** Sí (si validación pasa).  
+**DeepSeek:** Sí (reasoning).  
+**Archivo:** `.github/copilot-agents/VX11-Operator.prompt.md`
+
+### VX11-Inspector (AUDIT ONLY)
+
+Commands (READ-ONLY, never executes):
+```
+@vx11-inspector audit structure   → Layout validation
+@vx11-inspector audit imports     → Cross-module violations
+@vx11-inspector audit security    → Secrets + .gitignore
+@vx11-inspector audit ci          → Workflows
+@vx11-inspector audit docs        → Staleness check
+@vx11-inspector detect drift      → Full drift scan
+@vx11-inspector forensics         → Deep analysis
+```
+
+**Output:** Reportes en `docs/audit/AUDIT_*_<timestamp>.md`  
+**Autosync:** No (read-only).  
+**Archivo:** `.github/copilot-agents/VX11-Inspector.prompt.md`
+
+### VX11-Operator-Lite (LOW COST)
+
+Commands (free/cheap, rules-based by default):
+```
+@vx11-operator-lite status        → Binary check
+@vx11-operator-lite validate      → Syntax only
+@vx11-operator-lite cleanup       → Safe ops
+@vx11-operator-lite health        → HTTP checks
+@vx11-operator-lite chat: msg     → Simple chat
+@vx11-operator-lite use deepseek: task → Optional reasoning
+```
+
+**Autosync:** Solo docs/limpieza (safe).  
+**DeepSeek:** No (a menos que `use deepseek:`).  
+**Archivo:** `.github/copilot-agents/VX11-Operator-Lite.prompt.md`
+
+### Tabla Rápida de Selección
+
+| Necesidad | Agente | Tiempo | Costo |
+|-----------|--------|--------|-------|
+| Status del sistema | Lite | ~2s | $0 |
+| Validación completa | Operator | ~30s | $$ |
+| Auditoría sin modificar | Inspector | ~10s | $$ |
+| Fijar drift | Operator | ~1m | $$ |
+| Decisión arquitectónica | Operator+DeepSeek | ~2m | $$$ |
+| Deep security audit | Inspector | ~5m | $$$$ |
+| Chat simple | Lite | ~5s | $0 |
+
+### Reglas de Precedencia
+
+1. **Inspector primero** (antes de cualquier ejecución)
+   ```
+   @vx11-inspector detect drift
+   ```
+   Si crítico → STOP. Si limpio → proceed.
+
+2. **Operator para tareas reales** (validación + ejecución + autosync)
+3. **Lite para checks rápidos** (status, cleanup, chat simple)
+4. **Operator+DeepSeek para decisiones arquitectónicas** (reasoning pesado)
+
+### Memoria File-Based (Importantísimo)
+
+**NO chat memory.** Estado persiste en archivos git-tracked:
+
+```
+docs/audit/AGENT_STATE_CURRENT.md    ← System state map
+docs/audit/DRIFT_LATEST.md           ← Latest drift analysis
+docs/audit/AGENT_LOG.md              ← Operational log
+docs/audit/INSPECTOR_LAST_AUDIT.md   ← Last audit results
+```
+
+Cada nueva sesión de chat: leer archivos frescos, validar contra `git status`, reconstruir estado. Esto permite resumir operaciones y multi-user collaboration.
+
+### GitHub Actions Coordination
+
+Agentes coordinan con:
+- `.github/workflows/vx11-autosync.yml` — Autosync gated by validation
+- `.github/workflows/vx11-validate.yml` — PR/push validation
+
+**Autosync STOP CONDITIONS** (8 critical issues):
+- Secretos detectados
+- node_modules o dist tracked
+- CI workflow roto
+- Cross-module imports encontrados
+- Tests fallan
+- DB schema issues
+- Port conflicts
+- Fork divergence from main
+
+### Documentación de Agentes
+
+- `docs/VX11_OPERATOR_AGENT_MANUAL.md` — Manual completo (cost, usage, troubleshooting)
+- `docs/VX11_OPERATOR_AGENT_EXAMPLES.md` — 7 ejemplos reales
+
+---
+
 ## 📞 Contacto / Escalada
 
 Si detectas:
