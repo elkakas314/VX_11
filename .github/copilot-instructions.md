@@ -1,470 +1,716 @@
-# Instrucciones para Agentes de IA — VX11 (resumen operativo)
+# VX11 v7.1 — Instrucciones Canónicas para Agentes de Código IA
 
-Propósito: proporcionar a agentes IA la guía mínima y accionable para empezar a trabajar en este mono-repo modular.
 
-Reglas inmutables (síntesis)
-- No romper la sincronía local↔remoto: `tentaculo_link/tools/autosync.sh` es el mecanismo autoritativo.
-- No crear archivos sin rastrear; no renombrar ni mover módulos sin autorización.
-- No tocar credenciales: `tokens.env`, `tokens.env.master` están fuera de alcance.
-- Evitar `localhost`/`127.0.0.1`: use `config.settings` o `config.dns_resolver.resolve_module_url()`.
 
-Arquitectura esencial (rápido)
-- Módulos y puertos: Tentáculo `8000`, Madre `8001`, Switch `8002`, Hermes `8003`, Hormiguero `8004`, Manifestator `8005`, MCP `8006`, Shub `8007`, Spawner `8008`, Operator `8011`.
-- BD única: `data/runtime/vx11.db` (SQLite single-writer). Use `config.db_schema.get_session("modulo")`.
-- Gateway auth: header `X-VX11-Token` (obtener con `config.tokens.get_token("VX11_GATEWAY_TOKEN")`).
 
-Patrones obligatorios y ejemplos
-- FastAPI modules: crear con `create_module_app("mi_modulo")` (registra middleware forense, `/health`, endpoints P&P).
-- DB pattern: `db = get_session("modulo"); db.add(...); db.commit(); finally: db.close()`.
-- HTTP async: reuse `httpx.AsyncClient` + `AUTH_HEADERS = {settings.token_header: VX11_TOKEN}`.
-- DNS fallback: `resolve_module_url("switch", 8002, fallback_localhost=True)` en vez de `http://localhost...`.
 
-Comandos y flujos prácticos
-- Ejecutar tests: `pytest tests/ -v --tb=short` (salida a `logs/pytest_phase7.txt` para auditoría).
-- Validar compose: `docker-compose config`.
-- Health checks: `curl -s http://<host>:<port>/health` (use hostnames de servicio en Docker).
-- Ejecutar autosync manual: `./tentaculo_link/tools/autosync.sh <branch>` (comprender lockfile, stash/rebase antes de ejecutar).
 
-Convenciones de edición y herramientas permitidas
-- Lectura/edición programática: `read_file`, `replace_string_in_file`, `multi_replace_string_in_file`.
-- Búsqueda: `grep_search`, `file_search`, `semantic_search`.
-- Terminal: sólo comandos read-only (tests, compile, lsof). No pushes automáticos ni cambios remotos sin permiso.
 
-Archivos de referencia rápida
-- `tentaculo_link/tools/autosync.sh` — sincronía repo (locks + stash/rebase/push).
-- `config/settings.py` — env, URLs, puertos, `BASE_PATH`.
-- `config/module_template.py` — patrón obligatorio para módulos FastAPI.
-- `config/db_schema.py` — `get_session`, modelos `Task`, `Context`, `Spawn`.
-- `operator/src/components/Hormiguero/` — ejemplo front-end React/TypeScript integrado.
 
-Qué evitar y por qué
-- NO hardcodear `localhost` (no funciona en Docker). Use el resolver y `settings`.
-- NO tocar `tokens.env` ni exponer secrets en commits.
-- NO renombrar módulos ni cambiar puertos en `docker-compose.yml`.
 
-Si necesitas más contexto
-- Puedo extraer y anotar ejemplos concretos (ej.: `get_session()` líneas, uso de `create_module_app()`, o el flujo de `autosync.sh`). Pide el fragmento y lo incluyo.
 
-Fin del resumen: dame feedback sobre secciones incompletas o qué ejemplos quieres que expanda.
-# Instrucciones para Agentes de IA — VX11 v7.0
 
-**Propósito:** Guiar agentes IA para ser inmediatamente productivos en este codebase modular de 10 microservicios orquestados con sincronización automática local↔remoto.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+→ Testa y ¡listo! 🚀→ Implementa según **OPERATOR_FASE3_AI_INTEGRATION.md**→ Luego **OPERATOR_FASE2_BACKEND_CONTRACT.md**→ Empieza por **OPERATOR_RESUMEN_EJECUTIVO.md****¿LISTO?**---```✓ Typing animation suave✓ Error messages claros✓ Persistencia localStorage✓ Fallback a local si backend down✓ Token auth funciona✓ Backend real conectado✓ Chat no es echo✓ Operator renderiza```## ✅ ÉXITO = CUANDO---**Mejoras (FASE 4):** +3-4h (próximas semanas)| **Total** | **5-6h** | MVP listo || Deployment | 30 min | Deploy checklist || Testing | 1-2h | Test checklist || Implementar backend | 2-3h | FASE2 + FASE3 || Leer auditoría | 1.5h | RESUMEN + FASE1-3 ||-------|--------|-----------|| Tarea | Tiempo | Referencia |## 📊 TIMEFRAME ESTIMADO---```3. Implementa TIER 1 primero2. Verifica "❌ MEJORAS A NO HACER"1. Consulta FASE4 "Mejoras TIER 1/2/3"```### Para mejoras```3. Valida tests2. Checa FASE3 "Error Cases"1. Consulta FASE1 "🚨 RIESGOS ACTUALES"```### Para bugs```5. Testa (10 min)4. Implementa3. Lee FASE2 + FASE3 (45 min)2. Entiende qué implementar1. Lee RESUMEN_EJECUTIVO.md (15 min)```### Para iniciar## 🎯 QUICK REFERENCE---8. ✅ **Timeouts** — 15s default para operaciones7. ✅ **Error handling** — No crash nunca6. ✅ **Logging** — write_log(module, event) siempre5. ✅ **Single-writer BD** — db.close() en finally4. ✅ **Type hints** — Python 3.10+ obligatorio3. ✅ **Async/await** — Todo I/O es async2. ✅ **Token auth** — X-VX11-Token en todos los headers1. ✅ **HTTP-only** — No imports entre módulos**NUNCA OLVIDES:**## 🎓 CONVENCIONES VX11---```  → URLs de módulos (switch_url, operator_backend_url)config/settings.py    → Cómo obtener VX11_OPERATOR_TOKENconfig/tokens.py    → Patrón FastAPI canónico (imita)config/module_template.py```### Archivos de Referencia```  ✅ NO CAMBIEStentaculo_link/main_v7.py    ✅ NO CAMBIESmadre/main.py    ✅ NO CAMBIES, solo LLAMAswitch/main.py    ✅ Todo está OK, NO CAMBIESoperator/src/```### Archivos a NO Modificar```  → Agregar OperatorSession, OperatorMessageconfig/db_schema.py    → Agregar @app.post("/operator/chat")operator_backend/backend/main_v7.py```### Archivos a Modificar## 📞 REFERENCIAS INTERNAS---- [ ] Logging/forensics registra eventos- [ ] Token auth funciona- [ ] LocalStorage persist funciona- [ ] Fallback a local si backend down- [ ] Chat recibe respuestas reales- [ ] Operator frontend auto-detecta backend- [ ] Tests pasando (curl happy path + error cases)- [ ] Env variables configuradas (.env)- [ ] DB tables creadas (OperatorSession, OperatorMessage)- [ ] Backend `/operator/chat` implementado## 🚀 DEPLOYMENT CHECKLIST---```5. Debería recibir respuesta real (no echo)4. Escribe "test"3. Debería decir "◆ Backend conectado" en header2. Chat tab1. Abre http://localhost:5173```### Test 4: Frontend puede conectar```# Esperado: timeout, Operator frontend fallback a local# Timeout (15+ seconds)# Esperado: 401 Unauthorized  -d '{"message": "test"}'  -H "X-VX11-Token: wrong" \curl -X POST http://localhost:8011/operator/chat \# Token invalid```bash### Test 3: Error cases```# Esperado: { "reply": "...", "session_id": "...", "metadata": {...} }  -d '{"message": "¿Qué es Madre?"}'  -H "X-VX11-Token: vx11-local-token" \  -H "Content-Type: application/json" \curl -X POST http://localhost:8011/operator/chat \```bash### Test 2: Happy path```# Esperado: 200 OK o 404 (frontend detecta y switchea a local)  -H "X-VX11-Token: vx11-local-token"curl -X OPTIONS http://localhost:8011/operator/chat \# Frontend debe detectar endpoint```bash### Test 1: Backend detectable## 🧪 VALIDAR IMPLEMENTACIÓN---**Ahora sí, implementa**   - [ ] Sé variables de entorno   - [ ] Sé timeouts y error cases   - [ ] Sé qué no cambiar (Operator frontend, Switch, Madre)   - [ ] Sé dónde (operator_backend/backend/main_v7.py)   - [ ] Sé exactamente qué implementar4. Confirma:   - Conoce error handling   - Entiende BD persistence   - Ve flujo completo3. Lee **FASE3_AI_INTEGRATION.md** (25 min)   - Sabe variables de entorno   - Conoce especificación exacta2. Lee **FASE2_BACKEND_CONTRACT.md** (20 min)   - Sabe qué implementar   - Entiende qué existe1. Lee **RESUMEN_EJECUTIVO.md** (15 min)**Antes de escribir código:**## 📋 CHECKLIST ANTES DE IMPLEMENTAR---```OperatorSession, OperatorMessage (tablas a crear)```python→ FASE3, sección "💾 FLUJO DE PERSISTENCIA"### "¿Cuál es el esquema de BD?"→ FASE1, sección "🚨 RIESGOS ACTUALES"→ FASE4, sección "❌ MEJORAS A NO HACER"### "¿Qué puede romper?"→ FASE3, sección "💾 FLUJO DE PERSISTENCIA"→ FASE2, sección "📊 VARIABLES DE ENTORNO FINALES"### "¿Qué variables de entorno se necesitan?"```8 pasos desde Frontend → Backend → Switch → DeepSeek → Frontend```→ FASE3, diagrama ASCII grande en inicio### "¿Cómo fluye un mensaje desde chat a IA?"```Todos los headers y campos opcionalesRequest/Response JSON exacto```→ FASE2, sección "📋 CONTRATO MÍNIMO DE CHAT"### "¿Cuál es el contrato exacto del endpoint?"```Explicación detallada de cada componenteLines: useChat.ts (185 L), ChatView.tsx (125 L), chat-api.ts (111 L)```→ FASE1, sección "💬 CHAT ACTUAL — ESTADO DETALLADO"### "¿Cómo funciona el chat ahora?"## 🔍 CÓMO BUSCAR INFORMACIÓN ESPECÍFICA---```    └─ Resultado final    ├─ Riesgos mitigados    ├─ Plan 3-semana    ├─ Qué NO hacer    ├─ Mejoras TIER 3 (futuro, bloqueado)    ├─ Mejoras TIER 2 (nice to have)    ├─ Mejoras TIER 1 (implementar primero)└── OPERATOR_FASE4_ENHANCEMENTS.md (mejoras)││   └─ Resultado final│   ├─ Cambios por módulo│   ├─ Error cases│   ├─ Observabilidad│   ├─ Seguridad & validaciones│   ├─ Qué hace cada módulo│   ├─ Persistencia en BD│   ├─ Flujo paso a paso│   ├─ Arquitectura completa (diagrama ASCII)├── OPERATOR_FASE3_AI_INTEGRATION.md (implementación)││   └─ Arquitectura final│   ├─ Env variables│   ├─ Timeouts│   ├─ Autenticación│   ├─ Testing del contrato│   ├─ Flujo Frontend→Backend→IA│   ├─ Dónde vivir el endpoint│   ├─ Contrato mínimo de chat├── OPERATOR_FASE2_BACKEND_CONTRACT.md (especificación)││   └─ Riesgos│   ├─ Qué funciona│   ├─ Qué está desconectado│   ├─ Configuración│   ├─ WebSocket client│   ├─ chat-api service│   ├─ useChat hook (flow detallado)│   ├─ Chat actual (línea por línea)│   ├─ Arquitectura UI│   ├─ Bootstrap chain├── OPERATOR_AUDIT_FASE1_REAL_STATE.md (auditoría sin cambios)││   └─ Próximos pasos│   ├─ Implementación recomendada│   ├─ DB schema│   ├─ Flujo completo│   ├─ Contrato endpoint│   ├─ Análisis detallado│   ├─ 4 Fases de auditoría│   ├─ Visión general├── OPERATOR_RESUMEN_EJECUTIVO.md (entrada principal).copilot-audit/```## 📖 ESTRUCTURA DE DOCUMENTOS---- Tabla de archivos y líneas- Sección "💬 CHAT ACTUAL — ESTADO DETALLADO"- Sección "📋 QUÉ FUNCIONA AHORA"→ Lee: **OPERATOR_AUDIT_FASE1_REAL_STATE.md**### Escenario 5: "Necesito entender la estructura del código"- Qué NO hacer- Mejoras TIER 2 (bajo riesgo)- Mejoras TIER 1 (0 riesgo)→ Lee: **OPERATOR_FASE4_ENHANCEMENTS.md**### Escenario 4: "Quiero agregar mejoras a Operator"- Checklist de componentes- Sección "🚨 RIESGOS ACTUALES"- Sección "🎯 QUÉ ESTÁ DESCONECTADO AHORA"→ Lee: **OPERATOR_AUDIT_FASE1_REAL_STATE.md**### Escenario 3: "El chat no funciona, ¿qué está roto?"**Salida esperada:** Código completo en `operator_backend/backend/main_v7.py`3. **OPERATOR_FASE3_AI_INTEGRATION.md** (cómo conectar a Switch/DeepSeek)2. **OPERATOR_FASE2_BACKEND_CONTRACT.md** (especificación exacta)1. **OPERATOR_RESUMEN_EJECUTIVO.md** (visión general)→ Lee en orden:### Escenario 2: "Necesito implementar `/operator/chat` backend"- Flujo completo de chat- Qué funciona, qué NO existe- Qué es Operator→ Lee: **OPERATOR_RESUMEN_EJECUTIVO.md** (15 min)### Escenario 1: "Quiero entender qué hace Operator"## 🎯 ESCENARIOS TÍPICOS---**Para:** Agentes IA trabajando en Operator o integraciones con Operator**Actualizado:** 2025-12-14 | **Versión:** 7.1 | **Enfoque:** Productividad inmediata en codebase tentacular + arquitectura autónoma.
 
 ---
 
-# >>> SECCIÓN A: CANONICAL — DO NOT MODIFY <<<
-**Esta sección define reglas INMUTABLES que NO pueden cambiarse en futuros chats.**
+## 🏛️ Arquitectura Canónica (The Big Picture)
 
-## 🔐 Sistema de Sincronización VX11 (CRÍTICO)
+**10 Módulos Independientes (HTTP-Only Communication):**
 
-Este workspace tiene **sincronización automática** entre el repositorio local y el remoto (elkakas314/VX_11):
+| Módulo | Puerto | Responsabilidad |
+|--------|--------|---|
+| **Tentáculo Link** | 8000 | Gateway auth + proxy HTTP + CONTEXT-7 session tracking |
+| **Madre** | 8001 | Orquestación autónoma (planning, spawning, P&P control) |
+| **Switch** | 8002 | Router IA adaptativo (GA optimizer, Hermes CLI fusion, Shub detection) |
+| **Hermes** | 8003 | Registry distribuido (modelos locales, CLI tools, proveedores remote) |
+| **Hormiguero** | 8004 | Paralelización inteligente (Queen + 8 Ants, GA operadores, pheromones) |
+| **Manifestator** | 8005 | Auditoría + drift detection + patch generation + aplicación |
+| **MCP** | 8006 | Conversacional (Model Context Protocol, VS Code bridge) |
+| **Shubniggurath** | 8007 | DSP audio + audio reasoning (pipelines: analyzer, mix, reaper) |
+| **Spawner** | 8008 | Gestor de procesos efímeros (daughter tasks, reintentos) |
+| **Operator** | 8011 | Dashboard ejecutivo (React 18, chat, browser automation, monitoring) |
 
-```
-┌─────────────────────────────────────┐
-│    GitHub Remoto (elkakas314/VX_11) │  ← Fuente de verdad
-└────────────┬────────────────────────┘
-             │
-          [Script autosync.sh]
-             │
-             ↓
-┌─────────────────────────────────────┐
-│  Repo Local (/home/elkakas314/vx11) │  ← Espejo local
-└─────────────────────────────────────┘
-```
+**BD Unificada:** `data/runtime/vx11.db` (SQLite 3, single-writer, acceso seguro via `config.db_schema.get_session()`)
 
-**Mecanismo:**
-- Script: [tentaculo_link/tools/autosync.sh](tentaculo_link/tools/autosync.sh) — módulo tentaculo_link
-- Flujo: Stash → Fetch → Rebase → Restore → Commit → Push
-- Detección: Busca cambios reales antes de comprometer
-
-# SECCIÓN B: OPERATIVA (Editable)
-Esta sección contiene una guía práctica y concisa para agentes en sesión. Mantén la **Sección A** inalterada.
-
-- Objetivo: permitir cambios productivos y seguros, con ejemplos y comandos concretos.
-
-- Lectura rápida (archivos clave):
-  - `tentaculo_link/tools/autosync.sh` — sincronía local↔remoto (lockfile, stash/rebase).
-  - `config/module_template.py` — patrón obligatorio para módulos FastAPI.
-  - `config/db_schema.py` — `get_session()` y modelos (`Task`, `Context`, `Spawn`).
-
-- Comandos operativos:
-  - Ejecutar tests: `pytest tests/ -v --tb=short | tee logs/pytest_phase7.txt`
-  - Validar compose: `docker-compose config`
-  - Health check (servicio docker): `curl -s http://<service>:<port>/health`
-  - Ejecutar autosync (manual): `./tentaculo_link/tools/autosync.sh <branch>`
-
-- Convenciones concretas:
-  - NO hardcodear `localhost` — usar `config.dns_resolver.resolve_module_url()` o `settings`.
-  - Usar `get_session("modulo")` para DB (commit explícito, close en finally).
-  - Crear apps con `create_module_app("mi_modulo")` (middleware forense incluido).
-  - Reusar un `httpx.AsyncClient` por llamada y pasar `AUTH_HEADERS` con `X-VX11-Token`.
-
-- Flujo de cambio sugerido:
-  1. Planear con `manage_todo_list` (obligatorio para tareas multi-step).
-  2. Inspección read-only (`read_file`, `grep_search`).
-  3. Aplicar cambios atómicos con `apply_patch` y seguir convención de parches.
-  4. Ejecutar tests relevantes y validar `docker-compose` si aplica.
-  5. Ejecutar `./tentaculo_link/tools/autosync.sh` si se modificaron archivos rastreados.
-
-- Edición segura y límites:
-  - NO tocar `tokens.env` / `tokens.env.master` ni exponer credenciales.
-  - NO renombrar/mover módulos ni cambiar puertos en `docker-compose.yml`.
-  - Evitar crear archivos sin rastrear; si necesitas uno, pide permiso explícito.
-
-- Integraciones clave (ejemplos):
-  - `switch/main.py` → consumo de Hermes: `/hermes/resources`, `/hermes/execute`.
-  - Tentáculo (`8000`) es la puerta; todas las llamadas internas usan `X-VX11-Token`.
-  - Hormiguero endpoints: `/hormiguero/queen/status`, `/hormiguero/report`, `/hormiguero/scan`.
-
-- Frontend (operator):
-  - Ubicación: `operator_backend/frontend` (instalar con `npm install`, validar TS con `npm run type-check`).
-
-- Problemas comunes y remedios rápidos:
-  - Rebase/autosync conflict: leer `.autosync.lock`, abortar y resolver manualmente.
-  - DB locked: usar `get_session(..., timeout=30)` y cerrar sesión en finally.
-  - Requests a `localhost`: revisar `settings` y `resolve_module_url`.
-
-- Si algo no está claro: pide ejemplos concretos (líneas/funciones) y ampliaré esta sección.
-
-- **Arquitectura Canónica de Eventos (v8.0+):**
-  - WHITELIST: solo 7 eventos permitidos en Operator
-  - Validación en Tentáculo Link (rechaza non-canonical)
-  - Sintético: system.alert, system.correlation.updated, system.state.summary, forensic.snapshot.created
-  - Nativos: madre.decision.explained, switch.system.tension, shub.action.narrated
-  - Referencia: `/docs/VX11_EVENT_MAP_CANONICAL.md`
-  - Operator 100% pasivo (observation only, never execution)
+**Autenticación:** Header `X-VX11-Token` (gestión centralizada en `config.tokens.get_token("VX11_GATEWAY_TOKEN")`)
 
 ---
 
-# >>> FIN SECCIÓN B: OPERATIVA <<<
+## 🔗 Patrones Obligatorios VX11
+
+### 1️⃣ Inicializar Módulo FastAPI
+```python
+from config.module_template import create_module_app
+
+app = create_module_app("mi_modulo")
+# ✅ Incluye: middleware forense, /health, /control, logging centralizado, crash dumps
+
+@app.get("/mi_modulo/health")
+def health():
+    return {"module": "mi_modulo", "status": "ok"}
+
+# ✅ Todos los endpoints bajo /mi_modulo/* (namespaced)
+```
+
+### 2️⃣ Acceso a Base de Datos (Single-Writer Pattern)
+```python
+from config.db_schema import get_session, Task, Context
+
+db = get_session("mi_modulo")
+try:
+    task = Task(name="test", module="mi_modulo", action="exec", status="pending")
+    db.add(task)
+    db.commit()
+    
+    # Leer contexto
+    ctx = db.query(Context).filter_by(task_id=task.uuid).first()
+finally:
+    db.close()  # ✅ SIEMPRE cerrar en finally
+```
+
+### 3️⃣ Comunicación HTTP Inter-Módulos (HTTP-Only, Zero Coupling)
+```python
+import httpx
+from config.settings import settings
+from config.tokens import get_token
+
+VX11_TOKEN = get_token("VX11_GATEWAY_TOKEN") or settings.api_token
+AUTH_HEADERS = {settings.token_header: VX11_TOKEN}
+
+# ✅ Usar settings.switch_url, settings.madre_url, etc. (DNS-aware)
+async with httpx.AsyncClient(timeout=8.0) as client:
+    resp = await client.post(
+        f"{settings.switch_url}/switch/route-v5",
+        json={"prompt": "test", "metadata": {}},
+        headers=AUTH_HEADERS
+    )
+    result = resp.json()  # ✅ Siempre JSON
+```
+
+### 4️⃣ Convenciones de Código Esenciales
+- **Async/await:** Todo I/O es async (httpx.AsyncClient, FastAPI)
+- **Type hints:** Obligatorio Python 3.10+ (improve IDE support)
+- **Logging:** `log = logging.getLogger(__name__)` + `write_log(module_name, event)`
+- **Tokens:** NUNCA hardcode; siempre via `get_token(env_var)` o `settings.api_token`
+- **Puertos:** NO cambiar en docker-compose.yml (rigidez arquitectónica = estabilidad)
 
 ---
 
-## 🏗️ Arquitectura Esencial: 10 Módulos + BD Unificada
-  - Architecture, components, API contracts, types, hooks, styling, deployment
-  - Testing checklist, performance targets, future enhancements
-  - Compliance con VX11 canon
-- ✅ Actualizado: .github/copilot-instructions.md SECCIÓN B (esta sección)
+## 🛡️ Límites de Edición (INMUTABLES)
 
-#### FASE 5 — VALIDACIÓN
-```
-✅ Sección A: INTACTA (no modificada)
-✅ Imports: TypeScript types compilables
-✅ Duplicados: CERO nuevos archivos sin rastrear
-✅ Docker: docker-compose.yml intacto
-✅ Tokens: tokens.env intacto
-✅ Arquitectura: 10 módulos en ubicaciones correctas
-✅ DB: solo endpoints existentes, sin nuevas migraciones
-```
+**❌ NO TOCAR:**
+- `tokens.env`, `tokens.env.master` — credenciales prohibidas
+- Puertos en `docker-compose.yml` — no renombrar servicios
+- Módulos raíz (`switch/`, `madre/`, etc.) — movimientos sin autorización
+- DB schema migrations — solo GET/POST existentes, no ALTER
+- Imports cruzados entre módulos — sólo HTTP permitido
 
-#### FASE 6 — SINCRONIZACIÓN FINAL
-- Ejecutando: ./tentaculo_link/tools/autosync.sh feature/ui/operator-advanced
-- Estado: Cambios válidos preparados para push
-
-### Cambios Realizados (FASE 2-5)
-```
-Modificados (6 archivos React):
-  M operator/src/types/hormiguero.ts              ← Tipos + enums
-  M operator/src/hooks/useHormiguero.ts           ← Polling + API
-  M operator/src/components/Hormiguero/Dashboard.tsx
-  M operator/src/components/Hormiguero/Graph.tsx
-  M operator/src/components/Hormiguero/GraphNode.tsx
-  M operator/src/components/Hormiguero/IncidentsTable.tsx
-  M operator/src/components/Hormiguero/AntsList.tsx
-
-Creado (1 archivo):
-  + docs/HORMIGUERO_UI_CANONICAL.md               ← Documentación
-
-NO Modificado (INTACTO):
-  ✓ docker-compose.yml
-  ✓ tokens.env
-  ✓ Módulos (hormiguero, madre, switch, etc.)
-  ✓ Backend endpoints (solo fetch, sin nuevos)
-  ✓ .github/copilot-instructions.md SECCIÓN A
-```
-
-### Status Final
-```
-Design:           ✅ COMPLETE
-Implementation:   ✅ READY FOR BUILD
-Compliance:       ✅ CANONICAL (Queen, 8 Ants, Feromonas, 5 endpoints)
-Testing:          🟡 PENDING (unit + E2E)
-Deployment:       🟢 READY (npm install + build)
-Documentation:    ✅ CANONICAL + COMPLETE
-Sync:             🟡 IN PROGRESS (autosync.sh sobre la marcha)
-```
-
-### API Endpoints Confirmados (Existentes, Ninguno Nuevo)
-| Endpoint | Status | Reference |
-|----------|--------|-----------|
-| GET `/health` | ✅ | hormiguero/main_v7.py:87 |
-| POST `/scan` | ✅ | hormiguero/main_v7.py:93 |
-| GET `/report` | ✅ | hormiguero/main_v7.py:105 |
-| GET `/queen/status` | ✅ | hormiguero/main_v7.py:125 |
-| POST `/queen/dispatch` | ✅ | hormiguero/main_v7.py:147 |
+**✅ SÍ EDITAR:**
+- Lógica dentro de módulos (mantener namespacing de endpoints)
+- Frontend operator (React/TypeScript bajo `operator/src/`)
+- Config valores en `settings.py` (env-aware, no hardcodes)
+- Tests y documentación
+- Mensajes de log, docstrings, comments
 
 ---
 
-## 📋 Cierre de Fase: 4 Puntos (Actualización: 2025-12-12 18:50 UTC — COMPLETADOS)
+## ⚙️ Workflows Prácticos
 
-### GitHub CLI & Autenticación
-- ✅ GitHub CLI instalado: `gh version 2.4.0+dfsg1`
-- ✅ Autenticado como: `elkakas314`
-- ✅ Token usado: Fine-grained PAT (`GITHUB_PAT_FINEGRAND`) 
-- ✅ Fallback disponible: Token clásico (`GITHUB_TOKEN_CLASSIC`)
-- ⚠️ Acceso al repo remoto: Limitado (git fetch no resuelve "origin"; usa "vx_11_remote")
+### Ejecutar Tests (CI-like local validation)
+```bash
+# Configurar Python environment
+cd /home/elkakas314/vx11
+source .venv/bin/activate
 
-### Sincronización Local ↔ Remoto (v2.1 — FASE A COMPLETADA)
-```
-Repo local:        /home/elkakas314/vx11
-Rama actual:       feature/ui/operator-advanced
-Commits ahead:     0 (sincronizado)
-Commits behind:    0 (sincronizado)
-Archivos modificados: M .github/copilot-instructions.md (actualizado)
-Archivos sin rastrear: 0 (limpio post-validación)
-Estado:            ✅ SINCRONIZADO PERFECTO
+# Ejecutar suite completa (~52 tests)
+pytest tests/ -v --tb=short 2>&1 | tee logs/pytest_phase7.txt
+
+# Test específico
+pytest tests/test_switch_hermes_v7.py::TestSwitchV7 -v
+
+# Con coverage
+pytest tests/ --cov=. --cov-report=term-missing
 ```
 
-### ✅ FASE 1: Autosync Operativo — COMPLETADA
-```
-Estado anterior:     /home/elkakas314/vx11/tools/autosync.sh → NO EJECUTABLE
-Estado nuevo:        /home/elkakas314/vx11/tentaculo_link/tools/autosync.sh → ✅ FUNCIONAL
-Tamaño:              3794 bytes | Permisos: -rwxrwxr-x
-Estado:              ✅ ACTIVO Y AUTÓNOMO
+### Levantar Sistema Local (Docker)
+```bash
+docker-compose config  # ✅ Validar primero
+docker-compose up -d   # ✅ Daemon mode
+sleep 5 && docker-compose ps  # Verificar
 
-Características v2:
-  ✅ Detección de cambios reales (git status --porcelain)
-  ✅ Lockfile anti-loop (.autosync.lock) con PID
-  ✅ Logging timestamped a .autosync.log
-  ✅ Salida limpia si no hay cambios (exit 0)
-  ✅ Manejo de conflictos: abort rebase + restore stash
-  ✅ Pertenece a módulo tentaculo_link
-  ✅ Ejecutable: ./tentaculo_link/tools/autosync.sh feature/ui/operator-advanced
+# Health check de todos los módulos
+for port in {8000..8008,8011}; do
+  echo "Port $port:" && curl -s http://127.0.0.1:$port/health | jq .
+done
 ```
 
-### ✅ FASE 2: Systemd Templates — DISEÑO LISTO
-**Ubicación:** `tentaculo_link/systemd/`
+### Debugging Inter-módulos
+```bash
+# Rastrear request entre módulos
+curl -X POST http://127.0.0.1:8000/vx11/gateway-trace \
+  -H "X-VX11-Token: vx11-local-token" \
+  -H "Content-Type: application/json" \
+  -d '{"module": "switch", "endpoint": "/switch/route-v5"}'
 
-#### 1. vx11-autosync.service 
-- Ubicación: `tentaculo_link/systemd/vx11-autosync.service`
-- Tipo: oneshot
-- Usuario: root
-- WorkingDirectory: `/home/elkakas314/vx11`
-- ExecStart: `/home/elkakas314/vx11/tentaculo_link/tools/autosync.sh feature/ui/operator-advanced`
-- Logging: journal (StandardOutput=journal, StandardError=journal)
-- Status: ✅ DISEÑADO (NO ACTIVADO)
+# Ver logs en tiempo real
+docker-compose logs -f tentaculo_link madre switch
 
-#### 2. vx11-autosync.timer
-- Ubicación: `tentaculo_link/systemd/vx11-autosync.timer`
-- Intervalo: 5 minutos (OnUnitActiveSec=5min)
-- Jitter: ±30 segundos (RandomizedDelaySec=30s, anti-thundering-herd)
-- Boot delay: 2 minutos (OnBootSec=2min)
-- Persistent: true (Persistent=yes, recupera ejecuciones perdidas)
-- Status: ✅ DISEÑADO (NO ACTIVADO)
-
-**Nota:** Plantillas en repo, NO en `/etc/systemd/system/`. Instalación requiere autorización explícita.
-
-### ✅ FASE 3: Copilot Instructions — SECCIÓN A AMPLIADA + B ACTUALIZADA
-```
-Sección A (CANÓNICA):
-  - Intacta (preservada como "DO NOT MODIFY")
-  - Ampliada con: comportamiento Copilot + VS Code (NO preguntar permisos repetidos)
-  - Ampliada con: autosync pertenece a tentaculo_link
-  - Ampliada con: agrupar tareas largas antes de ejecutarlas
-  - Ampliada con: confirmaciones solo si hay riesgo destructivo real
-
-Sección B (OPERATIVA):
-  - Actualizada con timestamp 2025-12-12 17:30 UTC
-  - Estado: "✅ FASE 1 COMPLETADA", "✅ FASE 2 DISEÑO LISTO", "✅ FASE 3 ACTUALIZADA"
-  - Removida sección "Cambios pendientes" (ya completados)
-  - Añadido checkpoint final de validación
+# Verificar estado de base de datos
+sqlite3 data/runtime/vx11.db ".tables"
 ```
 
-### ✅ FASE 4: VS Code / Copilot Comportamiento — DOCUMENTADO EN SECCIÓN A
-```
-✅ Modo ejecución NO interactivo
-✅ Permisos pedidos UNA SOLA VEZ al inicio (sudo, escritura, red)
-✅ Tareas agrupadas en lotes (multi_replace_string_in_file en lugar de secuencial)
-✅ Confirmaciones solo si: borrar, mover, sobrescribir
-✅ NO preguntar por cada archivo
-✅ NO repetir preguntas ya respondidas en sesión
-✅ Agrupar cambios relacionados en una sola operación
-✅ Mostrar resumen claro de lo que se hizo
-```
+### Integración con VS Code + MCP
+```bash
+# MCP server escucha en :8006
+curl http://127.0.0.1:8006/mcp/health
 
-### ✅ FASE 5: Validación Final — CHECKLIST COMPLETADO
-```
-[✅] autosync.sh está SOLO en tentaculo_link/tools/
-[✅] tools/autosync.sh YA NO EXISTE (eliminado)
-[✅] copilot-instructions.md:
-      - Sección A intacta + ampliada con reglas Copilot + autonomía autosync
-      - Sección B actualizada con estado actual y fases completadas
-[✅] Repo mantiene: 0 ahead / 0 behind
-[✅] No se rompió docker ni módulos
-[✅] Systemd templates listos en tentaculo_link/systemd/ (NO activados)
+# Verificar CONTEXT-7 sessions (middleware)
+curl -X GET "http://127.0.0.1:8000/vx11/context-7/sessions" \
+  -H "X-VX11-Token: vx11-local-token"
 ```
 
 ---
 
-## � CIERRE DE 4 PUNTOS (Sesión 2025-12-12 18:50 UTC)
+## 📚 Referencias Rápidas
 
-### ✅ FASE 1: Switch ↔ Hermes (API Alignment)
-**Problema:** Switch llamaba a `/hermes/cli/execute` (no existe en Hermes).
-**Cambio:** Línea 907 de `switch/main.py`:
-- ❌ Endpoint: `"/hermes/cli/execute"` → ✅ `"/hermes/execute"`
-- ❌ Payload key: `"prompt"` → ✅ `"command"` (compatible con Hermes)
-**Por qué:** Elimina error 404 y fallbacks innecesarios; alinea con API real.
-**Archivo modificado:** `switch/main.py` (+1 cambio)
-
-### ✅ FASE 2: Operator (Limpio y Estable)
-**Auditoría:** Operator backend usa `SwitchClient` → `/operator/chat` → `Switch` pipeline OK.
-**Cambio:** NINGUNO requerido (ya conectado correctamente).
-**Por qué:** No hay UI desconectada ni botones huérfanos; arquitectura válida.
-
-### ✅ FASE 3: Shub (Arranque Siempre)
-**Auditoría:** Imports en `main.py` OK; numpy/DSP en `engines_paso8.py` (no bloquea arranque).
-**Cambio:** NINGUNO requerido (Shub arranca sin ejecutar DSP si no hay requests).
-**Por qué:** Bajo consumo CPU en idle; si falla, reporte específico de `engines_paso8.py`.
-
-### ✅ FASE 4: Autosync (Autonomía Real)
-**Auditoría:**
-- ✅ `tentaculo_link/tools/autosync.sh` ejecutable, única copia
-- ✅ Systemd templates: service + timer presentes
-- ✅ Lockfile + logging + detección cambios OK
-- ✅ Repo sync: 0 ahead / 0 behind
-**Cambio:** NINGUNO requerido (todo correcto).
-**Por qué:** Autosync ya autónomo; solo push cambio de Fase 1.
+| Referencia | Ubicación | Propósito |
+|-----------|-----------|----------|
+| **Module bootstrap** | [config/module_template.py](../config/module_template.py) | Patrón FastAPI canónico |
+| **DB layer** | [config/db_schema.py](../config/db_schema.py) | 40+ tablas, single-writer, schema v7.1 |
+| **Settings & tokens** | [config/settings.py](config/settings.py) + `config/tokens.py` | URLs módulos, env-aware, Docker DNS |
+| **Frontend** | [operator/src/](operator/src/) | React 18 + Vite + Tailwind |
+| **Tests** | [tests/](tests/) | ~52 tests (pytest, mocks, conftest.py disables auth) |
+| **Docker compose** | [docker-compose.yml](docker-compose.yml) | 10 servicios + volúmenes, puertos 8000–8011 |
+| **Autosync** | [tentaculo_link/tools/autosync.sh](tentaculo_link/tools/autosync.sh) | Git workflow automation |
 
 ---
 
-## 🔧 Contexto para Próximos Chats
+## 🎨 Frontend Operator (React 18 + Vite + TypeScript + Tailwind)
 
-1. **Autosync operativo:** En `tentaculo_link/tools/`, ejecutable, autónomo. Puede ejecutarse manualmente o vía systemd (si se activa).
-2. **Systemd templates listos:** En `tentaculo_link/systemd/` (vx11-autosync.service + timer). NO instalados en `/etc/systemd/system/`.
-3. **Copilot configurado:** Sección A ampliada con comportamiento mandatorio (no preguntar permisos repetidos, agrupar tareas).
-4. **Próximos pasos recomendados:**
-   - (Opcional) Ejecutar `./tentaculo_link/tools/autosync.sh` para validar manualmente.
-   - (Opcional) Instalar systemd si se requiere autonomía 24/7 (requiere `sudo systemctl enable vx11-autosync.timer`).
-   - (Documentación) Compartir `.github/copilot-instructions.md` con equipo para adherencia a reglas.
+**Ubicación:** [operator/](operator/) (monorepo: `/operator/src/` frontend + `/operator_backend/` API)
 
----
+### Stack Recomendado
+- **React 18.3.1** — Componentes + hooks (useDashboardEvents)
+- **Tailwind 4.0** — Styling reactivo, dark mode automático
+- **TypeScript 5.7** — Type safety (tipos canónicos en `canonical-events.ts`)
+- **Vite 7.2** — Dev server + HMR + build producción
+- **ReactFlow 11.11** — Diagramas DAG (correlaciones, flujos Madre)
 
-## ✨ FASE HORMIGUERO DISEÑADA (Actualización: 2025-12-13 19:30 UTC)
-
-### Objetivo Alcanzado
-Diseño canónico del **Dashboard Hormiguero** como núcleo visual del Operator.
-
-### Componentes Implementados (React + TypeScript)
+### Estructura
 ```
-✅ operator/src/types/hormiguero.ts
-   └─ Enums (AntRole, SeverityLevel, IncidentType, PheromoneType, ...)
-   └─ Interfaces (Ant, Incident, Pheromone, QueenStatus, HormiguerReport, ...)
-   └─ UI State types (HormiguerUIState, GraphNode, GraphEdge)
-
-✅ operator/src/hooks/useHormiguero.ts
-   └─ State management con polling (5s interval)
-   └─ API integration: fetchQueenStatus(), fetchReport(), triggerScan(), dispatchDecision()
-   └─ WebSocket placeholder para actualizaciones en tiempo real
-
-✅ operator/src/components/Hormiguero/Dashboard.tsx
-   └─ Main container con header, métricas, controles
-   └─ Grid layout: Graph (full width) + Incidents (8col) + Ants (4col)
-
-✅ operator/src/components/Hormiguero/Graph.tsx
-   └─ React Flow DAG visualization
-   └─ Queen (centro) + Ants (círculo) + Incidents (edges animados)
-   └─ Color por severidad: Rojo (critical), Naranja (error), Amarillo (warning), Gris (info)
-
-✅ operator/src/components/Hormiguero/GraphNode.tsx
-   └─ Node renderer para Queen/Ant
-   └─ Status indicator (CPU%, incident count)
-
-✅ operator/src/components/Hormiguero/IncidentsTable.tsx
-   └─ Tabla filtrable (severity, status)
-   └─ Acciones: Select, Dispatch decision
-   └─ Row color por severidad
-
-✅ operator/src/components/Hormiguero/AntsList.tsx
-   └─ Panel de estado de hormigas
-   └─ Métricas: CPU%, RAM%, mutation level, last scan
+operator/
+  ├── src/
+  │   ├── types/canonical-events.ts     # Events whitelist
+  │   ├── services/                     # HTTP clients (Switch, Madre, etc)
+  │   ├── hooks/useDashboardEvents.ts   # WebSocket/polling
+  │   ├── components/Dashboard/         # Main UI + 6 paneles
+  │   └── App.tsx, main.tsx, index.css
+  ├── package.json (dev deps)
+  ├── vite.config.ts
+  └── tailwind.config.js
 ```
 
-### Documentación Canónica
-```
-✅ docs/HORMIGUERO_UI_CANONICAL.md (completo, 350+ líneas)
-   ├─ Architecture (component hierarchy, tech stack)
-   ├─ API Integration (4 endpoints existentes, ninguno nuevo)
-   ├─ Data Types (TypeScript types + Hormiguero enums)
-   ├─ Components (Dashboard, Graph, GraphNode, IncidentsTable, AntsList)
-   ├─ Custom Hook (useHormiguero con polling + WebSocket ready)
-   ├─ Styling (Tailwind CSS minimal, light mode)
-   ├─ Deployment (file structure, npm install, env vars)
-   ├─ Testing Checklist
-   └─ Future Enhancements (WebSocket real-time, animations, export)
+### Comandos Frecuentes
+```bash
+cd operator
+npm install && npm run build     # Compilar TypeScript + Tailwind
+npm run dev                      # Dev: http://localhost:5173 (HMR activo)
+npm run type-check               # Validar tipos TS sin build
+
+# Producción
+npm run build
+# → dist/ lista para servir (Nginx, Docker)
 ```
 
-### Endpoints Utilizados (Existentes, NINGUNO Nuevo)
-```
-✅ GET  /hormiguero/queen/status      → ants + queen metadata
-✅ GET  /hormiguero/report?limit=100  → incidents list with summary
-✅ POST /hormiguero/scan              → trigger scan cycle
-✅ POST /hormiguero/queen/dispatch?id → manual decision dispatch
+### Integración con Backend (8011)
+```typescript
+// operator/src/services/operator-api.ts
+import { VX11_API_BASE } from './config'
+
+const client = new VX11OperatorClient(VX11_API_BASE, {
+  headers: { 'X-VX11-Token': localStorage.getItem('token') }
+})
+
+await client.chat.sendMessage(sessionId, message)
+await client.modules.getStatus()
 ```
 
-### Stack Frontend (Minimal, Producción-Ready)
+### Build Output
 ```
-✅ React 18 + TypeScript
-✅ React Flow (DAG visualization)
-✅ Tailwind CSS (utility-first, no custom CSS)
-✅ Custom hooks (useHormiguero for state)
-✅ Fetch API (no axios, no heavy deps)
-```
-
-### Cambios Realizados en Operator
-```
-Creados (5 archivos):
-  + operator/src/types/hormiguero.ts              (200+ líneas)
-  + operator/src/hooks/useHormiguero.ts           (100+ líneas)
-  + operator/src/components/Hormiguero/Dashboard.tsx
-  + operator/src/components/Hormiguero/Graph.tsx
-  + operator/src/components/Hormiguero/GraphNode.tsx
-  + operator/src/components/Hormiguero/IncidentsTable.tsx
-  + operator/src/components/Hormiguero/AntsList.tsx
-
-Documentación:
-  + docs/HORMIGUERO_UI_CANONICAL.md               (350+ líneas)
-
-NO Modificado:
-  ✓ docker-compose.yml (intacto)
-  ✓ tokens.env (intacto)
-  ✓ Módulos (hormiguero, madre, switch, etc. sin tocar)
-  ✓ Backend endpoints (solo fetch existentes)
-```
-
-### Características del Diseño
-```
-✅ Real-time updates: Polling 5s + WebSocket ready
-✅ Low CPU: Minimal render cycles, efficient data fetching
-✅ Error handling: Toast + retry logic
-✅ Responsive: Desktop/tablet layout (Tailwind responsive)
-✅ Type-safe: Full TypeScript with interfaces
-✅ Accessibility: Semantic HTML, ARIA labels
-✅ Testable: Component props, hook isolated, data layer independent
-```
-
-### Status Final
-```
-Design:       ✅ COMPLETE
-Implementation: ✅ READY FOR BUILD
-Testing:      🟡 PENDING (unit + E2E)
-Deployment:   🟢 READY (npm install + build)
-Documentation: ✅ CANONICAL + COMPLETE
+✓ dist/index.html              0.46 kB | gzip: 0.30 kB
+✓ dist/assets/index.css        2.24 kB | gzip: 1.08 kB
+✓ dist/assets/index.js       201.86 kB | gzip: 68.42 kB
 ```
 
 ---
 
-# >>> FIN SECCIÓN B: OPERATIVA <<<
+## 🔄 Flujos Clave VX11 (Data Flows)
+
+### Flujo 1: Chat Operator → Madre/Switch
+```
+Frontend (React) →
+  POST /operator/chat {message, session_id} →
+    operator_backend:8011 (FastAPI) →
+      Tentáculo Link:8000 (proxy + CONTEXT-7) →
+        Switch:8002 (routing) o Madre:8001 (orchestration) →
+          [Local modelo | DeepSeek | Hermes CLI] →
+        respuesta JSON → Frontend renderiza
+```
+
+### Flujo 2: Madre Autónoma (cada 30s)
+```
+Madre timer →
+  1. Query BD (daughter_tasks con status=pending) →
+  2. Planning: selecciona via Switch routing →
+  3. Spawns hijas efímeras (via Spawner:8008) →
+  4. Espera finalización, persiste resultado en BD →
+  5. Reporte → Manifestator (drift check) ↔ Hormiguero (parallelization)
+```
+
+### Flujo 3: Audio DSP (Shub Detection)
+```
+Switch recibe request →
+  `detect_audio_domain()` (8 categorías) →
+    Si audio: POST /shub/analyze → Shubniggurath:8007 →
+      DSP pipelines (analyzer→mix→reaper) →
+        Respuesta audio + narrativa → Frontend visualiza
+```
 
 ---
 
-## 🏗️ Arquitectura Esencial: 10 Módulos + BD Unificada
+## 📊 Patrón de Testing (pytest)
+
+**Configuración:**
+```python
+# tests/conftest.py (shared fixtures)
+@pytest.fixture(scope="session", autouse=True)
+def disable_auth_for_tests():
+    settings.enable_auth = False  # Disable durante tests
+```
+
+**Ejemplo de test inter-módulos:**
+```python
+# tests/test_switch_hermes_v7.py
+@pytest.mark.asyncio
+async def test_switch_task_structure():
+    """POST /switch/task con payload correcto"""
+    payload = {
+        "prompt": "code review",
+        "task_type": "chat",
+        "source": "operator"
+    }
+    # mock db, httpx, etc.
+    # assert result ok
+```
+
+**Ejecutar:**
+```bash
+pytest tests/ -v --tb=short          # Todos
+pytest tests/test_madre*.py -v       # Solo Madre
+pytest tests/ -k "hermes" --lf       # Last failed filter
+```
+
+---
+
+## 🚀 Deployment (Docker)
+
+**Build local:**
+```bash
+docker-compose build operator-frontend  # O builder imagen propia
+docker-compose up -d
+
+# Verificar
+curl http://localhost:8020  # Nginx sirviendo dist/
+curl http://localhost:8011/operator/chat  # Backend API
+```
+
+**Puertos Finales:**
+- `8000`: Tentáculo Link (gateway)
+- `8001-8008`: 8 módulos + Spawner
+- `8011`: Operator Backend API
+- `8020`: Operator Frontend (nginx)
+- `5173`: Dev server (npm run dev)
+
+---
+
+## 📝 Convenciones VX11 Clave
+
+| Aspecto | Regla | Ejemplo |
+|--------|-------|---------|
+| **Endpoints** | `/{modulo}/{versión}/{recurso}` | `/switch/v7/route-v5` |
+| **Namespacing** | TODO bajo prefijo módulo | `/madre/tasks`, `/madre/chat` |
+| **DB Queries** | Single-writer, close en finally | `db.add()` → `db.commit()` → `db.close()` |
+| **Tokens** | Header `X-VX11-Token` siempre | `get_token("VX11_GATEWAY_TOKEN")` |
+| **Async** | Todo I/O es async | `async def`, `await httpx.post()` |
+| **Type hints** | Obligatorio (Python 3.10+) | `def route(prompt: str) -> Dict[str, Any]:` |
+| **Logging** | Centralizado + forensics | `log.info()` + `write_log("module", "event")` |
+| **Error Handling** | Circuit breaker + retry | Try/except + backoff exponencial |
+
+---
+
+## 🎯 Guía Rápida para Agentes IA
+
+1. **Necesitas agregar endpoint:** Usa [config/module_template.py](config/module_template.py) como template
+2. **BD queries:** Siempre `db.close()` en finally (single-writer pattern)
+3. **Llamar otro módulo:** `httpx.AsyncClient` + `settings.{module}_url` + `AUTH_HEADERS`
+4. **Frontend:** Solo edita bajo [operator/src/](operator/src/); tipos en `canonical-events.ts`
+5. **Testing:** `pytest tests/ -v`; auth disabled via conftest.py
+6. **Deploy:** `npm run build` → Docker puerto 8020
+
+**Validar cambios:**
+```bash
+pytest tests/ -v --tb=short
+npm run type-check          # Si tocas frontend
+docker-compose config       # Si tocas docker-compose
+```
+
+---
+
+## 📊 OPERATOR AUDITORÍA COMPLETA (Diciembre 2025)
+
+**Para trabajar en Operator (frontend React 18 + chat), consulta auditoría exhaustiva:**
+
+| Documento | Contenido | Lectura |
+|-----------|----------|---------|
+| [OPERATOR_RESUMEN_EJECUTIVO.md](.copilot-audit/OPERATOR_RESUMEN_EJECUTIVO.md) | Visión general, estado actual, próximos pasos | 15 min |
+| [OPERATOR_AUDIT_FASE1_REAL_STATE.md](.copilot-audit/OPERATOR_AUDIT_FASE1_REAL_STATE.md) | Auditoría sin cambios (qué existe, qué funciona, qué falta) | 30 min |
+| [OPERATOR_FASE2_BACKEND_CONTRACT.md](.copilot-audit/OPERATOR_FASE2_BACKEND_CONTRACT.md) | Especificación exacta de `/operator/chat` endpoint | 20 min |
+| [OPERATOR_FASE3_AI_INTEGRATION.md](.copilot-audit/OPERATOR_FASE3_AI_INTEGRATION.md) | Flujo completo Frontend→Backend→DeepSeek R1 | 25 min |
+| [OPERATOR_FASE4_ENHANCEMENTS.md](.copilot-audit/OPERATOR_FASE4_ENHANCEMENTS.md) | Mejoras sin romper nada (roadmap 3 semanas) | 20 min |
+
+**Quick Start:** Lee RESUMEN_EJECUTIVO → luego elige FASE según tarea
