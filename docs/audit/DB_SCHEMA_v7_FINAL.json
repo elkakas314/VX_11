@@ -1,4026 +1,4373 @@
 {
-  "metadata": {
-    "generated_at": "2025-12-15T22:10:13.304989Z",
-    "database_path": "data/runtime/vx11.db",
-    "database_size_mb": 0.2734375,
-    "total_tables": 50
-  },
-  "tables": {
-    "audit_logs": {
-      "name": "audit_logs",
-      "row_count": 0,
+  "generated_at": "2025-12-15T23:40:06.685805Z",
+  "database": "data/runtime/vx11.db",
+  "tables": [
+    {
+      "table": "audit_logs",
       "columns": [
         {
-          "id": 0,
+          "cid": 0,
           "name": "id",
           "type": "INTEGER",
-          "nullable": false,
-          "default": null,
-          "primary_key": true
+          "notnull": true,
+          "dflt_value": null,
+          "pk": true
         },
         {
-          "id": 1,
+          "cid": 1,
           "name": "component",
           "type": "VARCHAR(64)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 2,
+          "cid": 2,
           "name": "level",
           "type": "VARCHAR(16)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 3,
+          "cid": 3,
           "name": "message",
           "type": "TEXT",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 4,
+          "cid": 4,
           "name": "created_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         }
       ],
-      "indices": [],
-      "approximate_size_bytes": 5734
+      "foreign_keys": [],
+      "rows": 0,
+      "status": "EMPTY (READY)",
+      "module": ""
     },
-    "cli_providers": {
-      "name": "cli_providers",
-      "row_count": 0,
+    {
+      "table": "cli_onboarding_state",
       "columns": [
         {
-          "id": 0,
+          "cid": 0,
           "name": "id",
           "type": "INTEGER",
-          "nullable": false,
-          "default": null,
-          "primary_key": true
+          "notnull": true,
+          "dflt_value": null,
+          "pk": true
         },
         {
-          "id": 1,
+          "cid": 1,
+          "name": "provider_id",
+          "type": "VARCHAR(128)",
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 2,
+          "name": "state",
+          "type": "VARCHAR(50)",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 3,
+          "name": "notes",
+          "type": "TEXT",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 4,
+          "name": "last_checked_at",
+          "type": "DATETIME",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 5,
+          "name": "created_at",
+          "type": "DATETIME",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        }
+      ],
+      "foreign_keys": [],
+      "rows": 0,
+      "status": "EMPTY (READY)",
+      "module": "hermes"
+    },
+    {
+      "table": "cli_providers",
+      "columns": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "notnull": true,
+          "dflt_value": null,
+          "pk": true
+        },
+        {
+          "cid": 1,
           "name": "name",
           "type": "VARCHAR(100)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 2,
+          "cid": 2,
           "name": "base_url",
           "type": "VARCHAR(500)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 3,
+          "cid": 3,
           "name": "api_key_env",
           "type": "VARCHAR(100)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 4,
+          "cid": 4,
           "name": "task_types",
           "type": "VARCHAR(255)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 5,
+          "cid": 5,
           "name": "daily_limit_tokens",
           "type": "INTEGER",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 6,
+          "cid": 6,
           "name": "monthly_limit_tokens",
           "type": "INTEGER",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 7,
+          "cid": 7,
           "name": "tokens_used_today",
           "type": "INTEGER",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 8,
+          "cid": 8,
           "name": "tokens_used_month",
           "type": "INTEGER",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 9,
+          "cid": 9,
           "name": "reset_hour_utc",
           "type": "INTEGER",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 10,
+          "cid": 10,
           "name": "enabled",
           "type": "BOOLEAN",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 11,
+          "cid": 11,
           "name": "last_reset_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 12,
+          "cid": 12,
           "name": "created_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 13,
+          "cid": 13,
           "name": "updated_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         }
       ],
-      "indices": [
-        {
-          "name": "sqlite_autoindex_cli_providers_1",
-          "unique": true,
-          "columns": [
-            "name"
-          ]
-        }
-      ],
-      "approximate_size_bytes": 5734
+      "foreign_keys": [],
+      "rows": 0,
+      "status": "EMPTY (READY)",
+      "module": "hermes"
     },
-    "cli_registry": {
-      "name": "cli_registry",
-      "row_count": 0,
+    {
+      "table": "cli_registry",
       "columns": [
         {
-          "id": 0,
+          "cid": 0,
           "name": "id",
           "type": "INTEGER",
-          "nullable": false,
-          "default": null,
-          "primary_key": true
+          "notnull": true,
+          "dflt_value": null,
+          "pk": true
         },
         {
-          "id": 1,
+          "cid": 1,
           "name": "name",
           "type": "VARCHAR(100)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 2,
+          "cid": 2,
           "name": "bin_path",
           "type": "VARCHAR(500)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 3,
+          "cid": 3,
           "name": "available",
           "type": "BOOLEAN",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 4,
+          "cid": 4,
           "name": "last_checked",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 5,
+          "cid": 5,
           "name": "cli_type",
           "type": "VARCHAR(50)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 6,
+          "cid": 6,
           "name": "token_config_key",
           "type": "VARCHAR(100)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 7,
+          "cid": 7,
           "name": "rate_limit_daily",
           "type": "INTEGER",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 8,
+          "cid": 8,
           "name": "used_today",
           "type": "INTEGER",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 9,
+          "cid": 9,
           "name": "notes",
           "type": "TEXT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 10,
+          "cid": 10,
           "name": "updated_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         }
       ],
-      "indices": [
-        {
-          "name": "sqlite_autoindex_cli_registry_1",
-          "unique": true,
-          "columns": [
-            "name"
-          ]
-        }
-      ],
-      "approximate_size_bytes": 5734
+      "foreign_keys": [],
+      "rows": 0,
+      "status": "EMPTY (READY)",
+      "module": "hermes"
     },
-    "context": {
-      "name": "context",
-      "row_count": 0,
+    {
+      "table": "cli_usage_stats",
       "columns": [
         {
-          "id": 0,
+          "cid": 0,
           "name": "id",
           "type": "INTEGER",
-          "nullable": false,
-          "default": null,
-          "primary_key": true
+          "notnull": true,
+          "dflt_value": null,
+          "pk": true
         },
         {
-          "id": 1,
+          "cid": 1,
+          "name": "provider_id",
+          "type": "VARCHAR(128)",
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 2,
+          "name": "timestamp",
+          "type": "DATETIME",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 3,
+          "name": "success",
+          "type": "BOOLEAN",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 4,
+          "name": "latency_ms",
+          "type": "INTEGER",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 5,
+          "name": "cost_estimated",
+          "type": "FLOAT",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 6,
+          "name": "tokens_estimated",
+          "type": "INTEGER",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 7,
+          "name": "error_class",
+          "type": "VARCHAR(100)",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        }
+      ],
+      "foreign_keys": [],
+      "rows": 1,
+      "status": "ACTIVE",
+      "module": "hermes"
+    },
+    {
+      "table": "context",
+      "columns": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "notnull": true,
+          "dflt_value": null,
+          "pk": true
+        },
+        {
+          "cid": 1,
           "name": "task_id",
           "type": "VARCHAR(36)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 2,
+          "cid": 2,
           "name": "key",
           "type": "VARCHAR(255)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 3,
+          "cid": 3,
           "name": "value",
           "type": "TEXT",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 4,
+          "cid": 4,
           "name": "scope",
           "type": "VARCHAR(50)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 5,
+          "cid": 5,
           "name": "created_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         }
       ],
-      "indices": [],
-      "approximate_size_bytes": 5734
-    },
-    "daughter_attempts": {
-      "name": "daughter_attempts",
-      "row_count": 0,
-      "columns": [
+      "foreign_keys": [
         {
           "id": 0,
+          "seq": 0,
+          "table": "tasks",
+          "from": "task_id",
+          "to": "uuid",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION",
+          "match": "NONE"
+        }
+      ],
+      "rows": 0,
+      "status": "EMPTY (READY)",
+      "module": ""
+    },
+    {
+      "table": "daughter_attempts",
+      "columns": [
+        {
+          "cid": 0,
           "name": "id",
           "type": "INTEGER",
-          "nullable": false,
-          "default": null,
-          "primary_key": true
+          "notnull": true,
+          "dflt_value": null,
+          "pk": true
         },
         {
-          "id": 1,
+          "cid": 1,
           "name": "daughter_id",
           "type": "INTEGER",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 2,
+          "cid": 2,
           "name": "attempt_number",
           "type": "INTEGER",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 3,
+          "cid": 3,
           "name": "started_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 4,
+          "cid": 4,
           "name": "finished_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 5,
+          "cid": 5,
           "name": "status",
           "type": "VARCHAR(32)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 6,
+          "cid": 6,
           "name": "error_message",
           "type": "VARCHAR(500)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 7,
+          "cid": 7,
           "name": "tokens_used_cli",
           "type": "INTEGER",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 8,
+          "cid": 8,
           "name": "tokens_used_local",
           "type": "INTEGER",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 9,
+          "cid": 9,
           "name": "switch_model_used",
           "type": "VARCHAR(128)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 10,
+          "cid": 10,
           "name": "cli_provider_used",
           "type": "VARCHAR(128)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 11,
+          "cid": 11,
           "name": "created_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         }
       ],
-      "indices": [],
-      "approximate_size_bytes": 5734
-    },
-    "daughter_tasks": {
-      "name": "daughter_tasks",
-      "row_count": 0,
-      "columns": [
+      "foreign_keys": [
         {
           "id": 0,
+          "seq": 0,
+          "table": "daughters",
+          "from": "daughter_id",
+          "to": "id",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION",
+          "match": "NONE"
+        }
+      ],
+      "rows": 0,
+      "status": "EMPTY (READY)",
+      "module": ""
+    },
+    {
+      "table": "daughter_tasks",
+      "columns": [
+        {
+          "cid": 0,
           "name": "id",
           "type": "INTEGER",
-          "nullable": false,
-          "default": null,
-          "primary_key": true
+          "notnull": true,
+          "dflt_value": null,
+          "pk": true
         },
         {
-          "id": 1,
+          "cid": 1,
           "name": "intent_id",
           "type": "VARCHAR(36)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 2,
+          "cid": 2,
           "name": "source",
           "type": "VARCHAR(64)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 3,
+          "cid": 3,
           "name": "priority",
           "type": "INTEGER",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 4,
+          "cid": 4,
           "name": "status",
           "type": "VARCHAR(32)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 5,
+          "cid": 5,
           "name": "task_type",
           "type": "VARCHAR(50)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 6,
+          "cid": 6,
           "name": "description",
           "type": "TEXT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 7,
+          "cid": 7,
           "name": "created_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 8,
+          "cid": 8,
           "name": "updated_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 9,
+          "cid": 9,
           "name": "finished_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 10,
+          "cid": 10,
           "name": "max_retries",
           "type": "INTEGER",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 11,
+          "cid": 11,
           "name": "current_retry",
           "type": "INTEGER",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 12,
+          "cid": 12,
           "name": "metadata_json",
           "type": "TEXT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 13,
+          "cid": 13,
           "name": "plan_json",
           "type": "TEXT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         }
       ],
-      "indices": [],
-      "approximate_size_bytes": 5734
+      "foreign_keys": [],
+      "rows": 0,
+      "status": "EMPTY (READY)",
+      "module": ""
     },
-    "daughters": {
-      "name": "daughters",
-      "row_count": 0,
+    {
+      "table": "daughters",
       "columns": [
         {
-          "id": 0,
+          "cid": 0,
           "name": "id",
           "type": "INTEGER",
-          "nullable": false,
-          "default": null,
-          "primary_key": true
+          "notnull": true,
+          "dflt_value": null,
+          "pk": true
         },
         {
-          "id": 1,
+          "cid": 1,
           "name": "task_id",
           "type": "INTEGER",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 2,
+          "cid": 2,
           "name": "name",
           "type": "VARCHAR(128)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 3,
+          "cid": 3,
           "name": "purpose",
           "type": "TEXT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 4,
+          "cid": 4,
           "name": "tools_json",
           "type": "TEXT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 5,
+          "cid": 5,
           "name": "ttl_seconds",
           "type": "INTEGER",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 6,
+          "cid": 6,
           "name": "started_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 7,
+          "cid": 7,
           "name": "last_heartbeat_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 8,
+          "cid": 8,
           "name": "ended_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 9,
+          "cid": 9,
           "name": "status",
           "type": "VARCHAR(32)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 10,
+          "cid": 10,
           "name": "mutation_level",
           "type": "INTEGER",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 11,
+          "cid": 11,
           "name": "error_last",
           "type": "TEXT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         }
       ],
-      "indices": [],
-      "approximate_size_bytes": 5734
-    },
-    "drift_reports": {
-      "name": "drift_reports",
-      "row_count": 0,
-      "columns": [
+      "foreign_keys": [
         {
           "id": 0,
+          "seq": 0,
+          "table": "daughter_tasks",
+          "from": "task_id",
+          "to": "id",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION",
+          "match": "NONE"
+        }
+      ],
+      "rows": 0,
+      "status": "EMPTY (READY)",
+      "module": ""
+    },
+    {
+      "table": "drift_reports",
+      "columns": [
+        {
+          "cid": 0,
           "name": "id",
           "type": "INTEGER",
-          "nullable": false,
-          "default": null,
-          "primary_key": true
+          "notnull": true,
+          "dflt_value": null,
+          "pk": true
         },
         {
-          "id": 1,
+          "cid": 1,
           "name": "module",
           "type": "VARCHAR(64)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 2,
+          "cid": 2,
           "name": "details",
           "type": "TEXT",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 3,
+          "cid": 3,
           "name": "severity",
           "type": "VARCHAR(32)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 4,
+          "cid": 4,
           "name": "timestamp",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 5,
+          "cid": 5,
           "name": "resolved",
           "type": "BOOLEAN",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         }
       ],
-      "indices": [],
-      "approximate_size_bytes": 5734
+      "foreign_keys": [],
+      "rows": 0,
+      "status": "EMPTY (READY)",
+      "module": ""
     },
-    "engines": {
-      "name": "engines",
-      "row_count": 0,
+    {
+      "table": "engines",
       "columns": [
         {
-          "id": 0,
+          "cid": 0,
           "name": "id",
           "type": "INTEGER",
-          "nullable": false,
-          "default": null,
-          "primary_key": true
+          "notnull": true,
+          "dflt_value": null,
+          "pk": true
         },
         {
-          "id": 1,
+          "cid": 1,
           "name": "name",
           "type": "VARCHAR(128)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 2,
+          "cid": 2,
           "name": "engine_type",
           "type": "VARCHAR(32)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 3,
+          "cid": 3,
           "name": "domain",
           "type": "VARCHAR(64)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 4,
+          "cid": 4,
           "name": "endpoint",
           "type": "VARCHAR(256)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 5,
+          "cid": 5,
           "name": "version",
           "type": "VARCHAR(32)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 6,
+          "cid": 6,
           "name": "quota_tokens_per_day",
           "type": "INTEGER",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 7,
+          "cid": 7,
           "name": "quota_used_today",
           "type": "INTEGER",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 8,
+          "cid": 8,
           "name": "quota_reset_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 9,
+          "cid": 9,
           "name": "latency_ms",
           "type": "FLOAT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 10,
+          "cid": 10,
           "name": "cost_per_call",
           "type": "FLOAT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 11,
+          "cid": 11,
           "name": "enabled",
           "type": "BOOLEAN",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 12,
+          "cid": 12,
           "name": "last_used",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 13,
+          "cid": 13,
           "name": "created_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 14,
+          "cid": 14,
           "name": "updated_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         }
       ],
-      "indices": [
-        {
-          "name": "sqlite_autoindex_engines_1",
-          "unique": true,
-          "columns": [
-            "name"
-          ]
-        }
-      ],
-      "approximate_size_bytes": 5734
+      "foreign_keys": [],
+      "rows": 0,
+      "status": "EMPTY (READY)",
+      "module": ""
     },
-    "events": {
-      "name": "events",
-      "row_count": 0,
+    {
+      "table": "events",
       "columns": [
         {
-          "id": 0,
+          "cid": 0,
           "name": "id",
           "type": "INTEGER",
-          "nullable": false,
-          "default": null,
-          "primary_key": true
+          "notnull": true,
+          "dflt_value": null,
+          "pk": true
         },
         {
-          "id": 1,
+          "cid": 1,
           "name": "source",
           "type": "VARCHAR(64)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 2,
+          "cid": 2,
           "name": "event_type",
           "type": "VARCHAR(64)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 3,
+          "cid": 3,
           "name": "payload",
           "type": "TEXT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 4,
+          "cid": 4,
           "name": "created_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         }
       ],
-      "indices": [],
-      "approximate_size_bytes": 5734
+      "foreign_keys": [],
+      "rows": 0,
+      "status": "EMPTY (READY)",
+      "module": ""
     },
-    "feromona_events": {
-      "name": "feromona_events",
-      "row_count": 0,
+    {
+      "table": "feromona_events",
       "columns": [
         {
-          "id": 0,
+          "cid": 0,
           "name": "id",
           "type": "INTEGER",
-          "nullable": false,
-          "default": null,
-          "primary_key": true
+          "notnull": true,
+          "dflt_value": null,
+          "pk": true
         },
         {
-          "id": 1,
+          "cid": 1,
           "name": "type",
           "type": "VARCHAR(64)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 2,
+          "cid": 2,
           "name": "intensity",
           "type": "INTEGER",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 3,
+          "cid": 3,
           "name": "module",
           "type": "VARCHAR(64)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 4,
+          "cid": 4,
           "name": "payload",
           "type": "TEXT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 5,
+          "cid": 5,
           "name": "timestamp",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         }
       ],
-      "indices": [],
-      "approximate_size_bytes": 5734
+      "foreign_keys": [],
+      "rows": 0,
+      "status": "EMPTY (READY)",
+      "module": ""
     },
-    "forensic_ledger": {
-      "name": "forensic_ledger",
-      "row_count": 0,
+    {
+      "table": "fluzo_signals",
       "columns": [
         {
-          "id": 0,
+          "cid": 0,
           "name": "id",
           "type": "INTEGER",
-          "nullable": false,
-          "default": null,
-          "primary_key": true
+          "notnull": true,
+          "dflt_value": null,
+          "pk": true
         },
         {
-          "id": 1,
+          "cid": 1,
+          "name": "timestamp",
+          "type": "DATETIME",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 2,
+          "name": "cpu_load_1m",
+          "type": "FLOAT",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 3,
+          "name": "mem_pct",
+          "type": "FLOAT",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 4,
+          "name": "on_ac",
+          "type": "BOOLEAN",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 5,
+          "name": "battery_pct",
+          "type": "INTEGER",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 6,
+          "name": "profile",
+          "type": "VARCHAR(32)",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        }
+      ],
+      "foreign_keys": [],
+      "rows": 0,
+      "status": "EMPTY (READY)",
+      "module": ""
+    },
+    {
+      "table": "forensic_ledger",
+      "columns": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "notnull": true,
+          "dflt_value": null,
+          "pk": true
+        },
+        {
+          "cid": 1,
           "name": "event",
           "type": "VARCHAR(255)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 2,
+          "cid": 2,
           "name": "payload",
           "type": "TEXT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 3,
+          "cid": 3,
           "name": "hash",
           "type": "VARCHAR(64)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 4,
+          "cid": 4,
           "name": "created_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         }
       ],
-      "indices": [],
-      "approximate_size_bytes": 5734
+      "foreign_keys": [],
+      "rows": 0,
+      "status": "EMPTY (READY)",
+      "module": ""
     },
-    "hermes_ingest": {
-      "name": "hermes_ingest",
-      "row_count": 0,
+    {
+      "table": "hermes_ingest",
       "columns": [
         {
-          "id": 0,
+          "cid": 0,
           "name": "id",
           "type": "INTEGER",
-          "nullable": false,
-          "default": null,
-          "primary_key": true
+          "notnull": true,
+          "dflt_value": null,
+          "pk": true
         },
         {
-          "id": 1,
+          "cid": 1,
           "name": "path",
           "type": "VARCHAR(512)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 2,
+          "cid": 2,
           "name": "size_bytes",
           "type": "INTEGER",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 3,
+          "cid": 3,
           "name": "duration_sec",
           "type": "FLOAT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 4,
+          "cid": 4,
           "name": "status",
           "type": "VARCHAR(32)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 5,
+          "cid": 5,
           "name": "created_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         }
       ],
-      "indices": [],
-      "approximate_size_bytes": 5734
+      "foreign_keys": [],
+      "rows": 0,
+      "status": "EMPTY (READY)",
+      "module": "hermes"
     },
-    "hijas_runtime": {
-      "name": "hijas_runtime",
-      "row_count": 16,
+    {
+      "table": "hijas_runtime",
       "columns": [
         {
-          "id": 0,
+          "cid": 0,
           "name": "id",
           "type": "INTEGER",
-          "nullable": false,
-          "default": null,
-          "primary_key": true
+          "notnull": true,
+          "dflt_value": null,
+          "pk": true
         },
         {
-          "id": 1,
+          "cid": 1,
           "name": "name",
           "type": "VARCHAR(128)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 2,
+          "cid": 2,
           "name": "state",
           "type": "VARCHAR(32)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 3,
+          "cid": 3,
           "name": "pid",
           "type": "INTEGER",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 4,
+          "cid": 4,
           "name": "last_heartbeat",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 5,
+          "cid": 5,
           "name": "meta_json",
           "type": "TEXT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 6,
+          "cid": 6,
           "name": "birth_context",
           "type": "TEXT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 7,
+          "cid": 7,
           "name": "death_context",
           "type": "TEXT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 8,
+          "cid": 8,
           "name": "intent_type",
           "type": "VARCHAR(64)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 9,
+          "cid": 9,
           "name": "ttl",
           "type": "INTEGER",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 10,
+          "cid": 10,
           "name": "killed_by",
           "type": "VARCHAR(128)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 11,
+          "cid": 11,
           "name": "purpose",
           "type": "VARCHAR(256)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 12,
+          "cid": 12,
           "name": "module_creator",
           "type": "VARCHAR(64)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 13,
+          "cid": 13,
           "name": "born_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 14,
+          "cid": 14,
           "name": "died_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         }
       ],
-      "indices": [],
-      "approximate_size_bytes": 5734
+      "foreign_keys": [],
+      "rows": 20,
+      "status": "ACTIVE",
+      "module": "hormiguero"
     },
-    "hijas_state": {
-      "name": "hijas_state",
-      "row_count": 0,
+    {
+      "table": "hijas_state",
       "columns": [
         {
-          "id": 0,
+          "cid": 0,
           "name": "id",
           "type": "INTEGER",
-          "nullable": false,
-          "default": null,
-          "primary_key": true
+          "notnull": true,
+          "dflt_value": null,
+          "pk": true
         },
         {
-          "id": 1,
+          "cid": 1,
           "name": "hija_id",
           "type": "VARCHAR(64)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 2,
+          "cid": 2,
           "name": "module",
           "type": "VARCHAR(64)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 3,
+          "cid": 3,
           "name": "status",
           "type": "VARCHAR(32)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 4,
+          "cid": 4,
           "name": "cpu_usage",
           "type": "FLOAT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 5,
+          "cid": 5,
           "name": "ram_usage",
           "type": "FLOAT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 6,
+          "cid": 6,
           "name": "pid",
           "type": "INTEGER",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 7,
+          "cid": 7,
           "name": "created_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 8,
+          "cid": 8,
           "name": "updated_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         }
       ],
-      "indices": [
-        {
-          "name": "sqlite_autoindex_hijas_state_1",
-          "unique": true,
-          "columns": [
-            "hija_id"
-          ]
-        }
-      ],
-      "approximate_size_bytes": 5734
+      "foreign_keys": [],
+      "rows": 0,
+      "status": "EMPTY (READY)",
+      "module": "hormiguero"
     },
-    "hormiga_state": {
-      "name": "hormiga_state",
-      "row_count": 0,
+    {
+      "table": "hormiga_state",
       "columns": [
         {
-          "id": 0,
+          "cid": 0,
           "name": "id",
           "type": "INTEGER",
-          "nullable": false,
-          "default": null,
-          "primary_key": true
+          "notnull": true,
+          "dflt_value": null,
+          "pk": true
         },
         {
-          "id": 1,
+          "cid": 1,
           "name": "ant_id",
           "type": "VARCHAR(64)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 2,
+          "cid": 2,
           "name": "role",
           "type": "VARCHAR(32)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 3,
+          "cid": 3,
           "name": "status",
           "type": "VARCHAR(20)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 4,
+          "cid": 4,
           "name": "last_scan_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 5,
+          "cid": 5,
           "name": "mutation_level",
           "type": "INTEGER",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 6,
+          "cid": 6,
           "name": "cpu_percent",
           "type": "FLOAT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 7,
+          "cid": 7,
           "name": "ram_percent",
           "type": "FLOAT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 8,
+          "cid": 8,
           "name": "created_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 9,
+          "cid": 9,
           "name": "updated_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         }
       ],
-      "indices": [
-        {
-          "name": "sqlite_autoindex_hormiga_state_1",
-          "unique": true,
-          "columns": [
-            "ant_id"
-          ]
-        }
-      ],
-      "approximate_size_bytes": 5734
+      "foreign_keys": [],
+      "rows": 0,
+      "status": "EMPTY (READY)",
+      "module": ""
     },
-    "ia_decisions": {
-      "name": "ia_decisions",
-      "row_count": 2,
+    {
+      "table": "ia_decisions",
       "columns": [
         {
-          "id": 0,
+          "cid": 0,
           "name": "id",
           "type": "INTEGER",
-          "nullable": false,
-          "default": null,
-          "primary_key": true
+          "notnull": true,
+          "dflt_value": null,
+          "pk": true
         },
         {
-          "id": 1,
+          "cid": 1,
           "name": "prompt_hash",
           "type": "VARCHAR(64)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 2,
+          "cid": 2,
           "name": "provider",
           "type": "VARCHAR(50)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 3,
+          "cid": 3,
           "name": "task_type",
           "type": "VARCHAR(50)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 4,
+          "cid": 4,
           "name": "prompt",
           "type": "TEXT",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 5,
+          "cid": 5,
           "name": "response",
           "type": "TEXT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 6,
+          "cid": 6,
           "name": "latency_ms",
           "type": "INTEGER",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 7,
+          "cid": 7,
           "name": "success",
           "type": "BOOLEAN",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 8,
+          "cid": 8,
           "name": "confidence",
           "type": "FLOAT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 9,
+          "cid": 9,
           "name": "meta_json",
           "type": "TEXT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 10,
+          "cid": 10,
           "name": "created_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         }
       ],
-      "indices": [],
-      "approximate_size_bytes": 5734
+      "foreign_keys": [],
+      "rows": 2,
+      "status": "ACTIVE",
+      "module": "switch"
     },
-    "incidents": {
-      "name": "incidents",
-      "row_count": 0,
+    {
+      "table": "incidents",
       "columns": [
         {
-          "id": 0,
+          "cid": 0,
           "name": "id",
           "type": "INTEGER",
-          "nullable": false,
-          "default": null,
-          "primary_key": true
+          "notnull": true,
+          "dflt_value": null,
+          "pk": true
         },
         {
-          "id": 1,
+          "cid": 1,
           "name": "ant_id",
           "type": "VARCHAR(64)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 2,
+          "cid": 2,
           "name": "incident_type",
           "type": "VARCHAR(64)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 3,
+          "cid": 3,
           "name": "severity",
           "type": "VARCHAR(20)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 4,
+          "cid": 4,
           "name": "location",
           "type": "VARCHAR(255)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 5,
+          "cid": 5,
           "name": "details",
           "type": "TEXT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 6,
+          "cid": 6,
           "name": "status",
           "type": "VARCHAR(20)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 7,
+          "cid": 7,
           "name": "detected_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 8,
+          "cid": 8,
           "name": "resolved_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 9,
+          "cid": 9,
           "name": "queen_decision",
           "type": "VARCHAR(255)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         }
       ],
-      "indices": [],
-      "approximate_size_bytes": 5734
+      "foreign_keys": [],
+      "rows": 0,
+      "status": "EMPTY (READY)",
+      "module": ""
     },
-    "intents_log": {
-      "name": "intents_log",
-      "row_count": 0,
+    {
+      "table": "intents_log",
       "columns": [
         {
-          "id": 0,
+          "cid": 0,
           "name": "id",
           "type": "INTEGER",
-          "nullable": false,
-          "default": null,
-          "primary_key": true
+          "notnull": true,
+          "dflt_value": null,
+          "pk": true
         },
         {
-          "id": 1,
+          "cid": 1,
           "name": "source",
           "type": "VARCHAR(64)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 2,
+          "cid": 2,
           "name": "payload_json",
           "type": "TEXT",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 3,
+          "cid": 3,
           "name": "created_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 4,
+          "cid": 4,
           "name": "processed_by_madre_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 5,
+          "cid": 5,
           "name": "result_status",
           "type": "VARCHAR(32)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 6,
+          "cid": 6,
           "name": "notes",
           "type": "TEXT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         }
       ],
-      "indices": [],
-      "approximate_size_bytes": 5734
+      "foreign_keys": [],
+      "rows": 0,
+      "status": "EMPTY (READY)",
+      "module": ""
     },
-    "local_models_v2": {
-      "name": "local_models_v2",
-      "row_count": 2,
+    {
+      "table": "local_models_v2",
       "columns": [
         {
-          "id": 0,
+          "cid": 0,
           "name": "id",
           "type": "INTEGER",
-          "nullable": false,
-          "default": null,
-          "primary_key": true
+          "notnull": true,
+          "dflt_value": null,
+          "pk": true
         },
         {
-          "id": 1,
+          "cid": 1,
           "name": "name",
           "type": "VARCHAR(255)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 2,
+          "cid": 2,
           "name": "engine",
           "type": "VARCHAR(50)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 3,
+          "cid": 3,
           "name": "path",
           "type": "VARCHAR(512)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 4,
+          "cid": 4,
           "name": "size_bytes",
           "type": "INTEGER",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 5,
+          "cid": 5,
           "name": "task_type",
           "type": "VARCHAR(50)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 6,
+          "cid": 6,
           "name": "max_context",
           "type": "INTEGER",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 7,
+          "cid": 7,
           "name": "enabled",
           "type": "BOOLEAN",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 8,
+          "cid": 8,
           "name": "last_used_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 9,
+          "cid": 9,
           "name": "usage_count",
           "type": "INTEGER",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 10,
+          "cid": 10,
           "name": "compatibility",
           "type": "VARCHAR(64)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 11,
+          "cid": 11,
           "name": "meta_info",
           "type": "TEXT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 12,
+          "cid": 12,
           "name": "created_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 13,
+          "cid": 13,
           "name": "updated_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         }
       ],
-      "indices": [
-        {
-          "name": "sqlite_autoindex_local_models_v2_1",
-          "unique": true,
-          "columns": [
-            "name"
-          ]
-        }
-      ],
-      "approximate_size_bytes": 5734
+      "foreign_keys": [],
+      "rows": 2,
+      "status": "ACTIVE",
+      "module": "hermes"
     },
-    "madre_actions": {
-      "name": "madre_actions",
-      "row_count": 0,
+    {
+      "table": "madre_actions",
       "columns": [
         {
-          "id": 0,
+          "cid": 0,
           "name": "id",
           "type": "INTEGER",
-          "nullable": false,
-          "default": null,
-          "primary_key": true
+          "notnull": true,
+          "dflt_value": null,
+          "pk": true
         },
         {
-          "id": 1,
+          "cid": 1,
           "name": "module",
           "type": "VARCHAR(64)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 2,
+          "cid": 2,
           "name": "action",
           "type": "VARCHAR(64)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 3,
+          "cid": 3,
           "name": "reason",
           "type": "VARCHAR(255)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 4,
+          "cid": 4,
           "name": "created_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         }
       ],
-      "indices": [],
-      "approximate_size_bytes": 5734
+      "foreign_keys": [],
+      "rows": 0,
+      "status": "EMPTY (READY)",
+      "module": "madre"
     },
-    "madre_policies": {
-      "name": "madre_policies",
-      "row_count": 0,
+    {
+      "table": "madre_policies",
       "columns": [
         {
-          "id": 0,
+          "cid": 0,
           "name": "id",
           "type": "INTEGER",
-          "nullable": false,
-          "default": null,
-          "primary_key": true
+          "notnull": true,
+          "dflt_value": null,
+          "pk": true
         },
         {
-          "id": 1,
+          "cid": 1,
           "name": "module",
           "type": "VARCHAR(64)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 2,
+          "cid": 2,
           "name": "error_threshold",
           "type": "INTEGER",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 3,
+          "cid": 3,
           "name": "idle_seconds",
           "type": "INTEGER",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 4,
+          "cid": 4,
           "name": "enable_autosuspend",
           "type": "BOOLEAN",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 5,
+          "cid": 5,
           "name": "created_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 6,
+          "cid": 6,
           "name": "updated_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         }
       ],
-      "indices": [],
-      "approximate_size_bytes": 5734
+      "foreign_keys": [],
+      "rows": 0,
+      "status": "EMPTY (READY)",
+      "module": "madre"
     },
-    "model_registry": {
-      "name": "model_registry",
-      "row_count": 0,
+    {
+      "table": "model_registry",
       "columns": [
         {
-          "id": 0,
+          "cid": 0,
           "name": "id",
           "type": "INTEGER",
-          "nullable": false,
-          "default": null,
-          "primary_key": true
+          "notnull": true,
+          "dflt_value": null,
+          "pk": true
         },
         {
-          "id": 1,
+          "cid": 1,
           "name": "name",
           "type": "VARCHAR(255)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 2,
+          "cid": 2,
           "name": "path",
           "type": "VARCHAR(500)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 3,
+          "cid": 3,
           "name": "provider",
           "type": "VARCHAR(50)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 4,
+          "cid": 4,
           "name": "type",
           "type": "VARCHAR(50)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 5,
+          "cid": 5,
           "name": "size_bytes",
           "type": "INTEGER",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 6,
+          "cid": 6,
           "name": "tags",
           "type": "TEXT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 7,
+          "cid": 7,
           "name": "last_used",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 8,
+          "cid": 8,
           "name": "score",
           "type": "FLOAT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 9,
+          "cid": 9,
           "name": "available",
           "type": "BOOLEAN",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 10,
+          "cid": 10,
           "name": "meta_json",
           "type": "TEXT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 11,
+          "cid": 11,
           "name": "created_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 12,
+          "cid": 12,
           "name": "updated_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         }
       ],
-      "indices": [
-        {
-          "name": "sqlite_autoindex_model_registry_1",
-          "unique": true,
-          "columns": [
-            "name"
-          ]
-        }
-      ],
-      "approximate_size_bytes": 5734
+      "foreign_keys": [],
+      "rows": 0,
+      "status": "EMPTY (READY)",
+      "module": "hermes"
     },
-    "model_usage_stats": {
-      "name": "model_usage_stats",
-      "row_count": 2,
+    {
+      "table": "model_usage_stats",
       "columns": [
         {
-          "id": 0,
+          "cid": 0,
           "name": "id",
           "type": "INTEGER",
-          "nullable": false,
-          "default": null,
-          "primary_key": true
+          "notnull": true,
+          "dflt_value": null,
+          "pk": true
         },
         {
-          "id": 1,
+          "cid": 1,
           "name": "model_or_cli_name",
           "type": "VARCHAR(255)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 2,
+          "cid": 2,
           "name": "kind",
           "type": "VARCHAR(20)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 3,
+          "cid": 3,
           "name": "task_type",
           "type": "VARCHAR(50)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 4,
+          "cid": 4,
           "name": "tokens_used",
           "type": "INTEGER",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 5,
+          "cid": 5,
           "name": "latency_ms",
           "type": "INTEGER",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 6,
+          "cid": 6,
           "name": "success",
           "type": "BOOLEAN",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 7,
+          "cid": 7,
           "name": "error_message",
           "type": "VARCHAR(500)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 8,
+          "cid": 8,
           "name": "user_id",
           "type": "VARCHAR(100)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 9,
+          "cid": 9,
           "name": "created_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         }
       ],
-      "indices": [],
-      "approximate_size_bytes": 5734
+      "foreign_keys": [],
+      "rows": 2,
+      "status": "ACTIVE",
+      "module": "hermes"
     },
-    "models_local": {
-      "name": "models_local",
-      "row_count": 30,
+    {
+      "table": "models_local",
       "columns": [
         {
-          "id": 0,
+          "cid": 0,
           "name": "id",
           "type": "INTEGER",
-          "nullable": false,
-          "default": null,
-          "primary_key": true
+          "notnull": true,
+          "dflt_value": null,
+          "pk": true
         },
         {
-          "id": 1,
+          "cid": 1,
           "name": "name",
           "type": "VARCHAR(255)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 2,
+          "cid": 2,
           "name": "path",
           "type": "VARCHAR(512)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 3,
+          "cid": 3,
           "name": "size_mb",
           "type": "INTEGER",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 4,
+          "cid": 4,
           "name": "hash",
           "type": "VARCHAR(128)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 5,
+          "cid": 5,
           "name": "category",
           "type": "VARCHAR(64)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 6,
+          "cid": 6,
           "name": "status",
           "type": "VARCHAR(32)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 7,
+          "cid": 7,
           "name": "compatibility",
           "type": "VARCHAR(64)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 8,
+          "cid": 8,
           "name": "downloaded_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 9,
+          "cid": 9,
           "name": "updated_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         }
       ],
-      "indices": [
-        {
-          "name": "sqlite_autoindex_models_local_1",
-          "unique": true,
-          "columns": [
-            "name"
-          ]
-        }
-      ],
-      "approximate_size_bytes": 5734
+      "foreign_keys": [],
+      "rows": 30,
+      "status": "ACTIVE",
+      "module": "hermes"
     },
-    "models_remote_cli": {
-      "name": "models_remote_cli",
-      "row_count": 0,
+    {
+      "table": "models_remote_cli",
       "columns": [
         {
-          "id": 0,
+          "cid": 0,
           "name": "id",
           "type": "INTEGER",
-          "nullable": false,
-          "default": null,
-          "primary_key": true
+          "notnull": true,
+          "dflt_value": null,
+          "pk": true
         },
         {
-          "id": 1,
+          "cid": 1,
           "name": "provider",
           "type": "VARCHAR(128)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 2,
+          "cid": 2,
           "name": "token",
           "type": "VARCHAR(256)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 3,
+          "cid": 3,
           "name": "limit_daily",
           "type": "INTEGER",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 4,
+          "cid": 4,
           "name": "limit_weekly",
           "type": "INTEGER",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 5,
+          "cid": 5,
           "name": "renew_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 6,
+          "cid": 6,
           "name": "task_type",
           "type": "VARCHAR(64)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 7,
+          "cid": 7,
           "name": "status",
           "type": "VARCHAR(32)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 8,
+          "cid": 8,
           "name": "created_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 9,
+          "cid": 9,
           "name": "updated_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         }
       ],
-      "indices": [
-        {
-          "name": "sqlite_autoindex_models_remote_cli_1",
-          "unique": true,
-          "columns": [
-            "token"
-          ]
-        }
-      ],
-      "approximate_size_bytes": 5734
+      "foreign_keys": [],
+      "rows": 0,
+      "status": "EMPTY (READY)",
+      "module": "hermes"
     },
-    "module_health": {
-      "name": "module_health",
-      "row_count": 0,
+    {
+      "table": "module_health",
       "columns": [
         {
-          "id": 0,
+          "cid": 0,
           "name": "id",
           "type": "INTEGER",
-          "nullable": false,
-          "default": null,
-          "primary_key": true
+          "notnull": true,
+          "dflt_value": null,
+          "pk": true
         },
         {
-          "id": 1,
+          "cid": 1,
           "name": "module",
           "type": "VARCHAR(50)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 2,
+          "cid": 2,
           "name": "status",
           "type": "VARCHAR(20)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 3,
+          "cid": 3,
           "name": "last_ping",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 4,
+          "cid": 4,
           "name": "error_count",
           "type": "INTEGER",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 5,
+          "cid": 5,
           "name": "uptime_seconds",
           "type": "FLOAT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 6,
+          "cid": 6,
           "name": "updated_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         }
       ],
-      "indices": [],
-      "approximate_size_bytes": 5734
+      "foreign_keys": [],
+      "rows": 0,
+      "status": "EMPTY (READY)",
+      "module": ""
     },
-    "operator_browser_task": {
-      "name": "operator_browser_task",
-      "row_count": 0,
+    {
+      "table": "operator_browser_task",
       "columns": [
         {
-          "id": 0,
+          "cid": 0,
           "name": "id",
           "type": "INTEGER",
-          "nullable": false,
-          "default": null,
-          "primary_key": true
+          "notnull": true,
+          "dflt_value": null,
+          "pk": true
         },
         {
-          "id": 1,
+          "cid": 1,
           "name": "session_id",
           "type": "VARCHAR(64)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 2,
+          "cid": 2,
           "name": "url",
           "type": "VARCHAR(500)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 3,
+          "cid": 3,
           "name": "status",
           "type": "VARCHAR(50)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 4,
+          "cid": 4,
           "name": "snapshot_path",
           "type": "VARCHAR(255)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 5,
+          "cid": 5,
           "name": "result",
           "type": "TEXT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 6,
+          "cid": 6,
           "name": "error",
           "type": "TEXT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 7,
+          "cid": 7,
           "name": "created_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 8,
+          "cid": 8,
           "name": "executed_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         }
       ],
-      "indices": [],
-      "approximate_size_bytes": 5734
-    },
-    "operator_jobs": {
-      "name": "operator_jobs",
-      "row_count": 0,
-      "columns": [
+      "foreign_keys": [
         {
           "id": 0,
+          "seq": 0,
+          "table": "operator_session",
+          "from": "session_id",
+          "to": "session_id",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION",
+          "match": "NONE"
+        }
+      ],
+      "rows": 0,
+      "status": "EMPTY (READY)",
+      "module": "operator"
+    },
+    {
+      "table": "operator_jobs",
+      "columns": [
+        {
+          "cid": 0,
           "name": "id",
           "type": "INTEGER",
-          "nullable": false,
-          "default": null,
-          "primary_key": true
+          "notnull": true,
+          "dflt_value": null,
+          "pk": true
         },
         {
-          "id": 1,
+          "cid": 1,
           "name": "job_id",
           "type": "VARCHAR(64)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 2,
+          "cid": 2,
           "name": "intent",
           "type": "VARCHAR(64)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 3,
+          "cid": 3,
           "name": "status",
           "type": "VARCHAR(32)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 4,
+          "cid": 4,
           "name": "payload",
           "type": "TEXT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 5,
+          "cid": 5,
           "name": "result",
           "type": "TEXT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 6,
+          "cid": 6,
           "name": "created_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 7,
+          "cid": 7,
           "name": "updated_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         }
       ],
-      "indices": [
-        {
-          "name": "sqlite_autoindex_operator_jobs_1",
-          "unique": true,
-          "columns": [
-            "job_id"
-          ]
-        }
-      ],
-      "approximate_size_bytes": 5734
+      "foreign_keys": [],
+      "rows": 0,
+      "status": "EMPTY (READY)",
+      "module": "operator"
     },
-    "operator_message": {
-      "name": "operator_message",
-      "row_count": 0,
+    {
+      "table": "operator_message",
       "columns": [
         {
-          "id": 0,
+          "cid": 0,
           "name": "id",
           "type": "INTEGER",
-          "nullable": false,
-          "default": null,
-          "primary_key": true
+          "notnull": true,
+          "dflt_value": null,
+          "pk": true
         },
         {
-          "id": 1,
+          "cid": 1,
           "name": "session_id",
           "type": "VARCHAR(64)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 2,
+          "cid": 2,
           "name": "role",
           "type": "VARCHAR(50)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 3,
+          "cid": 3,
           "name": "content",
           "type": "TEXT",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 4,
+          "cid": 4,
           "name": "message_metadata",
           "type": "TEXT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 5,
+          "cid": 5,
           "name": "created_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         }
       ],
-      "indices": [],
-      "approximate_size_bytes": 5734
-    },
-    "operator_session": {
-      "name": "operator_session",
-      "row_count": 11,
-      "columns": [
+      "foreign_keys": [
         {
           "id": 0,
+          "seq": 0,
+          "table": "operator_session",
+          "from": "session_id",
+          "to": "session_id",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION",
+          "match": "NONE"
+        }
+      ],
+      "rows": 0,
+      "status": "EMPTY (READY)",
+      "module": "operator"
+    },
+    {
+      "table": "operator_session",
+      "columns": [
+        {
+          "cid": 0,
           "name": "id",
           "type": "INTEGER",
-          "nullable": false,
-          "default": null,
-          "primary_key": true
+          "notnull": true,
+          "dflt_value": null,
+          "pk": true
         },
         {
-          "id": 1,
+          "cid": 1,
           "name": "session_id",
           "type": "VARCHAR(64)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 2,
+          "cid": 2,
           "name": "user_id",
           "type": "VARCHAR(64)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 3,
+          "cid": 3,
           "name": "source",
           "type": "VARCHAR(50)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 4,
+          "cid": 4,
           "name": "created_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 5,
+          "cid": 5,
           "name": "updated_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         }
       ],
-      "indices": [],
-      "approximate_size_bytes": 5734
+      "foreign_keys": [],
+      "rows": 15,
+      "status": "ACTIVE",
+      "module": "operator"
     },
-    "operator_switch_adjustment": {
-      "name": "operator_switch_adjustment",
-      "row_count": 11,
+    {
+      "table": "operator_switch_adjustment",
       "columns": [
         {
-          "id": 0,
+          "cid": 0,
           "name": "id",
           "type": "INTEGER",
-          "nullable": false,
-          "default": null,
-          "primary_key": true
+          "notnull": true,
+          "dflt_value": null,
+          "pk": true
         },
         {
-          "id": 1,
+          "cid": 1,
           "name": "session_id",
           "type": "VARCHAR(64)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 2,
+          "cid": 2,
           "name": "message_id",
           "type": "INTEGER",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 3,
+          "cid": 3,
           "name": "before_config",
           "type": "TEXT",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 4,
+          "cid": 4,
           "name": "after_config",
           "type": "TEXT",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 5,
+          "cid": 5,
           "name": "reason",
           "type": "TEXT",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 6,
+          "cid": 6,
           "name": "applied",
           "type": "BOOLEAN",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 7,
+          "cid": 7,
           "name": "created_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 8,
+          "cid": 8,
           "name": "applied_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         }
       ],
-      "indices": [],
-      "approximate_size_bytes": 5734
-    },
-    "operator_tool_call": {
-      "name": "operator_tool_call",
-      "row_count": 0,
-      "columns": [
+      "foreign_keys": [
         {
           "id": 0,
-          "name": "id",
-          "type": "INTEGER",
-          "nullable": false,
-          "default": null,
-          "primary_key": true
+          "seq": 0,
+          "table": "operator_message",
+          "from": "message_id",
+          "to": "id",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION",
+          "match": "NONE"
         },
         {
           "id": 1,
+          "seq": 0,
+          "table": "operator_session",
+          "from": "session_id",
+          "to": "session_id",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION",
+          "match": "NONE"
+        }
+      ],
+      "rows": 15,
+      "status": "ACTIVE",
+      "module": "operator"
+    },
+    {
+      "table": "operator_tool_call",
+      "columns": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "notnull": true,
+          "dflt_value": null,
+          "pk": true
+        },
+        {
+          "cid": 1,
           "name": "message_id",
           "type": "INTEGER",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 2,
+          "cid": 2,
           "name": "tool_name",
           "type": "VARCHAR(100)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 3,
+          "cid": 3,
           "name": "status",
           "type": "VARCHAR(50)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 4,
+          "cid": 4,
           "name": "duration_ms",
           "type": "INTEGER",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 5,
+          "cid": 5,
           "name": "result",
           "type": "TEXT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 6,
+          "cid": 6,
           "name": "error",
           "type": "TEXT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 7,
+          "cid": 7,
           "name": "created_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         }
       ],
-      "indices": [],
-      "approximate_size_bytes": 5734
-    },
-    "pheromone_log": {
-      "name": "pheromone_log",
-      "row_count": 0,
-      "columns": [
+      "foreign_keys": [
         {
           "id": 0,
+          "seq": 0,
+          "table": "operator_message",
+          "from": "message_id",
+          "to": "id",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION",
+          "match": "NONE"
+        }
+      ],
+      "rows": 0,
+      "status": "EMPTY (READY)",
+      "module": "operator"
+    },
+    {
+      "table": "pheromone_log",
+      "columns": [
+        {
+          "cid": 0,
           "name": "id",
           "type": "INTEGER",
-          "nullable": false,
-          "default": null,
-          "primary_key": true
+          "notnull": true,
+          "dflt_value": null,
+          "pk": true
         },
         {
-          "id": 1,
+          "cid": 1,
           "name": "pheromone_type",
           "type": "VARCHAR(64)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 2,
+          "cid": 2,
           "name": "intensity",
           "type": "INTEGER",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 3,
+          "cid": 3,
           "name": "source_incident_ids",
           "type": "TEXT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 4,
+          "cid": 4,
           "name": "madre_intent_id",
           "type": "VARCHAR(64)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 5,
+          "cid": 5,
           "name": "switch_consultation_id",
           "type": "VARCHAR(64)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 6,
+          "cid": 6,
           "name": "payload",
           "type": "TEXT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 7,
+          "cid": 7,
           "name": "created_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 8,
+          "cid": 8,
           "name": "executed_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         }
       ],
-      "indices": [],
-      "approximate_size_bytes": 5734
+      "foreign_keys": [],
+      "rows": 0,
+      "status": "EMPTY (READY)",
+      "module": ""
     },
-    "power_events": {
-      "name": "power_events",
-      "row_count": 0,
+    {
+      "table": "power_events",
       "columns": [
         {
-          "id": 0,
+          "cid": 0,
           "name": "id",
           "type": "INTEGER",
-          "nullable": false,
-          "default": null,
-          "primary_key": true
+          "notnull": true,
+          "dflt_value": null,
+          "pk": true
         },
         {
-          "id": 1,
+          "cid": 1,
           "name": "module",
           "type": "VARCHAR(64)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 2,
+          "cid": 2,
           "name": "action",
           "type": "VARCHAR(32)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 3,
+          "cid": 3,
           "name": "reason",
           "type": "VARCHAR(255)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 4,
+          "cid": 4,
           "name": "cpu_usage",
           "type": "FLOAT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 5,
+          "cid": 5,
           "name": "ram_usage",
           "type": "FLOAT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 6,
+          "cid": 6,
           "name": "activity_score",
           "type": "FLOAT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 7,
+          "cid": 7,
           "name": "timestamp",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         }
       ],
-      "indices": [],
-      "approximate_size_bytes": 5734
+      "foreign_keys": [],
+      "rows": 0,
+      "status": "EMPTY (READY)",
+      "module": ""
     },
-    "reports": {
-      "name": "reports",
-      "row_count": 0,
+    {
+      "table": "reports",
       "columns": [
         {
-          "id": 0,
+          "cid": 0,
           "name": "id",
           "type": "INTEGER",
-          "nullable": false,
-          "default": null,
-          "primary_key": true
+          "notnull": true,
+          "dflt_value": null,
+          "pk": true
         },
         {
-          "id": 1,
+          "cid": 1,
           "name": "task_id",
           "type": "VARCHAR(36)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 2,
+          "cid": 2,
           "name": "report_type",
           "type": "VARCHAR(50)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 3,
+          "cid": 3,
           "name": "summary",
           "type": "TEXT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 4,
+          "cid": 4,
           "name": "details",
           "type": "TEXT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 5,
+          "cid": 5,
           "name": "metrics",
           "type": "TEXT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 6,
+          "cid": 6,
           "name": "created_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         }
       ],
-      "indices": [],
-      "approximate_size_bytes": 5734
-    },
-    "sandbox_exec": {
-      "name": "sandbox_exec",
-      "row_count": 0,
-      "columns": [
+      "foreign_keys": [
         {
           "id": 0,
+          "seq": 0,
+          "table": "tasks",
+          "from": "task_id",
+          "to": "uuid",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION",
+          "match": "NONE"
+        }
+      ],
+      "rows": 0,
+      "status": "EMPTY (READY)",
+      "module": ""
+    },
+    {
+      "table": "routing_events",
+      "columns": [
+        {
+          "cid": 0,
           "name": "id",
           "type": "INTEGER",
-          "nullable": false,
-          "default": null,
-          "primary_key": true
+          "notnull": true,
+          "dflt_value": null,
+          "pk": true
         },
         {
-          "id": 1,
+          "cid": 1,
+          "name": "timestamp",
+          "type": "DATETIME",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 2,
+          "name": "trace_id",
+          "type": "VARCHAR(36)",
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 3,
+          "name": "route_type",
+          "type": "VARCHAR(50)",
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 4,
+          "name": "provider_id",
+          "type": "VARCHAR(128)",
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 5,
+          "name": "score",
+          "type": "FLOAT",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 6,
+          "name": "reasoning_short",
+          "type": "VARCHAR(255)",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        }
+      ],
+      "foreign_keys": [],
+      "rows": 1,
+      "status": "ACTIVE",
+      "module": ""
+    },
+    {
+      "table": "sandbox_exec",
+      "columns": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "notnull": true,
+          "dflt_value": null,
+          "pk": true
+        },
+        {
+          "cid": 1,
           "name": "action",
           "type": "VARCHAR(128)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 2,
+          "cid": 2,
           "name": "status",
           "type": "VARCHAR(32)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 3,
+          "cid": 3,
           "name": "duration_ms",
           "type": "FLOAT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 4,
+          "cid": 4,
           "name": "error",
           "type": "TEXT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 5,
+          "cid": 5,
           "name": "created_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         }
       ],
-      "indices": [],
-      "approximate_size_bytes": 5734
+      "foreign_keys": [],
+      "rows": 0,
+      "status": "EMPTY (READY)",
+      "module": ""
     },
-    "scheduler_history": {
-      "name": "scheduler_history",
-      "row_count": 0,
+    {
+      "table": "scheduler_history",
       "columns": [
         {
-          "id": 0,
+          "cid": 0,
           "name": "id",
           "type": "INTEGER",
-          "nullable": false,
-          "default": null,
-          "primary_key": true
+          "notnull": true,
+          "dflt_value": null,
+          "pk": true
         },
         {
-          "id": 1,
+          "cid": 1,
           "name": "timestamp",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 2,
+          "cid": 2,
           "name": "action",
           "type": "VARCHAR(64)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 3,
+          "cid": 3,
           "name": "reason",
           "type": "TEXT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 4,
+          "cid": 4,
           "name": "metrics",
           "type": "TEXT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         }
       ],
-      "indices": [],
-      "approximate_size_bytes": 5734
+      "foreign_keys": [],
+      "rows": 0,
+      "status": "EMPTY (READY)",
+      "module": ""
     },
-    "shub_analysis": {
-      "name": "shub_analysis",
-      "row_count": 0,
+    {
+      "table": "shub_analysis",
       "columns": [
         {
-          "id": 0,
+          "cid": 0,
           "name": "id",
           "type": "INTEGER",
-          "nullable": false,
-          "default": null,
-          "primary_key": true
+          "notnull": true,
+          "dflt_value": null,
+          "pk": true
         },
         {
-          "id": 1,
+          "cid": 1,
           "name": "track_id",
           "type": "INTEGER",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 2,
+          "cid": 2,
           "name": "rms",
           "type": "FLOAT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 3,
+          "cid": 3,
           "name": "peak",
           "type": "FLOAT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 4,
+          "cid": 4,
           "name": "lufs",
           "type": "FLOAT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 5,
+          "cid": 5,
           "name": "noise_floor",
           "type": "FLOAT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 6,
+          "cid": 6,
           "name": "dynamic_range",
           "type": "FLOAT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 7,
+          "cid": 7,
           "name": "clipping",
           "type": "INTEGER",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 8,
+          "cid": 8,
           "name": "notes",
           "type": "TEXT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 9,
+          "cid": 9,
           "name": "created_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         }
       ],
-      "indices": [],
-      "approximate_size_bytes": 5734
-    },
-    "shub_fx_chains": {
-      "name": "shub_fx_chains",
-      "row_count": 0,
-      "columns": [
+      "foreign_keys": [
         {
           "id": 0,
+          "seq": 0,
+          "table": "shub_tracks",
+          "from": "track_id",
+          "to": "id",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION",
+          "match": "NONE"
+        }
+      ],
+      "rows": 0,
+      "status": "EMPTY (READY)",
+      "module": "shubniggurath"
+    },
+    {
+      "table": "shub_fx_chains",
+      "columns": [
+        {
+          "cid": 0,
           "name": "id",
           "type": "INTEGER",
-          "nullable": false,
-          "default": null,
-          "primary_key": true
+          "notnull": true,
+          "dflt_value": null,
+          "pk": true
         },
         {
-          "id": 1,
+          "cid": 1,
           "name": "track_id",
           "type": "INTEGER",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 2,
+          "cid": 2,
           "name": "chain_name",
           "type": "VARCHAR(255)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 3,
+          "cid": 3,
           "name": "steps_json",
           "type": "TEXT",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 4,
+          "cid": 4,
           "name": "created_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         }
       ],
-      "indices": [],
-      "approximate_size_bytes": 5734
-    },
-    "shub_presets": {
-      "name": "shub_presets",
-      "row_count": 0,
-      "columns": [
+      "foreign_keys": [
         {
           "id": 0,
+          "seq": 0,
+          "table": "shub_tracks",
+          "from": "track_id",
+          "to": "id",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION",
+          "match": "NONE"
+        }
+      ],
+      "rows": 0,
+      "status": "EMPTY (READY)",
+      "module": "shubniggurath"
+    },
+    {
+      "table": "shub_presets",
+      "columns": [
+        {
+          "cid": 0,
           "name": "id",
           "type": "INTEGER",
-          "nullable": false,
-          "default": null,
-          "primary_key": true
+          "notnull": true,
+          "dflt_value": null,
+          "pk": true
         },
         {
-          "id": 1,
+          "cid": 1,
           "name": "fx_chain_id",
           "type": "INTEGER",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 2,
+          "cid": 2,
           "name": "rpp_snippet",
           "type": "TEXT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 3,
+          "cid": 3,
           "name": "version",
           "type": "VARCHAR(32)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 4,
+          "cid": 4,
           "name": "created_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         }
       ],
-      "indices": [],
-      "approximate_size_bytes": 5734
-    },
-    "shub_projects": {
-      "name": "shub_projects",
-      "row_count": 0,
-      "columns": [
+      "foreign_keys": [
         {
           "id": 0,
+          "seq": 0,
+          "table": "shub_fx_chains",
+          "from": "fx_chain_id",
+          "to": "id",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION",
+          "match": "NONE"
+        }
+      ],
+      "rows": 0,
+      "status": "EMPTY (READY)",
+      "module": "shubniggurath"
+    },
+    {
+      "table": "shub_projects",
+      "columns": [
+        {
+          "cid": 0,
           "name": "id",
           "type": "INTEGER",
-          "nullable": false,
-          "default": null,
-          "primary_key": true
+          "notnull": true,
+          "dflt_value": null,
+          "pk": true
         },
         {
-          "id": 1,
+          "cid": 1,
           "name": "project_id",
           "type": "VARCHAR(64)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 2,
+          "cid": 2,
           "name": "name",
           "type": "VARCHAR(255)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 3,
+          "cid": 3,
           "name": "sample_rate",
           "type": "INTEGER",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 4,
+          "cid": 4,
           "name": "created_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 5,
+          "cid": 5,
           "name": "updated_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         }
       ],
-      "indices": [
-        {
-          "name": "sqlite_autoindex_shub_projects_1",
-          "unique": true,
-          "columns": [
-            "project_id"
-          ]
-        }
-      ],
-      "approximate_size_bytes": 5734
+      "foreign_keys": [],
+      "rows": 0,
+      "status": "EMPTY (READY)",
+      "module": "shubniggurath"
     },
-    "shub_tracks": {
-      "name": "shub_tracks",
-      "row_count": 0,
+    {
+      "table": "shub_tracks",
       "columns": [
         {
-          "id": 0,
+          "cid": 0,
           "name": "id",
           "type": "INTEGER",
-          "nullable": false,
-          "default": null,
-          "primary_key": true
+          "notnull": true,
+          "dflt_value": null,
+          "pk": true
         },
         {
-          "id": 1,
+          "cid": 1,
           "name": "project_id",
           "type": "VARCHAR(64)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 2,
+          "cid": 2,
           "name": "name",
           "type": "VARCHAR(255)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 3,
+          "cid": 3,
           "name": "role",
           "type": "VARCHAR(64)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 4,
+          "cid": 4,
           "name": "file_path",
           "type": "VARCHAR(512)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 5,
+          "cid": 5,
           "name": "duration_sec",
           "type": "FLOAT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 6,
+          "cid": 6,
           "name": "created_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         }
       ],
-      "indices": [],
-      "approximate_size_bytes": 5734
-    },
-    "spawns": {
-      "name": "spawns",
-      "row_count": 0,
-      "columns": [
+      "foreign_keys": [
         {
           "id": 0,
+          "seq": 0,
+          "table": "shub_projects",
+          "from": "project_id",
+          "to": "project_id",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION",
+          "match": "NONE"
+        }
+      ],
+      "rows": 0,
+      "status": "EMPTY (READY)",
+      "module": "shubniggurath"
+    },
+    {
+      "table": "spawns",
+      "columns": [
+        {
+          "cid": 0,
           "name": "id",
           "type": "INTEGER",
-          "nullable": false,
-          "default": null,
-          "primary_key": true
+          "notnull": true,
+          "dflt_value": null,
+          "pk": true
         },
         {
-          "id": 1,
+          "cid": 1,
           "name": "uuid",
           "type": "VARCHAR(36)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 2,
+          "cid": 2,
           "name": "name",
           "type": "VARCHAR(255)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 3,
+          "cid": 3,
           "name": "cmd",
           "type": "VARCHAR(500)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 4,
+          "cid": 4,
           "name": "pid",
           "type": "INTEGER",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 5,
+          "cid": 5,
           "name": "status",
           "type": "VARCHAR(20)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 6,
+          "cid": 6,
           "name": "started_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 7,
+          "cid": 7,
           "name": "ended_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 8,
+          "cid": 8,
           "name": "exit_code",
           "type": "INTEGER",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 9,
+          "cid": 9,
           "name": "stdout",
           "type": "TEXT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 10,
+          "cid": 10,
           "name": "stderr",
           "type": "TEXT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 11,
+          "cid": 11,
           "name": "parent_task_id",
           "type": "VARCHAR(36)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 12,
+          "cid": 12,
           "name": "created_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         }
       ],
-      "indices": [
-        {
-          "name": "sqlite_autoindex_spawns_1",
-          "unique": true,
-          "columns": [
-            "uuid"
-          ]
-        }
-      ],
-      "approximate_size_bytes": 5734
-    },
-    "switch_queue_v2": {
-      "name": "switch_queue_v2",
-      "row_count": 0,
-      "columns": [
+      "foreign_keys": [
         {
           "id": 0,
+          "seq": 0,
+          "table": "tasks",
+          "from": "parent_task_id",
+          "to": "uuid",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION",
+          "match": "NONE"
+        }
+      ],
+      "rows": 0,
+      "status": "EMPTY (READY)",
+      "module": ""
+    },
+    {
+      "table": "switch_queue_v2",
+      "columns": [
+        {
+          "cid": 0,
           "name": "id",
           "type": "INTEGER",
-          "nullable": false,
-          "default": null,
-          "primary_key": true
+          "notnull": true,
+          "dflt_value": null,
+          "pk": true
         },
         {
-          "id": 1,
+          "cid": 1,
           "name": "source",
           "type": "VARCHAR(64)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 2,
+          "cid": 2,
           "name": "priority",
           "type": "INTEGER",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 3,
+          "cid": 3,
           "name": "task_type",
           "type": "VARCHAR(50)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 4,
+          "cid": 4,
           "name": "payload_hash",
           "type": "VARCHAR(64)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 5,
+          "cid": 5,
           "name": "status",
           "type": "VARCHAR(32)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 6,
+          "cid": 6,
           "name": "created_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 7,
+          "cid": 7,
           "name": "started_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 8,
+          "cid": 8,
           "name": "finished_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 9,
+          "cid": 9,
           "name": "result_size",
           "type": "INTEGER",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 10,
+          "cid": 10,
           "name": "error_message",
           "type": "VARCHAR(500)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         }
       ],
-      "indices": [],
-      "approximate_size_bytes": 5734
+      "foreign_keys": [],
+      "rows": 0,
+      "status": "EMPTY (READY)",
+      "module": "switch"
     },
-    "system_events": {
-      "name": "system_events",
-      "row_count": 16,
+    {
+      "table": "system_events",
       "columns": [
         {
-          "id": 0,
+          "cid": 0,
           "name": "id",
           "type": "INTEGER",
-          "nullable": false,
-          "default": null,
-          "primary_key": true
+          "notnull": true,
+          "dflt_value": null,
+          "pk": true
         },
         {
-          "id": 1,
+          "cid": 1,
           "name": "timestamp",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 2,
+          "cid": 2,
           "name": "source",
           "type": "VARCHAR(64)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 3,
+          "cid": 3,
           "name": "event_type",
           "type": "VARCHAR(64)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 4,
+          "cid": 4,
           "name": "payload",
           "type": "TEXT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 5,
+          "cid": 5,
           "name": "severity",
           "type": "VARCHAR(16)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         }
       ],
-      "indices": [],
-      "approximate_size_bytes": 5734
+      "foreign_keys": [],
+      "rows": 20,
+      "status": "ACTIVE",
+      "module": ""
     },
-    "system_state": {
-      "name": "system_state",
-      "row_count": 0,
+    {
+      "table": "system_state",
       "columns": [
         {
-          "id": 0,
+          "cid": 0,
           "name": "id",
           "type": "INTEGER",
-          "nullable": false,
-          "default": null,
-          "primary_key": true
+          "notnull": true,
+          "dflt_value": null,
+          "pk": true
         },
         {
-          "id": 1,
+          "cid": 1,
           "name": "key",
           "type": "VARCHAR(128)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 2,
+          "cid": 2,
           "name": "value",
           "type": "TEXT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 3,
+          "cid": 3,
           "name": "updated_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 4,
+          "cid": 4,
           "name": "memory_pressure",
           "type": "FLOAT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 5,
+          "cid": 5,
           "name": "cpu_pressure",
           "type": "FLOAT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 6,
+          "cid": 6,
           "name": "switch_queue_level",
           "type": "FLOAT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 7,
+          "cid": 7,
           "name": "hermes_update_required",
           "type": "BOOLEAN",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 8,
+          "cid": 8,
           "name": "shub_pipeline_state",
           "type": "VARCHAR(64)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 9,
+          "cid": 9,
           "name": "operator_active",
           "type": "BOOLEAN",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 10,
+          "cid": 10,
           "name": "system_load_score",
           "type": "FLOAT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 11,
+          "cid": 11,
           "name": "model_rotation_state",
           "type": "VARCHAR(128)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 12,
+          "cid": 12,
           "name": "audio_pipeline_state",
           "type": "VARCHAR(128)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 13,
+          "cid": 13,
           "name": "pending_tasks",
           "type": "INTEGER",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 14,
+          "cid": 14,
           "name": "active_children",
           "type": "INTEGER",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 15,
+          "cid": 15,
           "name": "last_operator_activity",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 16,
+          "cid": 16,
           "name": "power_mode",
           "type": "VARCHAR(32)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         }
       ],
-      "indices": [
-        {
-          "name": "sqlite_autoindex_system_state_1",
-          "unique": true,
-          "columns": [
-            "key"
-          ]
-        }
-      ],
-      "approximate_size_bytes": 5734
+      "foreign_keys": [],
+      "rows": 0,
+      "status": "EMPTY (READY)",
+      "module": ""
     },
-    "task_queue": {
-      "name": "task_queue",
-      "row_count": 0,
+    {
+      "table": "task_queue",
       "columns": [
         {
-          "id": 0,
+          "cid": 0,
           "name": "id",
           "type": "INTEGER",
-          "nullable": false,
-          "default": null,
-          "primary_key": true
+          "notnull": true,
+          "dflt_value": null,
+          "pk": true
         },
         {
-          "id": 1,
+          "cid": 1,
           "name": "source",
           "type": "VARCHAR(64)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 2,
+          "cid": 2,
           "name": "priority",
           "type": "INTEGER",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 3,
+          "cid": 3,
           "name": "payload",
           "type": "TEXT",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 4,
+          "cid": 4,
           "name": "status",
           "type": "VARCHAR(32)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 5,
+          "cid": 5,
           "name": "enqueued_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 6,
+          "cid": 6,
           "name": "dequeued_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         }
       ],
-      "indices": [],
-      "approximate_size_bytes": 5734
+      "foreign_keys": [],
+      "rows": 0,
+      "status": "EMPTY (READY)",
+      "module": ""
     },
-    "tasks": {
-      "name": "tasks",
-      "row_count": 0,
+    {
+      "table": "tasks",
       "columns": [
         {
-          "id": 0,
+          "cid": 0,
           "name": "id",
           "type": "INTEGER",
-          "nullable": false,
-          "default": null,
-          "primary_key": true
+          "notnull": true,
+          "dflt_value": null,
+          "pk": true
         },
         {
-          "id": 1,
+          "cid": 1,
           "name": "uuid",
           "type": "VARCHAR(36)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 2,
+          "cid": 2,
           "name": "name",
           "type": "VARCHAR(255)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 3,
+          "cid": 3,
           "name": "module",
           "type": "VARCHAR(50)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 4,
+          "cid": 4,
           "name": "action",
           "type": "VARCHAR(100)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 5,
+          "cid": 5,
           "name": "status",
           "type": "VARCHAR(20)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 6,
+          "cid": 6,
           "name": "created_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 7,
+          "cid": 7,
           "name": "updated_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 8,
+          "cid": 8,
           "name": "result",
           "type": "TEXT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 9,
+          "cid": 9,
           "name": "error",
           "type": "TEXT",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         }
       ],
-      "indices": [
-        {
-          "name": "sqlite_autoindex_tasks_1",
-          "unique": true,
-          "columns": [
-            "uuid"
-          ]
-        }
-      ],
-      "approximate_size_bytes": 5734
+      "foreign_keys": [],
+      "rows": 0,
+      "status": "EMPTY (READY)",
+      "module": ""
     },
-    "tokens_usage": {
-      "name": "tokens_usage",
-      "row_count": 0,
+    {
+      "table": "tokens_usage",
       "columns": [
         {
-          "id": 0,
+          "cid": 0,
           "name": "id",
           "type": "INTEGER",
-          "nullable": false,
-          "default": null,
-          "primary_key": true
+          "notnull": true,
+          "dflt_value": null,
+          "pk": true
         },
         {
-          "id": 1,
+          "cid": 1,
           "name": "token_id",
           "type": "VARCHAR(256)",
-          "nullable": false,
-          "default": null,
-          "primary_key": false
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 2,
+          "cid": 2,
           "name": "used_at",
           "type": "DATETIME",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 3,
+          "cid": 3,
           "name": "used_count",
           "type": "INTEGER",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         },
         {
-          "id": 4,
+          "cid": 4,
           "name": "source",
           "type": "VARCHAR(64)",
-          "nullable": true,
-          "default": null,
-          "primary_key": false
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         }
       ],
-      "indices": [],
-      "approximate_size_bytes": 5734
+      "foreign_keys": [],
+      "rows": 0,
+      "status": "EMPTY (READY)",
+      "module": ""
     }
-  }
+  ]
 }

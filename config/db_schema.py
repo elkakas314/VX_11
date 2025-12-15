@@ -963,6 +963,69 @@ def migrate_legacy_tables(engine=unified_engine):
             _copy_table(engine, legacy, unified_table)
 
 
+# ========== PHASE 3: CLI CONCENTRATOR + FLUZO TABLES ==========
+
+
+class CLIUsageStat(Base):
+    """Usage statistics for CLI calls (Phase 3)."""
+
+    __tablename__ = "cli_usage_stats"
+
+    id = Column(Integer, primary_key=True)
+    provider_id = Column(String(128), nullable=False)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+    success = Column(Boolean, default=False)
+    latency_ms = Column(Integer, default=0)
+    cost_estimated = Column(Float, default=0.0)
+    tokens_estimated = Column(Integer, default=0)
+    error_class = Column(String(100), nullable=True)
+
+
+class CLIOnboardingState(Base):
+    """Onboarding state for CLI providers (Phase 3)."""
+
+    __tablename__ = "cli_onboarding_state"
+
+    id = Column(Integer, primary_key=True)
+    provider_id = Column(String(128), unique=True, nullable=False)
+    state = Column(
+        String(50), default="discovery"
+    )  # discovery | pending | verified | failed
+    notes = Column(Text, nullable=True)
+    last_checked_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class FluzoSignal(Base):
+    """FLUZO telemetry signals (Phase 3)."""
+
+    __tablename__ = "fluzo_signals"
+
+    id = Column(Integer, primary_key=True)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+    cpu_load_1m = Column(Float, default=0.0)
+    mem_pct = Column(Float, default=0.0)
+    on_ac = Column(Boolean, default=True)
+    battery_pct = Column(Integer, nullable=True)
+    profile = Column(
+        String(32), default="balanced"
+    )  # low_power | balanced | performance
+
+
+class RoutingEvent(Base):
+    """Routing decision events (Phase 3)."""
+
+    __tablename__ = "routing_events"
+
+    id = Column(Integer, primary_key=True)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+    trace_id = Column(String(36), nullable=False)
+    route_type = Column(String(50), nullable=False)  # cli | local_model
+    provider_id = Column(String(128), nullable=False)
+    score = Column(Float, default=0.0)
+    reasoning_short = Column(String(255), nullable=True)
+
+
 # Create all tables (solo una vez) y migrar legacy → unificada
 Base.metadata.create_all(unified_engine)
 migrate_legacy_tables(unified_engine)
