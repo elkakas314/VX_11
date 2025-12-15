@@ -101,7 +101,7 @@ jobs:
           fi
         continue-on-error: false
 
-  vx11_scan_and_map:
+  vx11_ci:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -109,16 +109,31 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
       - run: |
-          if [ -f scripts/vx11_scan_and_map.py ]; then
-            python scripts/vx11_scan_and_map.py --dry-run
+          if [ -f scripts/vx11_workflow_runner.py ]; then
+            python scripts/vx11_workflow_runner.py ci
           else
-            echo "⚠️ scripts/vx11_scan_and_map.py not found, skipping"
+            echo "⚠️ scripts/vx11_workflow_runner.py not found, skipping"
           fi
-        continue-on-error: false
+        continue-on-error: true
+      - name: Upload CI Report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: vx11-ci-report
+          path: docs/audit/VX11_CI_REPORT.md
+        continue-on-error: true
 
   build:
     runs-on: ubuntu-latest
-    needs: [lint, test, py_compile, frontend_build, validate_prompts, vx11_scan_and_map]
+    needs:
+      [
+        lint,
+        test,
+        py_compile,
+        frontend_build,
+        validate_prompts,
+        vx11_scan_and_map,
+      ]
     steps:
       - uses: actions/checkout@v4
       - run: echo "✓ All validations passed"

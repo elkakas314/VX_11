@@ -578,6 +578,106 @@ Si detectas:
 
 ---
 
-**Versión:** 7.1  
+## 🤖 AGENTE VX11 — CONFIGURACIÓN AUTO-EJECUTOR
+
+### Arranque Automático (Cada sesión en chat)
+
+El agente VX11 (`.github/agents/vx11.agent.md`) se auto-ejecuta en MODO INSPECTOR:
+
+```bash
+# Terminal (VS Code auto-aprueban comandos seguros):
+python3 scripts/vx11_runtime_truth.py      # Probo 10 servicios (8000-8011)
+python3 scripts/vx11_scan_and_map.py       # Mapeo repo + BD
+```
+
+**Resultado esperado**: Tabla de módulos (OK/BROKEN/UNKNOWN) en chat + reporte en `docs/audit/`
+
+### Modos de Operación (Auto-Detectados)
+
+| Prefijo | Modo | Ejecuta | DeepSeek |
+|---------|------|---------|----------|
+| `status`, `audit`, `map` | **INSPECTOR** | Probes (lectura) | ❌ |
+| `fix`, `validate`, `cleanup` | **LITE** | Cambios <5 archivos | ❌ |
+| `run`, `workflow`, `test` | **FULL** | Multi-archivo + tests | ❌ |
+| `@deepseek:` (exacto) | **REASONING** | Análisis profundo | ✅ |
+
+### Permisos vs Confirmaciones
+
+**Auto-Ejecuta (SIN preguntar)**:
+```
+git status, git diff, git log
+ls, cat, grep, find, du, stat, wc
+python3 scripts/vx11_*
+curl http://127.0.0.1:8000-8020
+docker compose ps, docker compose logs
+python3 -m py_compile
+```
+
+**Necesita "CONFIRMAR: DO_IT"** (destructivas):
+```
+rm, mv, sudo, chmod 777, chown
+docker compose down
+git reset --hard, git clean -fd, git push
+DROP TABLE, DELETE FROM
+tokens.env, .env.local (secretos)
+```
+
+### VS Code Settings (`settings.json`)
+
+```json
+{
+  "chat.tools.terminal.autoApprove": true,
+  "chat.tools.terminal.autoApproveRegex": [
+    "^git\\s+(status|diff|log)",
+    "^python3\\s+scripts/vx11_",
+    "^curl\\s+http://127.0.0.1"
+  ],
+  "chat.tools.terminal.denyList": [
+    "^rm\\s+", "^mv\\s+", "^docker\\s+compose\\s+down",
+    "^git\\s+reset\\s+--hard", "^git\\s+clean\\s+-fd"
+  ]
+}
+```
+
+### Flujo Real de Chat
+
+```
+Usuario: "@vx11 status"
+    ↓
+Agente: Detecta prefijo "status" → MODO INSPECTOR
+  → Ejecuta: python3 scripts/vx11_runtime_truth.py
+  → Analiza: Resultados (7 OK, 3 BROKEN)
+  → Genera: docs/audit/VX11_RUNTIME_TRUTH_REPORT.md
+    ↓
+Chat: Tabla con evidencia + próximos pasos (SIN pedir confirmación)
+```
+
+```
+Usuario: "@vx11 fix imports"
+    ↓
+Agente: Detecta prefijo "fix" → MODO LITE
+  → Pre-check: git diff (SIN aplicar)
+  → Aplica: replace_string_in_file
+  → Post-check: python3 -m py_compile
+  → Log: INSERT copilot_actions_log
+    ↓
+Chat: Cambios aplicados + diferencia visual
+```
+
+```
+Usuario: "@deepseek: cómo integro Hormiguero sin romper Madre?"
+    ↓
+Agente: Detecta "@deepseek:" → MODO REASONING
+  → Activar: deepseek_mode = TRUE
+  → Razonar: Análisis arquitectónico profundo
+  → Log: copilot_actions_log (costo registrado)
+  → Desactivar: deepseek_mode = FALSE
+    ↓
+Chat: Propuesta + opciones + recomendaciones
+```
+
+---
+
+**Versión:** 7.1 + AGENTE AUTO-EJECUTOR  
 **Mantienen:** Copilot + CI + Agentes IA  
-**Última actualización:** 2025-12-14 (Fase 0)
+**Última actualización:** 2025-12-15 (Agente Refinado)

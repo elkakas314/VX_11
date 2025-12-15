@@ -103,6 +103,18 @@ jobs:
                   fi
                   echo "✓ Git status OK"
 
+            - name: VX11 Autosync Runner
+              id: vx11_autosync
+              continue-on-error: true
+              run: |
+                  set -e
+                  python3 -m pip install PyYAML pydantic_settings > /dev/null 2>&1
+                  if [ -f scripts/vx11_workflow_runner.py ]; then
+                    python scripts/vx11_workflow_runner.py autosync
+                  else
+                    echo "⚠️ vx11_workflow_runner.py not found"
+                  fi
+
             - name: Overall Safety Check
               id: check
               run: |

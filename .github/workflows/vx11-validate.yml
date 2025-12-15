@@ -123,6 +123,34 @@ jobs:
                     npm run type-check 2>&1 || echo "⚠️ Type check not available or failed (non-blocking)"
                   fi
 
+    vx11_validate:
+        name: VX11 Validate Runner
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Set up Python 3.11
+              uses: actions/setup-python@v4
+              with:
+                  python-version: "3.11"
+
+            - name: Run VX11 Validator
+              run: |
+                  if [ -f scripts/vx11_workflow_runner.py ]; then
+                    python scripts/vx11_workflow_runner.py validate
+                  else
+                    echo "⚠️ vx11_workflow_runner.py not found"
+                  fi
+              continue-on-error: true
+
+            - name: Upload Validate Report
+              if: always()
+              uses: actions/upload-artifact@v3
+              with:
+                  name: vx11-validate-report
+                  path: docs/audit/VX11_VALIDATE_REPORT.md
+              continue-on-error: true
+
     results:
         name: Validation Results
         runs-on: ubuntu-latest
@@ -132,6 +160,7 @@ jobs:
                 validate_docker,
                 validate_security,
                 validate_frontend,
+                vx11_validate,
             ]
         if: always()
         steps:
@@ -141,12 +170,14 @@ jobs:
                   DOCKER_STATUS="${{ needs.validate_docker.result }}"
                   SECURITY_STATUS="${{ needs.validate_security.result }}"
                   FRONTEND_STATUS="${{ needs.validate_frontend.result }}"
+                  VX11_STATUS="${{ needs.vx11_validate.result }}"
 
                   echo "=== VX11 Validation Summary ==="
                   echo "Python:   $PYTHON_STATUS"
                   echo "Docker:   $DOCKER_STATUS"
                   echo "Security: $SECURITY_STATUS"
                   echo "Frontend: $FRONTEND_STATUS"
+                  echo "VX11:     $VX11_STATUS"
 
                   if [ "$PYTHON_STATUS" = "failure" ]; then
                     echo "❌ VALIDATION FAILED: Python syntax or imports"
