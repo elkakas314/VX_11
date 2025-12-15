@@ -579,6 +579,18 @@ async def metrics_stub(suffix: str = ""):
     return {"status": "ok", "module": "switch", "metrics": "stub", "path": suffix or "/metrics"}
 
 
+@app.post("/switch/debug/select-provider")
+async def debug_select_provider(req: RouteRequest):
+    """Debug endpoint: retorna proveedor seleccionado y su score sin ejecutar herramientas externas."""
+    try:
+        provider = await _pick_provider(req)
+        score = _score_provider(provider) if provider else None
+        return {"provider": provider, "score": score}
+    except Exception as e:
+        write_log("switch", f"debug_select_provider_error:{e}", level="ERROR")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # PASO 3: GA Optimizer endpoints
 @app.get("/switch/ga/status")
 async def ga_status():
