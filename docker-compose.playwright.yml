@@ -1,0 +1,73 @@
+version: "3.9"
+
+# Overlay de docker-compose para agregar Playwright sidecar
+# Ejecutar con: docker-compose -f docker-compose.yml -f docker-compose.playwright.yml up -d
+
+services:
+  # ========== PLAYWRIGHT SIDECAR (PORT 3000) ==========
+  playwright:
+    image: mcr.microsoft.com/playwright:v1.45.0-jammy
+    container_name: vx11-playwright-server
+    hostname: playwright
+    networks:
+      default:
+        aliases:
+          - playwright
+    ports:
+      - "3000:3000"
+    environment:
+      - PLAYWRIGHT_WS_URL=ws://0.0.0.0:3000
+      - BROWSERS=chromium
+      - HEADLESS=true
+    mem_limit: 1024m
+    restart: unless-stopped
+    command: >
+      sh -c "
+        apt-get update &&
+        apt-get install -y wget &&
+        npx -y @playwright/test@latest install-deps chromium &&
+        npx -y @playwright/test@latest install chromium &&
+        python3 -m pytest --version || echo 'pytest not needed' &&
+        python3 -c '
+        import asyncio
+        from playwright.async_api import async_playwright
+
+        async def test_browser():
+            async with async_playwright() as p:
+                browser = await p.chromium.launch()
+                page = await browser.new_page()
+                await page.goto(\"https://example.com\")
+                await page.screenshot(path=\"/tmp/test.png\")
+                await browser.close()
+                print(\"Browser test OK\")
+
+        asyncio.run(test_browser())
+        ' &&
+        exec python3 -m playwright._impl._browser_server
+      "
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ========== OPERATOR BACKEND ACTUALIZADO (conecta a Playwright sidecar) ==========
+  operator:
+    environment:
+      # Enable Playwright integration
+      - VX11_ENABLE_PLAYWRIGHT=1
+      - PLAYWRIGHT_WS_URL=ws://playwright:3000
+      # Browser implementation: "playwright" (remote via WS) or "stub" (for testing)
+      - BROWSER_IMPL=playwright
+      # If BROWSER_IMPL=stub, Playwright is not needed (for testing)
+    depends_on:
+      playwright:
+        condition: service_healthy
+    # Note: operator service already defined in main docker-compose.yml
+    # This overlay extends it with Playwright dependencies
+
+networks:
+  default:
+    name: vx11-network
+    driver: bridge
+
