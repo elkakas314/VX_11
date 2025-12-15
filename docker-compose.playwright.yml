@@ -70,4 +70,3 @@ networks:
   default:
     name: vx11-network
     driver: bridge
-

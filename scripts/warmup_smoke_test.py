@@ -226,6 +226,24 @@ def test_usage_stats_tracking() -> bool:
             db.close()
 
 
+def test_warmup_models() -> bool:
+    """Run warmup for all enabled local models (returns False if none)."""
+    db = None
+    try:
+        db = get_session("vx11")
+        models = db.query(LocalModelV2).filter_by(enabled=True).all()
+        if not models:
+            return False
+        ok = True
+        for m in models:
+            if not test_warmup_model(m.name):
+                ok = False
+        return ok
+    finally:
+        if db:
+            db.close()
+
+
 def main():
     """Run all warmup + rotation tests."""
     print("=" * 70)
@@ -235,25 +253,7 @@ def main():
 
     tests = [
         ("Models registered", test_models_registered),
-        (
-            "Warmup models",
-            lambda: (
-                all(
-                    test_warmup_model(m.name)
-                    for m in (
-                        lambda: (db := get_session("vx11"))
-                        or []
-                        and db.query(LocalModelV2).filter_by(enabled=True).all()
-                    )()
-                )
-                if get_session("vx11")
-                .query(LocalModelV2)
-                .filter_by(enabled=True)
-                .count()
-                > 0
-                else False
-            ),
-        ),
+        ("Warmup models", test_warmup_models),
         ("Rotation eligibility", test_rotation_eligibility),
         ("IA decisions logged", test_ia_decisions_logged),
         ("Usage stats tracking", test_usage_stats_tracking),
