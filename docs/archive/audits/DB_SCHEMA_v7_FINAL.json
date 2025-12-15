@@ -1,0 +1,14 @@
+{
+  "metadata": {
+    "generated_at": "2025-12-15T22:10:13.304989Z",
+    "database_path": "data/runtime/vx11.db",
+    "database_size_mb": 0.2734375,
+    "total_tables": 50
+  },
+  "tables": {
+    "audit_logs": {"name":"audit_logs","row_count":0},
+    "cli_providers": {"name":"cli_providers","row_count":0},
+    "cli_registry": {"name":"cli_registry","row_count":0}
+    /* Full schema truncated in archive copy: original available at docs/audit/DB_SCHEMA_v7_FINAL.json */
+  }
+}
