@@ -23,9 +23,9 @@ from config.db_schema import Base, unified_engine, get_session
 from config.forensics import write_log
 
 
-DB_PATH = Path("/app/data/runtime/vx11.db")
+DB_PATH = Path("data/runtime/vx11.db")
 TARGET_SIZE_MB = 500
-ARCHIVE_DIR = Path("/app/data/backups")
+ARCHIVE_DIR = Path("data/backups")
 
 
 def cleanup_old_forensics(days_old: int = 30) -> int:

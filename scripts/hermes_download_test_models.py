@@ -26,26 +26,26 @@ from config.settings import settings
 from config.forensics import write_log
 
 
-MODELS_PATH = Path(os.getenv("VX11_MODELS_PATH", "/app/models"))
+MODELS_PATH = Path(os.getenv("VX11_MODELS_PATH", "data/models"))
 MODELS_PATH.mkdir(parents=True, exist_ok=True)
 
-# Model registry with HuggingFace URLs
+# Model registry with HuggingFace URLs (using stable fast-download models for testing)
 MODELS = [
     {
-        "name": "mistral-7b-instruct",
-        "url": "https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF/resolve/main/Mistral-7B-Instruct-v0.2.Q4_K_M.gguf",
-        "size_mb": 2236,
+        "name": "tinyllama-1b-q4",
+        "url": "https://huggingface.co/TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF/resolve/main/tinyllama-1.1b-chat-v1.0.Q4_0.gguf",
+        "size_mb": 656,
         "task_type": "chat",
-        "tags": ["mistral", "7b", "instruct", "general-purpose"],
-        "description": "Mistral 7B Instruct, quantized Q4_K_M",
+        "tags": ["tinyllama", "1b", "lightweight", "fast"],
+        "description": "TinyLlama 1.1B Chat, quantized Q4_0",
     },
     {
-        "name": "neural-chat-7b",
-        "url": "https://huggingface.co/TheBloke/neural-chat-7B-v3-3-GGUF/resolve/main/neural-chat-7b-v3-3.Q4_M.gguf",
-        "size_mb": 2048,
+        "name": "llama2-7b-q4",
+        "url": "https://huggingface.co/TheBloke/Llama-2-7B-Chat-GGUF/resolve/main/llama-2-7b-chat.Q4_0.gguf",
+        "size_mb": 3826,
         "task_type": "chat",
-        "tags": ["neural-chat", "7b", "conversational", "lightweight"],
-        "description": "Intel Neural Chat 7B, quantized Q4_M",
+        "tags": ["llama2", "7b", "instruct", "general"],
+        "description": "Llama 2 7B Chat, quantized Q4_0",
     },
 ]
 

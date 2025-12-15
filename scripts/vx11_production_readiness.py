@@ -40,7 +40,7 @@ HEALTH_ENDPOINTS = {
     "operator": ("http://localhost:8011/health", "Operator (UI Backend)"),
 }
 
-DB_PATH = Path("/app/data/runtime/vx11.db")
+DB_PATH = Path("data/runtime/vx11.db")
 TARGET_SIZE_MB = 500
 
 
@@ -368,7 +368,7 @@ def main():
     report_path.parent.mkdir(parents=True, exist_ok=True)
     report_path.write_text(report)
 
-    print(f"\n✓ Report saved to {report_path.relative_to(Path.cwd())}")
+    print(f"\n✓ Report saved to {str(report_path)}")
 
     write_log("vx11_readiness", f"check_complete:ready={is_ok}")
 
