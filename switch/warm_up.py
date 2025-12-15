@@ -8,6 +8,8 @@ Mantiene caché de modelos calientes según prioridades.
 import asyncio
 import logging
 import httpx
+import os
+from config.settings import settings
 from typing import Dict, List, Any, Optional
 from datetime import datetime, timedelta
 import json
@@ -29,6 +31,8 @@ class WarmUpEngine:
         self.warmup_health: Dict[str, str] = {}
         
         self._load_config()
+        # Modo mock para entornos de CI/local: evita llamadas de red costosas
+        self.mock_providers = bool(os.getenv("VX11_MOCK_PROVIDERS", "0") == "1") or getattr(settings, "testing_mode", False)
     
     def _load_config(self):
         """Carga configuración de modelos a precalentar"""
@@ -126,7 +130,11 @@ class WarmUpEngine:
             model_name = model_info.get("name")
             log.info(f"  Precalentando modelo: {model_name}")
             
-            success = await self._warmup_model(model_info)
+            if self.mock_providers:
+                log.info(f"  ~ Mock warm-up enabled: skipping network warmup for {model_info.get('name')}")
+                success = True
+            else:
+                success = await self._warmup_model(model_info)
             self.warmup_health[model_name] = "ready" if success else "failed"
             results[model_name] = "ready" if success else "failed"
         
@@ -139,7 +147,11 @@ class WarmUpEngine:
             cli_name = cli_info.get("name")
             log.info(f"  Precalentando CLI: {cli_name}")
             
-            success = await self._warmup_cli(cli_info)
+            if self.mock_providers:
+                log.info(f"  ~ Mock warm-up enabled: skipping network warmup for CLI {cli_name}")
+                success = True
+            else:
+                success = await self._warmup_cli(cli_info)
             self.warmup_health[cli_name] = "ready" if success else "failed"
             results[cli_name] = "ready" if success else "failed"
         
