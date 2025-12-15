@@ -15,6 +15,8 @@ def run_module_tests(module_path: str):
 if __name__ == "__main__":
     tests = [
         "tests/test_switch_scoring_breaker.py",
+        "tests/test_hermes_registry_db.py",
+        "tests/test_hermes_cli_registry_module.py",
     ]
     failures = []
     for t in tests:
