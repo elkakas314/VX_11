@@ -1,4 +1,9 @@
-# VX11 Hermes Role — Resource Manager
+"""VX11 Hermes Role — Resource Manager
+
+Expose import-safe helpers from the Hermes submodules. Avoid side-effects at
+import time so `from switch.hermes import CLISelector` works during `switch`
+startup and in tests.
+"""
 
 from .cli_registry import CLIRegistry, EngineType, get_cli_registry
 from .hf_scanner import HFScanner, HFModel, get_hf_scanner
