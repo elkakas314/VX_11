@@ -4,7 +4,9 @@ def test_ensure_cli_registry_enqueues_discovery():
     from config.db_schema import Base, CLIRegistry, TaskQueue
 
     # create in-memory DB and tables
-    engine = create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False})
+    engine = create_engine(
+        "sqlite:///:memory:", connect_args={"check_same_thread": False}
+    )
     Base.metadata.create_all(engine)
     Session = sessionmaker(bind=engine)
     s = Session()

@@ -18,13 +18,20 @@ def test_queue_consumer_processes_item():
     Session = sessionmaker
     # create engine + session
     from sqlalchemy import create_engine
+
     engine = create_engine("sqlite:///:memory:")
     Base.metadata.create_all(engine)
     SessionLocal = sessionmaker(bind=engine)
     session = SessionLocal()
 
     # insert one queued item (use required columns)
-    row = SwitchQueueV2(source="test", priority=1, task_type="chat", payload_hash="hash1", status="queued")
+    row = SwitchQueueV2(
+        source="test",
+        priority=1,
+        task_type="chat",
+        payload_hash="hash1",
+        status="queued",
+    )
     session.add(row)
     session.commit()
 

@@ -1,6 +1,0 @@
-Timestamp: 20251214T045248Z
-Exception:
-Traceback (most recent call last):
-  File "/home/elkakas314/vx11/shubniggurath/integrations/vx11_bridge.py", line 304, in batch_submit
-    if result.get("status") == "success":
-AttributeError: 'coroutine' object has no attribute 'get'

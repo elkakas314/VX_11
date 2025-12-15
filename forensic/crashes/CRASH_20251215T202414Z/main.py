@@ -79,18 +79,6 @@ PRIORITY_MAP = {
 }
 
 
-# Mode profiles for adaptive optimization
-MODE_PROFILES = {
-    "ECO": {"cpu_limit": 0.2, "max_models": 5, "timeout": 2000},
-    "BALANCED": {"cpu_limit": 0.5, "max_models": 10, "timeout": 1000},
-    "HIGH-PERF": {"cpu_limit": 0.9, "max_models": 20, "timeout": 500},
-    "CRITICAL": {"cpu_limit": 1.0, "max_models": 30, "timeout": 200},
-}
-
-# Current mode (mutable)
-CURRENT_MODE = "BALANCED"
-
-
 class RouteRequest(BaseModel):
     prompt: str
     metadata: Dict[str, Any] = Field(default_factory=dict)
@@ -283,27 +271,19 @@ class ModelPool:
             session.close()
 
     def register(self, model: ModelState):
-        name = model.name
         if model.size_mb > 2048:
             write_log("switch", f"skip_model_gt_2gb:{model.name}:{model.size_mb}")
             return
-        # Update existing entry
-        if name in self.available:
-            existing = self.available[name]
-            existing.size_mb = model.size_mb
-            existing.category = model.category
-            existing.tags = model.tags or existing.tags
-            existing.kind = model.kind or existing.kind
-            existing.last_used = time.time()
-            return
-
-        # Insert new model state
-        self.available[name] = model
+        if len(self.available) >= self.limit:
+            evicted = next(iter(self.available.keys()))
+            self.available.pop(evicted, None)
+            write_log("switch", f"evicted_model:{evicted}")
+        self.available[model.name] = model
 
     def set_active(self, name: str):
         if name not in self.available:
             raise ValueError("model_not_found")
-        if self.active and self.active in self.available:
+        if self.active:
             self.available[self.active].status = "available"
         self.active = name
         self.available[name].status = "active"
@@ -679,68 +659,13 @@ async def health():
     }
 
 
-@app.get("/switch/context")
-async def switch_context_get():
-    """Return current context: mode, active models, queue stats, token_required."""
-    return {
-        "status": "ok",
-        "mode": CURRENT_MODE,
-        "active_model": models.active,
-        "warm_model": models.warm,
-        "queue_size": len(queue.snapshot()),
-        "token_required": settings.enable_auth,
-    }
-
-
-@app.get("/switch/providers")
-async def switch_providers_list():
-    """Return list of providers: CLI + local + remote with key fields."""
-    session = get_session("vx11")
-    try:
-        cli_rows = session.query(CLIRegistry).filter_by(available=True).all()
-        cli_list = [
-            {
-                "name": r.name,
-                "kind": "cli",
-                "status": "available" if r.available else "unavailable",
-                "rate_limit_daily": r.rate_limit_daily or 0,
-            }
-            for r in cli_rows
-        ]
-    except Exception:
-        cli_list = []
-    finally:
-        session.close()
-
-    local_list = [
-        {"name": m.name, "kind": "local", "status": m.status}
-        for m in models.available.values()
-    ]
-
-    return {"status": "ok", "providers": cli_list + local_list}
-
-
 @app.get("/metrics{suffix:path}")
 async def metrics_stub(suffix: str = ""):
     """Lightweight stub to silence missing metrics probes."""
-    name = (suffix or "/metrics").lstrip("/")
-    if not name:
-        name = "metrics"
-    # Return a small, consistent payload expected by tests
-    unit_map = {
-        "cpu": "percent",
-        "memory": "percent",
-        "queue": "items",
-        "throughput": "requests",
-    }
-    unit = unit_map.get(name, "count")
     return {
         "status": "ok",
         "module": "switch",
-        "metric": name,
-        "value": 0,
-        "unit": unit,
-        "available_mb": 1024 if name == "memory" else None,
+        "metrics": "stub",
         "path": suffix or "/metrics",
     }
 
@@ -755,78 +680,6 @@ async def debug_select_provider(req: RouteRequest):
     except Exception as e:
         write_log("switch", f"debug_select_provider_error:{e}", level="ERROR")
         raise HTTPException(status_code=500, detail=str(e))
-
-
-@app.post("/switch/control")
-async def switch_control(body: Dict[str, Any]):
-    """Control endpoint for switch modes: set_mode, get_mode, list_modes."""
-    action = body.get("action") or body.get("action_type") or body.get("op")
-    if not action:
-        return {"status": "error", "detail": "action_required"}
-
-    if action == "set_mode":
-        mode = body.get("mode")
-        if mode not in MODE_PROFILES:
-            return {"status": "error", "detail": "invalid_mode"}
-        global CURRENT_MODE
-        CURRENT_MODE = mode
-        return {
-            "status": "ok",
-            "mode": CURRENT_MODE,
-            "profile": MODE_PROFILES.get(CURRENT_MODE, {}),
-        }
-
-    if action == "get_mode":
-        return {
-            "status": "ok",
-            "mode": CURRENT_MODE,
-            "profile": MODE_PROFILES.get(CURRENT_MODE, {}),
-        }
-
-    if action == "list_modes":
-        return {"status": "ok", "modes": list(MODE_PROFILES.keys())}
-
-    return {"status": "error", "detail": "unknown_action"}
-
-
-@app.post("/switch/hermes/select_engine")
-async def switch_hermes_select_engine(body: Dict[str, Any]):
-    """Minimal engine selector: pick first available engine or 'hermes_local'."""
-    available = body.get("available_engines") or []
-    selection = available[0] if available else "hermes_local"
-    mode_profile = MODE_PROFILES.get(CURRENT_MODE, {})
-    return {
-        "status": "ok",
-        "engine": selection,
-        "decision": "simple_pick",
-        "mode": CURRENT_MODE,
-        "profile": mode_profile,
-    }
-
-
-@app.post("/switch/hermes/record_result")
-async def switch_hermes_record_result(body: Dict[str, Any]):
-    """Record result feedback from hermes/engines to scoring_state."""
-    engine = body.get("engine")
-    success = bool(body.get("success", True))
-    latency = int(body.get("latency_ms", 0))
-    if engine:
-        _record_scoring(engine, latency, success)
-    return {"status": "ok", "engine": engine, "recorded": True}
-
-
-@app.get("/switch/hermes/status")
-async def switch_hermes_status():
-    return {
-        "status": "ok",
-        "hermes": "available",
-        "mode": CURRENT_MODE,
-        "available_engines": [],
-        "healthy_engines": [
-            {"name": "hermes_local", "status": "healthy", "success_rate": 0.95}
-        ],
-        "metrics": {"cpu": 0.0, "memory": 0.0, "queue_size": 0},
-    }
 
 
 # PASO 3: GA Optimizer endpoints
@@ -1021,11 +874,9 @@ def _score_provider(provider: str) -> float:
     """
     Score combinado: latencia inversa + success rate + disponibilidad throttle/breaker.
     """
-    stats = scoring_state.get(provider, {})
-    success = stats.get("success", 0)
-    fail = stats.get("fail", stats.get("failures", 0))
-    total = success + fail
-    success_rate = success / total if total else 1.0
+    stats = scoring_state.get(provider, {"success": 0, "fail": 0})
+    total = stats["success"] + stats["fail"]
+    success_rate = stats["success"] / total if total else 1.0
     latency = LATENCY_EMA.get(provider, 1000.0)
     latency_score = 1 / max(1.0, latency)
     throttle_ok = _peek_throttle_state(provider)
@@ -1398,32 +1249,13 @@ async def switch_chat(req: ChatRequest):
         )
         _update_chat_stats(routing_decision.primary_engine, success, latency_ms)
 
-        # Normalize `content` in case mocks or implementations return coroutines
-        content_val = ""
-        if isinstance(result, dict):
-            c = result.get("content", "")
-            if asyncio.iscoroutine(c):
-                try:
-                    c = await c
-                except Exception:
-                    c = str(c)
-            content_val = c
-        else:
-            if asyncio.iscoroutine(result):
-                try:
-                    awaited = await result
-                    content_val = str(awaited)
-                except Exception:
-                    content_val = str(result)
-            else:
-                content_val = str(result)
-
         return {
             "status": "ok" if success else "partial",
             "provider": routing_decision.primary_engine,
             "decision": routing_decision.decision.value,
-            "content": content_val,
-            "reply": content_val,
+            "content": (
+                result.get("content", "") if isinstance(result, dict) else str(result)
+            ),
             "latency_ms": latency_ms,
             "reasoning": routing_decision.reasoning,
         }

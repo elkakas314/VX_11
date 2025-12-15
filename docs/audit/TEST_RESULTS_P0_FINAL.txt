@@ -1,0 +1,692 @@
+============================= test session starts ==============================
+platform linux -- Python 3.10.12, pytest-7.4.3, pluggy-1.6.0
+rootdir: /home/elkakas314/vx11
+configfile: pytest.ini
+plugins: cov-7.0.0, asyncio-0.21.1, anyio-3.7.1
+asyncio: mode=auto
+collected 635 items / 504 deselected / 131 selected
+Collected 131 tests.
+
+tests/test_context7_v7.py EE                                             [  1%]
+tests/test_event_validation.py EEE                                       [  3%]
+tests/test_health_smoke.py EE                                            [  5%]
+tests/test_hermes_cli_detection.py E                                     [  6%]
+tests/test_hermes_cli_registry_module.py E                               [  6%]
+tests/test_hermes_registry_db.py E                                       [  7%]
+tests/test_hermes_waveform.py E                                          [  8%]
+tests/test_madre_spawner_v7.py EEE                                       [ 10%]
+tests/test_mcp_switch_integration.py ss                                  [ 12%]
+tests/test_modes_transition.py EEEEEEEEEEE                               [ 20%]
+tests/test_operator_backend_v7.py E                                      [ 21%]
+tests/test_operator_db_schema_v7.py E                                    [ 22%]
+tests/test_operator_switch_hermes_flow.py EE                             [ 23%]
+tests/test_paso7_integration.py EEEEEEE                                  [ 29%]
+tests/test_phase12_fases2_10.py s                                        [ 29%]
+tests/test_pnp_and_integration.py EEE                                    [ 32%]
+tests/test_pnp_and_switch_integration.py EEEEEEEEEEEEEEEEEEEEEE          [ 48%]
+tests/test_reina_logic_v7.py EEEEE                                       [ 52%]
+tests/test_shub_autonomy_e2e.py EEEEEEEEE                                [ 59%]
+tests/test_shubniggurath_complete_suite.py EE                            [ 61%]
+tests/test_shubniggurath_phase2.py EEE                                   [ 63%]
+tests/test_switch_auto.py E                                              [ 64%]
+tests/test_switch_chat_and_breaker.py EE                                 [ 65%]
+tests/test_switch_deepseek.py EE                                         [ 67%]
+tests/test_switch_deepseek_staging.py E                                  [ 67%]
+tests/test_switch_hermes_flow.py EEEE                                    [ 70%]
+tests/test_switch_hermes_shub_pipeline.py EEEEE                          [ 74%]
+tests/test_switch_hermes_v7.py EEEEEEEEEEEEE                             [ 84%]
+tests/test_switch_integration_v7.py EEEEEEEE                             [ 90%]
+tests/test_switch_local.py E                                             [ 91%]
+tests/test_switch_multiauto.py EE                                        [ 93%]
+tests/test_switch_providers.py EE                                        [ 94%]
+tests/test_switch_queue_consumer.py E                                    [ 95%]
+tests/test_switch_registry_enqueue.py E                                  [ 96%]
+tests/test_switch_scoring_breaker.py EE                                  [ 97%]
+tests/test_v2_advanced.py EEE                                            [100%]
+
+==================================== ERRORS ====================================
+____ ERROR at setup of TestContext7SessionAdvanced.test_metadata_for_switch ____
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+__ ERROR at setup of TestContext7ManagerAdvanced.test_get_metadata_for_switch __
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+______ ERROR at setup of TestSwitchTensionEvent.test_valid_switch_tension ______
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_ ERROR at setup of TestSwitchTensionEvent.test_switch_tension_invalid_value_type _
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_ ERROR at setup of TestSwitchTensionEvent.test_switch_tension_invalid_components_type _
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_____________________ ERROR at setup of test_switch_health _____________________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_____________________ ERROR at setup of test_hermes_health _____________________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+___________________ ERROR at setup of test_hermes_available ____________________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_______________ ERROR at setup of test_cli_registry_module_basic _______________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+____________ ERROR at setup of test_model_and_cli_registry_db_crud _____________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_______________ ERROR at setup of test_waveform_and_spectrogram ________________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_ ERROR at setup of TestSwitchIntegration.test_ask_switch_for_intent_refinement _
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+____ ERROR at setup of TestSwitchIntegration.test_call_switch_for_strategy _____
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_ ERROR at setup of TestSwitchIntegration.test_call_switch_for_subtask_timeout _
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+___ ERROR at setup of TestSwitchModeControl.test_switch_control_set_mode_eco ___
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_ ERROR at setup of TestSwitchModeControl.test_switch_control_set_mode_balanced _
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_ ERROR at setup of TestSwitchModeControl.test_switch_control_set_mode_high_perf _
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_ ERROR at setup of TestSwitchModeControl.test_switch_control_set_mode_critical _
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+___ ERROR at setup of TestSwitchModeControl.test_switch_control_invalid_mode ___
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_____ ERROR at setup of TestSwitchModeControl.test_switch_control_get_mode _____
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+____ ERROR at setup of TestSwitchModeControl.test_switch_control_list_modes ____
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+________ ERROR at setup of TestMetricsEndpoints.test_switch_metrics_cpu ________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+______ ERROR at setup of TestMetricsEndpoints.test_switch_metrics_memory _______
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_______ ERROR at setup of TestMetricsEndpoints.test_switch_metrics_queue _______
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+____ ERROR at setup of TestMetricsEndpoints.test_switch_metrics_throughput _____
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_____ ERROR at setup of TestSwitchAdjustment.test_switch_adjustment_track ______
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+____ ERROR at setup of TestOperatorSwitchAdjustment.test_create_adjustment _____
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_________________ ERROR at setup of test_operator_intent_proxy _________________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+____________________ ERROR at setup of test_operator_health ____________________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_ ERROR at setup of TestSwitchIntelligenceLayer.test_intelligence_layer_import _
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_ ERROR at setup of TestSwitchIntelligenceLayer.test_routing_context_creation __
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_____ ERROR at setup of TestSwitchIntelligenceLayer.test_ga_router_import ______
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+___ ERROR at setup of TestSwitchIntelligenceLayer.test_routing_decision_enum ___
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+______ ERROR at setup of TestSwitchChatEndpoint.test_switch_chat_imports _______
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+______ ERROR at setup of TestSwitchTaskEndpoint.test_switch_task_imports _______
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_________ ERROR at setup of TestCompilation.test_switch_main_compiles __________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+___ ERROR at setup of TestSwitchHermesEndpoints.test_select_engine_endpoint ____
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+___ ERROR at setup of TestSwitchHermesEndpoints.test_record_result_endpoint ____
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+___ ERROR at setup of TestSwitchHermesEndpoints.test_hermes_status_endpoint ____
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+___ ERROR at setup of TestContainerStatePnP.test_set_state_valid_transitions ___
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+____ ERROR at setup of TestContainerStatePnP.test_set_state_invalid_module _____
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_____ ERROR at setup of TestContainerStatePnP.test_set_state_invalid_state _____
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+________ ERROR at setup of TestContainerStatePnP.test_state_predicates _________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_________ ERROR at setup of TestContainerStatePnP.test_should_process __________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+________ ERROR at setup of TestContainerStatePnP.test_get_module_lists _________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_________ ERROR at setup of TestContainerStatePnP.test_get_all_states __________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_______ ERROR at setup of TestEngineMetrics.test_metrics_initialization ________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+___________ ERROR at setup of TestEngineMetrics.test_record_success ____________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+____________ ERROR at setup of TestEngineMetrics.test_record_error _____________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+________ ERROR at setup of TestEngineMetrics.test_circuit_breaker_opens ________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+________ ERROR at setup of TestEngineMetrics.test_circuit_breaker_reset ________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_______ ERROR at setup of TestEngineMetrics.test_error_rate_calculation ________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+__ ERROR at setup of TestAdaptiveEngineSelector.test_selector_initialization ___
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+______ ERROR at setup of TestAdaptiveEngineSelector.test_register_engine _______
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+__________ ERROR at setup of TestAdaptiveEngineSelector.test_set_mode __________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+____ ERROR at setup of TestAdaptiveEngineSelector.test_select_engine_basic _____
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_ ERROR at setup of TestAdaptiveEngineSelector.test_select_engine_respects_mode _
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+__ ERROR at setup of TestAdaptiveEngineSelector.test_engine_profiles_defined ___
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+____ ERROR at setup of TestAdaptiveEngineSelector.test_record_engine_result ____
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_________ ERROR at setup of TestAdaptiveEngineSelector.test_get_status _________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_____ ERROR at setup of TestAdaptiveEngineSelector.test_singleton_selector _____
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_ ERROR at setup of TestReinaSwitchConsultation.test_queen_consults_switch_before_acting _
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_ ERROR at setup of TestReinaSwitchConsultation.test_queen_respects_switch_veto _
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_ ERROR at setup of TestReinaSwitchConsultation.test_queen_fallback_when_switch_unavailable _
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_ ERROR at setup of TestReinaSwitchStrategyConsultation.test_queen_consults_switch_for_strategy_on_error_incidents _
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_ ERROR at setup of TestReinaPheromonaEmission.test_feromona_emitted_only_after_switch_approval _
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_ ERROR at setup of TestSwitchShubForwarderAutonomy.test_forwarder_initialization _
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_ ERROR at setup of TestSwitchShubForwarderAutonomy.test_forwarder_routing_decision_analyze _
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_ ERROR at setup of TestSwitchShubForwarderAutonomy.test_forwarder_routing_decision_mastering _
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_ ERROR at setup of TestSwitchShubForwarderAutonomy.test_forwarder_routing_decision_batch _
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_ ERROR at setup of TestSwitchShubForwarderAutonomy.test_forwarder_routing_decision_skip _
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_ ERROR at setup of TestHermesShubRegistrarAutonomy.test_registrar_initialization _
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_ ERROR at setup of TestHermesShubRegistrarAutonomy.test_registrar_register_shub _
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_ ERROR at setup of TestHermesShubRegistrarAutonomy.test_registrar_update_metrics _
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_ ERROR at setup of TestShubAutonomyE2E.test_e2e_workflow_switch_to_shub_to_madre _
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+________ ERROR at setup of TestVX11Integration.test_switch_audio_router ________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_______ ERROR at setup of TestVX11Integration.test_hermes_shub_provider ________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_________________ ERROR at setup of test_switch_audio_routing __________________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_________________ ERROR at setup of test_hermes_shub_provider __________________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_________________ ERROR at setup of test_hermes_eq_generation __________________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+______________ ERROR at setup of test_switch_auto_returns_engine _______________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_________________ ERROR at setup of test_switch_chat_endpoint __________________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_______________ ERROR at setup of test_circuit_breaker_half_open _______________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_ ERROR at setup of test_select_provider_long_prompt_prefers_deepseek_or_local _
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+______ ERROR at setup of test_auto_fallback_to_local_when_no_deepseek_key ______
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_________ ERROR at setup of test_switch_deepseek_fallback_when_no_key __________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+___________ ERROR at setup of test_switch_hermes_infer_calls_execute ___________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+______________ ERROR at setup of test_hermes_execute_prunes_limit ______________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+________________ ERROR at setup of test_spawner_sends_callback _________________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_________________ ERROR at setup of test_shub_execute_contract _________________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+____________________ ERROR at setup of test_priority_order _____________________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+____________________ ERROR at setup of test_should_use_cli _____________________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+____________ ERROR at setup of test_modelpool_rejects_large_models _____________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_________________ ERROR at setup of test_best_models_filtering _________________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+________________ ERROR at setup of test_madre_shub_task_testing ________________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+________ ERROR at setup of TestHermesV7.test_hermes_resources_endpoint _________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+___________ ERROR at setup of TestHermesV7.test_hermes_register_cli ____________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_______ ERROR at setup of TestHermesV7.test_hermes_register_local_model ________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+________ ERROR at setup of TestHermesV7.test_hermes_catalog_json_exists ________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+__________ ERROR at setup of TestSwitchV7.test_switch_task_structure ___________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_______________ ERROR at setup of TestSwitchV7.test_priority_map _______________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+____________ ERROR at setup of TestSwitchV7.test_switch_chat_modes _____________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_______ ERROR at setup of TestDatabaseV7.test_cli_provider_table_exists ________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+______ ERROR at setup of TestDatabaseV7.test_local_model_v2_table_exists _______
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_____ ERROR at setup of TestDatabaseV7.test_model_usage_stat_table_exists ______
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+________ ERROR at setup of TestSettingsV7.test_deepseek_settings_exist _________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+______ ERROR at setup of TestIntegrationFlows.test_switch_to_hermes_flow _______
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_______ ERROR at setup of TestIntegrationFlows.test_priority_queue_logic _______
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+__________ ERROR at setup of TestSwitchClient.test_query_chat_success __________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+__________ ERROR at setup of TestSwitchClient.test_query_task_success __________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+________ ERROR at setup of TestSwitchClient.test_query_chat_http_error _________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+___________ ERROR at setup of TestSwitchClient.test_submit_feedback ____________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+___________ ERROR at setup of TestSwitchClient.test_get_queue_status ___________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+________ ERROR at setup of TestSwitchClientInit.test_client_default_url ________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+________ ERROR at setup of TestSwitchClientInit.test_client_custom_url _________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+______ ERROR at setup of TestSwitchClientInit.test_client_custom_timeout _______
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+__________________ ERROR at setup of test_switch_local_route ___________________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_________________ ERROR at setup of test_select_local_fallback _________________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_______________ ERROR at setup of test_multi_provider_roundtrip ________________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+____________ ERROR at setup of test_select_provider_returns_string _____________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+___________ ERROR at setup of test_select_provider_with_docker_hint ____________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_____________ ERROR at setup of test_queue_consumer_processes_item _____________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+________ ERROR at setup of test_ensure_cli_registry_enqueues_discovery _________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+____________ ERROR at setup of test_circuit_breaker_open_and_reset _____________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_________________ ERROR at setup of test_score_provider_basic __________________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+__________________ ERROR at setup of test_switch_context_get ___________________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_________________ ERROR at setup of test_switch_providers_list _________________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+_________________ ERROR at setup of test_hermes_job_lifecycle __________________
+conftest.py:404: in configure_pytest_timeout
+    import pytest_timeout
+E   ModuleNotFoundError: No module named 'pytest_timeout'
+=========================== short test summary info ============================
+SKIPPED [1] tests/test_mcp_switch_integration.py:13: integration tests require running services
+SKIPPED [1] tests/test_mcp_switch_integration.py:27: integration tests require running services
+SKIPPED [1] tests/test_phase12_fases2_10.py:57: integration tests require running services
+ERROR tests/test_context7_v7.py::TestContext7SessionAdvanced::test_metadata_for_switch
+ERROR tests/test_context7_v7.py::TestContext7ManagerAdvanced::test_get_metadata_for_switch
+ERROR tests/test_event_validation.py::TestSwitchTensionEvent::test_valid_switch_tension
+ERROR tests/test_event_validation.py::TestSwitchTensionEvent::test_switch_tension_invalid_value_type
+ERROR tests/test_event_validation.py::TestSwitchTensionEvent::test_switch_tension_invalid_components_type
+ERROR tests/test_health_smoke.py::test_switch_health - ModuleNotFoundError: N...
+ERROR tests/test_health_smoke.py::test_hermes_health - ModuleNotFoundError: N...
+ERROR tests/test_hermes_cli_detection.py::test_hermes_available - ModuleNotFo...
+ERROR tests/test_hermes_cli_registry_module.py::test_cli_registry_module_basic
+ERROR tests/test_hermes_registry_db.py::test_model_and_cli_registry_db_crud
+ERROR tests/test_hermes_waveform.py::test_waveform_and_spectrogram - ModuleNo...
+ERROR tests/test_madre_spawner_v7.py::TestSwitchIntegration::test_ask_switch_for_intent_refinement
+ERROR tests/test_madre_spawner_v7.py::TestSwitchIntegration::test_call_switch_for_strategy
+ERROR tests/test_madre_spawner_v7.py::TestSwitchIntegration::test_call_switch_for_subtask_timeout
+ERROR tests/test_modes_transition.py::TestSwitchModeControl::test_switch_control_set_mode_eco
+ERROR tests/test_modes_transition.py::TestSwitchModeControl::test_switch_control_set_mode_balanced
+ERROR tests/test_modes_transition.py::TestSwitchModeControl::test_switch_control_set_mode_high_perf
+ERROR tests/test_modes_transition.py::TestSwitchModeControl::test_switch_control_set_mode_critical
+ERROR tests/test_modes_transition.py::TestSwitchModeControl::test_switch_control_invalid_mode
+ERROR tests/test_modes_transition.py::TestSwitchModeControl::test_switch_control_get_mode
+ERROR tests/test_modes_transition.py::TestSwitchModeControl::test_switch_control_list_modes
+ERROR tests/test_modes_transition.py::TestMetricsEndpoints::test_switch_metrics_cpu
+ERROR tests/test_modes_transition.py::TestMetricsEndpoints::test_switch_metrics_memory
+ERROR tests/test_modes_transition.py::TestMetricsEndpoints::test_switch_metrics_queue
+ERROR tests/test_modes_transition.py::TestMetricsEndpoints::test_switch_metrics_throughput
+ERROR tests/test_operator_backend_v7.py::TestSwitchAdjustment::test_switch_adjustment_track
+ERROR tests/test_operator_db_schema_v7.py::TestOperatorSwitchAdjustment::test_create_adjustment
+ERROR tests/test_operator_switch_hermes_flow.py::test_operator_intent_proxy
+ERROR tests/test_operator_switch_hermes_flow.py::test_operator_health - Modul...
+ERROR tests/test_paso7_integration.py::TestSwitchIntelligenceLayer::test_intelligence_layer_import
+ERROR tests/test_paso7_integration.py::TestSwitchIntelligenceLayer::test_routing_context_creation
+ERROR tests/test_paso7_integration.py::TestSwitchIntelligenceLayer::test_ga_router_import
+ERROR tests/test_paso7_integration.py::TestSwitchIntelligenceLayer::test_routing_decision_enum
+ERROR tests/test_paso7_integration.py::TestSwitchChatEndpoint::test_switch_chat_imports
+ERROR tests/test_paso7_integration.py::TestSwitchTaskEndpoint::test_switch_task_imports
+ERROR tests/test_paso7_integration.py::TestCompilation::test_switch_main_compiles
+ERROR tests/test_pnp_and_integration.py::TestSwitchHermesEndpoints::test_select_engine_endpoint
+ERROR tests/test_pnp_and_integration.py::TestSwitchHermesEndpoints::test_record_result_endpoint
+ERROR tests/test_pnp_and_integration.py::TestSwitchHermesEndpoints::test_hermes_status_endpoint
+ERROR tests/test_pnp_and_switch_integration.py::TestContainerStatePnP::test_set_state_valid_transitions
+ERROR tests/test_pnp_and_switch_integration.py::TestContainerStatePnP::test_set_state_invalid_module
+ERROR tests/test_pnp_and_switch_integration.py::TestContainerStatePnP::test_set_state_invalid_state
+ERROR tests/test_pnp_and_switch_integration.py::TestContainerStatePnP::test_state_predicates
+ERROR tests/test_pnp_and_switch_integration.py::TestContainerStatePnP::test_should_process
+ERROR tests/test_pnp_and_switch_integration.py::TestContainerStatePnP::test_get_module_lists
+ERROR tests/test_pnp_and_switch_integration.py::TestContainerStatePnP::test_get_all_states
+ERROR tests/test_pnp_and_switch_integration.py::TestEngineMetrics::test_metrics_initialization
+ERROR tests/test_pnp_and_switch_integration.py::TestEngineMetrics::test_record_success
+ERROR tests/test_pnp_and_switch_integration.py::TestEngineMetrics::test_record_error
+ERROR tests/test_pnp_and_switch_integration.py::TestEngineMetrics::test_circuit_breaker_opens
+ERROR tests/test_pnp_and_switch_integration.py::TestEngineMetrics::test_circuit_breaker_reset
+ERROR tests/test_pnp_and_switch_integration.py::TestEngineMetrics::test_error_rate_calculation
+ERROR tests/test_pnp_and_switch_integration.py::TestAdaptiveEngineSelector::test_selector_initialization
+ERROR tests/test_pnp_and_switch_integration.py::TestAdaptiveEngineSelector::test_register_engine
+ERROR tests/test_pnp_and_switch_integration.py::TestAdaptiveEngineSelector::test_set_mode
+ERROR tests/test_pnp_and_switch_integration.py::TestAdaptiveEngineSelector::test_select_engine_basic
+ERROR tests/test_pnp_and_switch_integration.py::TestAdaptiveEngineSelector::test_select_engine_respects_mode
+ERROR tests/test_pnp_and_switch_integration.py::TestAdaptiveEngineSelector::test_engine_profiles_defined
+ERROR tests/test_pnp_and_switch_integration.py::TestAdaptiveEngineSelector::test_record_engine_result
+ERROR tests/test_pnp_and_switch_integration.py::TestAdaptiveEngineSelector::test_get_status
+ERROR tests/test_pnp_and_switch_integration.py::TestAdaptiveEngineSelector::test_singleton_selector
+ERROR tests/test_reina_logic_v7.py::TestReinaSwitchConsultation::test_queen_consults_switch_before_acting
+ERROR tests/test_reina_logic_v7.py::TestReinaSwitchConsultation::test_queen_respects_switch_veto
+ERROR tests/test_reina_logic_v7.py::TestReinaSwitchConsultation::test_queen_fallback_when_switch_unavailable
+ERROR tests/test_reina_logic_v7.py::TestReinaSwitchStrategyConsultation::test_queen_consults_switch_for_strategy_on_error_incidents
+ERROR tests/test_reina_logic_v7.py::TestReinaPheromonaEmission::test_feromona_emitted_only_after_switch_approval
+ERROR tests/test_shub_autonomy_e2e.py::TestSwitchShubForwarderAutonomy::test_forwarder_initialization
+ERROR tests/test_shub_autonomy_e2e.py::TestSwitchShubForwarderAutonomy::test_forwarder_routing_decision_analyze
+ERROR tests/test_shub_autonomy_e2e.py::TestSwitchShubForwarderAutonomy::test_forwarder_routing_decision_mastering
+ERROR tests/test_shub_autonomy_e2e.py::TestSwitchShubForwarderAutonomy::test_forwarder_routing_decision_batch
+ERROR tests/test_shub_autonomy_e2e.py::TestSwitchShubForwarderAutonomy::test_forwarder_routing_decision_skip
+ERROR tests/test_shub_autonomy_e2e.py::TestHermesShubRegistrarAutonomy::test_registrar_initialization
+ERROR tests/test_shub_autonomy_e2e.py::TestHermesShubRegistrarAutonomy::test_registrar_register_shub
+ERROR tests/test_shub_autonomy_e2e.py::TestHermesShubRegistrarAutonomy::test_registrar_update_metrics
+ERROR tests/test_shub_autonomy_e2e.py::TestShubAutonomyE2E::test_e2e_workflow_switch_to_shub_to_madre
+ERROR tests/test_shubniggurath_complete_suite.py::TestVX11Integration::test_switch_audio_router
+ERROR tests/test_shubniggurath_complete_suite.py::TestVX11Integration::test_hermes_shub_provider
+ERROR tests/test_shubniggurath_phase2.py::test_switch_audio_routing - ModuleN...
+ERROR tests/test_shubniggurath_phase2.py::test_hermes_shub_provider - ModuleN...
+ERROR tests/test_shubniggurath_phase2.py::test_hermes_eq_generation - ModuleN...
+ERROR tests/test_switch_auto.py::test_switch_auto_returns_engine - ModuleNotF...
+ERROR tests/test_switch_chat_and_breaker.py::test_switch_chat_endpoint - Modu...
+ERROR tests/test_switch_chat_and_breaker.py::test_circuit_breaker_half_open
+ERROR tests/test_switch_deepseek.py::test_select_provider_long_prompt_prefers_deepseek_or_local
+ERROR tests/test_switch_deepseek.py::test_auto_fallback_to_local_when_no_deepseek_key
+ERROR tests/test_switch_deepseek_staging.py::test_switch_deepseek_fallback_when_no_key
+ERROR tests/test_switch_hermes_flow.py::test_switch_hermes_infer_calls_execute
+ERROR tests/test_switch_hermes_flow.py::test_hermes_execute_prunes_limit - Mo...
+ERROR tests/test_switch_hermes_flow.py::test_spawner_sends_callback - ModuleN...
+ERROR tests/test_switch_hermes_flow.py::test_shub_execute_contract - ModuleNo...
+ERROR tests/test_switch_hermes_shub_pipeline.py::test_priority_order - Module...
+ERROR tests/test_switch_hermes_shub_pipeline.py::test_should_use_cli - Module...
+ERROR tests/test_switch_hermes_shub_pipeline.py::test_modelpool_rejects_large_models
+ERROR tests/test_switch_hermes_shub_pipeline.py::test_best_models_filtering
+ERROR tests/test_switch_hermes_shub_pipeline.py::test_madre_shub_task_testing
+ERROR tests/test_switch_hermes_v7.py::TestHermesV7::test_hermes_resources_endpoint
+ERROR tests/test_switch_hermes_v7.py::TestHermesV7::test_hermes_register_cli
+ERROR tests/test_switch_hermes_v7.py::TestHermesV7::test_hermes_register_local_model
+ERROR tests/test_switch_hermes_v7.py::TestHermesV7::test_hermes_catalog_json_exists
+ERROR tests/test_switch_hermes_v7.py::TestSwitchV7::test_switch_task_structure
+ERROR tests/test_switch_hermes_v7.py::TestSwitchV7::test_priority_map - Modul...
+ERROR tests/test_switch_hermes_v7.py::TestSwitchV7::test_switch_chat_modes - ...
+ERROR tests/test_switch_hermes_v7.py::TestDatabaseV7::test_cli_provider_table_exists
+ERROR tests/test_switch_hermes_v7.py::TestDatabaseV7::test_local_model_v2_table_exists
+ERROR tests/test_switch_hermes_v7.py::TestDatabaseV7::test_model_usage_stat_table_exists
+ERROR tests/test_switch_hermes_v7.py::TestSettingsV7::test_deepseek_settings_exist
+ERROR tests/test_switch_hermes_v7.py::TestIntegrationFlows::test_switch_to_hermes_flow
+ERROR tests/test_switch_hermes_v7.py::TestIntegrationFlows::test_priority_queue_logic
+ERROR tests/test_switch_integration_v7.py::TestSwitchClient::test_query_chat_success
+ERROR tests/test_switch_integration_v7.py::TestSwitchClient::test_query_task_success
+ERROR tests/test_switch_integration_v7.py::TestSwitchClient::test_query_chat_http_error
+ERROR tests/test_switch_integration_v7.py::TestSwitchClient::test_submit_feedback
+ERROR tests/test_switch_integration_v7.py::TestSwitchClient::test_get_queue_status
+ERROR tests/test_switch_integration_v7.py::TestSwitchClientInit::test_client_default_url
+ERROR tests/test_switch_integration_v7.py::TestSwitchClientInit::test_client_custom_url
+ERROR tests/test_switch_integration_v7.py::TestSwitchClientInit::test_client_custom_timeout
+ERROR tests/test_switch_local.py::test_switch_local_route - ModuleNotFoundErr...
+ERROR tests/test_switch_multiauto.py::test_select_local_fallback - ModuleNotF...
+ERROR tests/test_switch_multiauto.py::test_multi_provider_roundtrip - ModuleN...
+ERROR tests/test_switch_providers.py::test_select_provider_returns_string - M...
+ERROR tests/test_switch_providers.py::test_select_provider_with_docker_hint
+ERROR tests/test_switch_queue_consumer.py::test_queue_consumer_processes_item
+ERROR tests/test_switch_registry_enqueue.py::test_ensure_cli_registry_enqueues_discovery
+ERROR tests/test_switch_scoring_breaker.py::test_circuit_breaker_open_and_reset
+ERROR tests/test_switch_scoring_breaker.py::test_score_provider_basic - Modul...
+ERROR tests/test_v2_advanced.py::test_switch_context_get - ModuleNotFoundErro...
+ERROR tests/test_v2_advanced.py::test_switch_providers_list - ModuleNotFoundE...
+ERROR tests/test_v2_advanced.py::test_hermes_job_lifecycle - ModuleNotFoundEr...
+========= 3 skipped, 504 deselected, 10 warnings, 128 errors in 9.96s ==========

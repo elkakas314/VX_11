@@ -6,25 +6,62 @@ Evita cuelgues y permite tests independientes de servicios externos.
 import pytest
 import asyncio
 import os
+import sys
 from unittest.mock import Mock, AsyncMock, patch, MagicMock
 from pathlib import Path
 import types
+
+
+# ============= ENSURE EVENT LOOP (ROBUST) =============
+# This must run BEFORE any other imports that might use asyncio
+def _ensure_event_loop():
+    """Ensure an event loop exists for the main thread (pytest safe)."""
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        # No running loop; create one
+        if sys.platform == "win32":
+            asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+
+
+_ensure_event_loop()
+
+
+@pytest.fixture(autouse=True)
+def _ensure_event_loop_per_test():
+    """Ensure event loop exists before each test."""
+    _ensure_event_loop()
+    yield
+
 
 # Provide a lightweight stub for shubniggurath.main so tests importing it
 # during collection get a predictable FastAPI `app` and DSPPipelineFull class.
 try:
     from fastapi import FastAPI, Request
     from fastapi.responses import JSONResponse
+
     shub_mod = types.ModuleType("shubniggurath.main")
     shub_app = FastAPI(title="shubniggurath-stub")
 
     @shub_app.get("/health")
     def _health():
-        return {"module": "shubniggurath", "status": "healthy", "version": "7.0-stub", "timestamp": "stub"}
+        return {
+            "module": "shubniggurath",
+            "status": "healthy",
+            "version": "7.0-stub",
+            "timestamp": "stub",
+        }
 
     @shub_app.get("/ready")
     def _ready():
-        return {"status": "ok", "ready": True, "dsp_ready": True, "vx11_bridge_ready": True}
+        return {
+            "status": "ok",
+            "ready": True,
+            "dsp_ready": True,
+            "vx11_bridge_ready": True,
+        }
 
     @shub_app.post("/analyze")
     async def _analyze(req: Request):
@@ -63,6 +100,19 @@ try:
             return JSONResponse(status_code=422, content={"error": "missing_files"})
         return JSONResponse(status_code=200, content={"batch_id": "stub_batch_1"})
 
+    @shub_app.post("/shub/execute")
+    async def _shub_execute(req: Request):
+        # Minimal contract-compatible stub for tests expecting /shub/execute
+        # Accept any JSON payload and return a standard stub response.
+        try:
+            payload = await req.json()
+        except Exception:
+            payload = {}
+        return JSONResponse(
+            status_code=200,
+            content={"status": "stub", "engine": "shub", "payload_received": payload},
+        )
+
     @shub_app.get("/reaper/projects")
     async def _reaper_projects(req: Request):
         if req.headers.get("X-VX11-Token") is None:
@@ -72,6 +122,7 @@ try:
     class DSPPipelineFull:
         def __init__(self, *a, **k):
             pass
+
         async def run(self, *a, **k):
             return {"status": "ok"}
 
@@ -79,6 +130,7 @@ try:
     shub_mod.DSPPipelineFull = DSPPipelineFull
     # Insert into sys.modules so `from shubniggurath.main import app` works
     import sys
+
     sys.modules["shubniggurath.main"] = shub_mod
     # Also expose a top-level 'shubniggurath' package module with attribute 'main'
     if "shubniggurath" not in sys.modules:
@@ -98,12 +150,17 @@ except Exception:
 
 # ============ CONFIGURACIÓN GLOBAL ==========
 
+
 def pytest_configure(config):
     """Registra marcadores personalizados."""
     config.addinivalue_line("markers", "slow: marca tests lentos (requieren timeout)")
-    config.addinivalue_line("markers", "integration: tests de integración entre módulos")
+    config.addinivalue_line(
+        "markers", "integration: tests de integración entre módulos"
+    )
     config.addinivalue_line("markers", "smoke: tests rápidos de salud (health checks)")
-    config.addinivalue_line("markers", "requires_service: test que necesita servicio externo")
+    config.addinivalue_line(
+        "markers", "requires_service: test que necesita servicio externo"
+    )
 
 
 def pytest_collection_modifyitems(config, items):
@@ -118,6 +175,7 @@ def pytest_collection_modifyitems(config, items):
 
 
 # ============ FIXTURES GLOBALES ==========
+
 
 @pytest.fixture(scope="session")
 def event_loop():
@@ -154,6 +212,7 @@ def mock_settings_for_tests(monkeypatch):
 @pytest.fixture
 def mock_httpx_client():
     """Mock de httpx.AsyncClient para evitar requests reales."""
+
     async def mock_post(*args, **kwargs):
         response = AsyncMock()
         response.status_code = 200
@@ -171,7 +230,7 @@ def mock_httpx_client():
     mock_client.get = mock_get
     mock_client.__aenter__ = AsyncMock(return_value=mock_client)
     mock_client.__aexit__ = AsyncMock(return_value=None)
-    
+
     return mock_client
 
 
@@ -179,7 +238,11 @@ def mock_httpx_client():
 def mock_db_session():
     """Mock de BD session para tests (no toca SQLite real)."""
     session = MagicMock()
-    session.query = MagicMock(return_value=MagicMock(filter=MagicMock(return_value=MagicMock(first=MagicMock(return_value=None)))))
+    session.query = MagicMock(
+        return_value=MagicMock(
+            filter=MagicMock(return_value=MagicMock(first=MagicMock(return_value=None)))
+        )
+    )
     session.add = MagicMock()
     session.commit = MagicMock()
     session.close = MagicMock()
@@ -218,20 +281,21 @@ def mock_operator_health():
 
 # ============ FIXTURES PARA MOCKING SERVICIOS ==========
 
+
 @pytest.fixture
 def patch_httpx_for_health_checks(monkeypatch):
     """Parchea httpx para que health checks no cuelguen."""
     import httpx
-    
+
     original_get = httpx.get
     original_post = httpx.post
-    
+
     def mock_get_with_timeout(url, *args, **kwargs):
         """GET con timeout corto y fallback."""
-        timeout = kwargs.get('timeout', 5)
+        timeout = kwargs.get("timeout", 5)
         try:
             # Si la URL es localhost, retornar mock; si no, dejar fallar rápido
-            if '127.0.0.1' in url or 'localhost' in url:
+            if "127.0.0.1" in url or "localhost" in url:
                 response = Mock()
                 response.status_code = 200
                 response.json = lambda: {"status": "healthy"}
@@ -240,12 +304,12 @@ def patch_httpx_for_health_checks(monkeypatch):
                 raise httpx.ConnectError("Mock: no connection")
         except Exception:
             raise httpx.ConnectError("Mock: connection failed")
-    
+
     def mock_post_with_timeout(url, *args, **kwargs):
         """POST con timeout corto y fallback."""
-        timeout = kwargs.get('timeout', 5)
+        timeout = kwargs.get("timeout", 5)
         try:
-            if '127.0.0.1' in url or 'localhost' in url:
+            if "127.0.0.1" in url or "localhost" in url:
                 response = Mock()
                 response.status_code = 200
                 response.json = lambda: {"status": "ok"}
@@ -254,7 +318,7 @@ def patch_httpx_for_health_checks(monkeypatch):
                 raise httpx.ConnectError("Mock: no connection")
         except Exception:
             raise httpx.ConnectError("Mock: connection failed")
-    
+
     monkeypatch.setattr(httpx, "get", mock_get_with_timeout)
     monkeypatch.setattr(httpx, "post", mock_post_with_timeout)
 
@@ -263,9 +327,9 @@ def patch_httpx_for_health_checks(monkeypatch):
 def patch_asyncio_timeout(monkeypatch):
     """Asegura que asyncio.wait_for no bloquee indefinidamente."""
     import asyncio as asyncio_mod
-    
+
     original_wait_for = asyncio_mod.wait_for
-    
+
     async def mock_wait_for(aw, timeout=None, **kwargs):
         """wait_for con timeout máximo de 10s."""
         if timeout is None or timeout > 10:
@@ -274,11 +338,12 @@ def patch_asyncio_timeout(monkeypatch):
             return await original_wait_for(aw, timeout, **kwargs)
         except asyncio_mod.TimeoutError:
             raise asyncio_mod.TimeoutError(f"Test timeout after {timeout}s")
-    
+
     monkeypatch.setattr(asyncio_mod, "wait_for", mock_wait_for)
 
 
 # ============ FIXTURES DE LIMPIEZA ==========
+
 
 @pytest.fixture(autouse=True)
 def cleanup_after_test():
@@ -286,6 +351,7 @@ def cleanup_after_test():
     yield
     # Limpiar handlers de logging, conexiones pendientes, etc.
     import gc
+
     gc.collect()
 
 
@@ -299,33 +365,39 @@ def temp_models_dir(tmp_path):
 
 # ============ FIXTURES DE TESTCLIENT ==========
 
+
 @pytest.fixture
 def test_client_with_timeout():
     """TestClient de FastAPI con timeout corto."""
     from fastapi.testclient import TestClient
-    
+
     def create_client(app, timeout=5):
         client = TestClient(app, timeout=timeout)
         return client
-    
+
     return create_client
 
 
 # ============ FIXTURES PARA MOCKING BD ==========
 
+
 @pytest.fixture
 def mock_get_session(monkeypatch):
     """Mockea `get_session` para retornar sesión fake."""
     from unittest.mock import MagicMock
-    
+
     def fake_get_session(db_name="vx11"):
         session = MagicMock()
-        session.query = MagicMock(return_value=MagicMock(all=MagicMock(return_value=[]), first=MagicMock(return_value=None)))
+        session.query = MagicMock(
+            return_value=MagicMock(
+                all=MagicMock(return_value=[]), first=MagicMock(return_value=None)
+            )
+        )
         session.add = MagicMock()
         session.commit = MagicMock()
         session.close = MagicMock()
         return session
-    
+
     # Parchear en todos los módulos posibles
     monkeypatch.setattr("config.db_schema.get_session", fake_get_session)
     return fake_get_session
@@ -333,23 +405,26 @@ def mock_get_session(monkeypatch):
 
 # ============ PYTEST INI CONFIG EQUIVALENTE ==========
 
+
 @pytest.fixture(scope="session", autouse=True)
 def configure_pytest_timeout():
-    """Configura timeouts globales."""
-    import pytest_timeout
-    # Esto se configura mejor en pytest.ini, pero aquí es un fallback
+    """Placeholder fixture (pytest-timeout not installed)."""
+    pass
 
 
 # ============ MARKERS PARA SALTAR TESTS PROBLEMÁTICOS ==========
 
+
 def pytest_runtest_setup(item):
     """Salta tests si servicios no están disponibles."""
     import sys
-    
+
     # Si ejecutamos en CI/CD sin servicios reales, marcar tests como xfail
     if "CI" in os.environ or "GITHUB_ACTIONS" in os.environ:
         if item.get_closest_marker("integration"):
-            item.add_marker(pytest.mark.xfail(reason="Integration test requires real services"))
+            item.add_marker(
+                pytest.mark.xfail(reason="Integration test requires real services")
+            )
 
 
 @pytest.fixture(autouse=True)
@@ -365,12 +440,16 @@ def mock_external_clients(monkeypatch, mock_httpx_client):
     class DummyAsyncClient:
         def __init__(self, *a, **k):
             pass
+
         async def __aenter__(self):
             return mock_httpx_client
+
         async def __aexit__(self, exc_type, exc, tb):
             return False
+
         async def post(self, *a, **k):
             return await mock_httpx_client.post(*a, **k)
+
         async def get(self, *a, **k):
             return await mock_httpx_client.get(*a, **k)
 
@@ -385,18 +464,23 @@ def mock_external_clients(monkeypatch, mock_httpx_client):
         class R:
             status_code = 200
             text = "OK"
+
             def json(self_inner):
                 return {"status": "ok", "url": str(url)}
+
         return R()
 
     try:
-        monkeypatch.setattr(requests.sessions.Session, "request", mock_requests_request, raising=False)
+        monkeypatch.setattr(
+            requests.sessions.Session, "request", mock_requests_request, raising=False
+        )
     except Exception:
         pass
 
     # Patch TestClient.post to accept legacy 'content_type' kw used by tests
     try:
         from fastapi.testclient import TestClient as _TestClient
+
         _orig_post = _TestClient.post
 
         def _post_with_content_type(self, url, *a, content_type=None, **kw):
@@ -413,13 +497,17 @@ def mock_external_clients(monkeypatch, mock_httpx_client):
     # Websockets: provide a lightweight dummy connect
     try:
         import websockets
+
         class DummyWS:
             async def __aenter__(self):
                 return self
+
             async def __aexit__(self, exc_type, exc, tb):
                 return False
+
             async def send(self, msg):
                 return None
+
             async def recv(self):
                 return '{"type":"mock_pong"}'
 
@@ -438,21 +526,34 @@ def mock_external_clients(monkeypatch, mock_httpx_client):
     class FakeBrowserClient:
         def __init__(self, *a, **k):
             pass
+
         async def navigate(self, url):
-            return {"status": "completed", "screenshot_path": None, "text_snippet": "mocked"}
+            return {
+                "status": "completed",
+                "screenshot_path": None,
+                "text_snippet": "mocked",
+            }
 
     # Patch likely import locations
     try:
-        monkeypatch.setattr("operator_backend.backend.SwitchClient", FakeSwitchClient, raising=False)
+        monkeypatch.setattr(
+            "operator_backend.backend.SwitchClient", FakeSwitchClient, raising=False
+        )
     except Exception:
         pass
     try:
-        monkeypatch.setattr("operator_backend.backend.BrowserClient", FakeBrowserClient, raising=False)
+        monkeypatch.setattr(
+            "operator_backend.backend.BrowserClient", FakeBrowserClient, raising=False
+        )
     except Exception:
         pass
 
     # Also attempt to patch modules that may import SwitchClient elsewhere
-    for path in ("switch.switch_client.SwitchClient", "switch.SwitchClient", "SwitchClient"):
+    for path in (
+        "switch.switch_client.SwitchClient",
+        "switch.SwitchClient",
+        "SwitchClient",
+    ):
         try:
             monkeypatch.setattr(path, FakeSwitchClient, raising=False)
         except Exception:
@@ -463,8 +564,10 @@ def mock_external_clients(monkeypatch, mock_httpx_client):
 
 # ============ PROGRESS REPORTER HOOKS ============
 import sys
+
 _TOTAL_TESTS = {"count": 0}
 _DONE = {"count": 0}
+
 
 def pytest_collection_finish(session):
     _TOTAL_TESTS["count"] = len(session.items)

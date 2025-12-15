@@ -8,6 +8,8 @@ import sys
 import urllib.request
 
 URL = "http://127.0.0.1:8002/switch/debug/select-provider"
+# Default token used by VX11 in local/dev setups
+TOKEN = "vx11-token-production"
 
 payload = {
     "prompt": "Prueba E2E: seleccionar proveedor",
@@ -18,7 +20,8 @@ payload = {
 
 def main():
     data = json.dumps(payload).encode("utf-8")
-    req = urllib.request.Request(URL, data=data, headers={"Content-Type": "application/json"}, method="POST")
+    headers = {"Content-Type": "application/json", "X-VX11-Token": TOKEN}
+    req = urllib.request.Request(URL, data=data, headers=headers, method="POST")
     try:
         with urllib.request.urlopen(req, timeout=10) as resp:
             body = resp.read().decode("utf-8")

@@ -3,6 +3,7 @@
 Reads from `switch_queue_v2` (SQLAlchemy model) in small batches and updates
 status. Designed for low CPU usage and safe retries.
 """
+
 from datetime import datetime, timedelta
 import time
 from typing import Callable, Optional, List
@@ -14,7 +15,12 @@ from config.db_schema import SwitchQueueV2, get_session
 
 
 class QueueConsumer:
-    def __init__(self, session_factory: Callable[[], Session] = get_session, batch: int = 5, poll_interval: float = 0.5):
+    def __init__(
+        self,
+        session_factory: Callable[[], Session] = get_session,
+        batch: int = 5,
+        poll_interval: float = 0.5,
+    ):
         self.session_factory = session_factory
         self.batch = batch
         self.poll_interval = poll_interval
@@ -24,7 +30,12 @@ class QueueConsumer:
         self._stopped = True
 
     def _fetch_batch(self, session: Session) -> List[SwitchQueueV2]:
-        stmt = select(SwitchQueueV2).where(SwitchQueueV2.status == "queued").order_by(SwitchQueueV2.priority.asc(), SwitchQueueV2.created_at.asc()).limit(self.batch)
+        stmt = (
+            select(SwitchQueueV2)
+            .where(SwitchQueueV2.status == "queued")
+            .order_by(SwitchQueueV2.priority.asc(), SwitchQueueV2.created_at.asc())
+            .limit(self.batch)
+        )
         return session.execute(stmt).scalars().all()
 
     def _mark_dequeued(self, session: Session, row: SwitchQueueV2):
@@ -48,10 +59,53 @@ class QueueConsumer:
         session.commit()
 
     def process_item(self, session: Session, row: SwitchQueueV2):
-        """Override or monkeypatch in tests. Default simulates quick processing."""
-        # Simulate work: just mark done
-        time.sleep(0.01)
-        return {"ok": True}
+        """Process a single SwitchQueueV2 row.
+
+        By default this calls the local `/switch/task` endpoint to execute the
+        structured task. If `VX11_MOCK_PROVIDERS=1` or `settings.testing_mode`
+        is set, the call is mocked and a synthetic success result is returned.
+
+        Designed to be safe for local testing (no heavy downloads) and to
+        persist minimal result metadata back to the DB via the caller.
+        """
+        import os
+        import json
+
+        try:
+            mock = os.getenv("VX11_MOCK_PROVIDERS", "0") == "1"
+            # Avoid importing settings at module import time
+            from config.settings import settings
+
+            if mock or getattr(settings, "testing_mode", False):
+                # Lightweight mocked response
+                time.sleep(0.01)
+                return {"status": "ok", "mock": True, "content": "mocked"}
+
+            # Call local switch/task HTTP endpoint (assumes same host)
+            import http.client
+            import urllib.parse
+
+            host = "127.0.0.1"
+            port = 8002
+            conn = http.client.HTTPConnection(host, port, timeout=30)
+            payload = json.dumps(
+                {
+                    "task_type": row.task_type or "general",
+                    "payload": {"payload_hash": row.payload_hash},
+                    "source": row.source or "operator",
+                }
+            )
+            headers = {"Content-Type": "application/json"}
+            conn.request("POST", "/switch/task", body=payload, headers=headers)
+            resp = conn.getresponse()
+            body = resp.read().decode("utf-8")
+            try:
+                return json.loads(body)
+            except Exception:
+                return {"status": "error", "raw": body, "code": resp.status}
+        except Exception as e:
+            # Never raise to keep consumer loop stable
+            return {"status": "error", "error": str(e)}
 
     def run_once(self) -> int:
         """Fetch and process a single batch; return number processed."""
