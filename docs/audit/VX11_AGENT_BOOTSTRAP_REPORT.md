@@ -1,13 +1,13 @@
 # VX11 Agent Bootstrap Report
 
-**Generated:** 2025-12-15T05:08:44.389242Z  
+**Generated:** 2025-12-15T09:46:11.000392Z  
 **Repo:** /home/elkakas314/vx11  
 **DB:** /home/elkakas314/vx11/data/runtime/vx11.db
 
 ## Canonical Paths
 
-- ✓ Found: 8 files
-- ✗ Missing: 1 files
+- ✓ Found: 9 files
+- ✗ Missing: 0 files
 
 - ✓ found: .github/copilot-instructions.md
 - ✓ found: config/db_schema.py
@@ -17,7 +17,7 @@
 - ✓ found: docker-compose.yml
 - ✓ found: docs/ARCHITECTURE.md
 - ✓ found: operator_backend/backend/main_v7.py
-- ✗ MISSING: tentaculo_link/main.py
+- ✓ found: tentaculo_link/main.py
 
 ## Runtime Services
 

@@ -163,7 +163,7 @@ VX11: Autosync → python3 scripts/vx11_workflow_runner.py autosync
 1. ✅ **NO sub-agentes** — VX11 Agent es el único
 2. ✅ **NO handoffs** — TODO aquí (no escalada a externos)
 3. ✅ **NO mostrar comandos** — Ejecutar silenciosamente en VS Code
-4. ✅ **SOLO tablas** — Máx 1 línea narrativa
+4. ✅ **Formato conciso** — Resumen claro; tablas opcionales
 5. ✅ **Router fijo** — TentaculoLink→Madre→Spawner→MCP→Terminal (no inventar)
 6. ✅ **Destructivo = CONFIRMAR: DO_IT** — Único bypass permitido
 7. ✅ **Registrar TODO** — copilot_actions_log (BD append-only)

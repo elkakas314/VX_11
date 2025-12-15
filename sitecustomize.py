@@ -1,3 +1,6 @@
+# sitecustomize.py
+# Archivo temporal para desbloquear builds VX11
+pass
 """
 Bootstrap shim para el paquete `operator` evitando colisiones con la librería estándar.
 Se ejecuta automáticamente cuando el repo está en PYTHONPATH (pytest, uvicorn, etc.).

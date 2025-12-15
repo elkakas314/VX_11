@@ -3,6 +3,7 @@ Hermes v6.3 - Gestor de modelos locales y CLI externos.
 """
 
 import asyncio
+import time
 import hashlib
 import json
 import os
@@ -19,7 +20,13 @@ from sqlalchemy.orm import Session
 from config.settings import settings
 from config.tokens import get_token, load_tokens
 from config.forensics import write_log
-from config.db_schema import CLIRegistry, ModelRegistry, ModelsLocal, ModelsRemoteCLI, get_session
+from config.db_schema import (
+    CLIRegistry,
+    ModelRegistry,
+    ModelsLocal,
+    ModelsRemoteCLI,
+    get_session,
+)
 from switch.hermes.hermes_core import HermesCore, get_hermes_core, initialize_hermes
 
 # FASE 6: Hermes Shub Registration (Wiring)
@@ -55,7 +62,9 @@ _hermes_core: Optional[HermesCore] = None
 
 
 def check_token(x_vx11_token: str = Header(None), request: Request = None):
-    if request and (request.url.path == "/health" or request.url.path.startswith("/metrics")):
+    if request and (
+        request.url.path == "/health" or request.url.path.startswith("/metrics")
+    ):
         return True
     if settings.enable_auth:
         if not x_vx11_token or x_vx11_token != VX11_TOKEN:
@@ -80,14 +89,19 @@ AUDIO_CATEGORIES = {
     "dsp": "Procesamiento DSP",
     "spectral": "Análisis espectral avanzado",
     "repair": "Reparación de audio",
-    "fx_chain": "Generación de cadenas de efectos"
+    "fx_chain": "Generación de cadenas de efectos",
 }
 
 
 @app.get("/metrics{suffix:path}")
 async def metrics_stub(suffix: str = ""):
     """Lightweight stub to satisfy metrics probes without noisy 404s."""
-    return {"status": "ok", "module": "hermes", "metrics": "stub", "path": suffix or "/metrics"}
+    return {
+        "status": "ok",
+        "module": "hermes",
+        "metrics": "stub",
+        "path": suffix or "/metrics",
+    }
 
 
 class ModelRegister(BaseModel):
@@ -123,12 +137,16 @@ def _hash_file(path: Path) -> str:
     return h.hexdigest()
 
 
-def _upsert_model_registry(session: Session, name: str, path: str, category: str, size_bytes: int):
+def _upsert_model_registry(
+    session: Session, name: str, path: str, category: str, size_bytes: int
+):
     """Sincroniza tabla model_registry con models_local."""
     try:
         rec = session.query(ModelRegistry).filter(ModelRegistry.name == name).first()
         if not rec:
-            rec = ModelRegistry(name=name, provider="hermes_local", type=category, size_bytes=size_bytes)
+            rec = ModelRegistry(
+                name=name, provider="hermes_local", type=category, size_bytes=size_bytes
+            )
         rec.path = path
         rec.provider = rec.provider or "hermes_local"
         rec.type = category or "general"
@@ -147,7 +165,9 @@ async def _search_hf_models(query: str, max_size: int) -> List[SearchResult]:
     params = {"search": query, "limit": 20, "full": "true"}
     try:
         async with httpx.AsyncClient(timeout=8.0) as client:
-            r = await client.get("https://huggingface.co/api/models", params=params, headers=headers)
+            r = await client.get(
+                "https://huggingface.co/api/models", params=params, headers=headers
+            )
             r.raise_for_status()
             data = r.json()
             results = []
@@ -156,7 +176,9 @@ async def _search_hf_models(query: str, max_size: int) -> List[SearchResult]:
                 for sibling in model.get("siblings", []):
                     size = sibling.get("size") or "0"
                     if isinstance(size, str) and size.lower().endswith("gb"):
-                        size_bytes += int(float(size.replace("GB", "").strip()) * 1024 * 1024 * 1024)
+                        size_bytes += int(
+                            float(size.replace("GB", "").strip()) * 1024 * 1024 * 1024
+                        )
                 if size_bytes and size_bytes > max_size:
                     continue
                 results.append(
@@ -166,14 +188,21 @@ async def _search_hf_models(query: str, max_size: int) -> List[SearchResult]:
                         size_bytes=size_bytes or max_size,
                         tags=model.get("tags", []),
                         model_type=model.get("pipeline_tag") or "llm",
-                        score=model.get("likes", 0) / 100 if model.get("likes") else 0.0,
+                        score=(
+                            model.get("likes", 0) / 100 if model.get("likes") else 0.0
+                        ),
                     ).model_dump()
                 )
             return results
     except Exception as exc:
         write_log("hermes", f"hf_search_fallback:{exc}", level="WARNING")
         return [
-            SearchResult(name=f"{query}-lite", source="huggingface", size_bytes=max_size // 2, tags=["fallback"]).model_dump(),
+            SearchResult(
+                name=f"{query}-lite",
+                source="huggingface",
+                size_bytes=max_size // 2,
+                tags=["fallback"],
+            ).model_dump(),
         ]
 
 
@@ -204,7 +233,12 @@ async def _search_openrouter_models(query: str, max_size: int) -> List[SearchRes
     except Exception as exc:
         write_log("hermes", f"openrouter_search_warn:{exc}", level="WARNING")
     return [
-        SearchResult(name=f"{query}-remote", source="openrouter", size_bytes=max_size // 2, tags=["remote"]).model_dump(),
+        SearchResult(
+            name=f"{query}-remote",
+            source="openrouter",
+            size_bytes=max_size // 2,
+            tags=["remote"],
+        ).model_dump(),
     ]
 
 
@@ -213,13 +247,21 @@ def _prune_models(session: Session, limit: int = 30):
     Enforce max models and TTL simple using timestamps.
     """
     cutoff = datetime.utcnow().timestamp() - MODEL_TTL_SECONDS
-    rows = session.query(ModelsLocal).order_by(ModelsLocal.updated_at or ModelsLocal.id).all()
+    rows = (
+        session.query(ModelsLocal)
+        .order_by(ModelsLocal.updated_at or ModelsLocal.id)
+        .all()
+    )
     for r in rows:
         ts = getattr(r, "updated_at", None) or getattr(r, "created_at", None)
         if ts and ts.timestamp() < cutoff:
             session.delete(r)
     session.flush()
-    rows = session.query(ModelsLocal).order_by(ModelsLocal.updated_at or ModelsLocal.id).all()
+    rows = (
+        session.query(ModelsLocal)
+        .order_by(ModelsLocal.updated_at or ModelsLocal.id)
+        .all()
+    )
     if len(rows) > limit:
         for r in rows[:-limit]:
             session.delete(r)
@@ -261,7 +303,10 @@ def _best_models_for(task_type: str, max_size_mb: int = 2048) -> List[Dict[str, 
             session.query(ModelsLocal)
             .filter(ModelsLocal.size_mb <= max_size_mb)
             .filter(ModelsLocal.status != "deprecated")
-            .filter((ModelsLocal.category == task_type) | (ModelsLocal.category == "general"))
+            .filter(
+                (ModelsLocal.category == task_type)
+                | (ModelsLocal.category == "general")
+            )
             .filter(ModelsLocal.size_mb <= max_size_mb)
             .order_by(ModelsLocal.size_mb.asc())
             .limit(5)
@@ -299,16 +344,29 @@ async def hermes_execute(body: Dict[str, Any]):
         selection = body.get("selection", {}) or {}
         intent = {
             "prompt": body.get("command") or body.get("prompt") or "",
-            "task_type": body.get("task_type") or body.get("metadata", {}).get("task_type") or "general",
-            "max_tokens": body.get("max_tokens") or body.get("metadata", {}).get("max_tokens"),
-            "max_cost": body.get("max_cost") or body.get("metadata", {}).get("max_cost"),
-            "max_latency_ms": body.get("max_latency_ms") or body.get("metadata", {}).get("max_latency_ms"),
-            "require_streaming": body.get("metadata", {}).get("require_streaming", False),
+            "task_type": body.get("task_type")
+            or body.get("metadata", {}).get("task_type")
+            or "general",
+            "max_tokens": body.get("max_tokens")
+            or body.get("metadata", {}).get("max_tokens"),
+            "max_cost": body.get("max_cost")
+            or body.get("metadata", {}).get("max_cost"),
+            "max_latency_ms": body.get("max_latency_ms")
+            or body.get("metadata", {}).get("max_latency_ms"),
+            "require_streaming": body.get("metadata", {}).get(
+                "require_streaming", False
+            ),
             "allow_shub": body.get("metadata", {}).get("allow_shub", True),
         }
         decision = core.decide_best_engine(intent)
-        decision_info = decision.get("decision", {}) if isinstance(decision, dict) else {}
-        model_name = selection.get("model") or selection.get("engine_selected") or decision_info.get("primary_engine")
+        decision_info = (
+            decision.get("decision", {}) if isinstance(decision, dict) else {}
+        )
+        model_name = (
+            selection.get("model")
+            or selection.get("engine_selected")
+            or decision_info.get("primary_engine")
+        )
         provider = selection.get("provider") or model_name or decision_info.get("mode")
 
         # Registrar uso en registry si hay selección sugerida
@@ -323,7 +381,13 @@ async def hermes_execute(body: Dict[str, Any]):
         # Ruteo mínimo: si provider es shub/shub-audio, delegar
         if provider in {"shub", "shub-audio"}:
             try:
-                async with httpx.AsyncClient(timeout=10.0, headers={settings.token_header: get_token("VX11_GATEWAY_TOKEN") or settings.api_token}) as client:
+                async with httpx.AsyncClient(
+                    timeout=10.0,
+                    headers={
+                        settings.token_header: get_token("VX11_GATEWAY_TOKEN")
+                        or settings.api_token
+                    },
+                ) as client:
                     resp = await client.post(
                         f"{settings.shub_url.rstrip('/')}/shub/execute",
                         json={
@@ -335,7 +399,11 @@ async def hermes_execute(body: Dict[str, Any]):
                     return resp.json()
             except Exception as exc:
                 write_log("hermes", f"shub_route_error:{exc}", level="WARNING")
-                return {"status": "stub", "engine": "shub", "details": f"shub route failed: {exc}"}
+                return {
+                    "status": "stub",
+                    "engine": "shub",
+                    "details": f"shub route failed: {exc}",
+                }
 
         # Fallback stub (no IA pesada en build ligero)
         return {
@@ -357,7 +425,10 @@ async def list_models():
     session: Session = get_session("vx11")
     try:
         rows = session.query(ModelsLocal).all()
-        cleaned = [{k: v for k, v in row.__dict__.items() if not k.startswith("_")} for row in rows]
+        cleaned = [
+            {k: v for k, v in row.__dict__.items() if not k.startswith("_")}
+            for row in rows
+        ]
         return {"models": cleaned, "cli_tokens": CLI_TOKENS, "cli_status": CLI_STATUS}
     finally:
         session.close()
@@ -492,8 +563,12 @@ async def search_models(body: SearchQuery):
     finally:
         session.close()
 
-    remote_hf = await _search_hf_models(body.category, min(body.max_size_mb * 1024 * 1024, MAX_MODEL_BYTES))
-    remote_or = await _search_openrouter_models(body.category, min(body.max_size_mb * 1024 * 1024, MAX_MODEL_BYTES))
+    remote_hf = await _search_hf_models(
+        body.category, min(body.max_size_mb * 1024 * 1024, MAX_MODEL_BYTES)
+    )
+    remote_or = await _search_openrouter_models(
+        body.category, min(body.max_size_mb * 1024 * 1024, MAX_MODEL_BYTES)
+    )
 
     return {"local": local, "remote": remote_hf + remote_or}
 
@@ -506,7 +581,9 @@ async def sync_models():
     session: Session = get_session("vx11")
     removed = []
     try:
-        rows = session.query(ModelsLocal).order_by(ModelsLocal.downloaded_at.asc()).all()
+        rows = (
+            session.query(ModelsLocal).order_by(ModelsLocal.downloaded_at.asc()).all()
+        )
         # Deprecate extras
         if len(rows) > 30:
             deprecated = rows[:-30]
@@ -573,7 +650,9 @@ async def cli_list():
     session: Session = get_session("vx11")
     try:
         rows = session.query(ModelsRemoteCLI).all()
-        cleaned = [{k: v for k, v in r.__dict__.items() if not k.startswith("_")} for r in rows]
+        cleaned = [
+            {k: v for k, v in r.__dict__.items() if not k.startswith("_")} for r in rows
+        ]
         return {"cli": cleaned}
     finally:
         session.close()
@@ -588,7 +667,10 @@ async def cli_candidates(task_type: Optional[str] = None):
         if task_type:
             q = q.filter(CLIRegistry.cli_type == task_type)
         rows = q.all()
-        cleaned = [{k: v for k, v in row.__dict__.items() if not k.startswith("_")} for row in rows]
+        cleaned = [
+            {k: v for k, v in row.__dict__.items() if not k.startswith("_")}
+            for row in rows
+        ]
         return {"cli": cleaned}
     finally:
         session.close()
@@ -631,9 +713,13 @@ async def cli_register(
 
         if cli_name:
             meta = await _discover_cli_with_playwright(cli_name)
-            cli_entry = session.query(CLIRegistry).filter(CLIRegistry.name == cli_name).first()
+            cli_entry = (
+                session.query(CLIRegistry).filter(CLIRegistry.name == cli_name).first()
+            )
             if not cli_entry:
-                cli_entry = CLIRegistry(name=cli_name, cli_type="external", token_config_key="GITHUB_TOKEN")
+                cli_entry = CLIRegistry(
+                    name=cli_name, cli_type="external", token_config_key="GITHUB_TOKEN"
+                )
             cli_entry.bin_path = meta.get("install_command")
             cli_entry.available = True
             cli_entry.notes = json.dumps(meta)
@@ -648,6 +734,7 @@ async def cli_register(
 
 
 # ========== VX11 v7.0 NUEVOS ENDPOINTS ==========
+
 
 @app.get("/hermes/resources")
 async def hermes_resources():
@@ -674,18 +761,18 @@ async def register_cli_v2(body: Dict[str, Any]):
     }
     """
     from config.db_schema import CLIProvider
-    
+
     session: Session = get_session("vx11")
     try:
         name = body.get("name", "")
         if not name:
             raise ValueError("name required")
-        
+
         # Buscar existente
         provider = session.query(CLIProvider).filter_by(name=name).first()
         if not provider:
             provider = CLIProvider(name=name)
-        
+
         provider.base_url = body.get("base_url", "")
         provider.api_key_env = body.get("api_key_env", "")
         provider.task_types = body.get("task_types", "chat")
@@ -693,10 +780,10 @@ async def register_cli_v2(body: Dict[str, Any]):
         provider.monthly_limit_tokens = body.get("monthly_limit_tokens", 3000000)
         provider.reset_hour_utc = body.get("reset_hour_utc", 0)
         provider.enabled = body.get("enabled", True)
-        
+
         session.add(provider)
         session.commit()
-        
+
         write_log("hermes", f"cli_registered:{name}")
         return {
             "status": "ok",
@@ -727,13 +814,13 @@ async def register_local_model_v2(body: Dict[str, Any]):
     }
     """
     from config.db_schema import LocalModelV2
-    
+
     session: Session = get_session("vx11")
     try:
         name = body.get("name", "")
         if not name:
             raise ValueError("name required")
-        
+
         # Buscar existente
         model = session.query(LocalModelV2).filter_by(name=name).first()
         if not model:
@@ -744,16 +831,16 @@ async def register_local_model_v2(body: Dict[str, Any]):
                 size_bytes=body.get("size_bytes", 0),
                 task_type=body.get("task_type", "general"),
             )
-        
+
         model.max_context = body.get("max_context", 2048)
         model.compatibility = body.get("compatibility", "cpu")
         model.enabled = body.get("enabled", True)
-        
+
         session.add(model)
         session.commit()
-        
+
         write_log("hermes", f"local_model_registered:{name}")
-        
+
         return {"status": "ok", "model": name, "registered": True}
     finally:
         session.close()
@@ -763,7 +850,7 @@ async def register_local_model_v2(body: Dict[str, Any]):
 async def register_shub_resource():
     """
     FASE 6: Registra Shub-Niggurath como recurso de DSP remoto en catálogo de Hermes.
-    
+
     Response:
     {
         "status": "ok",
@@ -775,10 +862,10 @@ async def register_shub_resource():
     try:
         registrar = get_hermes_shub_registrar()
         result = await registrar.register_shub()
-        
+
         write_log("hermes", f"shub_registration:{result.get('status')}")
         return result
-        
+
     except Exception as exc:
         write_log("hermes", f"shub_registration_error:{exc}", level="ERROR")
         raise HTTPException(status_code=500, detail=str(exc))
@@ -788,7 +875,7 @@ async def register_shub_resource():
 async def shub_health_check():
     """
     FASE 6: Health check de Shub desde Hermes.
-    
+
     Response:
     {
         "status": "ok",
@@ -799,9 +886,9 @@ async def shub_health_check():
     try:
         registrar = get_hermes_shub_registrar()
         health = await registrar.report_shub_health()
-        
+
         return health
-        
+
     except Exception as exc:
         write_log("hermes", f"shub_health_error:{exc}", level="ERROR")
         return {
@@ -835,15 +922,19 @@ async def discover():
             "discovered_models": [],
             "discovered_cli": [],
         }
-        
+
         # Buscar en HF
-        hf_results = await _search_hf_models("gguf-model", max_size=2 * 1024 * 1024 * 1024)
+        hf_results = await _search_hf_models(
+            "gguf-model", max_size=2 * 1024 * 1024 * 1024
+        )
         results["discovered_models"].extend(hf_results[:3])
-        
+
         # Buscar en OpenRouter
-        or_results = await _search_openrouter_models("gpt", max_size=2 * 1024 * 1024 * 1024)
+        or_results = await _search_openrouter_models(
+            "gpt", max_size=2 * 1024 * 1024 * 1024
+        )
         results["discovered_models"].extend(or_results[:3])
-        
+
         # Registrar descubrimientos
         for model in results["discovered_models"][:2]:
             try:
@@ -860,10 +951,13 @@ async def discover():
                         session.add(registry_entry)
             except Exception as e:
                 write_log("hermes", f"discovery_register_error:{e}", level="WARNING")
-        
+
         session.commit()
-        write_log("hermes", f"discover_completed:found {len(results['discovered_models'])} models")
-        
+        write_log(
+            "hermes",
+            f"discover_completed:found {len(results['discovered_models'])} models",
+        )
+
         return {
             "status": "ok",
             "discovered_count": len(results["discovered_models"]),
@@ -883,6 +977,7 @@ async def discover():
 
 # ========== BACKGROUND WORKERS ==========
 
+
 async def _hermes_background_tasks():
     """
     Worker en background para reseteo de límites y salud de CLI.
@@ -890,25 +985,28 @@ async def _hermes_background_tasks():
     """
     from config.db_schema import CLIProvider
     import time
-    
+
     write_log("hermes", "background_worker_started")
-    
+
     while True:
         try:
             await asyncio.sleep(3600)  # Ejecutar cada hora
-            
+
             session: Session = get_session("vx11")
             try:
                 now = datetime.utcnow()
                 hour = now.hour
-                
+
                 # Resetear contadores diarios si es la hora indicada
                 for provider in session.query(CLIProvider).all():
-                    if provider.reset_hour_utc == hour and (now - provider.last_reset_at).seconds > 3600:
+                    if (
+                        provider.reset_hour_utc == hour
+                        and (now - provider.last_reset_at).seconds > 3600
+                    ):
                         provider.tokens_used_today = 0
                         provider.last_reset_at = now
                         session.add(provider)
-                
+
                 session.commit()
                 write_log("hermes", f"background_reset_completed:hour={hour}")
             finally:

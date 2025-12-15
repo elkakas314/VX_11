@@ -649,7 +649,7 @@ Agente: Detecta prefijo "status" → MODO INSPECTOR
   → Analiza: Resultados (7 OK, 3 BROKEN)
   → Genera: docs/audit/VX11_RUNTIME_TRUTH_REPORT.md
     ↓
-Chat: Tabla con evidencia + próximos pasos (SIN pedir confirmación)
+Chat: Resumen conciso con evidencia y próximos pasos (SIN pedir confirmación)
 ```
 
 ```

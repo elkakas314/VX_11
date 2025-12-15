@@ -91,7 +91,7 @@
 |---------|--------|----------|
 | `data/backups/vx11_CANONICAL_DISTILLED.db` | 848 KB | BD distilled con ~1,500 rows relevantes |
 | `data/backups/vx11_CANONICAL_STATE.json` | 7.8 KB | Estado de repo + servicios (JSON) |
-| `docs/audit/VX11_RUNTIME_TRUTH_REPORT.md` | 3.1 KB | Tabla de servicios + detalles |
+| `docs/audit/VX11_RUNTIME_TRUTH_REPORT.md` | 3.1 KB | Resumen de servicios + detalles |
 | `docs/audit/VX11_AGENT_BOOTSTRAP_REPORT.md` | 2.6 KB | Mapa de repo + drift detection |
 
 **Todos los archivos verificados y disponibles.**
