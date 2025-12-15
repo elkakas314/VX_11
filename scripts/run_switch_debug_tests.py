@@ -17,6 +17,7 @@ if __name__ == "__main__":
         "tests/test_switch_scoring_breaker.py",
         "tests/test_hermes_registry_db.py",
         "tests/test_hermes_cli_registry_module.py",
+        "tests/test_switch_registry_enqueue.py",
     ]
     failures = []
     for t in tests:

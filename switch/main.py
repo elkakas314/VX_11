@@ -28,7 +28,13 @@ from sqlalchemy.orm import Session
 from config.settings import settings
 from config.tokens import load_tokens, get_token
 from config.forensics import write_log
-from config.db_schema import get_session, TaskQueue, ModelRegistry, CLIRegistry, SystemState
+from config.db_schema import (
+    get_session,
+    TaskQueue,
+    ModelRegistry,
+    CLIRegistry,
+    SystemState,
+)
 
 # PASO 3: Importar componentes nuevos
 from switch.ga_optimizer import GeneticAlgorithmOptimizer, GAIndividual
@@ -114,7 +120,11 @@ class PersistentPriorityQueue:
                 self._heap.append(
                     QueueRecord(
                         priority=row.priority,
-                        enqueued_at=row.enqueued_at.timestamp() if row.enqueued_at else time.time(),
+                        enqueued_at=(
+                            row.enqueued_at.timestamp()
+                            if row.enqueued_at
+                            else time.time()
+                        ),
                         db_id=row.id,
                         payload=json.loads(row.payload),
                     )
@@ -142,7 +152,12 @@ class PersistentPriorityQueue:
 
             heapq.heappush(
                 self._heap,
-                QueueRecord(priority=priority, enqueued_at=time.time(), db_id=db_id, payload=payload),
+                QueueRecord(
+                    priority=priority,
+                    enqueued_at=time.time(),
+                    db_id=db_id,
+                    payload=payload,
+                ),
             )
             return db_id
 
@@ -153,7 +168,11 @@ class PersistentPriorityQueue:
             record = heapq.heappop(self._heap)
             session = get_session("vx11")
             try:
-                row = session.query(TaskQueue).filter(TaskQueue.id == record.db_id).first()
+                row = (
+                    session.query(TaskQueue)
+                    .filter(TaskQueue.id == record.db_id)
+                    .first()
+                )
                 if row:
                     row.status = "dequeued"
                     row.dequeued_at = datetime.utcnow()
@@ -203,9 +222,21 @@ class ModelPool:
 
     def _seed_defaults(self):
         self.register(ModelState(name="general-7b", category="general", size_mb=700))
-        self.register(ModelState(name="audio-engineering", category="audio", size_mb=800, warm=True))
+        self.register(
+            ModelState(
+                name="audio-engineering", category="audio", size_mb=800, warm=True
+            )
+        )
         # Registrar Shub como proveedor audio standby
-        self.register(ModelState(name="shub-audio", category="audio", size_mb=200, status="standby", kind="audio"))
+        self.register(
+            ModelState(
+                name="shub-audio",
+                category="audio",
+                size_mb=200,
+                status="standby",
+                kind="audio",
+            )
+        )
         self.set_active("general-7b")
         self.preload("audio-engineering")
 
@@ -265,14 +296,18 @@ class ModelPool:
     def list_available(self) -> List[Dict[str, Any]]:
         return [m.__dict__ for m in self.available.values()]
 
-    def pick_for_metadata(self, metadata: Dict[str, Any], source: str = "unknown") -> str:
+    def pick_for_metadata(
+        self, metadata: Dict[str, Any], source: str = "unknown"
+    ) -> str:
         now = time.time()
         if source == "operator":
             self.last_operator_ping = now
             if self.active != "general-7b":
                 self.set_active("general-7b")
         elif source == "shub" or metadata.get("task_type") == "audio":
-            target = "shub-audio" if "shub-audio" in self.available else "audio-engineering"
+            target = (
+                "shub-audio" if "shub-audio" in self.available else "audio-engineering"
+            )
             if target in self.available:
                 self.set_active(target)
         elif self.warm and (now - self.last_operator_ping) > 300:
@@ -283,22 +318,35 @@ class ModelPool:
                 pass
 
         category = metadata.get("category") or metadata.get("task_type") or "general"
-        desired_kind = metadata.get("model_kind") or ("audio" if category == "audio" else "general")
-        if self.active and self.available.get(self.active, ModelState(self.active)).category == category:
+        desired_kind = metadata.get("model_kind") or (
+            "audio" if category == "audio" else "general"
+        )
+        if (
+            self.active
+            and self.available.get(self.active, ModelState(self.active)).category
+            == category
+        ):
             self.available[self.active].last_used = now
             return self.active
 
         # prefer warm model of same category/kind
         if self.warm:
             warm_state = self.available.get(self.warm)
-            if warm_state and warm_state.category == category and warm_state.size_mb <= 2048:
+            if (
+                warm_state
+                and warm_state.category == category
+                and warm_state.size_mb <= 2048
+            ):
                 self.set_active(self.warm)
                 return self.warm
 
         # pick smallest candidate that matches category/kind and size <2GB
         candidates = [
-            m for m in self.available.values()
-            if m.category == category and m.size_mb <= 2048 and (m.kind == desired_kind or m.kind == "general")
+            m
+            for m in self.available.values()
+            if m.category == category
+            and m.size_mb <= 2048
+            and (m.kind == desired_kind or m.kind == "general")
         ]
         if candidates:
             best = sorted(candidates, key=lambda m: (m.size_mb, -m.last_used))[0]
@@ -329,7 +377,9 @@ class CircuitBreaker:
         self.state: Dict[str, Dict[str, Any]] = {}
 
     def allow(self, provider: str) -> bool:
-        info = self.state.get(provider, {"state": "CLOSED", "failures": 0, "opened_at": 0})
+        info = self.state.get(
+            provider, {"state": "CLOSED", "failures": 0, "opened_at": 0}
+        )
         if info["state"] == "OPEN":
             if time.time() - info["opened_at"] > self.reset_timeout:
                 info["state"] = "HALF_OPEN"
@@ -339,14 +389,18 @@ class CircuitBreaker:
         return True
 
     def record_success(self, provider: str):
-        info = self.state.get(provider, {"state": "CLOSED", "failures": 0, "opened_at": 0})
+        info = self.state.get(
+            provider, {"state": "CLOSED", "failures": 0, "opened_at": 0}
+        )
         if info.get("state") == "HALF_OPEN":
             info["state"] = "CLOSED"
         info["failures"] = 0
         self.state[provider] = info
 
     def record_failure(self, provider: str):
-        info = self.state.get(provider, {"state": "CLOSED", "failures": 0, "opened_at": 0})
+        info = self.state.get(
+            provider, {"state": "CLOSED", "failures": 0, "opened_at": 0}
+        )
         info["failures"] += 1
         if info["failures"] >= self.max_failures:
             info["state"] = "OPEN"
@@ -359,7 +413,11 @@ throttle_window_seconds = 5
 throttle_limits = {"shub-audio": 5, "hermes": 10, "local": 10}
 throttle_state: Dict[str, List[float]] = {}
 scoring_state: Dict[str, Dict[str, Any]] = {}
-CHAT_DB_PATH = settings.database_url.replace("sqlite:///", "") if "sqlite" in settings.database_url else "/app/data/runtime/vx11.db"
+CHAT_DB_PATH = (
+    settings.database_url.replace("sqlite:///", "")
+    if "sqlite" in settings.database_url
+    else "/app/data/runtime/vx11.db"
+)
 LATENCY_EMA: Dict[str, float] = {}
 
 
@@ -385,7 +443,10 @@ def _update_chat_stats(provider: str, success: bool, latency_ms: float):
     try:
         conn = sqlite3.connect(CHAT_DB_PATH)
         cur = conn.cursor()
-        cur.execute("SELECT success_count, fail_count, avg_latency_ms FROM chat_providers_stats WHERE provider=?", (provider,))
+        cur.execute(
+            "SELECT success_count, fail_count, avg_latency_ms FROM chat_providers_stats WHERE provider=?",
+            (provider,),
+        )
         row = cur.fetchone()
         succ, fail, avg = row if row else (0, 0, 0.0)
         if success:
@@ -412,7 +473,10 @@ def _get_chat_stats(provider: str) -> Dict[str, Any]:
     try:
         conn = sqlite3.connect(CHAT_DB_PATH)
         cur = conn.cursor()
-        cur.execute("SELECT success_count, fail_count, avg_latency_ms FROM chat_providers_stats WHERE provider=?", (provider,))
+        cur.execute(
+            "SELECT success_count, fail_count, avg_latency_ms FROM chat_providers_stats WHERE provider=?",
+            (provider,),
+        )
         row = cur.fetchone()
         if not row:
             return {"success": 0, "fail": 0, "avg_latency_ms": 0.0}
@@ -463,7 +527,9 @@ def _get_cli_registry() -> List[Dict[str, Any]]:
                 "name": r.name,
                 "bin_path": r.bin_path,
                 "available": r.available,
-                "updated_at": r.updated_at.isoformat() if getattr(r, "updated_at", None) else None,
+                "updated_at": (
+                    r.updated_at.isoformat() if getattr(r, "updated_at", None) else None
+                ),
                 "cli_type": r.cli_type,
             }
             for r in rows
@@ -477,7 +543,9 @@ def _get_cli_registry() -> List[Dict[str, Any]]:
 
 def check_token(x_vx11_token: str = Header(None), request: Request = None):
     # Allow healthcheck without token to keep container healthy in local dev
-    if request and (request.url.path == "/health" or request.url.path.startswith("/metrics")):
+    if request and (
+        request.url.path == "/health" or request.url.path.startswith("/metrics")
+    ):
         return True
     if settings.enable_auth:
         if not x_vx11_token or x_vx11_token != VX11_TOKEN:
@@ -506,18 +574,18 @@ cli_fusion: Optional[CLIFusion] = None
 async def _startup_consumer():
     """Startup completo con GA, Warm-up y Hermes integration"""
     global ga_optimizer, warm_up_engine, shub_router, cli_selector, cli_fusion
-    
+
     _ensure_chat_stats_table()
-    
+
     # Inicializar GA Optimizer
     log.info("Inicializando GA Optimizer...")
     ga_optimizer = GeneticAlgorithmOptimizer(
         population_size=10,
         engine_ids=["local_gguf", "deepseek_r1", "cli", "shub"],
-        persistence_path="switch/ga_population.json"
+        persistence_path="switch/ga_population.json",
     )
     log.info(f"GA: {ga_optimizer.get_population_summary()}")
-    
+
     # Inicializar Warm-up Engine
     log.info("Inicializando Warm-up Engine...")
     warm_up_engine = WarmUpEngine(
@@ -525,32 +593,32 @@ async def _startup_consumer():
     )
     warmup_results = await warm_up_engine.warmup_startup()
     log.info(f"Warm-up completado: {warmup_results}")
-    
+
     # Inicializar Shub Router
     log.info("Inicializando Shub Router...")
-    shub_router = ShubRouter(
-        shub_endpoint=settings.shub_url or "http://switch:8007"
-    )
-    
+    shub_router = ShubRouter(shub_endpoint=settings.shub_url or "http://switch:8007")
+
     # Inicializar CLI Selector y Fusion
     log.info("Inicializando Hermes CLI components...")
     cli_selector = CLISelector()
     cli_fusion = CLIFusion()
-    
+
     # Iniciar consumer loop
     asyncio.create_task(_consumer_loop())
-    
+
     # Iniciar warmup periódico en background
     asyncio.create_task(warm_up_engine.warmup_periodic())
-    
+
     # Inicializar Intelligence Layer y GA Router (PASO 2.1)
     log.info("Inicializando Switch Intelligence Layer...")
     sil = get_switch_intelligence_layer()
-    
+
     log.info("Inicializando GA Router...")
     ga_router = get_ga_router(ga_optimizer)
-    
-    log.info("✓ Switch v7.1 (PASO 2.1) completamente inicializado con Intelligence Layer")
+
+    log.info(
+        "✓ Switch v7.1 (PASO 2.1) completamente inicializado con Intelligence Layer"
+    )
 
 
 @app.on_event("shutdown")
@@ -576,7 +644,12 @@ async def health():
 @app.get("/metrics{suffix:path}")
 async def metrics_stub(suffix: str = ""):
     """Lightweight stub to silence missing metrics probes."""
-    return {"status": "ok", "module": "switch", "metrics": "stub", "path": suffix or "/metrics"}
+    return {
+        "status": "ok",
+        "module": "switch",
+        "metrics": "stub",
+        "path": suffix or "/metrics",
+    }
 
 
 @app.post("/switch/debug/select-provider")
@@ -646,22 +719,19 @@ async def shub_detect(req: RouteRequest):
     """Detecta si una tarea debe ir a Shub y retorna plan de enrutamiento"""
     if not shub_router:
         return {"error": "Shub Router no inicializado"}
-    
-    should_route = shub_router.should_route_to_shub(
-        req.prompt,
-        req.metadata
-    )
-    
+
+    should_route = shub_router.should_route_to_shub(req.prompt, req.metadata)
+
     if not should_route:
         return {
             "should_route_to_shub": False,
             "reason": "No se detectó tarea de audio",
         }
-    
+
     domain = shub_router.detect_audio_domain(req.prompt, req.metadata)
     payload = shub_router.build_shub_payload(req.prompt, domain, req.metadata)
     endpoint = shub_router.get_shub_endpoint(domain)
-    
+
     return {
         "should_route_to_shub": True,
         "domain": domain.value if domain else None,
@@ -678,19 +748,19 @@ async def shub_route(req: RouteRequest):
     """
     if not shub_router:
         return {"error": "Shub Router no inicializado"}
-    
+
     should_route = shub_router.should_route_to_shub(req.prompt, req.metadata)
-    
+
     if not should_route:
         return {
             "status": "not_audio",
             "error": "Esta tarea no es de audio/DSP",
         }
-    
+
     domain = shub_router.detect_audio_domain(req.prompt, req.metadata)
     payload = shub_router.build_shub_payload(req.prompt, domain, req.metadata)
     endpoint = shub_router.get_shub_endpoint(domain)
-    
+
     try:
         async with httpx.AsyncClient(timeout=60.0, headers=AUTH_HEADERS) as client:
             resp = await client.post(
@@ -698,7 +768,7 @@ async def shub_route(req: RouteRequest):
                 json=payload,
                 headers=AUTH_HEADERS,
             )
-            
+
             if resp.status_code == 200:
                 shub_result = resp.json()
                 return {
@@ -718,7 +788,6 @@ async def shub_route(req: RouteRequest):
             "status": "error",
             "error": str(e),
         }
-
 
 
 def _should_use_cli(metadata: Dict[str, Any], queue_size: int, model_name: str) -> bool:
@@ -759,7 +828,9 @@ def _peek_throttle_state(provider: str) -> float:
 
 
 def _record_scoring(provider: str, latency_ms: float, status_ok: bool):
-    state = scoring_state.setdefault(provider, {"latencies": [], "failures": 0, "success": 0})
+    state = scoring_state.setdefault(
+        provider, {"latencies": [], "failures": 0, "success": 0}
+    )
     state["latencies"] = (state["latencies"] + [latency_ms])[-50:]
     if status_ok:
         state["success"] += 1
@@ -792,7 +863,12 @@ def _score_provider(provider: str) -> float:
     latency_score = 1 / max(1.0, latency)
     throttle_ok = _peek_throttle_state(provider)
     breaker_ok = 0.0 if not breaker.allow(provider) else 1.0
-    return (success_rate * 0.5) + (latency_score * 0.3) + (throttle_ok * 0.1) + (breaker_ok * 0.1)
+    return (
+        (success_rate * 0.5)
+        + (latency_score * 0.3)
+        + (throttle_ok * 0.1)
+        + (breaker_ok * 0.1)
+    )
 
 
 async def _shub_is_healthy() -> bool:
@@ -805,13 +881,55 @@ async def _shub_is_healthy() -> bool:
         return False
 
 
+def _ensure_cli_registry_or_enqueue(db_session: Session = None) -> bool:
+    """Ensure there are CLI registry entries; if none, enqueue a discovery job.
+
+    Returns True if a discovery job was enqueued, False otherwise.
+    Accepts an optional SQLAlchemy session for testing (in-memory).
+    """
+    created_local = False
+    session = db_session or get_session("vx11")
+    try:
+        # If there are already CLI entries, nothing to do
+        count = session.query(CLIRegistry).count()
+        if count and count > 0:
+            return False
+
+        # No entries: enqueue a discovery job in TaskQueue
+        payload = json.dumps({"action": "discover_cli", "source": "switch", "reason": "empty_registry"})
+        job = TaskQueue(
+            source="switch",
+            priority=5,
+            payload=payload,
+            status="queued",
+            enqueued_at=datetime.utcnow(),
+        )
+        session.add(job)
+        session.commit()
+        write_log("switch", f"enqueued_discover_cli:task_id={job.id}")
+        return True
+    except Exception as exc:
+        write_log("switch", f"ensure_cli_registry_error:{exc}", level="ERROR")
+        try:
+            if created_local:
+                session.rollback()
+        except Exception:
+            pass
+        return False
+    finally:
+        if db_session is None:
+            session.close()
+
+
 async def _pick_provider(req: RouteRequest) -> str:
     """
     Selección ligera de proveedor/modelo con control de breaker y salud de Shub.
     """
     model_name = models.pick_for_metadata(req.metadata, req.source or "unknown")
     # Audio -> preferir Shub si sano y breaker cerrado
-    if (req.source == "shub" or (req.metadata or {}).get("task_type") == "audio") and await _shub_is_healthy():
+    if (
+        req.source == "shub" or (req.metadata or {}).get("task_type") == "audio"
+    ) and await _shub_is_healthy():
         candidate = "shub-audio" if "shub-audio" in models.available else model_name
         if breaker.allow(candidate):
             return candidate
@@ -836,7 +954,11 @@ async def _process_task(task: Dict[str, Any]):
     payload = {
         "command": task.get("prompt"),
         "metadata": task.get("metadata") or {},
-        "selection": {"model": provider, "source": task.get("source"), "provider": "shub" if provider == "shub-audio" else provider},
+        "selection": {
+            "model": provider,
+            "source": task.get("source"),
+            "provider": "shub" if provider == "shub-audio" else provider,
+        },
     }
     try:
         start = time.time()
@@ -851,7 +973,9 @@ async def _process_task(task: Dict[str, Any]):
                     },
                 )
             else:
-                resp = await client.post(f"{settings.hermes_url.rstrip('/')}/hermes/execute", json=payload)
+                resp = await client.post(
+                    f"{settings.hermes_url.rstrip('/')}/hermes/execute", json=payload
+                )
             latency_ms = (time.time() - start) * 1000
             ok = resp.status_code == 200
             if ok:
@@ -882,7 +1006,11 @@ async def _consumer_loop():
         try:
             row = session.query(TaskQueue).filter(TaskQueue.id == item.db_id).first()
             if row:
-                row.status = "completed" if result and result.get("status") not in ("error", "failed") else "failed"
+                row.status = (
+                    "completed"
+                    if result and result.get("status") not in ("error", "failed")
+                    else "failed"
+                )
                 row.result = json.dumps(result)
                 row.updated_at = datetime.utcnow()
                 session.add(row)
@@ -917,7 +1045,10 @@ async def route_v5(req: RouteRequest):
             async with httpx.AsyncClient(timeout=10.0) as client:
                 r = await client.post(
                     f"{settings.hermes_url.rstrip('/')}/hermes/execute",
-                    json={"command": req.prompt, "metadata": {**req.metadata, "source": req.source}},
+                    json={
+                        "command": req.prompt,
+                        "metadata": {**req.metadata, "source": req.source},
+                    },
                     headers=AUTH_HEADERS,
                 )
                 response["hermes"] = r.json()
@@ -953,26 +1084,36 @@ class ChatRequest(BaseModel):
 async def switch_chat(req: ChatRequest):
     """
     Chat mejorado con Intelligence Layer (PASO 2.1).
-    
+
     Flujo:
     1. Crear RoutingContext con metadata completa
     2. Consultar SwitchIntelligenceLayer para decisión inteligente
     3. Ejecutar con fallbacks
     4. Registrar en GA metrics para optimización
     """
-    
+
     start_time = time.monotonic()
     sil = get_switch_intelligence_layer()
     ga_router = get_ga_router(ga_optimizer)  # ga_optimizer es global
-    
+
     try:
         # Extraer metadata
-        task_type = req.metadata.get("task_type", "general").strip().lower() if req.metadata else "general"
-        source = req.metadata.get("source", "operator").strip().lower() if req.metadata else "operator"
-        provider_hint = (req.provider_hint or req.provider or "").strip().lower() or None
-        
+        task_type = (
+            req.metadata.get("task_type", "general").strip().lower()
+            if req.metadata
+            else "general"
+        )
+        source = (
+            req.metadata.get("source", "operator").strip().lower()
+            if req.metadata
+            else "operator"
+        )
+        provider_hint = (
+            req.provider_hint or req.provider or ""
+        ).strip().lower() or None
+
         prompt_text = req.messages[0].content if req.messages else ""
-        
+
         # PASO 1: Crear contexto de routing
         context = RoutingContext(
             task_type=task_type,
@@ -981,35 +1122,45 @@ async def switch_chat(req: ChatRequest):
             metadata=req.metadata or {},
             provider_hint=provider_hint,
             max_tokens=req.metadata.get("max_tokens", 4096) if req.metadata else 4096,
-            require_streaming=req.metadata.get("require_streaming", False) if req.metadata else False,
+            require_streaming=(
+                req.metadata.get("require_streaming", False) if req.metadata else False
+            ),
         )
-        
+
         # PASO 2: Consultar Intelligence Layer para decisión
         routing_decision = await sil.make_routing_decision(context)
-        
-        log.info(f"Routing decision: {routing_decision.decision}, engine: {routing_decision.primary_engine}")
-        
+
+        log.info(
+            f"Routing decision: {routing_decision.decision}, engine: {routing_decision.primary_engine}"
+        )
+
         # PASO 3: Ejecutar según decisión
         latency_ms = 0
         result = None
         success = False
-        
+
         if routing_decision.decision == RoutingDecision.MADRE:
-            result, latency_ms, success = await _execute_madre_task_chat(prompt_text, req.metadata or {})
-        
+            result, latency_ms, success = await _execute_madre_task_chat(
+                prompt_text, req.metadata or {}
+            )
+
         elif routing_decision.decision == RoutingDecision.MANIFESTATOR:
-            result, latency_ms, success = await _execute_manifestator_task_chat(prompt_text, req.metadata or {})
-        
+            result, latency_ms, success = await _execute_manifestator_task_chat(
+                prompt_text, req.metadata or {}
+            )
+
         elif routing_decision.decision == RoutingDecision.SHUB:
-            result, latency_ms, success = await _execute_shub_task_chat(prompt_text, req.metadata or {})
-        
+            result, latency_ms, success = await _execute_shub_task_chat(
+                prompt_text, req.metadata or {}
+            )
+
         else:  # CLI, LOCAL, HYBRID, FALLBACK
             result, latency_ms, success = await _execute_hermes_task_chat(
                 engine_name=routing_decision.primary_engine,
                 prompt=prompt_text,
-                metadata=req.metadata or {}
+                metadata=req.metadata or {},
             )
-        
+
         # PASO 4: Registrar en GA metrics
         ga_router.record_execution_result(
             engine_name=routing_decision.primary_engine,
@@ -1019,24 +1170,28 @@ async def switch_chat(req: ChatRequest):
             cost=0.0,
             tokens=req.metadata.get("tokens_used", 0) if req.metadata else 0,
         )
-        
+
         # Registrar scoring tradicional también
-        _record_scoring(routing_decision.primary_engine, latency_ms=latency_ms, status_ok=success)
+        _record_scoring(
+            routing_decision.primary_engine, latency_ms=latency_ms, status_ok=success
+        )
         _update_chat_stats(routing_decision.primary_engine, success, latency_ms)
-        
+
         return {
             "status": "ok" if success else "partial",
             "provider": routing_decision.primary_engine,
             "decision": routing_decision.decision.value,
-            "content": result.get("content", "") if isinstance(result, dict) else str(result),
+            "content": (
+                result.get("content", "") if isinstance(result, dict) else str(result)
+            ),
             "latency_ms": latency_ms,
             "reasoning": routing_decision.reasoning,
         }
-    
+
     except Exception as exc:
         latency_ms = int((time.monotonic() - start_time) * 1000)
         write_log("switch", f"chat_error:{exc}", level="ERROR")
-        
+
         return {
             "status": "error",
             "provider": "fallback",
@@ -1047,14 +1202,20 @@ async def switch_chat(req: ChatRequest):
 
 # ============ Helper functions para /switch/chat (PASO 2.1) ============
 
-async def _execute_madre_task_chat(prompt: str, metadata: Dict) -> Tuple[Dict, int, bool]:
+
+async def _execute_madre_task_chat(
+    prompt: str, metadata: Dict
+) -> Tuple[Dict, int, bool]:
     """Ejecutar tarea en Madre."""
     start = time.monotonic()
     try:
         async with httpx.AsyncClient(timeout=30.0, headers=AUTH_HEADERS) as client:
             resp = await client.post(
                 f"{settings.madre_url.rstrip('/')}/madre/route-system",
-                json={"messages": [{"role": "user", "content": prompt}], "metadata": metadata},
+                json={
+                    "messages": [{"role": "user", "content": prompt}],
+                    "metadata": metadata,
+                },
                 headers=AUTH_HEADERS,
             )
             if resp.status_code == 200:
@@ -1063,18 +1224,23 @@ async def _execute_madre_task_chat(prompt: str, metadata: Dict) -> Tuple[Dict, i
                 return result, latency_ms, True
     except Exception as e:
         log.error(f"Madre task error: {e}")
-    
+
     return {"content": "Error en Madre"}, int((time.monotonic() - start) * 1000), False
 
 
-async def _execute_manifestator_task_chat(prompt: str, metadata: Dict) -> Tuple[Dict, int, bool]:
+async def _execute_manifestator_task_chat(
+    prompt: str, metadata: Dict
+) -> Tuple[Dict, int, bool]:
     """Ejecutar tarea en Manifestator."""
     start = time.monotonic()
     try:
         async with httpx.AsyncClient(timeout=30.0, headers=AUTH_HEADERS) as client:
             resp = await client.post(
                 f"{settings.manifestator_url.rstrip('/')}/detect-drift",
-                json={"messages": [{"role": "user", "content": prompt}], "metadata": metadata},
+                json={
+                    "messages": [{"role": "user", "content": prompt}],
+                    "metadata": metadata,
+                },
                 headers=AUTH_HEADERS,
             )
             if resp.status_code == 200:
@@ -1083,11 +1249,17 @@ async def _execute_manifestator_task_chat(prompt: str, metadata: Dict) -> Tuple[
                 return result, latency_ms, True
     except Exception as e:
         log.error(f"Manifestator task error: {e}")
-    
-    return {"content": "Error en Manifestator"}, int((time.monotonic() - start) * 1000), False
+
+    return (
+        {"content": "Error en Manifestator"},
+        int((time.monotonic() - start) * 1000),
+        False,
+    )
 
 
-async def _execute_shub_task_chat(prompt: str, metadata: Dict) -> Tuple[Dict, int, bool]:
+async def _execute_shub_task_chat(
+    prompt: str, metadata: Dict
+) -> Tuple[Dict, int, bool]:
     """Ejecutar tarea en Shub."""
     start = time.monotonic()
     try:
@@ -1097,11 +1269,13 @@ async def _execute_shub_task_chat(prompt: str, metadata: Dict) -> Tuple[Dict, in
         return result, latency_ms, result.get("status") in ("ok", "skip")
     except Exception as e:
         log.error(f"Shub task error: {e}")
-    
+
     return {"content": "Error en Shub"}, int((time.monotonic() - start) * 1000), False
 
 
-async def _execute_hermes_task_chat(engine_name: str, prompt: str, metadata: Dict) -> Tuple[Dict, int, bool]:
+async def _execute_hermes_task_chat(
+    engine_name: str, prompt: str, metadata: Dict
+) -> Tuple[Dict, int, bool]:
     """Ejecutar tarea en Hermes o CLI."""
     start = time.monotonic()
     try:
@@ -1117,7 +1291,7 @@ async def _execute_hermes_task_chat(engine_name: str, prompt: str, metadata: Dic
                 return result, latency_ms, True
     except Exception as e:
         log.error(f"Hermes task error: {e}")
-    
+
     return {"content": "Error en Hermes"}, int((time.monotonic() - start) * 1000), False
 
 
@@ -1125,7 +1299,9 @@ class TaskRequest(BaseModel):
     task_type: str  # "audio-engineer", "summarization", "code-analysis", "audio-analysis", etc.
     payload: Dict[str, Any]  # Datos específicos de la tarea
     source: Optional[str] = "operator"  # "shub", "operator", "madre", "hija"
-    provider_hint: Optional[str] = None  # Sugerencia de proveedor ("local", "shub", "cli")
+    provider_hint: Optional[str] = (
+        None  # Sugerencia de proveedor ("local", "shub", "cli")
+    )
 
 
 @app.post("/switch/task")
@@ -1136,17 +1312,17 @@ async def switch_task(req: TaskRequest):
     """
     import hashlib
     from config.db_schema import ModelUsageStat, SwitchQueueV2
-    
+
     start = time.monotonic()
     task_type = req.task_type.strip().lower()
     source = req.source.strip().lower() if req.source else "unknown"
     priority = PRIORITY_MAP.get(source, PRIORITY_MAP["default"])
-    
+
     # Generar payload_hash para dedup
     payload_hash = hashlib.sha256(
         json.dumps(req.payload, sort_keys=True).encode()
     ).hexdigest()
-    
+
     # Registrar en queue
     session = get_session("vx11")
     try:
@@ -1163,11 +1339,11 @@ async def switch_task(req: TaskRequest):
         queue_id = queue_entry.id
     finally:
         session.close()
-    
+
     # Usar SwitchIntelligenceLayer para decisión inteligente
     provider_used = None
     result = None
-    
+
     try:
         # Crear RoutingContext para SIL
         routing_context = RoutingContext(
@@ -1178,67 +1354,66 @@ async def switch_task(req: TaskRequest):
                 "payload": req.payload,
                 "priority": priority,
                 "queue_id": queue_id,
-                "task_uuid": str(req.task_id) if hasattr(req, 'task_id') else "unknown",
+                "task_uuid": str(req.task_id) if hasattr(req, "task_id") else "unknown",
             },
-            provider_hint=req.provider if hasattr(req, 'provider') else None,
-            max_latency_ms=req.max_latency_ms if hasattr(req, 'max_latency_ms') else 30000,
-            max_cost=req.max_cost if hasattr(req, 'max_cost') else 5.0,
-            max_tokens=req.max_tokens if hasattr(req, 'max_tokens') else 32768,
+            provider_hint=req.provider if hasattr(req, "provider") else None,
+            max_latency_ms=(
+                req.max_latency_ms if hasattr(req, "max_latency_ms") else 30000
+            ),
+            max_cost=req.max_cost if hasattr(req, "max_cost") else 5.0,
+            max_tokens=req.max_tokens if hasattr(req, "max_tokens") else 32768,
         )
-        
+
         # Obtener SIL y GA Router
         sil = get_switch_intelligence_layer()
         ga_router = get_ga_router(ga_optimizer)
-        
+
         # Tomar decisión de enrutamiento
         routing_result = await sil.make_routing_decision(routing_context)
-        
+
         # Log de decisión
         write_log(
             "switch",
             f"task_routing:{task_type}:{routing_result.decision.name}:{routing_result.primary_engine}",
-            level="INFO"
+            level="INFO",
         )
-        
+
         # Ejecutar según decisión
         if routing_result.decision == RoutingDecision.MADRE:
             result, latency_ms, success = await _execute_madre_task_chat(
-                json.dumps(req.payload),
-                routing_context.metadata
+                json.dumps(req.payload), routing_context.metadata
             )
             provider_used = "madre"
-            
+
         elif routing_result.decision == RoutingDecision.MANIFESTATOR:
             result, latency_ms, success = await _execute_manifestator_task_chat(
-                json.dumps(req.payload),
-                routing_context.metadata
+                json.dumps(req.payload), routing_context.metadata
             )
             provider_used = "manifestator"
-            
+
         elif routing_result.decision == RoutingDecision.SHUB:
             result, latency_ms, success = await _execute_shub_task_chat(
-                json.dumps(req.payload),
-                routing_context.metadata
+                json.dumps(req.payload), routing_context.metadata
             )
             provider_used = "shub"
-            
+
         else:  # LOCAL, CLI, HYBRID, FALLBACK
             result, latency_ms, success = await _execute_hermes_task_chat(
                 routing_result.primary_engine,
                 json.dumps(req.payload),
-                routing_context.metadata
+                routing_context.metadata,
             )
             provider_used = routing_result.primary_engine
-        
+
         # Registrar ejecución en GA
         ga_router.record_execution_result(
             engine_name=provider_used,
             latency_ms=latency_ms,
             success=success,
             tokens_used=routing_result.cost,
-            task_type=task_type
+            task_type=task_type,
         )
-        
+
         # Registrar uso
         session = get_session("vx11")
         try:
@@ -1254,7 +1429,7 @@ async def switch_task(req: TaskRequest):
             session.commit()
         finally:
             session.close()
-        
+
         # Actualizar queue_entry a "done"
         session = get_session("vx11")
         try:
@@ -1266,7 +1441,7 @@ async def switch_task(req: TaskRequest):
                 session.commit()
         finally:
             session.close()
-        
+
         return {
             "status": "ok",
             "task_type": task_type,
@@ -1277,10 +1452,10 @@ async def switch_task(req: TaskRequest):
             "queue_id": queue_id,
             "reasoning": routing_result.reasoning,
         }
-    
+
     except Exception as e:
         write_log("switch", f"task_error:{task_type}:{e}", level="ERROR")
-        
+
         # Marcar como error en queue
         session = get_session("vx11")
         try:
@@ -1293,7 +1468,7 @@ async def switch_task(req: TaskRequest):
                 session.commit()
         finally:
             session.close()
-        
+
         return {
             "status": "error",
             "error": str(e),
@@ -1309,7 +1484,11 @@ async def select_model(req: RouteRequest):
     Reusa la lógica de route_v5 sin ejecutar nada más.
     """
     result = await route_v5(req)
-    return {"engine_selected": result.get("model"), "score": result.get("score"), "scores_per_engine": result.get("scores_per_engine")}
+    return {
+        "engine_selected": result.get("model"),
+        "score": result.get("score"),
+        "scores_per_engine": result.get("scores_per_engine"),
+    }
 
 
 @app.post("/switch/hermes/select_engine")
@@ -1340,9 +1519,17 @@ async def hermes_infer(req: RouteRequest):
         async with httpx.AsyncClient(timeout=15.0, headers=AUTH_HEADERS) as client:
             resp = await client.post(
                 f"{settings.hermes_url.rstrip('/')}/hermes/execute",
-                json={"command": req.prompt, "metadata": req.metadata, "selection": selection},
+                json={
+                    "command": req.prompt,
+                    "metadata": req.metadata,
+                    "selection": selection,
+                },
             )
-            hermes_payload = resp.json() if resp.status_code == 200 else {"status": "error", "code": resp.status_code}
+            hermes_payload = (
+                resp.json()
+                if resp.status_code == 200
+                else {"status": "error", "code": resp.status_code}
+            )
     except Exception as exc:
         hermes_payload = {"status": "error", "error": str(exc)}
     return {"selection": selection, "hermes": hermes_payload}
@@ -1387,7 +1574,12 @@ async def hot_reload_models():
             count += 1
         session.close()
         write_log("switch", f"hot_reload:models_reloaded:{count}")
-        return {"status": "ok", "models_loaded": count, "active": models.active, "warm": models.warm}
+        return {
+            "status": "ok",
+            "models_loaded": count,
+            "active": models.active,
+            "warm": models.warm,
+        }
     except Exception as e:
         write_log("switch", f"hot_reload_error:{e}", level="ERROR")
         raise HTTPException(status_code=500, detail=str(e))
@@ -1423,7 +1615,14 @@ async def queue_next():
     item = await queue.get()
     if not item:
         return {"status": "empty"}
-    return {"status": "ok", "payload": item.payload, "priority": item.priority, "task_queue_id": item.db_id}
+    return {
+        "status": "ok",
+        "payload": item.payload,
+        "priority": item.priority,
+        "task_queue_id": item.db_id,
+    }
+
+
 def _local_llm_chat(messages: List[Dict[str, Any]]) -> Dict[str, Any]:
     """
     Stub de modelo local 7B/7A.
