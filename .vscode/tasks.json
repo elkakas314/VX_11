@@ -1,0 +1,164 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "VX11: Status (Low-Power)",
+			"type": "shell",
+			"command": "bash",
+			"args": [
+				"-c",
+				"echo '=== VX11 System Status (Low-Power) ===' && echo '' && echo 'Running containers:' && docker compose ps --services --filter 'status=running' | wc -l && echo '' && echo 'Container details:' && docker compose ps --format 'table {{.Service}}\\t{{.Status}}' --filter 'status=running' && echo '' && echo 'Port check (sample):' && for port in 8000 8001 8002; do timeout 2 curl -s http://127.0.0.1:$port/health 2>/dev/null | jq -r '.status // \"unavailable\"' 2>/dev/null | xargs -I {} echo \"  Port $port: {}\" || echo \"  Port $port: down\"; done"
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"presentation": {
+				"reveal": "always",
+				"panel": "shared"
+			}
+		},
+		{
+			"label": "VX11: Enforce MAX2 Containers",
+			"type": "shell",
+			"command": "bash",
+			"args": [
+				"-c",
+				"RUNNING=$(docker compose ps --services --filter 'status=running' | wc -l); if [ \"$RUNNING\" -gt 2 ]; then echo \"⚠️  $RUNNING containers running (MAX 2 policy violated)\"; echo \"Stopping excess...\"; docker compose stop $(docker compose ps --services --filter 'status=running' | tail -n +3); sleep 2; echo \"✓ Enforced MAX2. Now running:\"; docker compose ps --services --filter 'status=running'; else echo \"✓ MAX2 policy OK ($RUNNING containers running)\"; fi"
+			],
+			"group": {
+				"kind": "build"
+			},
+			"presentation": {
+				"reveal": "always",
+				"panel": "shared"
+			}
+		},
+		{
+			"label": "VX11: Stop All Containers",
+			"type": "shell",
+			"command": "docker compose stop",
+			"group": {
+				"kind": "build"
+			},
+			"presentation": {
+				"reveal": "always",
+				"panel": "shared"
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "VX11: Start Module (Select)",
+			"type": "shell",
+			"command": "bash",
+			"args": [
+				"-c",
+				"echo 'Available modules:' && echo '1=tentaculo_link, 2=madre, 3=switch, 4=hermes, 5=hormiguero, 6=manifestator, 7=mcp, 8=shubniggurath, 9=spawner' && read -p 'Select (1-9): ' n && case $n in 1) M=tentaculo_link ;; 2) M=madre ;; 3) M=switch ;; 4) M=hermes ;; 5) M=hormiguero ;; 6) M=manifestator ;; 7) M=mcp ;; 8) M=shubniggurath ;; 9) M=spawner ;; *) echo 'Invalid'; exit 1 ;; esac && echo \"Starting $M...\" && docker compose up -d $M && sleep 2 && curl -s http://127.0.0.1:$(docker compose port $M 2>/dev/null | head -1 | cut -d: -f2)/health | jq . || echo 'Health check pending...'"
+			],
+			"group": {
+				"kind": "build"
+			},
+			"presentation": {
+				"reveal": "always",
+				"panel": "shared"
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "VX11: Audit Runtime (Low-Power)",
+			"type": "shell",
+			"command": "bash",
+			"args": [
+				"-c",
+				"set -e; echo '=== VX11 Runtime Audit (Low-Power, MAX2) ===' && bash .github/scripts/audit_runtime_lowpower.sh 2>&1 | tee docs/audit/AUDIT_RUNTIME_$(date -u +%Y%m%dT%H%M%SZ).md"
+			],
+			"group": {
+				"kind": "build"
+			},
+			"presentation": {
+				"reveal": "always",
+				"panel": "shared"
+			}
+		},
+		{
+			"label": "VX11: Validate (Static)",
+			"type": "shell",
+			"command": "python3",
+			"args": [
+				"scripts/vx11_workflow_runner.py",
+				"validate"
+			],
+			"group": {
+				"kind": "build"
+			},
+			"presentation": {
+				"reveal": "always",
+				"panel": "shared"
+			}
+		},
+		{
+			"label": "VX11: CI Pipeline",
+			"type": "shell",
+			"command": "python3",
+			"args": [
+				"scripts/vx11_workflow_runner.py",
+				"ci"
+			],
+			"group": {
+				"kind": "build"
+			},
+			"presentation": {
+				"reveal": "always",
+				"panel": "shared"
+			}
+		},
+		{
+			"label": "VX11: Autosync",
+			"type": "shell",
+			"command": "python3",
+			"args": [
+				"scripts/vx11_workflow_runner.py",
+				"autosync"
+			],
+			"group": {
+				"kind": "build"
+			},
+			"presentation": {
+				"reveal": "always",
+				"panel": "shared"
+			}
+		},
+		{
+			"label": "VX11: Gateway Status",
+			"type": "shell",
+			"command": "curl -sS http://127.0.0.1:8000/vx11/status | jq ."
+		},
+		{
+			"label": "VX11: Manifestator Drift",
+			"type": "shell",
+			"command": "curl -sS http://127.0.0.1:8005/drift | jq ."
+		},
+		{
+			"label": "VX11: Run Tests Suite",
+			"type": "shell",
+			"command": "cd /home/elkakas314/vx11 && python -m pytest tests/ -v --tb=short 2>&1 | tee logs/pytest_phase7.txt",
+			"group": "build"
+		},
+		{
+			"label": "VX11: Clean Logs (Archive Old)",
+			"type": "shell",
+			"command": "bash",
+			"args": [
+				"-c",
+				"TIMESTAMP=$(date -u +%Y-%m-%d); mkdir -p docs/audit/archive/$TIMESTAMP; find forensic -name '*.log' -mtime +30 -exec mv {} docs/audit/archive/$TIMESTAMP/ \\; 2>/dev/null; echo \"✓ Archived logs >30 days old to docs/audit/archive/$TIMESTAMP\""
+			],
+			"group": {
+				"kind": "build"
+			},
+			"presentation": {
+				"reveal": "always",
+				"panel": "shared"
+			}
+		}
+	]
+}
