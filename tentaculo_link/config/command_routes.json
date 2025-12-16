@@ -1,0 +1,37 @@
+{
+    "chat": {
+        "module": "switch",
+        "endpoint": "/switch/route-v5",
+        "method": "POST"
+    },
+    "code": {
+        "module": "switch",
+        "endpoint": "/switch/route-v5",
+        "method": "POST"
+    },
+    "audio": {
+        "module": "hermes",
+        "endpoint": "/hermes/analyze-audio",
+        "method": "POST"
+    },
+    "analysis": {
+        "module": "madre",
+        "endpoint": "/madre/task",
+        "method": "POST"
+    },
+    "task": {
+        "module": "madre",
+        "endpoint": "/madre/task",
+        "method": "POST"
+    },
+    "spawn": {
+        "module": "spawner",
+        "endpoint": "/spawner/spawn",
+        "method": "POST"
+    },
+    "stream": {
+        "module": "shub",
+        "endpoint": "/shub/stream",
+        "method": "POST"
+    }
+}

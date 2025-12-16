@@ -1,6 +1,6 @@
 # VX11 Status Report
 
-**Timestamp**: 2025-12-15T09:46:10.629615Z
+**Timestamp**: 2025-12-16T02:29:15.229588Z
 
 ## Runtime Truth
 `python3 scripts/vx11_runtime_truth.py`
@@ -11,8 +11,8 @@ VX11 Runtime Truth: Service Probe
   Probing tentaculo_link (port 8000)... → OK
   Probing madre (port 8001)... → OK
   Probing switch (port 8002)... → OK
-  Probing hermes (port 8003)... → BROKEN
-  Probing hormiguero (port 8004)... → BROKEN
+  Probing hermes (port 8003)... → OK
+  Probing hormiguero (port 8004)... → OK
   Probing manifestator (port 8005)... → OK
   Probing mcp (port 8006)... → OK
   Probing shubniggurath (port 8007)... → BROKEN
@@ -20,7 +20,7 @@ VX11 Runtime Truth: Service Probe
   Probing operator (port 8011)... → OK
 
 [Report] Generating markdown... ✓ /home/elkakas314/vx11/docs/audit/VX11_RUNTIME_TRUTH_REPORT.md
-[DB] Writing to copilot_runtime_services... [DB] Write skipped (read-only or error): table copilot_runtime_services has no column named http_code
+[DB] Writing to copilot_runtime_services... [DB] copilot_runtime_services not found; skipping write.
 
 
 ======================================================================
@@ -45,7 +45,7 @@ Database: /home/elkakas314/vx11/data/runtime/vx11.db
    ✓ Canonical paths scanned
 
 3. Checking runtime services (ports 8000-8020)...
-   ✓ 7/10 services up
+   ✓ 10/10 services up
 
 4. Generating bootstrap report...
    ✓ Report: docs/audit/VX11_AGENT_BOOTSTRAP_REPORT.md

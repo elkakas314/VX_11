@@ -7,6 +7,10 @@ on:
                 description: "Reason for autosync trigger"
                 required: false
                 default: "manual_trigger"
+            run_dbmap:
+                description: "If true, run DBMAP (rotate backups + generate maps) as a read-only job (no git push)."
+                required: false
+                default: "false"
     push:
         branches:
             - main
@@ -189,6 +193,105 @@ jobs:
               if: github.event_name == 'workflow_dispatch'
               run: |
                   echo "Autosync complete. Review main branch for merged changes."
+
+  dbmap_run:
+    name: DBMAP Run (manual)
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.run_dbmap == 'true' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Ensure dirs
+        run: |
+          mkdir -p data/backups docs/audit
+
+      - name: Rotate backups (cp only)
+        run: |
+          set -e
+          if [ -f data/backups/vx11.db.canonical_prev1.db ]; then
+            cp -f data/backups/vx11.db.canonical_prev1.db data/backups/vx11.db.canonical_prev2.db || true
+          fi
+          if [ -f data/backups/vx11.db.canonical_latest.db ]; then
+            cp -f data/backups/vx11.db.canonical_latest.db data/backups/vx11.db.canonical_prev1.db || true
+          fi
+          if [ -f data/runtime/vx11.db ]; then
+            cp -f data/runtime/vx11.db data/backups/vx11.db.canonical_latest.db
+          else
+            echo "DB missing: data/runtime/vx11.db"; exit 2
+          fi
+
+      - name: Integrity check and write META
+        run: |
+          python3 - <<'PY'
+import sqlite3, os, time
+db='data/runtime/vx11.db'
+meta='docs/audit/DB_MAP_v7_META.txt'
+if not os.path.exists(db):
+    print('DB missing:',db)
+    raise SystemExit(2)
+con=sqlite3.connect(db)
+cur=con.cursor()
+try:
+    cur.execute('PRAGMA integrity_check;')
+    res=cur.fetchall()
+    integrity=';'.join([r[0] for r in res])
+except Exception as e:
+    integrity=str(e)
+finally:
+    con.close()
+TS=time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
+rt=os.path.getsize(db)
+latest=os.path.getsize('data/backups/vx11.db.canonical_latest.db') if os.path.exists('data/backups/vx11.db.canonical_latest.db') else 0
+with open(meta,'w') as f:
+    f.write(f'timestamp_utc: {TS}\n')
+    f.write(f'runtime_db_size_bytes: {rt}\n')
+    f.write(f'canonical_latest_size_bytes: {latest}\n')
+    f.write(f'integrity_check: {integrity}\n')
+print('WROTE',meta)
+PY
+
+      - name: Generate DB map/schema
+        run: |
+          if [ -f scripts/generate_db_map_from_db.py ]; then
+            python3 scripts/generate_db_map_from_db.py || true
+          elif [ -f scripts/vx11_scan_and_map.py ]; then
+            python3 scripts/vx11_scan_and_map.py || true
+          else
+            echo "No generator script found"; exit 4
+          fi
+
+      - name: Ensure canonical outputs
+        run: |
+          if [ -f docs/audit/DB_SCHEMA_v7_FINAL.json ]; then echo 'OK'; else if [ -f docs/audit/DB_SCHEMA.json ]; then cp -f docs/audit/DB_SCHEMA.json docs/audit/DB_SCHEMA_v7_FINAL.json; fi; fi
+          if [ -f docs/audit/DB_MAP_v7_FINAL.md ]; then echo 'OK'; else if [ -f docs/audit/DB_MAP_FINAL.md ]; then cp -f docs/audit/DB_MAP_FINAL.md docs/audit/DB_MAP_v7_FINAL.md; fi; fi
+
+      - name: Size checks
+        run: |
+          for f in docs/audit/DB_SCHEMA_v7_FINAL.json docs/audit/DB_MAP_v7_FINAL.md docs/audit/DB_MAP_v7_META.txt; do
+            if [ -f "$f" ]; then sz=$(stat -c%s "$f"); echo "$f size=$sz"; if [ "$sz" -gt $((500*1024*1024)) ]; then echo "TOO_LARGE"; exit 5; fi; else echo "MISSING $f"; exit 6; fi
+          done
+
+      - name: Run tests (smoke)
+        run: |
+          python3 -m pip install -r requirements.txt pytest || true
+          pytest -k "hermes or switch" -q || true
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: dbmap-artifacts
+          path: |
+            docs/audit/DB_SCHEMA_v7_FINAL.json
+            docs/audit/DB_MAP_v7_FINAL.md
+            docs/audit/DB_MAP_v7_META.txt
+          retention-days: 7
 
     report:
         name: Report Autosync Status

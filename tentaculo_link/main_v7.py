@@ -508,6 +508,14 @@ async def vx11_status():
     import datetime
     clients = get_clients()
     health_results = await clients.health_check_all()
+    # Defensive: some clients may (incorrectly) return coroutine objects
+    # Ensure all module results are resolved to dicts before summarizing.
+    for name, val in list(health_results.items()):
+        try:
+            if asyncio.iscoroutine(val):
+                health_results[name] = await val
+        except Exception as _exc:
+            health_results[name] = {"status": "error", "error": str(_exc)}
     
     healthy_count = sum(1 for h in health_results.values() if h.get("status") == "ok")
     total_count = len(health_results)
