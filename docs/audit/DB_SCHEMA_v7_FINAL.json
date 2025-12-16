@@ -1,5 +1,5 @@
 {
-  "generated_at": "2025-12-16T00:43:07.487731Z",
+  "generated_at": "2025-12-16T02:12:55.820738Z",
   "database": "data/runtime/vx11.db",
   "tables": [
     {
@@ -395,7 +395,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 8,
+      "rows": 23,
       "status": "ACTIVE",
       "module": "hermes"
     },
@@ -700,7 +700,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 5,
+      "rows": 15,
       "status": "ACTIVE",
       "module": ""
     },
@@ -1408,8 +1408,8 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 0,
-      "status": "EMPTY (READY)",
+      "rows": 2,
+      "status": "ACTIVE",
       "module": "hormiguero"
     },
     {
@@ -1829,7 +1829,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 5,
+      "rows": 15,
       "status": "ACTIVE",
       "module": ""
     },
@@ -1999,7 +1999,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 3,
+      "rows": 9,
       "status": "ACTIVE",
       "module": "madre"
     },
@@ -2355,8 +2355,8 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 0,
-      "status": "EMPTY (READY)",
+      "rows": 30,
+      "status": "ACTIVE",
       "module": "hermes"
     },
     {
@@ -2601,7 +2601,7 @@
           "match": "NONE"
         }
       ],
-      "rows": 1,
+      "rows": 3,
       "status": "ACTIVE",
       "module": "operator"
     },
@@ -2742,7 +2742,7 @@
           "match": "NONE"
         }
       ],
-      "rows": 4,
+      "rows": 12,
       "status": "ACTIVE",
       "module": "operator"
     },
@@ -2799,7 +2799,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 7,
+      "rows": 19,
       "status": "ACTIVE",
       "module": "operator"
     },
@@ -2901,7 +2901,7 @@
           "match": "NONE"
         }
       ],
-      "rows": 1,
+      "rows": 3,
       "status": "ACTIVE",
       "module": "operator"
     },
@@ -2985,7 +2985,7 @@
           "match": "NONE"
         }
       ],
-      "rows": 1,
+      "rows": 3,
       "status": "ACTIVE",
       "module": "operator"
     },
@@ -3280,7 +3280,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 2,
+      "rows": 7,
       "status": "ACTIVE",
       "module": ""
     },
@@ -3863,7 +3863,7 @@
           "match": "NONE"
         }
       ],
-      "rows": 1,
+      "rows": 3,
       "status": "ACTIVE",
       "module": ""
     },
@@ -4017,8 +4017,8 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 0,
-      "status": "EMPTY (READY)",
+      "rows": 2,
+      "status": "ACTIVE",
       "module": ""
     },
     {
@@ -4316,7 +4316,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 1,
+      "rows": 3,
       "status": "ACTIVE",
       "module": ""
     },

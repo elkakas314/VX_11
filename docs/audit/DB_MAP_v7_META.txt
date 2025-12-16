@@ -1,2 +1,4 @@
-integrity:ok
-size_bytes:307200
+timestamp_utc: 2025-12-16T02:13:23Z
+runtime_db_size_bytes: 307200
+canonical_latest_size_bytes: 307200
+integrity_check: ok

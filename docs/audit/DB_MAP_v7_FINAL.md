@@ -1,6 +1,6 @@
 # VX11 Database Map (generated)
 
-Generated at: 2025-12-16T00:43:07.526350Z
+Generated at: 2025-12-16T02:12:55.858197Z
 
 Database file: data/runtime/vx11.db
 
@@ -68,7 +68,7 @@ Database file: data/runtime/vx11.db
 ### cli_usage_stats — ACTIVE
 
 - Module: hermes
-- Rows: 8
+- Rows: 23
 - Columns:
   - id (INTEGER) PK NOT NULL
   - provider_id (VARCHAR(128)) NOT NULL
@@ -113,7 +113,7 @@ Database file: data/runtime/vx11.db
 
 ### daughter_tasks — ACTIVE
 
-- Rows: 5
+- Rows: 15
 - Columns:
   - id (INTEGER) PK NOT NULL
   - intent_id (VARCHAR(36))
@@ -235,10 +235,10 @@ Database file: data/runtime/vx11.db
   - status (VARCHAR(32))
   - created_at (DATETIME)
 
-### hijas_runtime — EMPTY (READY)
+### hijas_runtime — ACTIVE
 
 - Module: hormiguero
-- Rows: 0
+- Rows: 2
 - Columns:
   - id (INTEGER) PK NOT NULL
   - name (VARCHAR(128)) NOT NULL
@@ -320,7 +320,7 @@ Database file: data/runtime/vx11.db
 
 ### intents_log — ACTIVE
 
-- Rows: 5
+- Rows: 15
 - Columns:
   - id (INTEGER) PK NOT NULL
   - source (VARCHAR(64)) NOT NULL
@@ -353,7 +353,7 @@ Database file: data/runtime/vx11.db
 ### madre_actions — ACTIVE
 
 - Module: madre
-- Rows: 3
+- Rows: 9
 - Columns:
   - id (INTEGER) PK NOT NULL
   - module (VARCHAR(64)) NOT NULL
@@ -409,10 +409,10 @@ Database file: data/runtime/vx11.db
   - user_id (VARCHAR(100))
   - created_at (DATETIME)
 
-### models_local — EMPTY (READY)
+### models_local — ACTIVE
 
 - Module: hermes
-- Rows: 0
+- Rows: 30
 - Columns:
   - id (INTEGER) PK NOT NULL
   - name (VARCHAR(255)) NOT NULL
@@ -456,7 +456,7 @@ Database file: data/runtime/vx11.db
 ### operator_browser_task — ACTIVE
 
 - Module: operator
-- Rows: 1
+- Rows: 3
 - Columns:
   - id (INTEGER) PK NOT NULL
   - session_id (VARCHAR(64)) NOT NULL
@@ -487,7 +487,7 @@ Database file: data/runtime/vx11.db
 ### operator_message — ACTIVE
 
 - Module: operator
-- Rows: 4
+- Rows: 12
 - Columns:
   - id (INTEGER) PK NOT NULL
   - session_id (VARCHAR(64)) NOT NULL
@@ -501,7 +501,7 @@ Database file: data/runtime/vx11.db
 ### operator_session — ACTIVE
 
 - Module: operator
-- Rows: 7
+- Rows: 19
 - Columns:
   - id (INTEGER) PK NOT NULL
   - session_id (VARCHAR(64)) NOT NULL
@@ -513,7 +513,7 @@ Database file: data/runtime/vx11.db
 ### operator_switch_adjustment — ACTIVE
 
 - Module: operator
-- Rows: 1
+- Rows: 3
 - Columns:
   - id (INTEGER) PK NOT NULL
   - session_id (VARCHAR(64)) NOT NULL
@@ -531,7 +531,7 @@ Database file: data/runtime/vx11.db
 ### operator_tool_call — ACTIVE
 
 - Module: operator
-- Rows: 1
+- Rows: 3
 - Columns:
   - id (INTEGER) PK NOT NULL
   - message_id (INTEGER) NOT NULL
@@ -587,7 +587,7 @@ Database file: data/runtime/vx11.db
 
 ### routing_events — ACTIVE
 
-- Rows: 2
+- Rows: 7
 - Columns:
   - id (INTEGER) PK NOT NULL
   - timestamp (DATETIME)
@@ -691,7 +691,7 @@ Database file: data/runtime/vx11.db
 
 ### spawns — ACTIVE
 
-- Rows: 1
+- Rows: 3
 - Columns:
   - id (INTEGER) PK NOT NULL
   - uuid (VARCHAR(36)) NOT NULL
@@ -726,9 +726,9 @@ Database file: data/runtime/vx11.db
   - result_size (INTEGER)
   - error_message (VARCHAR(500))
 
-### system_events — EMPTY (READY)
+### system_events — ACTIVE
 
-- Rows: 0
+- Rows: 2
 - Columns:
   - id (INTEGER) PK NOT NULL
   - timestamp (DATETIME)
@@ -773,7 +773,7 @@ Database file: data/runtime/vx11.db
 
 ### tasks — ACTIVE
 
-- Rows: 1
+- Rows: 3
 - Columns:
   - id (INTEGER) PK NOT NULL
   - uuid (VARCHAR(36)) NOT NULL
