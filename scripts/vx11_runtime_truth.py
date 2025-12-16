@@ -144,7 +144,11 @@ def probe_service(service):
 
 
 def write_db_copilot_tables(results):
-    """Write results to copilot_runtime_services (UPSERT)."""
+    """Write results to copilot_runtime_services (UPSERT).
+
+    Handles schema variations gracefully: attempts to write full row,
+    falls back to inserting only common columns if schema lacks new fields.
+    """
     if not DB_PATH.exists():
         print(f"[DB] {DB_PATH} not found; skipping DB write.")
         return
@@ -169,29 +173,77 @@ def write_db_copilot_tables(results):
     try:
         conn = sqlite3.connect(str(DB_PATH))
         cur = conn.cursor()
+
+        # Dynamically check which columns exist in the table
+        cur.execute("PRAGMA table_info(copilot_runtime_services)")
+        columns = {row[1] for row in cur.fetchall()}
+
+        # Build INSERT statement with only existing columns
+        available_cols = []
+        placeholders = []
+
+        if "service_name" in columns:
+            available_cols.append("service_name")
+            placeholders.append("?")
+        if "port" in columns:
+            available_cols.append("port")
+            placeholders.append("?")
+        if "status" in columns:
+            available_cols.append("status")
+            placeholders.append("?")
+        if "http_code" in columns:
+            available_cols.append("http_code")
+            placeholders.append("?")
+        if "latency_ms" in columns:
+            available_cols.append("latency_ms")
+            placeholders.append("?")
+        if "endpoint_ok" in columns:
+            available_cols.append("endpoint_ok")
+            placeholders.append("?")
+        if "snippet" in columns:
+            available_cols.append("snippet")
+            placeholders.append("?")
+        if "checked_at" in columns:
+            available_cols.append("checked_at")
+            placeholders.append("?")
+
+        if not available_cols:
+            print("[DB] No writable columns found; skipping write.")
+            conn.close()
+            return
+
+        col_csv = ", ".join(available_cols)
+        ph_csv = ", ".join(placeholders)
+        stmt = f"INSERT OR REPLACE INTO copilot_runtime_services ({col_csv}) VALUES ({ph_csv})"
+
         for r in results:
-            cur.execute(
-                """
-                INSERT OR REPLACE INTO copilot_runtime_services 
-                (service_name, port, status, http_code, latency_ms, endpoint_ok, snippet, checked_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            """,
-                (
-                    r["name"],
-                    r["port"],
-                    r["status"],
-                    r["http_code"],
-                    r["latency_ms"],
-                    r["endpoint_ok"],
-                    r["snippet"],
-                    datetime.utcnow().isoformat(),
-                ),
-            )
+            values = []
+            if "service_name" in available_cols:
+                values.append(r["name"])
+            if "port" in available_cols:
+                values.append(r["port"])
+            if "status" in available_cols:
+                values.append(r["status"])
+            if "http_code" in available_cols:
+                values.append(r["http_code"])
+            if "latency_ms" in available_cols:
+                values.append(r["latency_ms"])
+            if "endpoint_ok" in available_cols:
+                values.append(r["endpoint_ok"])
+            if "snippet" in available_cols:
+                values.append(r["snippet"])
+            if "checked_at" in available_cols:
+                values.append(datetime.utcnow().isoformat())
+
+            cur.execute(stmt, values)
+
         conn.commit()
-        print(f"[DB] Written {len(results)} rows to copilot_runtime_services")
+        print(
+            f"[DB] Written {len(results)} rows (cols: {', '.join(available_cols[:4])}...)"
+        )
         conn.close()
     except Exception as e:
-        print(f"[DB] Write skipped (read-only or error): {e}")
+        print(f"[DB] Write error: {e}")
 
 
 def generate_report(results):

@@ -628,6 +628,92 @@ async def operator_session(
     return session.to_dict()
 
 
+# ============ EVENT INGESTION ============
+
+
+class EventIngestionRequest(BaseModel):
+    """Event ingestion request model."""
+
+    source: str
+    type: str
+    payload: Dict[str, Any]
+    broadcast: bool = False
+    metadata: Optional[Dict[str, Any]] = None
+
+
+@app.post("/events/ingest")
+async def events_ingest(
+    req: EventIngestionRequest,
+    _: bool = Depends(token_guard),
+):
+    """
+    Ingest events from modules (madre, spawner, etc).
+    Optionally broadcast via WebSocket if broadcast=True.
+    Non-canonical events are accepted but not validated against schema.
+    """
+    event = {
+        "source": req.source,
+        "type": req.type,
+        "payload": req.payload,
+        "timestamp": int(time.time() * 1000),
+        "metadata": req.metadata or {},
+    }
+
+    # Validate event against canonical schemas (if canonical)
+    # Otherwise, accept as-is (non-canonical events bypass schema validation)
+    if req.type in CANONICAL_EVENT_WHITELIST:
+        validated = await validate_and_filter_event(event)
+        if not validated:
+            write_log(
+                "tentaculo_link",
+                f"event_ingest_rejected:source={req.source}:type={req.type}",
+                level="WARNING",
+            )
+            return {
+                "status": "rejected",
+                "reason": "schema_validation_failed",
+                "source": req.source,
+            }
+    else:
+        # Non-canonical events are accepted as-is (for backward compatibility)
+        validated = event
+        write_log(
+            "tentaculo_link",
+            f"event_ingest_non_canonical:source={req.source}:type={req.type}",
+            level="DEBUG",
+        )
+
+    # Increment cardinality counter
+    cardinality_counter.increment(req.type)
+
+    # Optionally broadcast via WebSocket
+    if req.broadcast:
+        try:
+            await manager.broadcast(validated)
+            write_log(
+                "tentaculo_link",
+                f"event_ingested_and_broadcast:source={req.source}:type={req.type}",
+            )
+        except Exception as e:
+            write_log(
+                "tentaculo_link",
+                f"event_broadcast_error:{str(e)}",
+                level="WARNING",
+            )
+            return {
+                "status": "ingested_no_broadcast",
+                "reason": "broadcast_failed",
+                "error": str(e),
+            }
+    else:
+        write_log(
+            "tentaculo_link",
+            f"event_ingested:source={req.source}:type={req.type}",
+        )
+
+    return {"status": "received", "source": req.source, "type": req.type}
+
+
 # ============ VX11 OVERVIEW (AGGREGATED) ============
 
 

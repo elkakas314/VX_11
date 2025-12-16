@@ -1026,6 +1026,31 @@ class RoutingEvent(Base):
     reasoning_short = Column(String(255), nullable=True)
 
 
+class CopilotRuntimeServices(Base):
+    """Copilot runtime services status tracking (for vx11_runtime_truth.py).
+
+    Additive schema: service_name, host, port, health_url, status, last_check exist in legacy.
+    New columns (http_code, latency_ms, endpoint_ok, snippet, checked_at) are added
+    for enhanced monitoring without breaking existing schema.
+    """
+
+    __tablename__ = "copilot_runtime_services"
+
+    id = Column(Integer, primary_key=True)
+    service_name = Column(String(128), unique=True, nullable=False)
+    host = Column(String(128), default="localhost")
+    port = Column(Integer, nullable=False)
+    health_url = Column(String(256), nullable=True)
+    status = Column(String(32), default="unknown")  # OK, BROKEN, UNKNOWN
+    http_code = Column(Integer, nullable=True)  # Last HTTP response code
+    latency_ms = Column(Integer, nullable=True)  # Last latency in ms
+    endpoint_ok = Column(String(128), nullable=True)  # Which endpoint responded
+    snippet = Column(Text, nullable=True)  # Response snippet
+    last_check = Column(DateTime, nullable=True)
+    checked_at = Column(DateTime, nullable=True)  # Alternative timestamp
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
 # Create all tables (solo una vez) y migrar legacy → unificada
 Base.metadata.create_all(unified_engine)
 migrate_legacy_tables(unified_engine)
