@@ -43,6 +43,11 @@ from switch.ga_optimizer import GeneticAlgorithmOptimizer, GAIndividual
 from switch.warm_up import WarmUpEngine
 from switch.shub_router import ShubRouter, AudioDomain
 from switch.hermes import CLISelector, CLIFusion, ExecutionMode, get_metrics_collector
+from switch.fluzo.client import FLUZOClient
+from switch.cli_concentrator.registry import get_cli_registry
+from switch.cli_concentrator.scoring import CLIScorer
+from switch.cli_concentrator.breaker import CircuitBreaker
+from switch.cli_concentrator.schemas import CLIRequest as CLIConcRequest
 
 # FASE 6: Importar Shub Forwarder (Wiring)
 from switch.shub_forwarder import get_switch_shub_forwarder
@@ -720,6 +725,30 @@ async def switch_providers_list():
     return {"status": "ok", "providers": cli_list + local_list}
 
 
+@app.get("/switch/fluzo")
+async def switch_fluzo_profile():
+    """Return FLUZO profile and signals via FLUZOClient."""
+    try:
+        client = FLUZOClient()
+        profile = client.get_profile()
+        return {"status": "ok", "profile": profile}
+    except Exception as e:
+        write_log("switch", f"fluzo_profile_error:{e}", level="ERROR")
+        raise HTTPException(status_code=500, detail="fluzo_error")
+
+
+@app.get("/switch/fluzo/signals")
+async def switch_fluzo_signals():
+    """Return raw FLUZO signals."""
+    try:
+        client = FLUZOClient()
+        signals = client.get_signals()
+        return {"status": "ok", "signals": signals}
+    except Exception as e:
+        write_log("switch", f"fluzo_signals_error:{e}", level="ERROR")
+        raise HTTPException(status_code=500, detail="fluzo_error")
+
+
 @app.get("/metrics{suffix:path}")
 async def metrics_stub(suffix: str = ""):
     """Lightweight stub to silence missing metrics probes."""
@@ -1351,6 +1380,58 @@ async def switch_chat(req: ChatRequest):
         # PASO 2: Consultar Intelligence Layer para decisión
         routing_decision = await sil.make_routing_decision(context)
 
+        # PHASE4: Override routing decision to use CLI Concentrator when forced
+        try:
+            force_cli_flag = (req.metadata or {}).get("force_cli", False)
+            provider_hint_cli = provider_hint == "cli"
+
+            if force_cli_flag or provider_hint_cli:
+                try:
+                    # Prepare CLI concentrator
+                    db_sess = get_session("vx11")
+                    registry = get_cli_registry(db_sess)
+                    breaker = CircuitBreaker()
+                    scorer = CLIScorer(registry, breaker)
+                    fluzo_client = FLUZOClient()
+                    fluzo_profile = fluzo_client.get_profile()
+
+                    cli_req = CLIConcRequest(
+                        prompt=prompt_text,
+                        intent=task_type,
+                        task_type=("short" if short_task else "long"),
+                        metadata=req.metadata or {},
+                        force_cli=bool(force_cli_flag),
+                        provider_preference=provider_hint if provider_hint else None,
+                        trace_id=req.metadata.get("trace_id") if req.metadata else None,
+                    )
+
+                    provider, debug = scorer.select_best_provider(
+                        cli_req, fluzo_profile
+                    )
+                    if provider:
+                        # Set routing to CLI and use provider as primary engine (use module-level RoutingResult/RoutingDecision)
+                        routing_decision = RoutingResult(
+                            decision=RoutingDecision.CLI,
+                            primary_engine=provider.provider_id,
+                            reasoning=f"cli_concentrator:{provider.provider_id}",
+                        )
+                        write_log(
+                            "switch",
+                            f"cli_concentrator_selected:{provider.provider_id}:{debug.get('reason','')}",
+                        )
+
+                except Exception as cli_exc:
+                    write_log(
+                        "switch", f"cli_concentrator_error:{cli_exc}", level="WARNING"
+                    )
+                finally:
+                    try:
+                        db_sess.close()
+                    except Exception:
+                        pass
+        except Exception:
+            pass
+
         log.info(
             f"Routing decision: {routing_decision.decision}, engine: {routing_decision.primary_engine}"
         )
@@ -1397,6 +1478,56 @@ async def switch_chat(req: ChatRequest):
             routing_decision.primary_engine, latency_ms=latency_ms, status_ok=success
         )
         _update_chat_stats(routing_decision.primary_engine, success, latency_ms)
+
+        # PHASE4: If CLI route was used, persist routing event and usage stats
+        try:
+            from config.db_schema import (
+                RoutingEvent as RoutingEventModel,
+                CLIUsageStat as CLIUsageStatModel,
+            )
+
+            if (
+                getattr(routing_decision, "decision", None)
+                and str(routing_decision.decision).lower().find("cli") != -1
+            ):
+                db = get_session("vx11")
+                try:
+                    # routing event
+                    re = RoutingEventModel(
+                        timestamp=datetime.utcnow(),
+                        trace_id=(
+                            req.metadata.get("trace_id") if req.metadata else None
+                        )
+                        or "",
+                        route_type="cli",
+                        provider_id=routing_decision.primary_engine,
+                        score=0.0,
+                        reasoning_short=(routing_decision.reasoning or "cli_selected"),
+                    )
+                    db.add(re)
+                    db.commit()
+
+                    # usage stat
+                    us = CLIUsageStatModel(
+                        provider_id=routing_decision.primary_engine,
+                        timestamp=datetime.utcnow(),
+                        success=bool(success),
+                        latency_ms=int(latency_ms),
+                        cost_estimated=0.0,
+                        tokens_estimated=int(
+                            req.metadata.get("tokens_used", 0) if req.metadata else 0
+                        ),
+                        error_class=None if success else "execution_error",
+                    )
+                    db.add(us)
+                    db.commit()
+                finally:
+                    try:
+                        db.close()
+                    except Exception:
+                        pass
+        except Exception as e:
+            write_log("switch", f"cli_persistence_error:{e}", level="WARNING")
 
         # Normalize `content` in case mocks or implementations return coroutines
         content_val = ""
@@ -1580,7 +1711,148 @@ async def switch_task(req: TaskRequest):
     finally:
         session.close()
 
-    # Usar SwitchIntelligenceLayer para decisión inteligente
+        # PHASE4: Consultar CLI Concentrator antes de SIL si hay hint/force
+        try:
+            force_cli_flag = (
+                (req.payload.get("metadata", {}) or {}).get("force_cli", False)
+                if isinstance(req.payload, dict)
+                else False
+            )
+            provider_hint_cli = (req.provider_hint or "").strip().lower() == "cli"
+            short_task = task_type in ("short", "chat")
+
+            if force_cli_flag or provider_hint_cli or short_task:
+                try:
+                    db_sess = get_session("vx11")
+                    registry = get_cli_registry(db_sess)
+                    breaker = CircuitBreaker()
+                    scorer = CLIScorer(registry, breaker)
+                    fluzo_client = FLUZOClient()
+                    fluzo_profile = fluzo_client.get_profile()
+
+                    # Derive a prompt-like summary from payload if possible
+                    prompt_summary = None
+                    if isinstance(req.payload, dict):
+                        prompt_summary = (
+                            req.payload.get("prompt") or str(req.payload)[:1024]
+                        )
+                    else:
+                        prompt_summary = str(req.payload)
+
+                    cli_req = CLIConcRequest(
+                        prompt=prompt_summary or "",
+                        intent=task_type,
+                        task_type=("short" if short_task else "long"),
+                        metadata=(
+                            req.payload.get("metadata")
+                            if isinstance(req.payload, dict)
+                            else {}
+                        ),
+                        force_cli=bool(force_cli_flag),
+                        provider_preference=(
+                            req.provider_hint if req.provider_hint else None
+                        ),
+                        trace_id=(
+                            req.payload.get("trace_id")
+                            if isinstance(req.payload, dict)
+                            and req.payload.get("trace_id")
+                            else None
+                        ),
+                    )
+
+                    provider, debug = scorer.select_best_provider(
+                        cli_req, fluzo_profile
+                    )
+                    if provider:
+                        # Override SIL decision to CLI with selected provider (use module-level RoutingResult/RoutingDecision)
+                        routing_context = RoutingContext(
+                            task_type=task_type,
+                            source=source,
+                            messages=None,
+                            metadata={"payload": req.payload, "queue_id": queue_id},
+                        )
+
+                        routing_result_override = RoutingResult(
+                            decision=RoutingDecision.CLI,
+                            primary_engine=provider.provider_id,
+                            reasoning=f"cli_concentrator:{provider.provider_id}",
+                        )
+
+                        # Persist routing event for telemetry
+                        try:
+                            ses = get_session("vx11")
+                            ev = RoutingEvent(
+                                trace_id=(cli_req.trace_id or str(queue_id)),
+                                route_type="cli",
+                                provider_id=provider.provider_id,
+                                score=(
+                                    float(
+                                        debug.get("candidate_scores", [{}])[0].get(
+                                            "score", 0.0
+                                        )
+                                    )
+                                    if debug.get("candidate_scores")
+                                    else 0.0
+                                ),
+                                reasoning_short=debug.get("reason", "cli_selected"),
+                            )
+                            ses.add(ev)
+                            ses.commit()
+                        except Exception:
+                            pass
+                        finally:
+                            try:
+                                ses.close()
+                            except Exception:
+                                pass
+
+                        # Also record a CLI usage stat stub (will be updated after execution)
+                        try:
+                            ses2 = get_session("vx11")
+                            from config.db_schema import CLIUsageStat as CLIUsageModel
+
+                            usage = CLIUsageModel(
+                                provider_id=provider.provider_id,
+                                success=False,
+                                latency_ms=0,
+                                cost_estimated=0.0,
+                                tokens_estimated=0,
+                            )
+                            ses2.add(usage)
+                            ses2.commit()
+                        except Exception:
+                            pass
+                        finally:
+                            try:
+                                ses2.close()
+                            except Exception:
+                                pass
+
+                        # Attach override to locals so subsequent code uses it
+                        _cli_override = routing_result_override
+                        routing_override_applied = True
+                        write_log(
+                            "switch",
+                            f"task_cli_concentrator_selected:{provider.provider_id}:{queue_id}",
+                        )
+                        # Use this override downstream
+                        routing_result = _cli_override
+
+                except Exception as cli_exc:
+                    write_log(
+                        "switch",
+                        f"task_cli_concentrator_error:{cli_exc}",
+                        level="WARNING",
+                    )
+                finally:
+                    try:
+                        db_sess.close()
+                    except Exception:
+                        pass
+        except Exception:
+            pass
+
+        # Usar SwitchIntelligenceLayer para decisión inteligente
     provider_used = None
     result = None
 

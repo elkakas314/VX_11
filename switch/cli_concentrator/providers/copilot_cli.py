@@ -3,7 +3,20 @@ Copilot CLI provider wrapper.
 """
 
 from typing import Dict, Any, Optional
-from .schemas import ProviderConfig, CLIResponse
+from dataclasses import dataclass
+
+
+# Local lightweight ProviderConfig to avoid an unresolved absolute import.
+# Keep fields minimal and extensible to match callers expecting an auth_state attribute.
+@dataclass
+class ProviderConfig:
+    auth_state: str = "unknown"
+    name: Optional[str] = None
+    config: Optional[Dict[str, Any]] = None
+
+
+# Simple alias for CLI responses used by providers.
+CLIResponse = Dict[str, Any]
 
 
 class CopilotCLIProvider:

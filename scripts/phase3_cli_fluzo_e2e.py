@@ -16,8 +16,7 @@ import uuid
 from datetime import datetime
 
 logging.basicConfig(
-    level=logging.INFO,
-    format="[%(asctime)s] [%(levelname)s] %(message)s"
+    level=logging.INFO, format="[%(asctime)s] [%(levelname)s] %(message)s"
 )
 log = logging.getLogger(__name__)
 
@@ -74,7 +73,9 @@ def test_fluzo_signals():
         assert signals is not None, "No signals returned"
         assert "cpu_load_1m" in signals
         assert "memory_pct" in signals
-        log.info(f"✓ Signals collected: cpu={signals['cpu_load_1m']:.1f}%, mem={signals['memory_pct']:.1f}%")
+        log.info(
+            f"✓ Signals collected: cpu={signals['cpu_load_1m']:.1f}%, mem={signals['memory_pct']:.1f}%"
+        )
 
         # Get profile
         profile = client.get_profile()
@@ -147,9 +148,7 @@ def test_cli_usage_stats_db():
         db.commit()
 
         # Verify insertion
-        retrieved = db.query(CLIUsageStat).filter_by(
-            provider_id="copilot_cli"
-        ).first()
+        retrieved = db.query(CLIUsageStat).filter_by(provider_id="copilot_cli").first()
         assert retrieved is not None
         log.info(f"✓ CLI usage stat logged: latency={retrieved.latency_ms}ms")
 
@@ -179,14 +178,20 @@ def test_switch_fluzo_endpoint():
 
                 if resp.status_code == 200:
                     data = resp.json()
-                    log.info(f"✓ GET /switch/fluzo responded: {data.get('mode', 'unknown')}")
+                    log.info(
+                        f"✓ GET /switch/fluzo responded: {data.get('mode', 'unknown')}"
+                    )
                     return True
                 else:
-                    log.warning(f"⚠ GET /switch/fluzo returned {resp.status_code} (endpoint may not be implemented yet)")
+                    log.warning(
+                        f"⚠ GET /switch/fluzo returned {resp.status_code} (endpoint may not be implemented yet)"
+                    )
                     return True  # Not a failure; endpoint may not exist
 
         except Exception as e:
-            log.warning(f"⚠ Could not reach /switch/fluzo (endpoint may not be running): {e}")
+            log.warning(
+                f"⚠ Could not reach /switch/fluzo (endpoint may not be running): {e}"
+            )
             return True  # Not a failure; switch may not be running
 
     except Exception as e:

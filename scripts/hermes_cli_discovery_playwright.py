@@ -107,6 +107,109 @@ def discover_cli_providers() -> dict:
     }
 
 
+def register_providers_to_db(discovery_list: list):
+    """Register discovered providers into DB (idempotent)."""
+    try:
+        from config.db_schema import get_session, CLIProvider, CLIOnboardingState
+
+        db = get_session()
+        try:
+            for p in discovery_list:
+                name = p.get("name")
+                available = bool(p.get("available"))
+                existing = db.query(CLIProvider).filter_by(name=name).first()
+                if not existing:
+                    cp = CLIProvider(
+                        name=name,
+                        base_url=None,
+                        api_key_env="",
+                        task_types="chat",
+                        enabled=available,
+                    )
+                    db.add(cp)
+                    db.commit()
+                else:
+                    existing.enabled = available
+                    db.add(existing)
+                    db.commit()
+
+                obs = db.query(CLIOnboardingState).filter_by(provider_id=name).first()
+                if not obs:
+                    obs = CLIOnboardingState(
+                        provider_id=name,
+                        state=("verified" if available else "discovery"),
+                    )
+                    db.add(obs)
+                    db.commit()
+                else:
+                    obs.state = "verified" if available else "discovery"
+                    db.add(obs)
+                    db.commit()
+        finally:
+            try:
+                db.close()
+            except Exception:
+                pass
+    except Exception as e:
+        log.error(f"register_providers_to_db error: {e}")
+
+
+def register_providers(discovery_list: list):
+    """Public wrapper to register providers and ensure DeepSeek when configured.
+
+    This function is safe to call from tests and external code (idempotent).
+    """
+    try:
+        register_providers_to_db(discovery_list)
+    except Exception:
+        log.exception("Error in register_providers_to_db")
+
+    # Ensure DeepSeek R1 is present when configured in settings
+    try:
+        from config.db_schema import get_session, CLIProvider
+        from config.settings import settings as _settings
+
+        if getattr(_settings, "deepseek_base_url", None):
+            db = get_session()
+            try:
+                name = "deepseek_r1"
+                existing = db.query(CLIProvider).filter_by(name=name).first()
+                if not existing:
+                    cp = CLIProvider(
+                        name=name,
+                        base_url=_settings.deepseek_base_url,
+                        api_key_env=(
+                            "DEEPSEEK_API_KEY"
+                            if getattr(_settings, "deepseek_api_key", None)
+                            else ""
+                        ),
+                        task_types="chat",
+                        daily_limit_tokens=getattr(
+                            _settings, "deepseek_daily_limit_tokens", 100000
+                        ),
+                        monthly_limit_tokens=getattr(
+                            _settings, "deepseek_monthly_limit_tokens", 3000000
+                        ),
+                        enabled=True,
+                    )
+                    db.add(cp)
+                    db.commit()
+                    log.info("DeepSeek R1 registered via settings (module wrapper)")
+                else:
+                    if not existing.base_url:
+                        existing.base_url = _settings.deepseek_base_url
+                        db.add(existing)
+                        db.commit()
+                        log.info("DeepSeek R1 base_url updated (module wrapper)")
+            finally:
+                try:
+                    db.close()
+                except Exception:
+                    pass
+    except Exception:
+        log.exception("Error ensuring DeepSeek registration")
+
+
 def validate_with_playwright(dry_run: bool = True) -> dict:
     """
     Validate CLI accessibility using Playwright (headless).
@@ -272,10 +375,103 @@ def main():
     report_path.parent.mkdir(parents=True, exist_ok=True)
     report_path.write_text(report)
     log.info(f"Report written to {report_path}")
-
     if args.apply:
-        log.info("APPLY mode: Would register providers in DB (stub)")
-        log.info("Actual registration to be implemented")
+        log.info("APPLY mode: registering providers in DB")
+        try:
+            from config.db_schema import get_session, CLIProvider, CLIOnboardingState
+
+            def register_providers(discovery_list):
+                db = get_session()
+                try:
+                    for p in discovery_list:
+                        name = p.get("name")
+                        available = bool(p.get("available"))
+                        # Upsert CLIProvider
+                        existing = db.query(CLIProvider).filter_by(name=name).first()
+                        if not existing:
+                            cp = CLIProvider(
+                                name=name,
+                                base_url=None,
+                                api_key_env="",
+                                task_types="chat",
+                                enabled=available,
+                            )
+                            db.add(cp)
+                            db.commit()
+                        else:
+                            existing.enabled = available
+                            db.add(existing)
+                            db.commit()
+
+                        # Upsert onboarding state
+                        obs = (
+                            db.query(CLIOnboardingState)
+                            .filter_by(provider_id=name)
+                            .first()
+                        )
+                        if not obs:
+                            obs = CLIOnboardingState(
+                                provider_id=name,
+                                state=("verified" if available else "discovery"),
+                            )
+                            db.add(obs)
+                            db.commit()
+                        else:
+                            obs.state = "verified" if available else "discovery"
+                            db.add(obs)
+                            db.commit()
+                finally:
+                    try:
+                        db.close()
+                    except Exception:
+                        pass
+
+            register_providers(discovery.get("providers", []))
+            # Additionally, if DeepSeek is configured in settings, ensure an entry
+            try:
+                from config.settings import settings as _settings
+
+                db = get_session()
+                if getattr(_settings, "deepseek_base_url", None):
+                    name = "deepseek_r1"
+                    existing = db.query(CLIProvider).filter_by(name=name).first()
+                    if not existing:
+                        cp = CLIProvider(
+                            name=name,
+                            base_url=_settings.deepseek_base_url,
+                            api_key_env=(
+                                "DEEPSEEK_API_KEY"
+                                if getattr(_settings, "deepseek_api_key", None)
+                                else ""
+                            ),
+                            task_types="chat",
+                            daily_limit_tokens=getattr(
+                                _settings, "deepseek_daily_limit_tokens", 100000
+                            ),
+                            monthly_limit_tokens=getattr(
+                                _settings, "deepseek_monthly_limit_tokens", 3000000
+                            ),
+                            enabled=True,
+                        )
+                        db.add(cp)
+                        db.commit()
+                        log.info("DeepSeek R1 registered via settings")
+                    else:
+                        # Update base_url if missing
+                        if not existing.base_url:
+                            existing.base_url = _settings.deepseek_base_url
+                            db.add(existing)
+                            db.commit()
+                            log.info("DeepSeek R1 base_url updated")
+                try:
+                    db.close()
+                except Exception:
+                    pass
+            except Exception:
+                pass
+            log.info("Providers registered to DB")
+        except Exception as e:
+            log.error(f"Failed to register providers: {e}")
     else:
         log.info("DRY-RUN: No changes made")
 

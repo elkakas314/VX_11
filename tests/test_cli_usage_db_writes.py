@@ -40,9 +40,11 @@ class TestCLIUsageDBWrites:
         db_session.commit()
 
         # Assert
-        retrieved = db_session.query(CLIUsageStatModel).filter_by(
-            provider_id="copilot_cli"
-        ).first()
+        retrieved = (
+            db_session.query(CLIUsageStatModel)
+            .filter_by(provider_id="copilot_cli")
+            .first()
+        )
         assert retrieved is not None
         assert retrieved.latency_ms == 150
         assert retrieved.success is True
@@ -75,14 +77,18 @@ class TestCLIUsageDBWrites:
         db_session.commit()
 
         # Assert: check counts
-        copilot_count = db_session.query(CLIUsageStatModel).filter_by(
-            provider_id="copilot_cli"
-        ).count()
+        copilot_count = (
+            db_session.query(CLIUsageStatModel)
+            .filter_by(provider_id="copilot_cli")
+            .count()
+        )
         assert copilot_count >= 2
 
-        shell_count = db_session.query(CLIUsageStatModel).filter_by(
-            provider_id="generic_shell"
-        ).count()
+        shell_count = (
+            db_session.query(CLIUsageStatModel)
+            .filter_by(provider_id="generic_shell")
+            .count()
+        )
         assert shell_count >= 1
 
     def test_cli_usage_stat_query_by_success(self, db_session):
@@ -106,16 +112,24 @@ class TestCLIUsageDBWrites:
         db_session.commit()
 
         # Assert
-        successes = db_session.query(CLIUsageStatModel).filter_by(
-            provider_id="test_provider",
-            success=True,
-        ).all()
+        successes = (
+            db_session.query(CLIUsageStatModel)
+            .filter_by(
+                provider_id="test_provider",
+                success=True,
+            )
+            .all()
+        )
         assert len(successes) >= 1
 
-        failures = db_session.query(CLIUsageStatModel).filter_by(
-            provider_id="test_provider",
-            success=False,
-        ).all()
+        failures = (
+            db_session.query(CLIUsageStatModel)
+            .filter_by(
+                provider_id="test_provider",
+                success=False,
+            )
+            .all()
+        )
         assert len(failures) >= 1
 
     def test_routing_event_insert(self, db_session):
@@ -136,9 +150,9 @@ class TestCLIUsageDBWrites:
         db_session.commit()
 
         # Assert
-        retrieved = db_session.query(RoutingEvent).filter_by(
-            trace_id="test-trace-123"
-        ).first()
+        retrieved = (
+            db_session.query(RoutingEvent).filter_by(trace_id="test-trace-123").first()
+        )
         assert retrieved is not None
         assert retrieved.provider_id == "copilot_cli"
         assert retrieved.route_type == "cli"

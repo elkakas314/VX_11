@@ -3,7 +3,7 @@ Generic shell CLI provider wrapper (template).
 """
 
 from typing import Dict, Any, Optional
-from .schemas import ProviderConfig
+from ..schemas import ProviderConfig
 
 
 class GenericShellCLIProvider:
