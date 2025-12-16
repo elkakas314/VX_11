@@ -3,7 +3,19 @@ DB Schema para VX11: define tablas para tasks, context, reports, spawns.
 Compatible con SQLAlchemy 2.0 (uses declarative_base desde orm).
 """
 
-from sqlalchemy import Column, Integer, String, Text, DateTime, Float, Boolean, ForeignKey, create_engine, text, event
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    Text,
+    DateTime,
+    Float,
+    Boolean,
+    ForeignKey,
+    create_engine,
+    text,
+    event,
+)
 from sqlalchemy.orm import declarative_base, sessionmaker
 from datetime import datetime
 import os
@@ -15,14 +27,17 @@ Base = declarative_base()
 
 class Task(Base):
     """Tareas orquestadas por madre."""
+
     __tablename__ = "tasks"
-    
+
     id = Column(Integer, primary_key=True)
     uuid = Column(String(36), unique=True, nullable=False)
     name = Column(String(255), nullable=False)
     module = Column(String(50), nullable=False)  # madre, spawner, hermes, etc.
     action = Column(String(100), nullable=False)  # start, stop, exec, etc.
-    status = Column(String(20), default="pending")  # pending, running, completed, failed
+    status = Column(
+        String(20), default="pending"
+    )  # pending, running, completed, failed
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     result = Column(Text, nullable=True)
@@ -31,8 +46,9 @@ class Task(Base):
 
 class Context(Base):
     """Contexto global y específico de la ejecución."""
+
     __tablename__ = "context"
-    
+
     id = Column(Integer, primary_key=True)
     task_id = Column(String(36), ForeignKey("tasks.uuid"), nullable=False)
     key = Column(String(255), nullable=False)
@@ -43,8 +59,9 @@ class Context(Base):
 
 class Report(Base):
     """Reportes de ejecución (métricas, logs, forensics)."""
+
     __tablename__ = "reports"
-    
+
     id = Column(Integer, primary_key=True)
     task_id = Column(String(36), ForeignKey("tasks.uuid"), nullable=False)
     report_type = Column(String(50), nullable=False)  # metrics, forensics, health
@@ -56,14 +73,17 @@ class Report(Base):
 
 class Spawn(Base):
     """Procesos efímeros spawneados."""
+
     __tablename__ = "spawns"
-    
+
     id = Column(Integer, primary_key=True)
     uuid = Column(String(36), unique=True, nullable=False)
     name = Column(String(255), nullable=False)
     cmd = Column(String(500), nullable=False)
     pid = Column(Integer, nullable=True)
-    status = Column(String(20), default="pending")  # pending, running, completed, failed
+    status = Column(
+        String(20), default="pending"
+    )  # pending, running, completed, failed
     started_at = Column(DateTime, nullable=True)
     ended_at = Column(DateTime, nullable=True)
     exit_code = Column(Integer, nullable=True)
@@ -75,25 +95,31 @@ class Spawn(Base):
 
 class IADecision(Base):
     """Decisiones y rutas IA (persistence para learner)."""
+
     __tablename__ = "ia_decisions"
-    
+
     id = Column(Integer, primary_key=True)
     prompt_hash = Column(String(64), nullable=False)
     provider = Column(String(50), nullable=False)  # deepseek, local, hermes, etc.
-    task_type = Column(String(50), nullable=True)  # chat, code, reasoning, cli, embedding
+    task_type = Column(
+        String(50), nullable=True
+    )  # chat, code, reasoning, cli, embedding
     prompt = Column(Text, nullable=False)
     response = Column(Text)
     latency_ms = Column(Integer, nullable=True)  # Track provider latency for scoring
     success = Column(Boolean, default=False)  # Track provider success rate
     confidence = Column(Float, default=0.5)
-    meta_json = Column(Text, nullable=True)  # JSON metadata (renamed from metadata to avoid SQLAlchemy reserved word)
+    meta_json = Column(
+        Text, nullable=True
+    )  # JSON metadata (renamed from metadata to avoid SQLAlchemy reserved word)
     created_at = Column(DateTime, default=datetime.utcnow)
 
 
 class ModuleHealth(Base):
     """Estado de salud de módulos."""
+
     __tablename__ = "module_health"
-    
+
     id = Column(Integer, primary_key=True)
     module = Column(String(50), nullable=False)
     status = Column(String(20), default="unknown")
@@ -105,8 +131,9 @@ class ModuleHealth(Base):
 
 class ModelRegistry(Base):
     """Registro centralizado de modelos locales (HF, GGUF, llama.cpp, etc)."""
+
     __tablename__ = "model_registry"
-    
+
     id = Column(Integer, primary_key=True)
     name = Column(String(255), unique=True, nullable=False)
     path = Column(String(500), nullable=False)
@@ -117,15 +144,18 @@ class ModelRegistry(Base):
     last_used = Column(DateTime, default=datetime.utcnow)
     score = Column(Float, default=0.5)  # Learner score (0-1)
     available = Column(Boolean, default=True)
-    meta_json = Column(Text, nullable=True)  # JSON (renamed from metadata to avoid SQLAlchemy reserved word)
+    meta_json = Column(
+        Text, nullable=True
+    )  # JSON (renamed from metadata to avoid SQLAlchemy reserved word)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
 class CLIRegistry(Base):
     """Registro centralizado de CLIs disponibles."""
+
     __tablename__ = "cli_registry"
-    
+
     id = Column(Integer, primary_key=True)
     name = Column(String(100), unique=True, nullable=False)
     bin_path = Column(String(500), nullable=True)
@@ -137,6 +167,7 @@ class CLIRegistry(Base):
     used_today = Column(Integer, default=0)
     notes = Column(Text, nullable=True)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
 
 # ========== UNIFIED VX11 TABLES (v6.3) ==========
 
@@ -275,32 +306,38 @@ class SchedulerHistory(Base):
     reason = Column(Text, nullable=True)
     metrics = Column(Text, nullable=True)
 
+
 class Engine(Base):
     """Registro centralizado de motores (modelos locales, CLI, LLM remotos)."""
+
     __tablename__ = "engines"
-    
+
     id = Column(Integer, primary_key=True)
     name = Column(String(128), unique=True, nullable=False)
-    engine_type = Column(String(32), nullable=False)  # "local_model" | "cli" | "remote_llm"
-    domain = Column(String(64), nullable=False)  # "reasoning" | "code" | "infrastructure" | etc.
+    engine_type = Column(
+        String(32), nullable=False
+    )  # "local_model" | "cli" | "remote_llm"
+    domain = Column(
+        String(64), nullable=False
+    )  # "reasoning" | "code" | "infrastructure" | etc.
     endpoint = Column(String(256), nullable=False)  # URL (local/remote) ó command path
     version = Column(String(32), default="latest")
-    
+
     # Quota management
     quota_tokens_per_day = Column(Integer, default=-1)  # -1 = unlimited
     quota_used_today = Column(Integer, default=0)
     quota_reset_at = Column(DateTime, default=datetime.utcnow)
-    
+
     # Performance hints
     latency_ms = Column(Float, default=0.0)  # Avg latency
     cost_per_call = Column(Float, default=0.0)  # For remote engines
-    
+
     # Status
     enabled = Column(Boolean, default=True)
     last_used = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
+
     def __repr__(self):
         return f"<Engine {self.name} ({self.engine_type}|{self.domain})>"
 
@@ -321,7 +358,9 @@ class ShubProject(Base):
 class ShubTrack(Base):
     __tablename__ = "shub_tracks"
     id = Column(Integer, primary_key=True)
-    project_id = Column(String(64), ForeignKey("shub_projects.project_id"), nullable=False)
+    project_id = Column(
+        String(64), ForeignKey("shub_projects.project_id"), nullable=False
+    )
     name = Column(String(255), nullable=False)
     role = Column(String(64), default="unknown")  # vocal, drum, bass, etc.
     file_path = Column(String(512), nullable=True)
@@ -431,6 +470,7 @@ class ForensicLedger(Base):
 
 # ========== NUEVAS TABLAS v6.7 ==========
 
+
 class PowerEvent(Base):
     __tablename__ = "power_events"
     id = Column(Integer, primary_key=True)
@@ -470,7 +510,9 @@ class DriftReport(Base):
     __tablename__ = "drift_reports"
     id = Column(Integer, primary_key=True)
     module = Column(String(64), nullable=False)
-    details = Column(Text, nullable=False)  # JSON: {files_missing: [...], extra_files: [...], ...}
+    details = Column(
+        Text, nullable=False
+    )  # JSON: {files_missing: [...], extra_files: [...], ...}
     severity = Column(String(32), default="low")  # low, medium, high, critical
     timestamp = Column(DateTime, default=datetime.utcnow)
     resolved = Column(Boolean, default=False)
@@ -478,12 +520,16 @@ class DriftReport(Base):
 
 # ========== NUEVAS TABLAS v7.0 para SWITCH/HERMES ==========
 
+
 class CLIProvider(Base):
     """Registro de proveedores CLI (DeepSeek R1, etc.) con límites de tokens."""
+
     __tablename__ = "cli_providers"
-    
+
     id = Column(Integer, primary_key=True)
-    name = Column(String(100), unique=True, nullable=False)  # e.g., "deepseek_r1", "openrouter"
+    name = Column(
+        String(100), unique=True, nullable=False
+    )  # e.g., "deepseek_r1", "openrouter"
     base_url = Column(String(500), nullable=True)  # e.g., "https://api.deepseek.com/v1"
     api_key_env = Column(String(100), nullable=False)  # e.g., "DEEPSEEK_API_KEY"
     task_types = Column(String(255), default="chat")  # CSV: "chat,audio,tools"
@@ -500,14 +546,19 @@ class CLIProvider(Base):
 
 class LocalModelV2(Base):
     """Modelo local mejorado con engine, max_context y categorización explícita."""
+
     __tablename__ = "local_models_v2"
-    
+
     id = Column(Integer, primary_key=True)
     name = Column(String(255), unique=True, nullable=False)
-    engine = Column(String(50), nullable=False)  # "llama.cpp", "gguf", "ollama", "transformers"
+    engine = Column(
+        String(50), nullable=False
+    )  # "llama.cpp", "gguf", "ollama", "transformers"
     path = Column(String(512), nullable=False)
     size_bytes = Column(Integer, nullable=False)
-    task_type = Column(String(50), nullable=False)  # "chat", "audio-engineer", "summarization", "audio-analysis"
+    task_type = Column(
+        String(50), nullable=False
+    )  # "chat", "audio-engineer", "summarization", "audio-analysis"
     max_context = Column(Integer, default=2048)  # Tamaño máximo contexto
     enabled = Column(Boolean, default=True)
     last_used_at = Column(DateTime, nullable=True)
@@ -520,8 +571,9 @@ class LocalModelV2(Base):
 
 class ModelUsageStat(Base):
     """Registro detallado de uso de modelos/CLI para análisis y feedback."""
+
     __tablename__ = "model_usage_stats"
-    
+
     id = Column(Integer, primary_key=True)
     model_or_cli_name = Column(String(255), nullable=False)
     kind = Column(String(20), nullable=False)  # "cli" | "local"
@@ -536,14 +588,19 @@ class ModelUsageStat(Base):
 
 class SwitchQueueV2(Base):
     """Cola de Switch mejorada con tracking de task_type y payload hash."""
+
     __tablename__ = "switch_queue_v2"
-    
+
     id = Column(Integer, primary_key=True)
     source = Column(String(64), nullable=False)  # "shub", "operator", "madre", "hija"
     priority = Column(Integer, default=5)  # Menor número = mayor prioridad
-    task_type = Column(String(50), nullable=False)  # "chat", "audio-engineer", "code", etc.
+    task_type = Column(
+        String(50), nullable=False
+    )  # "chat", "audio-engineer", "code", etc.
     payload_hash = Column(String(64), nullable=False)  # SHA256 del payload para dedup
-    status = Column(String(32), default="queued")  # "queued", "running", "done", "error"
+    status = Column(
+        String(32), default="queued"
+    )  # "queued", "running", "done", "error"
     created_at = Column(DateTime, default=datetime.utcnow)
     started_at = Column(DateTime, nullable=True)
     finished_at = Column(DateTime, nullable=True)
@@ -569,8 +626,12 @@ DATABASES = {
 }
 
 # Engine único, shared por todos
-unified_engine = create_engine(UNIFIED_DB_URL, connect_args={"check_same_thread": False})
-unified_session_maker = sessionmaker(autocommit=False, autoflush=False, bind=unified_engine)
+unified_engine = create_engine(
+    UNIFIED_DB_URL, connect_args={"check_same_thread": False}
+)
+unified_session_maker = sessionmaker(
+    autocommit=False, autoflush=False, bind=unified_engine
+)
 
 
 @event.listens_for(unified_engine, "connect")
@@ -583,17 +644,24 @@ def set_sqlite_pragma(dbapi_connection, connection_record):
     except Exception:
         pass
 
+
 # ========== NUEVA TABLAS v7.0 para MADRE/SPAWNER/HIJAS EFÍMERAS ==========
+
 
 class DaughterTask(Base):
     """Tarea tentacular que genera hijas efímeras."""
+
     __tablename__ = "daughter_tasks"
-    
+
     id = Column(Integer, primary_key=True)
     intent_id = Column(String(36), nullable=True)  # Enlace opcional con INTENT original
-    source = Column(String(64), nullable=False)  # "operator", "hormiguero", "system", "shub", etc.
+    source = Column(
+        String(64), nullable=False
+    )  # "operator", "hormiguero", "system", "shub", etc.
     priority = Column(Integer, default=3)  # shub(0)>operator(1)>madre(2)>hijas(3)
-    status = Column(String(32), default="pending")  # pending|planning|running|retrying|completed|failed|expired|cancelled
+    status = Column(
+        String(32), default="pending"
+    )  # pending|planning|running|retrying|completed|failed|expired|cancelled
     task_type = Column(String(50), nullable=False)  # "short"|"long"
     description = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -607,8 +675,9 @@ class DaughterTask(Base):
 
 class Daughter(Base):
     """Instancia de hija efímera."""
+
     __tablename__ = "daughters"
-    
+
     id = Column(Integer, primary_key=True)
     task_id = Column(Integer, ForeignKey("daughter_tasks.id"), nullable=False)
     name = Column(String(128), nullable=False)  # Ej: "hija-task-1-mut0"
@@ -618,35 +687,47 @@ class Daughter(Base):
     started_at = Column(DateTime, nullable=True)
     last_heartbeat_at = Column(DateTime, nullable=True)
     ended_at = Column(DateTime, nullable=True)
-    status = Column(String(32), default="spawned")  # spawned|running|restarting|finished|failed|killed|expired|mutated
+    status = Column(
+        String(32), default="spawned"
+    )  # spawned|running|restarting|finished|failed|killed|expired|mutated
     mutation_level = Column(Integer, default=0)  # Nivel de mutación/adaptación
     error_last = Column(Text, nullable=True)  # Último error
 
 
 class DaughterAttempt(Base):
     """Intento/reintento de ejecución de hija."""
+
     __tablename__ = "daughter_attempts"
-    
+
     id = Column(Integer, primary_key=True)
     daughter_id = Column(Integer, ForeignKey("daughters.id"), nullable=False)
     attempt_number = Column(Integer, default=1)
     started_at = Column(DateTime, nullable=True)
     finished_at = Column(DateTime, nullable=True)
-    status = Column(String(32), default="running")  # running|success|error|timeout|cancelled
+    status = Column(
+        String(32), default="running"
+    )  # running|success|error|timeout|cancelled
     error_message = Column(String(500), nullable=True)
     tokens_used_cli = Column(Integer, default=0)
     tokens_used_local = Column(Integer, default=0)
-    switch_model_used = Column(String(128), nullable=True)  # Nombre del modelo del Switch
-    cli_provider_used = Column(String(128), nullable=True)  # Nombre del CLI (ej. "deepseek_r1")
+    switch_model_used = Column(
+        String(128), nullable=True
+    )  # Nombre del modelo del Switch
+    cli_provider_used = Column(
+        String(128), nullable=True
+    )  # Nombre del CLI (ej. "deepseek_r1")
     created_at = Column(DateTime, default=datetime.utcnow)
 
 
 class IntentLog(Base):
     """Registro de INTENTs procesados."""
+
     __tablename__ = "intents_log"
-    
+
     id = Column(Integer, primary_key=True)
-    source = Column(String(64), nullable=False)  # "operator"|"hormiguero"|"system"|"shub"|etc.
+    source = Column(
+        String(64), nullable=False
+    )  # "operator"|"hormiguero"|"system"|"shub"|etc.
     payload_json = Column(Text, nullable=False)  # JSON del INTENT completo
     created_at = Column(DateTime, default=datetime.utcnow)
     processed_by_madre_at = Column(DateTime, nullable=True)
@@ -678,7 +759,6 @@ def _copy_table(engine, legacy: str, unified: str):
     if not (_table_exists(engine, legacy) and _table_exists(engine, unified)):
         return
 
-
     legacy_cols = _columns(engine, legacy)
     unified_cols = _columns(engine, unified)
     common = [c for c in legacy_cols if c in unified_cols]
@@ -692,7 +772,9 @@ def _copy_table(engine, legacy: str, unified: str):
         rows = conn.execute(text(f"SELECT {col_csv} FROM {legacy}")).fetchall()
         for row in rows:
             conn.execute(
-                text(f"INSERT OR IGNORE INTO {unified} ({col_csv}) VALUES ({placeholders})"),
+                text(
+                    f"INSERT OR IGNORE INTO {unified} ({col_csv}) VALUES ({placeholders})"
+                ),
                 {k: row[idx] for idx, k in enumerate(common)},
             )
         conn.commit()
@@ -700,13 +782,17 @@ def _copy_table(engine, legacy: str, unified: str):
 
 # ========== HORMIGUERO v7.0 TABLES ==========
 
+
 class HormigaState(Base):
     """Estado de hormigas individuales (scanners de bajo consumo)."""
+
     __tablename__ = "hormiga_state"
-    
+
     id = Column(Integer, primary_key=True)
     ant_id = Column(String(64), unique=True, nullable=False)
-    role = Column(String(32), nullable=False)  # scanner_drift, scanner_memory, scanner_imports, etc.
+    role = Column(
+        String(32), nullable=False
+    )  # scanner_drift, scanner_memory, scanner_imports, etc.
     status = Column(String(20), default="idle")  # idle, scanning, reporting
     last_scan_at = Column(DateTime, nullable=True)
     mutation_level = Column(Integer, default=0)
@@ -718,28 +804,38 @@ class HormigaState(Base):
 
 class Incident(Base):
     """Incidencias detectadas por hormigas (reportes de anomalías)."""
+
     __tablename__ = "incidents"
-    
+
     id = Column(Integer, primary_key=True)
     ant_id = Column(String(64), nullable=False)  # Hormiga que reportó
-    incident_type = Column(String(64), nullable=False)  # drift, memory_leak, broken_import, orphan_log, orphan_db, orphan_module, zombie_process, blocked_port
+    incident_type = Column(
+        String(64), nullable=False
+    )  # drift, memory_leak, broken_import, orphan_log, orphan_db, orphan_module, zombie_process, blocked_port
     severity = Column(String(20), default="info")  # info, warning, error, critical
     location = Column(String(255), nullable=True)  # Ruta o módulo afectado
     details = Column(Text, nullable=True)  # JSON con detalles
     status = Column(String(20), default="open")  # open, acknowledged, resolved
     detected_at = Column(DateTime, default=datetime.utcnow)
     resolved_at = Column(DateTime, nullable=True)
-    queen_decision = Column(String(255), nullable=True)  # direct_action | spawn_hija | switch_strategy
+    queen_decision = Column(
+        String(255), nullable=True
+    )  # direct_action | spawn_hija | switch_strategy
 
 
 class PheromoneLog(Base):
     """Log de feromonas emitidas por la Reina (comunicación del Hormiguero)."""
+
     __tablename__ = "pheromone_log"
-    
+
     id = Column(Integer, primary_key=True)
-    pheromone_type = Column(String(64), nullable=False)  # alert, task, cleanup, optimize, investigate
+    pheromone_type = Column(
+        String(64), nullable=False
+    )  # alert, task, cleanup, optimize, investigate
     intensity = Column(Integer, default=1)  # 1-10
-    source_incident_ids = Column(Text, nullable=True)  # JSON array de IDs de incidencias
+    source_incident_ids = Column(
+        Text, nullable=True
+    )  # JSON array de IDs de incidencias
     madre_intent_id = Column(String(64), nullable=True)  # INTENT enviado a Madre
     switch_consultation_id = Column(String(64), nullable=True)  # Request a Switch
     payload = Column(Text, nullable=True)  # JSON con detalles de feromona
@@ -749,12 +845,14 @@ class PheromoneLog(Base):
 
 # ========== OPERATOR v7.0 TABLES ==========
 
+
 class OperatorSession(Base):
     """Sesión de operador (conversación)."""
+
     __tablename__ = "operator_session"
-    
+
     id = Column(Integer, primary_key=True)
-    session_id = Column(String(64), unique=True, nullable=False)
+    session_id = Column(String(64), nullable=False)
     user_id = Column(String(64), nullable=False, default="local")
     source = Column(String(50), nullable=False, default="web")  # web, cli, api
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -763,10 +861,13 @@ class OperatorSession(Base):
 
 class OperatorMessage(Base):
     """Mensaje en sesión de operador."""
+
     __tablename__ = "operator_message"
-    
+
     id = Column(Integer, primary_key=True)
-    session_id = Column(String(64), ForeignKey("operator_session.session_id"), nullable=False)
+    session_id = Column(
+        String(64), ForeignKey("operator_session.session_id"), nullable=False
+    )
     role = Column(String(50), nullable=False)  # user, assistant, system, tool
     content = Column(Text, nullable=False)
     message_metadata = Column(Text, nullable=True)  # JSON con tool_calls, etc.
@@ -775,8 +876,9 @@ class OperatorMessage(Base):
 
 class OperatorToolCall(Base):
     """Llamada a herramienta desde mensajes de operador."""
+
     __tablename__ = "operator_tool_call"
-    
+
     id = Column(Integer, primary_key=True)
     message_id = Column(Integer, ForeignKey("operator_message.id"), nullable=False)
     tool_name = Column(String(100), nullable=False)  # switch, hermes, browser, etc.
@@ -789,10 +891,13 @@ class OperatorToolCall(Base):
 
 class OperatorBrowserTask(Base):
     """Tarea de navegación (Playwright)."""
+
     __tablename__ = "operator_browser_task"
-    
+
     id = Column(Integer, primary_key=True)
-    session_id = Column(String(64), ForeignKey("operator_session.session_id"), nullable=False)
+    session_id = Column(
+        String(64), ForeignKey("operator_session.session_id"), nullable=False
+    )
     url = Column(String(500), nullable=False)
     status = Column(String(50), default="pending")  # pending, running, done, error
     snapshot_path = Column(String(255), nullable=True)
@@ -804,10 +909,13 @@ class OperatorBrowserTask(Base):
 
 class OperatorSwitchAdjustment(Base):
     """Ajustes dinámicos del switch según histórico de operador."""
+
     __tablename__ = "operator_switch_adjustment"
-    
+
     id = Column(Integer, primary_key=True)
-    session_id = Column(String(64), ForeignKey("operator_session.session_id"), nullable=False)
+    session_id = Column(
+        String(64), ForeignKey("operator_session.session_id"), nullable=False
+    )
     message_id = Column(Integer, ForeignKey("operator_message.id"), nullable=True)
     before_config = Column(Text, nullable=False)  # JSON: modelo activo, CLI prioridades
     after_config = Column(Text, nullable=False)  # JSON: nueva config
@@ -827,16 +935,120 @@ def migrate_legacy_tables(engine=unified_engine):
         "context": ["madre_context", "hermes_context", "hive_context"],
         "reports": ["madre_reports", "hermes_reports", "hive_reports"],
         "spawns": ["madre_spawns", "hermes_spawns", "hive_spawns"],
-        "ia_decisions": ["madre_ia_decisions", "hermes_ia_decisions", "hive_ia_decisions"],
-        "module_health": ["madre_module_health", "hermes_module_health", "hive_module_health"],
-        "model_registry": ["madre_model_registry", "hermes_model_registry", "hive_model_registry"],
-        "cli_registry": ["madre_cli_registry", "hermes_cli_registry", "hive_cli_registry"],
+        "ia_decisions": [
+            "madre_ia_decisions",
+            "hermes_ia_decisions",
+            "hive_ia_decisions",
+        ],
+        "module_health": [
+            "madre_module_health",
+            "hermes_module_health",
+            "hive_module_health",
+        ],
+        "model_registry": [
+            "madre_model_registry",
+            "hermes_model_registry",
+            "hive_model_registry",
+        ],
+        "cli_registry": [
+            "madre_cli_registry",
+            "hermes_cli_registry",
+            "hive_cli_registry",
+        ],
         "engines": ["madre_engines", "hermes_engines", "hive_engines"],
     }
 
     for unified_table, legacy_tables in mapping.items():
         for legacy in legacy_tables:
             _copy_table(engine, legacy, unified_table)
+
+
+# ========== PHASE 3: CLI CONCENTRATOR + FLUZO TABLES ==========
+
+
+class CLIUsageStat(Base):
+    """Usage statistics for CLI calls (Phase 3)."""
+
+    __tablename__ = "cli_usage_stats"
+
+    id = Column(Integer, primary_key=True)
+    provider_id = Column(String(128), nullable=False)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+    success = Column(Boolean, default=False)
+    latency_ms = Column(Integer, default=0)
+    cost_estimated = Column(Float, default=0.0)
+    tokens_estimated = Column(Integer, default=0)
+    error_class = Column(String(100), nullable=True)
+
+
+class CLIOnboardingState(Base):
+    """Onboarding state for CLI providers (Phase 3)."""
+
+    __tablename__ = "cli_onboarding_state"
+
+    id = Column(Integer, primary_key=True)
+    provider_id = Column(String(128), unique=True, nullable=False)
+    state = Column(
+        String(50), default="discovery"
+    )  # discovery | pending | verified | failed
+    notes = Column(Text, nullable=True)
+    last_checked_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class FluzoSignal(Base):
+    """FLUZO telemetry signals (Phase 3)."""
+
+    __tablename__ = "fluzo_signals"
+
+    id = Column(Integer, primary_key=True)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+    cpu_load_1m = Column(Float, default=0.0)
+    mem_pct = Column(Float, default=0.0)
+    on_ac = Column(Boolean, default=True)
+    battery_pct = Column(Integer, nullable=True)
+    profile = Column(
+        String(32), default="balanced"
+    )  # low_power | balanced | performance
+
+
+class RoutingEvent(Base):
+    """Routing decision events (Phase 3)."""
+
+    __tablename__ = "routing_events"
+
+    id = Column(Integer, primary_key=True)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+    trace_id = Column(String(36), nullable=False)
+    route_type = Column(String(50), nullable=False)  # cli | local_model
+    provider_id = Column(String(128), nullable=False)
+    score = Column(Float, default=0.0)
+    reasoning_short = Column(String(255), nullable=True)
+
+
+class CopilotRuntimeServices(Base):
+    """Copilot runtime services status tracking (for vx11_runtime_truth.py).
+
+    Additive schema: service_name, host, port, health_url, status, last_check exist in legacy.
+    New columns (http_code, latency_ms, endpoint_ok, snippet, checked_at) are added
+    for enhanced monitoring without breaking existing schema.
+    """
+
+    __tablename__ = "copilot_runtime_services"
+
+    id = Column(Integer, primary_key=True)
+    service_name = Column(String(128), unique=True, nullable=False)
+    host = Column(String(128), default="localhost")
+    port = Column(Integer, nullable=False)
+    health_url = Column(String(256), nullable=True)
+    status = Column(String(32), default="unknown")  # OK, BROKEN, UNKNOWN
+    http_code = Column(Integer, nullable=True)  # Last HTTP response code
+    latency_ms = Column(Integer, nullable=True)  # Last latency in ms
+    endpoint_ok = Column(String(128), nullable=True)  # Which endpoint responded
+    snippet = Column(Text, nullable=True)  # Response snippet
+    last_check = Column(DateTime, nullable=True)
+    checked_at = Column(DateTime, nullable=True)  # Alternative timestamp
+    created_at = Column(DateTime, default=datetime.utcnow)
 
 
 # Create all tables (solo una vez) y migrar legacy → unificada

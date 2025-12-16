@@ -1,0 +1,36 @@
+Could not import runpy module
+Traceback (most recent call last):
+  File "/usr/lib/python3.10/runpy.py", line 15, in <module>
+    import importlib.util
+  File "/usr/lib/python3.10/importlib/util.py", line 14, in <module>
+    from contextlib import contextmanager
+  File "/usr/lib/python3.10/contextlib.py", line 5, in <module>
+    from collections import deque
+  File "/usr/lib/python3.10/collections/__init__.py", line 36, in <module>
+    from operator import eq as _eq
+ImportError: cannot import name 'eq' from 'operator' (/home/elkakas314/vx11/operator/__init__.py)
+Error in sys.excepthook:
+Traceback (most recent call last):
+  File "/usr/lib/python3/dist-packages/apport_python_hook.py", line 62, in apport_excepthook
+    if not enabled():
+  File "/usr/lib/python3/dist-packages/apport_python_hook.py", line 24, in enabled
+    import re
+  File "/usr/lib/python3.10/re.py", line 127, in <module>
+    import functools
+  File "/usr/lib/python3.10/functools.py", line 18, in <module>
+    from collections import namedtuple
+  File "/usr/lib/python3.10/collections/__init__.py", line 36, in <module>
+    from operator import eq as _eq
+ImportError: cannot import name 'eq' from 'operator' (/home/elkakas314/vx11/operator/__init__.py)
+
+Original exception was:
+Traceback (most recent call last):
+  File "/usr/lib/python3.10/runpy.py", line 15, in <module>
+    import importlib.util
+  File "/usr/lib/python3.10/importlib/util.py", line 14, in <module>
+    from contextlib import contextmanager
+  File "/usr/lib/python3.10/contextlib.py", line 5, in <module>
+    from collections import deque
+  File "/usr/lib/python3.10/collections/__init__.py", line 36, in <module>
+    from operator import eq as _eq
+ImportError: cannot import name 'eq' from 'operator' (/home/elkakas314/vx11/operator/__init__.py)

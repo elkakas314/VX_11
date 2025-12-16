@@ -10,7 +10,14 @@ from datetime import datetime
 from typing import Dict, Optional, Any, List
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Depends, Header, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import (
+    FastAPI,
+    Depends,
+    Header,
+    HTTPException,
+    WebSocket,
+    WebSocketDisconnect,
+)
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
@@ -18,7 +25,14 @@ from pydantic import BaseModel, Field
 from config.settings import settings
 from config.tokens import get_token, load_tokens
 from config.forensics import write_log
-from config.db_schema import get_session, OperatorSession, OperatorMessage, OperatorToolCall, OperatorSwitchAdjustment, OperatorBrowserTask
+from config.db_schema import (
+    get_session,
+    OperatorSession,
+    OperatorMessage,
+    OperatorToolCall,
+    OperatorSwitchAdjustment,
+    OperatorBrowserTask,
+)
 from .browser import BrowserClient
 from .switch_integration import SwitchClient
 
@@ -34,8 +48,10 @@ AUTH_HEADERS = {settings.token_header: VX11_TOKEN}
 
 # ============ REQUEST/RESPONSE MODELS ============
 
+
 class ChatRequest(BaseModel):
     """Chat message request."""
+
     session_id: Optional[str] = None
     user_id: Optional[str] = "local"
     message: str
@@ -45,6 +61,7 @@ class ChatRequest(BaseModel):
 
 class ChatResponse(BaseModel):
     """Chat message response."""
+
     session_id: str
     response: str
     tool_calls: Optional[List[Dict[str, Any]]] = None
@@ -52,6 +69,7 @@ class ChatResponse(BaseModel):
 
 class SessionInfo(BaseModel):
     """Session history."""
+
     session_id: str
     user_id: str
     created_at: str
@@ -61,12 +79,14 @@ class SessionInfo(BaseModel):
 
 class ShubDashboard(BaseModel):
     """Shub status dashboard."""
+
     status: str
     modules: Dict[str, Any]
 
 
 class VX11Overview(BaseModel):
     """VX11 system overview."""
+
     status: str
     healthy_modules: int
     total_modules: int
@@ -75,8 +95,10 @@ class VX11Overview(BaseModel):
 
 # ============ DEPENDENCIES ============
 
+
 class TokenGuard:
     """Token validation."""
+
     def __call__(self, x_vx11_token: str = Header(None)) -> bool:
         if settings.enable_auth:
             if not x_vx11_token:
@@ -90,6 +112,7 @@ token_guard = TokenGuard()
 
 
 # ============ LIFESPAN ============
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -120,6 +143,7 @@ app.add_middleware(
 
 # ============ HEALTH ============
 
+
 @app.get("/health")
 async def health():
     """Simple health check."""
@@ -130,7 +154,55 @@ async def health():
     }
 
 
+# ============ INTENT ENDPOINT (for legacy test compat) ============
+
+
+class IntentRequest(BaseModel):
+    """Intent routing request."""
+
+    intent_type: str
+    data: Dict[str, Any]
+    target: str
+    metadata: Optional[Dict[str, Any]] = None
+
+
+@app.post("/intent")
+async def intent_handler(req: IntentRequest, _: bool = Depends(token_guard)):
+    """Route intents to target module (legacy endpoint)."""
+    # Simple proxy: if target is "switch", delegate to Switch
+    if req.target == "switch":
+        switch_client = SwitchClient()
+        msg = (req.data.get("message", "") or "").strip()
+        metadata = req.metadata or {}
+
+        # Derive mode-specific metadata if needed
+        # Detect mixing/mezcla intent (Spanish: "mezcla", English: "mix", "mixing", "blend")
+        if any(word in msg.lower() for word in ["mix", "mezcla", "mixing", "blend"]):
+            metadata["mode"] = "mix"
+            metadata["mix_ops"] = ["normalize", "eq", "limiter"]
+
+        response = await switch_client.query_chat(
+            messages=[{"role": "user", "content": msg}],
+            task_type=req.intent_type or "chat",
+            metadata=metadata,
+        )
+
+        write_log("operator_backend", f"intent:{req.intent_type}:routed_to_switch")
+        return {
+            "status": "ok",
+            "intent_type": req.intent_type,
+            "target": "switch",
+            "response": response,
+        }
+
+    write_log(
+        "operator_backend", f"intent:{req.intent_type}:unknown_target:{req.target}"
+    )
+    raise HTTPException(status_code=400, detail=f"unknown target: {req.target}")
+
+
 # ============ CHAT ENDPOINT ============
+
 
 @app.post("/operator/chat")
 async def operator_chat(
@@ -140,11 +212,11 @@ async def operator_chat(
     """Chat endpoint with BD persistence + Switch integration."""
     session_id = req.session_id or str(uuid.uuid4())
     user_id = req.user_id or "local"
-    
+
     db = None
     try:
         db = get_session("vx11")
-        
+
         # Create/get session
         session = db.query(OperatorSession).filter_by(session_id=session_id).first()
         if not session:
@@ -155,7 +227,7 @@ async def operator_chat(
             )
             db.add(session)
             db.commit()
-        
+
         # Store user message
         user_msg = OperatorMessage(
             session_id=session_id,
@@ -165,23 +237,29 @@ async def operator_chat(
         )
         db.add(user_msg)
         db.commit()
-        
+
         # Query Switch for real response (with CONTEXT7 hint)
         switch_client = SwitchClient()
         messages = [{"role": "user", "content": req.message}]
-        
+
         # Append context summary if provided
         if req.context_summary:
-            messages.insert(0, {"role": "system", "content": f"Context: {req.context_summary}"})
-        
+            messages.insert(
+                0, {"role": "system", "content": f"Context: {req.context_summary}"}
+            )
+
         switch_result = await switch_client.query_chat(
             messages=messages,
             task_type="chat",
             metadata=req.metadata or {},
         )
-        
-        response_text = switch_result.get("response") or switch_result.get("message") or f"Received: {req.message}"
-        
+
+        response_text = (
+            switch_result.get("response")
+            or switch_result.get("message")
+            or f"Received: {req.message}"
+        )
+
         # Store assistant response
         assistant_msg = OperatorMessage(
             session_id=session_id,
@@ -190,14 +268,14 @@ async def operator_chat(
         )
         db.add(assistant_msg)
         db.commit()
-        
+
         write_log("operator_backend", f"chat:{session_id}:success")
-        
+
         return ChatResponse(
             session_id=session_id,
             response=response_text,
         )
-    
+
     except Exception as exc:
         write_log("operator_backend", f"chat_error:{exc}", level="ERROR")
         raise HTTPException(status_code=500, detail=str(exc))
@@ -208,6 +286,7 @@ async def operator_chat(
 
 # ============ SESSION ENDPOINT ============
 
+
 @app.get("/operator/session/{session_id}")
 async def operator_session(
     session_id: str,
@@ -216,13 +295,13 @@ async def operator_session(
     """Get session history."""
     try:
         db = get_session("vx11")
-        
+
         session = db.query(OperatorSession).filter_by(session_id=session_id).first()
         if not session:
             raise HTTPException(status_code=404, detail="session_not_found")
-        
+
         messages = db.query(OperatorMessage).filter_by(session_id=session_id).all()
-        
+
         result = SessionInfo(
             session_id=session.session_id,
             user_id=session.user_id,
@@ -237,10 +316,10 @@ async def operator_session(
                 for msg in messages
             ],
         )
-        
+
         write_log("operator_backend", f"session_retrieved:{session_id}")
         return result
-    
+
     except HTTPException:
         raise
     except Exception as exc:
@@ -251,6 +330,7 @@ async def operator_session(
 
 
 # ============ VX11 OVERVIEW ============
+
 
 @app.get("/operator/vx11/overview")
 async def vx11_overview(_: bool = Depends(token_guard)):
@@ -279,6 +359,7 @@ async def vx11_overview(_: bool = Depends(token_guard)):
 
 # ============ SHUB DASHBOARD ============
 
+
 @app.get("/operator/shub/dashboard")
 async def shub_dashboard(_: bool = Depends(token_guard)):
     """Get Shub dashboard (stub for now)."""
@@ -298,6 +379,7 @@ async def shub_dashboard(_: bool = Depends(token_guard)):
 
 
 # ============ RESOURCES (HERMES) ============
+
 
 @app.get("/operator/resources")
 async def resources(_: bool = Depends(token_guard)):
@@ -322,8 +404,10 @@ async def resources(_: bool = Depends(token_guard)):
 
 # ============ BROWSER TASK (PLACEHOLDER) ============
 
+
 class BrowserTaskRequest(BaseModel):
     """Browser task request."""
+
     url: str
     session_id: Optional[str] = None
 
@@ -337,10 +421,10 @@ async def browser_task(
     session_id = req.session_id or str(uuid.uuid4())
     task_id = str(uuid.uuid4())
     db = None
-    
+
     try:
         db = get_session("vx11")
-        
+
         # Create task in DB
         browser_task = OperatorBrowserTask(
             id=task_id,
@@ -351,11 +435,11 @@ async def browser_task(
         )
         db.add(browser_task)
         db.commit()
-        
+
         # Execute browser task asynchronously
         client = BrowserClient(impl="playwright", headless=True, timeout_ms=30000)
         result = await client.navigate(req.url)
-        
+
         # Update task with result
         browser_task.status = result.get("status", "error")
         browser_task.screenshot_path = result.get("screenshot_path")
@@ -363,9 +447,12 @@ async def browser_task(
         browser_task.error_message = result.get("error")
         browser_task.completed_at = datetime.utcnow()
         db.commit()
-        
-        write_log("operator_backend", f"browser_task:completed:{task_id}:{result.get('status')}")
-        
+
+        write_log(
+            "operator_backend",
+            f"browser_task:completed:{task_id}:{result.get('status')}",
+        )
+
         return {
             "task_id": task_id,
             "status": "completed",
@@ -373,9 +460,11 @@ async def browser_task(
             "session_id": session_id,
             "result": result,
         }
-    
+
     except Exception as exc:
-        write_log("operator_backend", f"browser_task_error:{task_id}:{exc}", level="ERROR")
+        write_log(
+            "operator_backend", f"browser_task_error:{task_id}:{exc}", level="ERROR"
+        )
         if db and "browser_task" in locals():
             browser_task.status = "error"
             browser_task.error_message = str(exc)
@@ -399,12 +488,12 @@ async def browser_task_status(
     db = None
     try:
         db = get_session("vx11")
-        
+
         # Query task from DB
         task = db.query(OperatorBrowserTask).filter_by(id=task_id).first()
         if not task:
             raise HTTPException(status_code=404, detail="task_not_found")
-        
+
         return {
             "task_id": task.id,
             "status": task.status,
@@ -413,13 +502,19 @@ async def browser_task_status(
             "text_snippet": task.text_snippet,
             "error_message": task.error_message,
             "created_at": task.created_at.isoformat(),
-            "completed_at": task.completed_at.isoformat() if task.completed_at else None,
+            "completed_at": (
+                task.completed_at.isoformat() if task.completed_at else None
+            ),
         }
-    
+
     except HTTPException:
         raise
     except Exception as exc:
-        write_log("operator_backend", f"browser_task_status_error:{task_id}:{exc}", level="ERROR")
+        write_log(
+            "operator_backend",
+            f"browser_task_status_error:{task_id}:{exc}",
+            level="ERROR",
+        )
         raise HTTPException(status_code=500, detail="task_status_error")
     finally:
         if db:
@@ -427,6 +522,7 @@ async def browser_task_status(
 
 
 # ============ TOOL CALLS TRACKING ============
+
 
 @app.post("/operator/tool/call")
 async def tool_call_track(
@@ -440,7 +536,7 @@ async def tool_call_track(
     """Track tool call execution."""
     try:
         db = get_session("vx11")
-        
+
         tool_call = OperatorToolCall(
             message_id=message_id,
             tool_name=tool_name,
@@ -450,10 +546,10 @@ async def tool_call_track(
         )
         db.add(tool_call)
         db.commit()
-        
+
         write_log("operator_backend", f"tool_call:tracked:{tool_name}:{status}")
         return {"status": "ok"}
-    
+
     except Exception as exc:
         write_log("operator_backend", f"tool_call_error:{exc}", level="ERROR")
         raise HTTPException(status_code=500, detail=str(exc))
@@ -462,6 +558,7 @@ async def tool_call_track(
 
 
 # ============ SWITCH ADJUSTMENT TRACKING ============
+
 
 @app.post("/operator/switch/adjustment")
 async def switch_adjustment_track(
@@ -474,7 +571,7 @@ async def switch_adjustment_track(
     """Track Switch parameter adjustments."""
     try:
         db = get_session("vx11")
-        
+
         adjustment = OperatorSwitchAdjustment(
             session_id=session_id,
             before_config=json.dumps(before_config),
@@ -484,10 +581,10 @@ async def switch_adjustment_track(
         )
         db.add(adjustment)
         db.commit()
-        
+
         write_log("operator_backend", f"switch_adjustment:recorded:{session_id}")
         return {"status": "ok", "adjustment_id": adjustment.id}
-    
+
     except Exception as exc:
         write_log("operator_backend", f"switch_adjustment_error:{exc}", level="ERROR")
         raise HTTPException(status_code=500, detail=str(exc))
@@ -497,10 +594,15 @@ async def switch_adjustment_track(
 
 # ============ ERROR HANDLERS ============
 
+
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request, exc):
     """HTTP exception handler with logging."""
-    write_log("operator_backend", f"http_error:{exc.status_code}:{exc.detail}", level="WARNING")
+    write_log(
+        "operator_backend",
+        f"http_error:{exc.status_code}:{exc.detail}",
+        level="WARNING",
+    )
     return JSONResponse(
         status_code=exc.status_code,
         content={"error": exc.detail, "status_code": exc.status_code},
@@ -508,6 +610,7 @@ async def http_exception_handler(request, exc):
 
 
 # ============ SWITCH FEEDBACK LOOP ============
+
 
 @app.post("/operator/switch/feedback")
 async def record_switch_feedback(
@@ -522,7 +625,7 @@ async def record_switch_feedback(
     db = None
     try:
         db = get_session("vx11")
-        
+
         # Create adjustment record
         adjustment = OperatorSwitchAdjustment(
             session_id=str(uuid.uuid4()),
@@ -535,15 +638,18 @@ async def record_switch_feedback(
         )
         db.add(adjustment)
         db.commit()
-        
-        write_log("operator_backend", f"switch_feedback:{engine}:success={success}:latency={latency_ms}ms")
-        
+
+        write_log(
+            "operator_backend",
+            f"switch_feedback:{engine}:success={success}:latency={latency_ms}ms",
+        )
+
         return {"status": "recorded", "adjustment_id": adjustment.id}
-    
+
     except Exception as e:
         write_log("operator_backend", f"switch_feedback_error:{str(e)}", level="ERROR")
         raise HTTPException(status_code=500, detail="feedback_error")
-    
+
     finally:
         if db:
             db.close()
@@ -551,22 +657,24 @@ async def record_switch_feedback(
 
 # ============ WEBSOCKET (STUB) ============
 
+
 @app.websocket("/ws/{session_id}")
 async def websocket_endpoint(websocket: WebSocket, session_id: str):
     """WebSocket endpoint for real-time updates (stub)."""
     try:
         await websocket.accept()
         write_log("operator_backend", f"ws_connect:{session_id}")
-        
+
         # Echo loop
         while True:
             data = await websocket.receive_text()
             await websocket.send_json({"type": "echo", "data": data})
-    
+
     except WebSocketDisconnect:
         write_log("operator_backend", f"ws_disconnect:{session_id}")
 
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8011)

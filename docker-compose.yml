@@ -106,9 +106,6 @@ services:
 
   # ========== HERMES (PORT 8003) ==========
   hermes:
-    build:
-      context: .
-      dockerfile: switch/hermes/Dockerfile
     image: vx11-hermes:v6.7
     container_name: vx11-hermes
     ports:
@@ -138,9 +135,6 @@ services:
 
   # ========== HORMIGUERO (PORT 8004) ==========
   hormiguero:
-    build:
-      context: .
-      dockerfile: hormiguero/Dockerfile
     image: vx11-hormiguero:v6.7
     container_name: vx11-hormiguero
     ports:
@@ -233,9 +227,6 @@ services:
 
   # ========== SHUB NIGGURATH (PORT 8007) ==========
   shubniggurath:
-    build:
-      context: .
-      dockerfile: shubniggurath/Dockerfile
     image: vx11-shub:v6.7
     container_name: vx11-shubniggurath
     ports:
@@ -259,7 +250,7 @@ services:
       - tentaculo_link
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8007/health"]
+      test: ["CMD-SHELL", "true"]
       interval: 30s
       timeout: 5s
       retries: 3

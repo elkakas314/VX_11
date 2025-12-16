@@ -40,15 +40,23 @@ class DummyHttpClient:
 
 
 def test_operator_intent_proxy(monkeypatch):
+    """Test that /intent endpoint routes to switch with proper metadata enrichment."""
     calls = {}
 
-    async def dummy_chat(message, metadata, source="operator"):
-        calls["message"] = message
-        calls["metadata"] = metadata
-        calls["source"] = source
-        return {"status": "ok", "proxy": True}
+    # Mock the SwitchClient class to track calls
+    class MockSwitchClient:
+        async def query_chat(self, messages, task_type, metadata):
+            calls["messages"] = messages
+            calls["task_type"] = task_type
+            calls["metadata"] = metadata
+            print(f"MockSwitchClient received metadata: {metadata}")
+            return {"status": "ok", "proxy": True}
 
-    monkeypatch.setattr("operator.backend.main.switch_client.chat", dummy_chat)
+    # Patch the SwitchClient import in operator_backend.backend.main_v7
+    monkeypatch.setattr(
+        "operator_backend.backend.main_v7.SwitchClient",
+        lambda: MockSwitchClient(),
+    )
 
     client = TestClient(app)
     payload = {
@@ -62,12 +70,17 @@ def test_operator_intent_proxy(monkeypatch):
         json=payload,
         headers={settings.token_header: VX11_TOKEN},
     )
+    print(f"Response status: {resp.status_code}")
+    print(f"Calls dict: {calls}")
     assert resp.status_code == 200
     assert resp.json()["status"] == "ok"
-    assert calls["source"] == "operator"
-    assert calls["message"] == "mezcla la voz"
-    assert calls["metadata"].get("mode") == "mix"
-    assert calls["metadata"].get("mix_ops"), "Mixing ops must be derived for mezcla mode"
+    assert calls["messages"][0]["content"] == "mezcla la voz"
+    assert (
+        calls["metadata"].get("mode") == "mix"
+    ), f"Expected mode=mix, got {calls['metadata']}"
+    assert calls["metadata"].get(
+        "mix_ops"
+    ), "Mixing ops must be derived for mezcla mode"
 
 
 def test_operator_health():

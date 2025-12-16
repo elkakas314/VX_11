@@ -188,3 +188,7 @@ pnpm-lock.yaml
 *.sublime-workspace
 
 node_modules
+
+# Local backups and module quarantines
+.backups/
+tentaculo_link/_legacy/quarantine/
