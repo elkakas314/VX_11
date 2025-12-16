@@ -31,12 +31,18 @@ from config.db_schema import (
     SchedulerHistory,
     PowerEvent,
 )
-from config.container_state import get_active_modules, get_standby_modules, should_process
+from config.container_state import (
+    get_active_modules,
+    get_standby_modules,
+    should_process,
+)
 from config.context7 import Context7Generator, get_default_context7, validate_context7
 from datetime import datetime
-from .bridge_handler import BridgeHandler
 import subprocess
 import docker
+
+# NOTE: bridge_handler was removed to avoid cross-module imports
+# All bridge operations now use HTTP via tentaculo_link
 
 log = logging.getLogger("vx11.madre")
 logger = log
@@ -51,12 +57,25 @@ AUTH_HEADERS = {settings.token_header: VX11_TOKEN}
 # Session store for orchestration state
 _SESSIONS: Dict[str, Dict[str, Any]] = {}
 
-# Bridge handler for conversational routing
-_bridge_handler: Optional[BridgeHandler] = None
+# Bridge handler was removed - use HTTP via tentaculo_link instead
+# This stub prevents runtime errors if old code references it
+_bridge_handler: Optional[Dict[str, Any]] = None
 
 # Estado P&P por módulo
 _MODULE_STATES: Dict[str, str] = {
-    m: "active" for m in ["tentaculo_link", "madre", "switch", "hermes", "hormiguero", "manifestator", "mcp", "shub", "spawner", "operator"]
+    m: "active"
+    for m in [
+        "tentaculo_link",
+        "madre",
+        "switch",
+        "hermes",
+        "hormiguero",
+        "manifestator",
+        "mcp",
+        "shub",
+        "spawner",
+        "operator",
+    ]
 }
 
 # Scheduler control
@@ -107,7 +126,9 @@ class MicroPlanner:
             write_log("madre", f"planner_feedback_error:{exc}", level="WARNING")
             return {"error": str(exc)}
 
-    def build_plan(self, payload: Dict[str, Any], feedback: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def build_plan(
+        self, payload: Dict[str, Any], feedback: Dict[str, Any]
+    ) -> List[Dict[str, Any]]:
         """
         Construye un plan breve siguiendo flujo canónico:
         feedback inicial -> plan -> creación hijas -> seguimiento -> cierre.
@@ -115,9 +136,21 @@ class MicroPlanner:
         model = feedback.get("model") or "general-7b"
         intent = payload.get("intent") or payload.get("action") or "general"
         steps = [
-            {"step": "feedback_inicial", "model": model, "notes": feedback.get("reply")},
-            {"step": "elaborar_plan", "intent": intent, "queue_hint": feedback.get("queue_size", 0)},
-            {"step": "crear_hija", "agresividad": payload.get("aggressiveness", "normal"), "ttl": payload.get("ttl", 60)},
+            {
+                "step": "feedback_inicial",
+                "model": model,
+                "notes": feedback.get("reply"),
+            },
+            {
+                "step": "elaborar_plan",
+                "intent": intent,
+                "queue_hint": feedback.get("queue_size", 0),
+            },
+            {
+                "step": "crear_hija",
+                "agresividad": payload.get("aggressiveness", "normal"),
+                "ttl": payload.get("ttl", 60),
+            },
             {"step": "seguimiento", "signals": ["heartbeat", "stdout_tail"]},
             {"step": "cierre", "persist": ["tasks", "context", "spawns"]},
         ]
@@ -142,8 +175,10 @@ _TASK_RETRIES: Dict[str, int] = {}
 
 # =========== MODELS ===========
 
+
 class TaskRequest(BaseModel):
     """Create and execute a task."""
+
     name: str
     module: str  # spawner, switch, hermes, hormiguero
     action: str  # spawn, route, exec, manage
@@ -160,6 +195,7 @@ class TaskResponse(BaseModel):
 
 class EphemeralChildRequest(BaseModel):
     """Request para crear hijo efímero."""
+
     name: str
     cmd: str  # Comando a ejecutar
     timeout: Optional[int] = 30
@@ -183,6 +219,7 @@ class ChatMessage(BaseModel):
 
 class MadreChatRequest(BaseModel):
     """Conversación iterativa con madre."""
+
     task_id: Optional[str] = None  # Reutilizar sesión
     messages: List[ChatMessage]
     system_prompt: Optional[str] = None
@@ -191,6 +228,7 @@ class MadreChatRequest(BaseModel):
 
 class OrchestrationRequest(BaseModel):
     """High-level orchestration request."""
+
     action: str  # spawn, route, exec, status
     target: Optional[str] = None
     payload: Dict[str, Any]
@@ -198,6 +236,7 @@ class OrchestrationRequest(BaseModel):
 
 class IntentRequest(BaseModel):
     """INTENT estructurado para que Madre procese."""
+
     source: str  # "operator", "hormiguero", "system", "shub", etc.
     intent_type: str  # "analyze", "plan", "execute", "optimize", etc.
     payload: Dict[str, Any]  # Datos específicos
@@ -256,20 +295,21 @@ def _upsert_system_state(data: Dict[str, Any]):
 
 # ========== POWER MANAGER ==========
 
+
 class PowerManager:
     """Gestiona encendido/apagado de módulos vía Docker Engine API."""
-    
+
     def __init__(self):
         self.docker_client = None
         self.try_docker()
-    
+
     def try_docker(self):
         try:
             self.docker_client = docker.from_env()
         except Exception as e:
             write_log("madre", f"PowerManager: docker_unavailable:{e}")
             self.docker_client = None
-    
+
     async def power_on(self, module: str) -> Dict[str, Any]:
         """Enciende contenedor de módulo."""
         if not self.docker_client:
@@ -290,7 +330,7 @@ class PowerManager:
         except Exception as e:
             write_log("madre", f"power_on_error:{module}:{e}", level="ERROR")
             return {"status": "error", "reason": str(e)}
-    
+
     async def power_off(self, module: str) -> Dict[str, Any]:
         """Apaga contenedor de módulo."""
         if not self.docker_client:
@@ -311,12 +351,23 @@ class PowerManager:
         except Exception as e:
             write_log("madre", f"power_off_error:{module}:{e}", level="ERROR")
             return {"status": "error", "reason": str(e)}
-    
+
     async def get_status(self) -> Dict[str, Any]:
         """Estado de todos los módulos."""
         if not self.docker_client:
             return {"status": "error", "reason": "docker_unavailable"}
-        modules = ["tentaculo_link", "madre", "switch", "hermes", "hormiguero", "manifestator", "mcp", "shub", "spawner", "operator"]
+        modules = [
+            "tentaculo_link",
+            "madre",
+            "switch",
+            "hermes",
+            "hormiguero",
+            "manifestator",
+            "mcp",
+            "shub",
+            "spawner",
+            "operator",
+        ]
         result = {}
         try:
             for mod in modules:
@@ -329,24 +380,32 @@ class PowerManager:
         except Exception as e:
             result["error"] = str(e)
         return result
-    
+
     async def decide_auto(self) -> Dict[str, Any]:
         """Decisión automática de encendido/apagado basada en carga."""
         cpu = psutil.cpu_percent()
         ram = psutil.virtual_memory().percent
         actions = []
-        
+
         # Si CPU > 80%, apagar módulos innecesarios (bajo consumo)
         if cpu > 80:
             for mod in ["hermes", "shub", "spawner"]:
                 result = await self.power_off(mod)
-                actions.append({"module": mod, "action": "off", "result": result.get("status")})
-        
+                actions.append(
+                    {"module": mod, "action": "off", "result": result.get("status")}
+                )
+
         # Si RAM > 85%, apagar manifestator (no crítico)
         if ram > 85:
             result = await self.power_off("manifestator")
-            actions.append({"module": "manifestator", "action": "off", "result": result.get("status")})
-        
+            actions.append(
+                {
+                    "module": "manifestator",
+                    "action": "off",
+                    "result": result.get("status"),
+                }
+            )
+
         return {"actions": actions, "cpu": cpu, "ram": ram}
 
 
@@ -380,8 +439,14 @@ async def _dispatch_shub_task(task: ShubTaskRequest) -> Dict[str, Any]:
 
     spawner_url = settings.spawner_url or f"http://spawner:{settings.spawner_port}"
     async with httpx.AsyncClient(timeout=10.0) as client:
-        resp = await client.post(f"{spawner_url}/spawn", json=payload, headers=AUTH_HEADERS)
-        data = resp.json() if resp.status_code == 200 else {"status": "error", "code": resp.status_code}
+        resp = await client.post(
+            f"{spawner_url}/spawn", json=payload, headers=AUTH_HEADERS
+        )
+        data = (
+            resp.json()
+            if resp.status_code == 200
+            else {"status": "error", "code": resp.status_code}
+        )
         data["spawn"] = payload
         return data
 
@@ -389,20 +454,31 @@ async def _dispatch_shub_task(task: ShubTaskRequest) -> Dict[str, Any]:
 def _record_scheduler(action: str, reason: str, metrics: Dict[str, Any]):
     session = get_session("vx11")
     try:
-        rec = SchedulerHistory(action=action, reason=reason, metrics=json.dumps(metrics))
+        rec = SchedulerHistory(
+            action=action, reason=reason, metrics=json.dumps(metrics)
+        )
         session.add(rec)
         session.commit()
     finally:
         session.close()
 
 
-def _persist_plan(session, task_id: str, plan: List[Dict[str, Any]], feedback: Dict[str, Any]):
+def _persist_plan(
+    session, task_id: str, plan: List[Dict[str, Any]], feedback: Dict[str, Any]
+):
     """
     Guarda feedback inicial y plan tentacular en BD unificada.
     """
     try:
-        ctx = Context(task_id=task_id, key="plan_v6_4", value=json.dumps(plan), scope="planning")
-        fb = Context(task_id=task_id, key="feedback_switch", value=json.dumps(feedback), scope="planning")
+        ctx = Context(
+            task_id=task_id, key="plan_v6_4", value=json.dumps(plan), scope="planning"
+        )
+        fb = Context(
+            task_id=task_id,
+            key="feedback_switch",
+            value=json.dumps(feedback),
+            scope="planning",
+        )
         session.add(ctx)
         session.add(fb)
         session.commit()
@@ -446,6 +522,7 @@ def evaluate_policies():
 
 # =========== EPHEMERAL CHILDREN ===========
 
+
 async def create_ephemeral_child(
     name: str,
     cmd: str,
@@ -459,7 +536,7 @@ async def create_ephemeral_child(
     Retorna: {child_id, status, stdout, stderr, exit_code}
     """
     child_id = f"child-{uuid.uuid4().hex[:8]}"
-    
+
     spawner_url = settings.spawner_url or f"http://spawner:{settings.spawner_port}"
     try:
         async with httpx.AsyncClient(timeout=timeout or 30) as client:
@@ -493,7 +570,6 @@ async def create_ephemeral_child(
         }
 
 
-
 async def process_pending_tasks(db_session=None):
     """Worker mínimo: marca como completed las tareas pendientes."""
     try:
@@ -505,7 +581,7 @@ async def process_pending_tasks(db_session=None):
             try:
                 t.result = json.dumps({"ok": True})
             except Exception:
-                t.result = "{\"ok\": true}"
+                t.result = '{"ok": true}'
             db_session.commit()
     except Exception as e:
         write_log("madre", f"process_pending_tasks_error:{str(e)}", level="ERROR")
@@ -513,34 +589,42 @@ async def process_pending_tasks(db_session=None):
 
 # =========== CONVERSATIONAL CHAT ===========
 
+
 class MadreChatSession:
     """Session para conversación iterativa con madre."""
+
     def __init__(self, task_id: str, db_session):
         self.task_id = task_id
         self.db_session = db_session
         self.messages: List[Dict[str, str]] = []
         self.context: Dict[str, Any] = {}
-    
+
     def add_message(self, role: str, content: str):
         """Agregar mensaje al historial."""
-        self.messages.append({"role": role, "content": content, "timestamp": datetime.utcnow().isoformat()})
-    
+        self.messages.append(
+            {
+                "role": role,
+                "content": content,
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+        )
+
     def get_history(self) -> List[Dict[str, str]]:
         """Obtener historial de mensajes."""
         return self.messages
-    
+
     async def respond(self, user_input: str, system_prompt: str = None) -> str:
         """
         Procesar entrada de usuario y generar respuesta.
         Usa switch para routeo inteligente de prompts.
         """
         self.add_message("user", user_input)
-        
+
         # Construir prompt con contexto
         full_prompt = user_input
         if system_prompt:
             full_prompt = f"{system_prompt}\n\n{user_input}"
-        
+
         try:
             # Routear a través de switch para seleccionar mejor proveedor
             async with httpx.AsyncClient(timeout=30) as client:
@@ -556,26 +640,32 @@ class MadreChatSession:
                 result = resp.json()
                 response_text = result.get("response", "No response generated")
                 provider = result.get("provider", "unknown")
-                
+
                 self.add_message("assistant", response_text)
-                
+
                 # Actualizar contexto con metadatos
                 self.context["last_provider"] = provider
                 self.context["last_response_at"] = datetime.utcnow().isoformat()
-                
+
                 # Persistir en BD (como Context entries)
                 ctx = Context(
                     task_id=self.task_id,
                     key=f"message_{len(self.messages)}",
-                    value=json.dumps({"role": "assistant", "content": response_text, "provider": provider}),
+                    value=json.dumps(
+                        {
+                            "role": "assistant",
+                            "content": response_text,
+                            "provider": provider,
+                        }
+                    ),
                     scope="chat",
                 )
                 self.db_session.add(ctx)
                 self.db_session.commit()
-                
+
                 write_log("madre", f"chat_response:{self.task_id}:{provider}")
                 return response_text
-        
+
         except Exception as e:
             error_msg = f"Chat error: {str(e)}"
             self.add_message("system", error_msg)
@@ -584,6 +674,7 @@ class MadreChatSession:
 
 
 # =========== POWER MANAGER ENDPOINTS ===========
+
 
 @app.post("/madre/power/on/{module}")
 async def power_on_endpoint(module: str):
@@ -611,6 +702,7 @@ async def power_auto_decide():
 
 # =========== AUDIO TASKS (SHUB INTEGRATION) ===========
 
+
 @app.post("/madre/audio/analyze")
 async def audio_analyze_task(req: ShubTaskRequest, background_tasks: BackgroundTasks):
     """Tarea de análisis de audio vía Spawner."""
@@ -623,12 +715,12 @@ async def audio_analyze_task(req: ShubTaskRequest, background_tasks: BackgroundT
             "output_path": req.output_path,
             "params": req.params,
             "priority": req.priority or 2,
-            "ttl": req.ttl or 120
+            "ttl": req.ttl or 120,
         }
-        
+
         # Delegar a Spawner
         spawner_result = await _delegate_spawner(task_id, payload)
-        
+
         # Registrar en BD
         db = get_session("madre")
         task = Task(
@@ -636,12 +728,16 @@ async def audio_analyze_task(req: ShubTaskRequest, background_tasks: BackgroundT
             type="audio_analyze",
             status="spawned",
             payload=json.dumps(payload),
-            created_at=datetime.utcnow()
+            created_at=datetime.utcnow(),
         )
         db.add(task)
         db.commit()
-        
-        return {"status": "spawned", "task_id": task_id, "spawner_response": spawner_result}
+
+        return {
+            "status": "spawned",
+            "task_id": task_id,
+            "spawner_response": spawner_result,
+        }
     except Exception as e:
         logger.error(f"audio_analyze error: {e}")
         return {"status": "error", "error": str(e)}
@@ -659,9 +755,9 @@ async def audio_mix_task(req: ShubTaskRequest):
             "output_path": req.output_path,
             "params": req.params,
         }
-        
+
         spawner_result = await _delegate_spawner(task_id, payload)
-        
+
         return {"status": "spawned", "task_id": task_id}
     except Exception as e:
         return {"status": "error", "error": str(e)}
@@ -679,15 +775,16 @@ async def audio_master_task(req: ShubTaskRequest):
             "output_path": req.output_path,
             "params": req.params,
         }
-        
+
         spawner_result = await _delegate_spawner(task_id, payload)
-        
+
         return {"status": "spawned", "task_id": task_id}
     except Exception as e:
         return {"status": "error", "error": str(e)}
 
 
 # =========== ENDPOINTS ===========
+
 
 @app.get("/health")
 def health():
@@ -720,7 +817,7 @@ async def metrics_memory():
             "metric": "memory",
             "value": memory.percent,
             "unit": "percent",
-            "available_mb": memory.available / (1024 * 1024)
+            "available_mb": memory.available / (1024 * 1024),
         }
     except:
         return {"metric": "memory", "value": 0, "unit": "percent"}
@@ -736,7 +833,7 @@ async def metrics_queue():
         "value": pending_tasks + len(_SESSIONS),
         "unit": "items",
         "tasks": pending_tasks,
-        "sessions": len(_SESSIONS)
+        "sessions": len(_SESSIONS),
     }
 
 
@@ -751,7 +848,7 @@ async def metrics_throughput():
         "value": completed_tasks + total_messages,
         "unit": "items",
         "completed_tasks": completed_tasks,
-        "chat_messages": total_messages
+        "chat_messages": total_messages,
     }
 
 
@@ -764,55 +861,68 @@ async def autonomous_monitor():
     """Background task: monitors load every 3-5 seconds and adjusts modes."""
     global _CURRENT_MODE, _MONITORING_ACTIVE
     _MONITORING_ACTIVE = True
-    
+
     from config.metrics import MetricsCollector
     from config.settings import settings
-    
+
     collector = MetricsCollector()
-    
+
     while _MONITORING_ACTIVE:
         try:
             # Collect metrics from all modules
             all_metrics = await collector.collect_all_metrics(settings.PORTS)
-            
+
             # Aggregate system metrics (CPU, Memory) safely
-            local_metrics = all_metrics.get("local", {}) if isinstance(all_metrics, dict) else {}
-            module_metrics = all_metrics.get("modules", {}) if isinstance(all_metrics, dict) else {}
-            
-            module_cpus = [m.get("cpu", 0) for m in module_metrics.values() if isinstance(m, dict)]
-            module_mems = [m.get("memory", 0) for m in module_metrics.values() if isinstance(m, dict)]
-            
+            local_metrics = (
+                all_metrics.get("local", {}) if isinstance(all_metrics, dict) else {}
+            )
+            module_metrics = (
+                all_metrics.get("modules", {}) if isinstance(all_metrics, dict) else {}
+            )
+
+            module_cpus = [
+                m.get("cpu", 0) for m in module_metrics.values() if isinstance(m, dict)
+            ]
+            module_mems = [
+                m.get("memory", 0)
+                for m in module_metrics.values()
+                if isinstance(m, dict)
+            ]
+
             avg_module_cpu = sum(module_cpus) / len(module_cpus) if module_cpus else 0
             avg_module_mem = sum(module_mems) / len(module_mems) if module_mems else 0
-            
+
             system_metrics = {
                 "cpu_percent": local_metrics.get("cpu_percent", avg_module_cpu),
-                "memory_percent": local_metrics.get("memory_percent", avg_module_mem)
+                "memory_percent": local_metrics.get("memory_percent", avg_module_mem),
             }
-            
+
             # Calculate load score
             load_score = collector.calculate_load_score(system_metrics)
-            
+
             # Determine mode
             new_mode = collector.get_mode(load_score)
-            
+
             # If mode changed, notify switch and hormiguero
             if new_mode != _CURRENT_MODE:
                 _CURRENT_MODE = new_mode
-                
+
                 # Send mode to switch
                 try:
                     async with httpx.AsyncClient() as client:
-                        switch_url = settings.switch_url or f"http://switch:{settings.switch_port}"
+                        switch_url = (
+                            settings.switch_url
+                            or f"http://switch:{settings.switch_port}"
+                        )
                         await client.post(
                             f"{switch_url}/switch/control",
                             json={"action": "set_mode", "mode": new_mode},
                             headers=AUTH_HEADERS,
-                            timeout=2.0
+                            timeout=2.0,
                         )
                 except:
                     pass
-                
+
                 # Send scaling command to hormiguero
                 try:
                     async with httpx.AsyncClient() as client:
@@ -820,36 +930,46 @@ async def autonomous_monitor():
                             "ECO": 2,
                             "BALANCED": 4,
                             "HIGH-PERF": 8,
-                            "CRITICAL": 16
+                            "CRITICAL": 16,
                         }.get(new_mode, 4)
-                        
-                        hormiguero_url = settings.hormiguero_url or f"http://hormiguero:{settings.hormiguero_port}"
+
+                        hormiguero_url = (
+                            settings.hormiguero_url
+                            or f"http://hormiguero:{settings.hormiguero_port}"
+                        )
                         await client.post(
                             f"{hormiguero_url}/hormiguero/control",
-                            json={"action": "scale_workers", "target_count": worker_count},
+                            json={
+                                "action": "scale_workers",
+                                "target_count": worker_count,
+                            },
                             headers=AUTH_HEADERS,
-                            timeout=2.0
+                            timeout=2.0,
                         )
                 except:
                     pass
-                
+
                 # Log mode change
-                logger.info(f"[ADAPTIVE] Mode changed to {new_mode} (load_score={load_score:.2f})")
-            
+                logger.info(
+                    f"[ADAPTIVE] Mode changed to {new_mode} (load_score={load_score:.2f})"
+                )
+
             # Sleep 3-5 seconds
             await asyncio.sleep(4)
-        
+
         except Exception as e:
             logger.error(f"[ADAPTIVE] Monitor error: {e}")
             await asyncio.sleep(5)
 
 
 @app.post("/task")
-async def create_task(req: TaskRequest, db_session = Depends(lambda: get_session("madre"))):
+async def create_task(
+    req: TaskRequest, db_session=Depends(lambda: get_session("madre"))
+):
     """Create and queue a task."""
     task_id = req.name or f"task-{uuid.uuid4().hex[:8]}"
     session_id = f"session-{int(time.time() * 1000)}"
-    
+
     # Remove any existing task with the same uuid to avoid UNIQUE constraint errors
     existing = db_session.query(Task).filter(Task.uuid == req.name).first()
     if existing:
@@ -869,7 +989,7 @@ async def create_task(req: TaskRequest, db_session = Depends(lambda: get_session
     db_session.add(task)
     db_session.commit()
     db_session.refresh(task)
-    
+
     # Store context
     if req.context:
         for key, value in req.context.items():
@@ -881,9 +1001,9 @@ async def create_task(req: TaskRequest, db_session = Depends(lambda: get_session
             )
             db_session.add(ctx)
         db_session.commit()
-    
+
     write_log("madre", f"task_created:{task_id}:{req.module}:{req.action}")
-    
+
     # Intento rápido de procesar tareas pendientes (worker minimal)
     try:
         await process_pending_tasks(db_session)
@@ -895,15 +1015,15 @@ async def create_task(req: TaskRequest, db_session = Depends(lambda: get_session
 
 
 @app.get("/task/{task_id}")
-def get_task_status(task_id: str, db_session = Depends(lambda: get_session("madre"))):
+def get_task_status(task_id: str, db_session=Depends(lambda: get_session("madre"))):
     """Get task status and details."""
     task = db_session.query(Task).filter(Task.uuid == task_id).first()
     if not task:
         raise HTTPException(status_code=404, detail="task_not_found")
-    
+
     context_rows = db_session.query(Context).filter(Context.task_id == task_id).all()
     context = {c.key: c.value for c in context_rows}
-    
+
     return {
         "task_id": task.uuid,
         "name": task.name,
@@ -919,12 +1039,16 @@ def get_task_status(task_id: str, db_session = Depends(lambda: get_session("madr
 
 
 @app.get("/tasks")
-def list_tasks(limit: int = 50, status_filter: Optional[str] = None, db_session = Depends(lambda: get_session("madre"))):
+def list_tasks(
+    limit: int = 50,
+    status_filter: Optional[str] = None,
+    db_session=Depends(lambda: get_session("madre")),
+):
     """List tasks."""
     query = db_session.query(Task).order_by(Task.updated_at.desc()).limit(limit)
     if status_filter:
         query = query.filter(Task.status == status_filter)
-    
+
     tasks = query.all()
     return {
         "tasks": [
@@ -942,7 +1066,9 @@ def list_tasks(limit: int = 50, status_filter: Optional[str] = None, db_session 
 
 
 @app.post("/child")
-async def spawn_ephemeral_child(req: EphemeralChildRequest, db_session = Depends(lambda: get_session("madre"))):
+async def spawn_ephemeral_child(
+    req: EphemeralChildRequest, db_session=Depends(lambda: get_session("madre"))
+):
     """Crear hijo efímero."""
     result = await create_ephemeral_child(
         name=req.name,
@@ -957,11 +1083,12 @@ async def spawn_ephemeral_child(req: EphemeralChildRequest, db_session = Depends
 
 # ========== Daughter Management (PASO 4) ==========
 
+
 @app.post("/madre/daughter/spawn")
 async def spawn_real_daughter(req: Dict[str, Any]):
     """
     Crear y lanzar hija real via Spawner (PASO 4).
-    
+
     Input:
       {
         "task_name": "audio_restore",
@@ -969,7 +1096,7 @@ async def spawn_real_daughter(req: Dict[str, Any]):
         "parameters": {"file": "/audio.wav", "preset": "default"},
         "ttl_seconds": 300
       }
-    
+
     Output:
       {
         "status": "ok",
@@ -979,20 +1106,20 @@ async def spawn_real_daughter(req: Dict[str, Any]):
       }
     """
     from madre.daughters import get_daughter_manager
-    
+
     try:
         manager = get_daughter_manager()
-        
+
         daughter = await manager.spawn_daughter(
             task_name=req.get("task_name", "unnamed"),
             task_type=req.get("task_type", "generic"),
             parameters=req.get("parameters", {}),
-            ttl_seconds=req.get("ttl_seconds", 300)
+            ttl_seconds=req.get("ttl_seconds", 300),
         )
-        
+
         if not daughter:
             return {"status": "error", "error": "Failed to spawn daughter"}
-        
+
         write_log("madre", f"daughter_spawn_api:{daughter.id}")
         return {
             "status": "ok",
@@ -1010,21 +1137,21 @@ async def spawn_real_daughter(req: Dict[str, Any]):
 async def daughter_heartbeat(daughter_id: str, req: Dict[str, Any] = None):
     """
     Recibir heartbeat de hija ejecutándose.
-    
+
     Input:
       {
         "progress": 0.45
       }
-    
+
     Output:
       {"status": "ok"} o {"status": "error"}
     """
     from madre.daughters import get_daughter_manager
-    
+
     try:
         manager = get_daughter_manager()
         progress = (req or {}).get("progress", 0.0) if req else 0.0
-        
+
         if await manager.heartbeat_daughter(daughter_id, progress):
             return {"status": "ok"}
         else:
@@ -1038,18 +1165,18 @@ async def daughter_heartbeat(daughter_id: str, req: Dict[str, Any] = None):
 async def daughter_complete(daughter_id: str, req: Dict[str, Any]):
     """
     Marcar hija como completada con resultado.
-    
+
     Input:
       {
         "result": {...}
       }
     """
     from madre.daughters import get_daughter_manager
-    
+
     try:
         manager = get_daughter_manager()
         result = req.get("result", {})
-        
+
         if await manager.complete_daughter(daughter_id, result):
             write_log("madre", f"daughter_complete_api:{daughter_id}")
             return {"status": "ok"}
@@ -1064,20 +1191,22 @@ async def daughter_complete(daughter_id: str, req: Dict[str, Any]):
 async def daughter_fail(daughter_id: str, req: Dict[str, Any]):
     """
     Marcar hija como fallida.
-    
+
     Input:
       {
         "error": "Error description"
       }
     """
     from madre.daughters import get_daughter_manager
-    
+
     try:
         manager = get_daughter_manager()
         error = req.get("error", "Unknown error")
-        
+
         if await manager.fail_daughter(daughter_id, error):
-            write_log("madre", f"daughter_fail_api:{daughter_id}:{error}", level="WARNING")
+            write_log(
+                "madre", f"daughter_fail_api:{daughter_id}:{error}", level="WARNING"
+            )
             return {"status": "ok"}
         else:
             return {"status": "error", "error": "Daughter not found"}
@@ -1090,14 +1219,14 @@ async def daughter_fail(daughter_id: str, req: Dict[str, Any]):
 async def get_daughter_status(daughter_id: str):
     """Obtener estado de hija específica."""
     from madre.daughters import get_daughter_manager
-    
+
     try:
         manager = get_daughter_manager()
         status = await manager.get_daughter_status(daughter_id)
-        
+
         if status is None:
             return {"status": "not_found"}
-        
+
         return {"status": "ok", "daughter": status}
     except Exception as e:
         write_log("madre", f"get_daughter_error:{daughter_id}:{e}", level="ERROR")
@@ -1108,11 +1237,11 @@ async def get_daughter_status(daughter_id: str):
 async def list_all_daughters(status_filter: Optional[str] = None):
     """Listar todas las hijas."""
     from madre.daughters import get_daughter_manager
-    
+
     try:
         manager = get_daughter_manager()
         daughters = await manager.list_daughters(status_filter=status_filter)
-        
+
         write_log("madre", f"list_daughters:{len(daughters)}")
         return {
             "status": "ok",
@@ -1128,23 +1257,23 @@ async def list_all_daughters(status_filter: Optional[str] = None):
 async def wait_for_daughter(daughter_id: str, req: Dict[str, Any] = None):
     """
     Esperar a que hija se complete (blocking).
-    
+
     Input:
       {
         "timeout": 300.0
       }
     """
     from madre.daughters import get_daughter_manager
-    
+
     try:
         manager = get_daughter_manager()
         timeout = (req or {}).get("timeout", 300.0) if req else 300.0
-        
+
         status = await manager.wait_for_daughter(daughter_id, timeout=timeout)
-        
+
         if status is None:
             return {"status": "timeout"}
-        
+
         return {"status": "ok", "daughter": status}
     except Exception as e:
         write_log("madre", f"wait_daughter_error:{daughter_id}:{e}", level="ERROR")
@@ -1152,19 +1281,25 @@ async def wait_for_daughter(daughter_id: str, req: Dict[str, Any] = None):
 
 
 @app.post("/chat")
-async def madre_chat(req: MadreChatRequest, db_session = Depends(lambda: get_session("madre"))):
+async def madre_chat(
+    req: MadreChatRequest, db_session=Depends(lambda: get_session("madre"))
+):
     """
     Conversación iterativa con madre.
     Reutiliza task_id si existe, sino crea uno nuevo.
     Soporta context-7 opcional (backward compatible).
     """
     task_id = req.task_id or f"chat-{uuid.uuid4().hex[:8]}"
-    
+
     # Generar o usar context-7
-    context7 = req.context if hasattr(req, 'context') and req.context else get_default_context7(task_id)
+    context7 = (
+        req.context
+        if hasattr(req, "context") and req.context
+        else get_default_context7(task_id)
+    )
     if not validate_context7(context7):
         context7 = get_default_context7(task_id)
-    
+
     # Obtener o crear task
     task = db_session.query(Task).filter(Task.uuid == task_id).first()
     if not task:
@@ -1179,25 +1314,27 @@ async def madre_chat(req: MadreChatRequest, db_session = Depends(lambda: get_ses
         )
         db_session.add(task)
         db_session.commit()
-    
+
     # Crear sesión de chat
     session = MadreChatSession(task_id, db_session)
-    
+
     # Procesar mensajes
     responses = []
     for msg in req.messages:
         if msg.role == "user":
             response = await session.respond(msg.content, req.system_prompt)
             responses.append(response)
-    
+
     # Actualizar task
     task.status = "completed"
-    task.result = json.dumps({"messages": session.get_history(), "context7_used": context7})
+    task.result = json.dumps(
+        {"messages": session.get_history(), "context7_used": context7}
+    )
     task.updated_at = datetime.utcnow()
     db_session.commit()
-    
+
     write_log("madre", f"chat_completed:{task_id}:{len(req.messages)} messages")
-    
+
     return {
         "task_id": task_id,
         "status": "completed",
@@ -1219,7 +1356,11 @@ async def orchestrate(req: OrchestrationRequest):
     task_uuid = task_uuid or f"task-{uuid.uuid4().hex[:8]}"
     task = Task(
         uuid=task_uuid,
-        name=req.payload.get("name", f"orch_{action}") if isinstance(req.payload, dict) else f"orch_{action}",
+        name=(
+            req.payload.get("name", f"orch_{action}")
+            if isinstance(req.payload, dict)
+            else f"orch_{action}"
+        ),
         module="madre",
         action=action,
         status="running",
@@ -1230,11 +1371,20 @@ async def orchestrate(req: OrchestrationRequest):
     db_session.commit()
 
     # Feedback inicial y plan
-    feedback = await _planner.initial_feedback(req.payload if isinstance(req.payload, dict) else {})
-    plan = _planner.build_plan(req.payload if isinstance(req.payload, dict) else {}, feedback)
+    feedback = await _planner.initial_feedback(
+        req.payload if isinstance(req.payload, dict) else {}
+    )
+    plan = _planner.build_plan(
+        req.payload if isinstance(req.payload, dict) else {}, feedback
+    )
     _persist_plan(db_session, task_uuid, plan, feedback)
 
-    result = {"session_id": session_id, "task_id": task_uuid, "plan": plan, "feedback": feedback}
+    result = {
+        "session_id": session_id,
+        "task_id": task_uuid,
+        "plan": plan,
+        "feedback": feedback,
+    }
 
     if action == "spawn" and req.target == "spawner":
         strategy = await _ask_switch_for_strategy(req.payload or {})
@@ -1245,12 +1395,23 @@ async def orchestrate(req: OrchestrationRequest):
                 "parent_task_id": task_uuid,
                 "tools": _planner.recommended_tools(req.payload or {}),
                 "provider": strategy.get("engine_selected"),
-                "audio_pipeline": True if (strategy.get("engine_selected") in ("shub", "shub-audio") or (req.payload or {}).get("intent") == "audio") else False,
+                "audio_pipeline": (
+                    True
+                    if (
+                        strategy.get("engine_selected") in ("shub", "shub-audio")
+                        or (req.payload or {}).get("intent") == "audio"
+                    )
+                    else False
+                ),
                 "strategy": strategy,
             },
         )
         result["spawn"] = spawn_res
-        task.status = "completed" if spawn_res.get("status") not in ("error", "failed") else "failed"
+        task.status = (
+            "completed"
+            if spawn_res.get("status") not in ("error", "failed")
+            else "failed"
+        )
         task.result = json.dumps(spawn_res)
     elif action == "route" and req.target == "switch":
         route_res = await _delegate_switch(session_id, req.payload)
@@ -1287,14 +1448,17 @@ async def _delegate_spawner(session_id: str, payload: Dict[str, Any]):
             resp = await client.post(
                 f"{settings.spawner_url or f'http://spawner:{spawner_port}'}/spawn",
                 json={
-                    "name": payload.get("name") or payload.get("task") or f"hija-{session_id[-4:]}",
+                    "name": payload.get("name")
+                    or payload.get("task")
+                    or f"hija-{session_id[-4:]}",
                     "cmd": payload.get("cmd") or "echo",
                     "args": payload.get("args") or [],
                     "cwd": payload.get("cwd"),
                     "env": payload.get("env"),
                     "timeout": payload.get("timeout") or ttl,
                     "ttl": ttl,
-                    "intent_type": payload.get("intent_type") or payload.get("task_type"),
+                    "intent_type": payload.get("intent_type")
+                    or payload.get("task_type"),
                     "priority": payload.get("priority") or 1,
                     "purpose": payload.get("purpose") or payload.get("action"),
                     "module_creator": payload.get("module_creator") or "madre",
@@ -1339,7 +1503,11 @@ async def _delegate_spawner(session_id: str, payload: Dict[str, Any]):
                     f"{settings.tentaculo_link_url}/events/ingest",
                     json={
                         "source": "madre",
-                        "type": "spawn_success" if status not in ("error", "failed") else "spawn_failure",
+                        "type": (
+                            "spawn_success"
+                            if status not in ("error", "failed")
+                            else "spawn_failure"
+                        ),
                         "payload": {
                             "session_id": session_id,
                             "task_id": payload.get("parent_task_id"),
@@ -1382,7 +1550,12 @@ async def _delegate_switch(session_id: str, payload: Dict[str, Any]):
         retries = _TASK_RETRIES.get(session_id, 0)
         if retries < 2:
             _TASK_RETRIES[session_id] = retries + 1
-            return {"session_id": session_id, "status": "error", "error": str(e), "retry": True}
+            return {
+                "session_id": session_id,
+                "status": "error",
+                "error": str(e),
+                "retry": True,
+            }
         return {"session_id": session_id, "status": "error", "error": str(e)}
 
 
@@ -1394,10 +1567,20 @@ async def _ask_switch_for_strategy(payload: Dict[str, Any]) -> Dict[str, Any]:
         async with httpx.AsyncClient(timeout=8.0) as client:
             resp = await client.post(
                 f"{settings.switch_url}/switch/intent_router",
-                json={"prompt": payload.get("prompt") or payload.get("text") or str(payload), "metadata": payload, "source": "madre"},
+                json={
+                    "prompt": payload.get("prompt")
+                    or payload.get("text")
+                    or str(payload),
+                    "metadata": payload,
+                    "source": "madre",
+                },
                 headers=AUTH_HEADERS,
             )
-            result = resp.json() if resp.status_code == 200 else {"status": "error", "code": resp.status_code}
+            result = (
+                resp.json()
+                if resp.status_code == 200
+                else {"status": "error", "code": resp.status_code}
+            )
             # Adjuntar prioridad/urgencia simples
             result["priority"] = payload.get("priority") or 1
             result["urgency"] = payload.get("urgency") or "normal"
@@ -1434,7 +1617,7 @@ async def status():
         ("hermes", settings.hermes_url),
         ("hormiguero", settings.hormiguero_url),
     ]
-    
+
     for svc_name, base in services:
         try:
             async with httpx.AsyncClient(timeout=2) as client:
@@ -1442,7 +1625,7 @@ async def status():
                 status_checks[svc_name] = "ok" if resp.status_code == 200 else "error"
         except Exception:
             status_checks[svc_name] = "unreachable"
-    
+
     return {"service": "madre", "status": "ok", "delegated_services": status_checks}
 
 
@@ -1461,7 +1644,11 @@ async def madre_callback(data: Dict[str, Any]):
         spawn_rec = session.query(Spawn).filter_by(uuid=spawn_id).first()
         if spawn_rec:
             spawn_rec.status = status_val or spawn_rec.status
-            spawn_rec.result = json.dumps(data.get("result")) if data.get("result") else spawn_rec.result
+            spawn_rec.result = (
+                json.dumps(data.get("result"))
+                if data.get("result")
+                else spawn_rec.result
+            )
             if ttl:
                 spawn_rec.ttl = ttl  # type: ignore
             session.add(spawn_rec)
@@ -1469,7 +1656,9 @@ async def madre_callback(data: Dict[str, Any]):
         if task_id:
             task_rec = session.query(Task).filter_by(uuid=task_id).first()
             if task_rec:
-                task_rec.status = "completed" if status_val not in ("error", "failed") else "failed"
+                task_rec.status = (
+                    "completed" if status_val not in ("error", "failed") else "failed"
+                )
                 task_rec.result = json.dumps(data)
                 task_rec.updated_at = datetime.utcnow()
                 session.add(task_rec)
@@ -1482,6 +1671,7 @@ async def madre_callback(data: Dict[str, Any]):
 
 # ========== CONTAINER STATE MANAGEMENT (P&P) ==========
 
+
 @app.get("/orchestration/module_states")
 async def get_module_states():
     """Obtiene estado de todos los módulos (P&P orchestration)."""
@@ -1490,14 +1680,18 @@ async def get_module_states():
     evaluate_policies()
     raw_states = get_all_states()
     states = {k: v.get("state") for k, v in raw_states.items()}
-    return {"status": "ok", "timestamp": datetime.utcnow().isoformat() + "Z", "modules": states}
+    return {
+        "status": "ok",
+        "timestamp": datetime.utcnow().isoformat() + "Z",
+        "modules": states,
+    }
 
 
 @app.post("/orchestration/set_module_state")
 async def set_module_state(request: Dict[str, Any]):
     """
     Cambia estado de un módulo (off/standby/active).
-    
+
     Body:
         {
           "module": "manifestator",
@@ -1506,18 +1700,20 @@ async def set_module_state(request: Dict[str, Any]):
     """
     module = request.get("module")
     new_state = request.get("state")
-    
+
     if not module or not new_state:
         return {"status": "error", "message": "module and state required"}
-    
+
     res = set_module_state_local(module, new_state, reason="manual")
     return {"status": "ok", **res, "timestamp": datetime.utcnow().isoformat() + "Z"}
 
 
 # ========== BRIDGE ENDPOINTS (Conversational Routing) ==========
 
+
 class BridgeRequest(BaseModel):
     """Request to bridge handler for conversational routing."""
+
     action: str  # "audit_full", "scan_hive", "route_query", "spawn_cmd"
     query: Optional[str] = None  # For route_query, spawn_cmd
     context: Optional[Dict[str, Any]] = None
@@ -1525,6 +1721,7 @@ class BridgeRequest(BaseModel):
 
 class OrganizeIntent(BaseModel):
     """Intent emitted by hormiguero auto-organizer."""
+
     type: str = "organize"
     severity: Optional[str] = "low"
     items: List[Dict[str, Any]]
@@ -1534,6 +1731,7 @@ class OrganizeIntent(BaseModel):
 
 class HijaResponse(BaseModel):
     """Response from HIJA execution."""
+
     hija_id: str
     name: str
     status: str
@@ -1541,19 +1739,11 @@ class HijaResponse(BaseModel):
     error: Optional[str] = None
 
 
-def _get_bridge_handler() -> BridgeHandler:
-    """Get or create bridge handler."""
-    global _bridge_handler
-    if not _bridge_handler:
-        madre_ports = settings.PORTS or {
-            "hermes": 8003,
-            "switch": 8002,
-            "manifestator": 8005,
-            "hormiguero": 8004,
-        }
-        _bridge_handler = BridgeHandler(madre_ports)
-    return _bridge_handler
-
+def _get_bridge_handler() -> Dict[str, Any]:
+    """Stub bridge handler (replaced by HTTP routing via tentaculo_link)."""
+    # Bridge handler removed in v7 to avoid cross-module imports
+    # All bridge operations now route through HTTP
+    return {"status": "http-only", "message": "Use tentaculo_link for routing"}
 
 
 @app.post("/madre/bridge")
@@ -1567,7 +1757,7 @@ async def bridge(req: BridgeRequest):
     - spawn_cmd: Execute CLI command
     """
     bridge = _get_bridge_handler()
-    
+
     try:
         if req.action == "audit_full":
             result = await bridge.audit_full(req.context)
@@ -1583,10 +1773,10 @@ async def bridge(req: BridgeRequest):
             result = await bridge.spawn_cmd(req.query, req.context)
         else:
             raise ValueError(f"unknown_action:{req.action}")
-        
+
         write_log("madre", f"bridge:action={req.action}:ok")
         return {"status": "ok", **result}
-    
+
     except Exception as e:
         write_log("madre", f"bridge_error:action={req.action}:{e}", level="ERROR")
         return {"status": "error", "error": str(e)}
@@ -1605,10 +1795,10 @@ async def get_hija(hija_id: str):
     """Get HIJA status and result."""
     bridge = _get_bridge_handler()
     hija = await bridge.get_hija(hija_id)
-    
+
     if not hija:
         raise HTTPException(status_code=404, detail="hija_not_found")
-    
+
     return {
         "hija_id": hija.hija_id,
         "name": hija.name,
@@ -1626,7 +1816,7 @@ async def list_hijas(status: Optional[str] = None):
     """List all HIJAS, optionally filtered by status."""
     bridge = _get_bridge_handler()
     hijas = await bridge.list_hijas(status)
-    
+
     return {
         "count": len(hijas),
         "hijas": [
@@ -1669,7 +1859,11 @@ async def madre_shub_task(req: ShubTaskRequest):
         session.close()
 
     spawn_res = await _dispatch_shub_task(req)
-    return {"status": "queued", "task_id": task.task_id if task else None, "spawn": spawn_res}
+    return {
+        "status": "queued",
+        "task_id": task.task_id if task else None,
+        "spawn": spawn_res,
+    }
 
 
 # =========== SCHEDULER AND STATE ===========
@@ -1679,7 +1873,9 @@ async def _fetch_switch_queue_level() -> float:
     try:
         async with httpx.AsyncClient(timeout=3.0) as client:
             switch_url = settings.switch_url or f"http://switch:{settings.switch_port}"
-            r = await client.get(f"{switch_url}/switch/queue/status", headers=AUTH_HEADERS)
+            r = await client.get(
+                f"{switch_url}/switch/queue/status", headers=AUTH_HEADERS
+            )
             if r.status_code == 200:
                 return float(r.json().get("size", 0))
     except Exception:
@@ -1693,7 +1889,11 @@ async def _system_state_refresh():
     switch_queue = await _fetch_switch_queue_level()
     session = get_session("madre")
     pending_tasks = session.query(Task).filter(Task.status == "pending").count()
-    active_children = session.query(Spawn).filter(Spawn.status == "running").count() if hasattr(Spawn, "status") else 0
+    active_children = (
+        session.query(Spawn).filter(Spawn.status == "running").count()
+        if hasattr(Spawn, "status")
+        else 0
+    )
     session.close()
     load_score = min(1.0, (cpu_percent / 100) * 0.5 + (memory.percent / 100) * 0.5)
     state_payload = {
@@ -1717,7 +1917,12 @@ async def _system_state_refresh():
         async with httpx.AsyncClient(timeout=3.0) as client:
             await client.post(
                 f"http://{getattr(settings, 'tentaculo_link_host', 'tentaculo_link')}:{getattr(settings, 'tentaculo_link_port', settings.gateway_port)}/events/ingest",
-                json={"source": "madre", "type": "system_state_update", "payload": state_payload, "broadcast": True},
+                json={
+                    "source": "madre",
+                    "type": "system_state_update",
+                    "payload": state_payload,
+                    "broadcast": True,
+                },
                 headers=AUTH_HEADERS,
             )
     except Exception:
@@ -1726,7 +1931,10 @@ async def _system_state_refresh():
 
 # =========== INTENT → PLAN → HIJAS FLOW (v7.0) ===========
 
-async def _ask_switch_for_intent_refinement(intent_payload: Dict[str, Any]) -> Dict[str, Any]:
+
+async def _ask_switch_for_intent_refinement(
+    intent_payload: Dict[str, Any],
+) -> Dict[str, Any]:
     """Consulta Switch para refinar INTENT y obtener estrategia de planificación."""
     try:
         async with httpx.AsyncClient(timeout=5.0) as client:
@@ -1746,7 +1954,9 @@ async def _ask_switch_for_intent_refinement(intent_payload: Dict[str, Any]) -> D
     return {"status": "stub", "strategy": "default"}
 
 
-async def call_switch_for_strategy(task_payload: Dict[str, Any], task_type: str = "general") -> Dict[str, Any]:
+async def call_switch_for_strategy(
+    task_payload: Dict[str, Any], task_type: str = "general"
+) -> Dict[str, Any]:
     """
     Consulta Switch para obtener estrategia recomendada.
     Usado por Madre para decidir approach de hija.
@@ -1764,14 +1974,24 @@ async def call_switch_for_strategy(task_payload: Dict[str, Any], task_type: str 
             )
             if resp.status_code == 200:
                 result = resp.json()
-                write_log("madre", f"strategy_consulted:{task_type}:{result.get('provider')}")
+                write_log(
+                    "madre", f"strategy_consulted:{task_type}:{result.get('provider')}"
+                )
                 return result
     except Exception as exc:
-        write_log("madre", f"call_switch_for_strategy_error:{task_type}:{exc}", level="WARNING")
+        write_log(
+            "madre",
+            f"call_switch_for_strategy_error:{task_type}:{exc}",
+            level="WARNING",
+        )
     return {"provider": "local_default", "approach": "conservative"}
 
 
-async def call_switch_for_subtask(subtask_payload: Dict[str, Any], subtask_type: str = "execution", source_hija_id: Optional[int] = None) -> Dict[str, Any]:
+async def call_switch_for_subtask(
+    subtask_payload: Dict[str, Any],
+    subtask_type: str = "execution",
+    source_hija_id: Optional[int] = None,
+) -> Dict[str, Any]:
     """
     Consulta Switch para ejecutar subtarea desde hija.
     Retorna resultado o indicación de error para reintentar.
@@ -1790,23 +2010,31 @@ async def call_switch_for_subtask(subtask_payload: Dict[str, Any], subtask_type:
             )
             if resp.status_code == 200:
                 result = resp.json()
-                write_log("madre", f"subtask_executed:{subtask_type}:{result.get('status')}")
+                write_log(
+                    "madre", f"subtask_executed:{subtask_type}:{result.get('status')}"
+                )
                 return result
     except httpx.TimeoutException:
-        write_log("madre", f"call_switch_subtask_timeout:{subtask_type}", level="WARNING")
+        write_log(
+            "madre", f"call_switch_subtask_timeout:{subtask_type}", level="WARNING"
+        )
         return {"status": "timeout", "retry": True}
     except Exception as exc:
-        write_log("madre", f"call_switch_subtask_error:{subtask_type}:{exc}", level="WARNING")
+        write_log(
+            "madre", f"call_switch_subtask_error:{subtask_type}:{exc}", level="WARNING"
+        )
         return {"status": "error", "retry": True, "error": str(exc)}
     return {"status": "unknown", "retry": False}
 
 
-async def _create_daughter_task_from_intent(session, intent_req: IntentRequest) -> Dict[str, Any]:
+async def _create_daughter_task_from_intent(
+    session, intent_req: IntentRequest
+) -> Dict[str, Any]:
     """Crea entrada daughter_task a partir de INTENT y consulta Switch."""
     from config.db_schema import DaughterTask, IntentLog
-    
+
     intent_id = str(uuid.uuid4())
-    
+
     # Guardar en intents_log
     intent_log = IntentLog(
         source=intent_req.source,
@@ -1815,14 +2043,18 @@ async def _create_daughter_task_from_intent(session, intent_req: IntentRequest) 
     )
     session.add(intent_log)
     session.flush()
-    
+
     # Refinar con Switch
     strategy = await _ask_switch_for_intent_refinement(intent_req.payload)
-    
+
     # Crear daughter_task
-    priority = intent_req.priority or PRIORITY_MAP.get(intent_req.source, PRIORITY_MAP.get("hijas"))
-    task_type = "short" if intent_req.ttl_seconds and intent_req.ttl_seconds < 60 else "long"
-    
+    priority = intent_req.priority or PRIORITY_MAP.get(
+        intent_req.source, PRIORITY_MAP.get("hijas")
+    )
+    task_type = (
+        "short" if intent_req.ttl_seconds and intent_req.ttl_seconds < 60 else "long"
+    )
+
     daughter_task = DaughterTask(
         intent_id=intent_id,
         source=intent_req.source,
@@ -1836,11 +2068,11 @@ async def _create_daughter_task_from_intent(session, intent_req: IntentRequest) 
     )
     session.add(daughter_task)
     session.commit()
-    
+
     intent_log.processed_by_madre_at = datetime.utcnow()
     session.add(intent_log)
     session.commit()
-    
+
     return {
         "intent_id": intent_id,
         "daughter_task_id": daughter_task.id,
@@ -1873,10 +2105,17 @@ async def madre_intent(req: IntentRequest):
 async def madre_tasks_active(status: Optional[str] = None):
     """Lista daughter_tasks activas (pending, planning, running, retrying)."""
     from config.db_schema import DaughterTask
+
     session = get_session("vx11")
     try:
-        statuses = status.split(",") if status else ["pending", "planning", "running", "retrying"]
-        tasks = session.query(DaughterTask).filter(DaughterTask.status.in_(statuses)).all()
+        statuses = (
+            status.split(",")
+            if status
+            else ["pending", "planning", "running", "retrying"]
+        )
+        tasks = (
+            session.query(DaughterTask).filter(DaughterTask.status.in_(statuses)).all()
+        )
         return {
             "count": len(tasks),
             "tasks": [
@@ -1903,6 +2142,7 @@ async def madre_tasks_active(status: Optional[str] = None):
 async def madre_hijas_active(status: Optional[str] = None):
     """Lista hijas activas (spawned, running, restarting)."""
     from config.db_schema import Daughter
+
     session = get_session("vx11")
     try:
         statuses = status.split(",") if status else ["spawned", "running", "restarting"]
@@ -1930,32 +2170,41 @@ async def madre_hijas_active(status: Optional[str] = None):
 async def madre_task_status(task_id: int):
     """Estado completo de una daughter_task + hijas asociadas."""
     from config.db_schema import DaughterTask, Daughter, DaughterAttempt
+
     session = get_session("vx11")
     try:
         task = session.query(DaughterTask).filter_by(id=task_id).first()
         if not task:
             raise HTTPException(status_code=404, detail="task_not_found")
-        
+
         hijas = session.query(Daughter).filter_by(task_id=task_id).all()
         hija_data = []
         for hija in hijas:
-            attempts = session.query(DaughterAttempt).filter_by(daughter_id=hija.id).all()
-            hija_data.append({
-                "id": hija.id,
-                "name": hija.name,
-                "status": hija.status,
-                "mutation_level": hija.mutation_level,
-                "attempts": [
-                    {
-                        "number": a.attempt_number,
-                        "status": a.status,
-                        "started_at": a.started_at.isoformat() if a.started_at else None,
-                        "finished_at": a.finished_at.isoformat() if a.finished_at else None,
-                    }
-                    for a in attempts
-                ],
-            })
-        
+            attempts = (
+                session.query(DaughterAttempt).filter_by(daughter_id=hija.id).all()
+            )
+            hija_data.append(
+                {
+                    "id": hija.id,
+                    "name": hija.name,
+                    "status": hija.status,
+                    "mutation_level": hija.mutation_level,
+                    "attempts": [
+                        {
+                            "number": a.attempt_number,
+                            "status": a.status,
+                            "started_at": (
+                                a.started_at.isoformat() if a.started_at else None
+                            ),
+                            "finished_at": (
+                                a.finished_at.isoformat() if a.finished_at else None
+                            ),
+                        }
+                        for a in attempts
+                    ],
+                }
+            )
+
         return {
             "task": {
                 "id": task.id,
@@ -1976,17 +2225,18 @@ async def madre_task_status(task_id: int):
 async def madre_task_cancel(task_id: int):
     """Cancela tarea y todas sus hijas."""
     from config.db_schema import DaughterTask, Daughter
+
     session = get_session("vx11")
     try:
         task = session.query(DaughterTask).filter_by(id=task_id).first()
         if not task:
             raise HTTPException(status_code=404, detail="task_not_found")
-        
+
         task.status = "cancelled"
         hijas = session.query(Daughter).filter_by(task_id=task_id).all()
         for hija in hijas:
             hija.status = "killed"
-        
+
         session.commit()
         write_log("madre", f"task_cancelled:{task_id}")
         return {"status": "ok", "task_id": task_id}
@@ -1998,31 +2248,37 @@ async def _daughters_scheduler():
     """Background task: Procesa daughter_tasks pendientes/retrying, crea hijas, maneja TTL/reintentos."""
     from config.db_schema import DaughterTask, Daughter, DaughterAttempt
     import math
-    
+
     while True:
         try:
             await asyncio.sleep(5)  # Ejecutar cada 5 segundos
             session = get_session("vx11")
-            
+
             # 1. Procesar tasks pending/retrying → crear hijas + invocar Spawner
-            pending_tasks = session.query(DaughterTask).filter(
-                DaughterTask.status.in_(["pending", "retrying"])
-            ).all()
-            
+            pending_tasks = (
+                session.query(DaughterTask)
+                .filter(DaughterTask.status.in_(["pending", "retrying"]))
+                .all()
+            )
+
             for task in pending_tasks[:3]:  # Limitar a 3 por ciclo
                 task.status = "planning"
                 hija = Daughter(
                     task_id=task.id,
                     name=f"hija-{task.id}-{task.current_retry}",
                     purpose=task.description,
-                    ttl_seconds=int(task.metadata_json and json.loads(task.metadata_json).get("ttl_seconds", 300)) or 300,
+                    ttl_seconds=int(
+                        task.metadata_json
+                        and json.loads(task.metadata_json).get("ttl_seconds", 300)
+                    )
+                    or 300,
                     status="spawned",
                     mutation_level=task.current_retry,
                     started_at=datetime.utcnow(),
                 )
                 session.add(hija)
                 session.flush()
-                
+
                 # Registrar DaughterAttempt
                 attempt = DaughterAttempt(
                     daughter_id=hija.id,
@@ -2032,7 +2288,7 @@ async def _daughters_scheduler():
                 )
                 session.add(attempt)
                 session.commit()
-                
+
                 # NUEVO: Invocar /spawner/spawn para crear hija real
                 try:
                     spawn_payload = {
@@ -2043,7 +2299,9 @@ async def _daughters_scheduler():
                         "intent_type": task.task_type,
                         "purpose": hija.purpose,
                         "ttl": hija.ttl_seconds,
-                        "context": json.loads(task.metadata_json) if task.metadata_json else {},
+                        "context": (
+                            json.loads(task.metadata_json) if task.metadata_json else {}
+                        ),
                         "module_creator": task.source,
                     }
                     async with httpx.AsyncClient(timeout=10.0) as client:
@@ -2059,7 +2317,9 @@ async def _daughters_scheduler():
                     else:
                         hija.status = "failed"
                         hija.error_last = f"spawner_status_{spawner_resp.status_code}"
-                        write_log("madre", f"spawn_failed_status:{hija.id}", level="WARN")
+                        write_log(
+                            "madre", f"spawn_failed_status:{hija.id}", level="WARN"
+                        )
                 except httpx.TimeoutException:
                     hija.status = "failed"
                     hija.error_last = "spawner_timeout"
@@ -2068,36 +2328,45 @@ async def _daughters_scheduler():
                     hija.status = "failed"
                     hija.error_last = str(e)
                     write_log("madre", f"spawn_error:{hija.id}:{e}", level="ERROR")
-                
+
                 session.add(hija)
                 session.add(task)
                 session.commit()
-            
+
             # 2. Chequear TTL expirado + reintentos con backoff exponencial
             now = datetime.utcnow()
-            running_hijas = session.query(Daughter).filter(
-                Daughter.status.in_(["spawned", "running", "restarting"])
-            ).all()
-            
+            running_hijas = (
+                session.query(Daughter)
+                .filter(Daughter.status.in_(["spawned", "running", "restarting"]))
+                .all()
+            )
+
             for hija in running_hijas:
                 if hija.started_at:
                     age_secs = (now - hija.started_at).total_seconds()
                     if age_secs > hija.ttl_seconds:
                         hija.status = "expired"
-                        task = session.query(DaughterTask).filter_by(id=hija.task_id).first()
-                        
+                        task = (
+                            session.query(DaughterTask)
+                            .filter_by(id=hija.task_id)
+                            .first()
+                        )
+
                         if task and task.current_retry < task.max_retries:
                             # Calcular backoff exponencial: min(300, 2^retry)
-                            backoff_secs = min(300, 2 ** task.current_retry)
+                            backoff_secs = min(300, 2**task.current_retry)
                             task.status = "retrying"
                             task.current_retry += 1
-                            write_log("madre", f"hija_retry_scheduled:{hija.id}:backoff_{backoff_secs}s")
+                            write_log(
+                                "madre",
+                                f"hija_retry_scheduled:{hija.id}:backoff_{backoff_secs}s",
+                            )
                         elif task:
                             task.status = "failed"
                             write_log("madre", f"hija_max_retries_exhausted:{hija.id}")
-                        
+
                         session.add(task)
-            
+
             session.commit()
             session.close()
         except Exception as exc:
@@ -2110,18 +2379,19 @@ async def _daughters_scheduler():
 
 # =========== DSL Workflow Execution (PASO 3.0) ===========
 
+
 @app.post("/madre/workflow/compile")
 async def compile_dsl_workflow(req: Dict[str, Any]):
     """
     Compilar DSL intent a workflow ejecutable.
-    
+
     Input:
       {
         "domain": "AUDIO",
         "action": "restore",
         "parameters": {"file": "/audio.wav", "preset": "default"}
       }
-    
+
     Output:
       {
         "status": "ok",
@@ -2131,16 +2401,19 @@ async def compile_dsl_workflow(req: Dict[str, Any]):
       }
     """
     from madre.dsl_compiler import VX11DSLCompiler
-    
+
     try:
         compiler = VX11DSLCompiler()
         plan, errors = compiler.compile_and_validate(req)
-        
+
         if errors:
             write_log("madre", f"workflow_compile_error:{errors}", level="WARNING")
             return {"status": "error", "errors": errors}
-        
-        write_log("madre", f"workflow_compiled:{plan.workflow_id}:{plan.domain}::{plan.intent_action}")
+
+        write_log(
+            "madre",
+            f"workflow_compiled:{plan.workflow_id}:{plan.domain}::{plan.intent_action}",
+        )
         return {
             "status": "ok",
             "workflow_id": plan.workflow_id,
@@ -2157,14 +2430,14 @@ async def compile_dsl_workflow(req: Dict[str, Any]):
 async def execute_dsl_workflow(req: Dict[str, Any]):
     """
     Ejecutar workflow compilado.
-    
+
     Input:
       {
         "domain": "AUDIO",
         "action": "restore",
         "parameters": {...}
       }
-    
+
     Output:
       {
         "status": "ok|error",
@@ -2174,28 +2447,32 @@ async def execute_dsl_workflow(req: Dict[str, Any]):
       }
     """
     from madre.dsl_compiler import VX11DSLCompiler
-    
+
     try:
         compiler = VX11DSLCompiler()
         plan, errors = compiler.compile_and_validate(req)
-        
+
         if errors:
             write_log("madre", f"workflow_exec_compile_error:{errors}", level="WARNING")
             return {"status": "error", "errors": errors}
-        
-        write_log("madre", f"workflow_executing:{plan.workflow_id}:{len(plan.steps)} steps")
-        
+
+        write_log(
+            "madre", f"workflow_executing:{plan.workflow_id}:{len(plan.steps)} steps"
+        )
+
         results = []
         final_result = None
-        
+
         for idx, step in enumerate(plan.steps):
             try:
                 # Ejecutar paso según executor
                 executor = step.executor.value
-                
+
                 if executor == "shub":
                     # Llamar Shub
-                    async with httpx.AsyncClient(timeout=step.timeout_ms / 1000.0, headers=AUTH_HEADERS) as client:
+                    async with httpx.AsyncClient(
+                        timeout=step.timeout_ms / 1000.0, headers=AUTH_HEADERS
+                    ) as client:
                         resp = await client.post(
                             f"{settings.shubniggurath_url.rstrip('/')}/shub/task",
                             json={"action": step.action, "parameters": step.parameters},
@@ -2203,14 +2480,30 @@ async def execute_dsl_workflow(req: Dict[str, Any]):
                         )
                         if resp.status_code == 200:
                             result = resp.json()
-                            results.append({"step": idx, "status": "ok", "executor": executor, "result": result})
+                            results.append(
+                                {
+                                    "step": idx,
+                                    "status": "ok",
+                                    "executor": executor,
+                                    "result": result,
+                                }
+                            )
                             final_result = result
                         else:
-                            results.append({"step": idx, "status": "error", "executor": executor, "error": resp.text})
-                
+                            results.append(
+                                {
+                                    "step": idx,
+                                    "status": "error",
+                                    "executor": executor,
+                                    "error": resp.text,
+                                }
+                            )
+
                 elif executor == "manifestator":
                     # Llamar Manifestator
-                    async with httpx.AsyncClient(timeout=step.timeout_ms / 1000.0, headers=AUTH_HEADERS) as client:
+                    async with httpx.AsyncClient(
+                        timeout=step.timeout_ms / 1000.0, headers=AUTH_HEADERS
+                    ) as client:
                         resp = await client.post(
                             f"{settings.manifestator_url.rstrip('/')}/{step.action}",
                             json=step.parameters,
@@ -2218,14 +2511,30 @@ async def execute_dsl_workflow(req: Dict[str, Any]):
                         )
                         if resp.status_code == 200:
                             result = resp.json()
-                            results.append({"step": idx, "status": "ok", "executor": executor, "result": result})
+                            results.append(
+                                {
+                                    "step": idx,
+                                    "status": "ok",
+                                    "executor": executor,
+                                    "result": result,
+                                }
+                            )
                             final_result = result
                         else:
-                            results.append({"step": idx, "status": "error", "executor": executor, "error": resp.text})
-                
+                            results.append(
+                                {
+                                    "step": idx,
+                                    "status": "error",
+                                    "executor": executor,
+                                    "error": resp.text,
+                                }
+                            )
+
                 elif executor == "switch":
                     # Llamar Switch
-                    async with httpx.AsyncClient(timeout=step.timeout_ms / 1000.0, headers=AUTH_HEADERS) as client:
+                    async with httpx.AsyncClient(
+                        timeout=step.timeout_ms / 1000.0, headers=AUTH_HEADERS
+                    ) as client:
                         resp = await client.post(
                             f"{settings.switch_url.rstrip('/')}/switch/{step.action}",
                             json=step.parameters,
@@ -2233,14 +2542,30 @@ async def execute_dsl_workflow(req: Dict[str, Any]):
                         )
                         if resp.status_code == 200:
                             result = resp.json()
-                            results.append({"step": idx, "status": "ok", "executor": executor, "result": result})
+                            results.append(
+                                {
+                                    "step": idx,
+                                    "status": "ok",
+                                    "executor": executor,
+                                    "result": result,
+                                }
+                            )
                             final_result = result
                         else:
-                            results.append({"step": idx, "status": "error", "executor": executor, "error": resp.text})
-                
+                            results.append(
+                                {
+                                    "step": idx,
+                                    "status": "error",
+                                    "executor": executor,
+                                    "error": resp.text,
+                                }
+                            )
+
                 elif executor == "hermes":
                     # Llamar Hermes
-                    async with httpx.AsyncClient(timeout=step.timeout_ms / 1000.0, headers=AUTH_HEADERS) as client:
+                    async with httpx.AsyncClient(
+                        timeout=step.timeout_ms / 1000.0, headers=AUTH_HEADERS
+                    ) as client:
                         resp = await client.post(
                             f"{settings.hermes_url.rstrip('/')}/hermes/execute",
                             json=step.parameters,
@@ -2248,11 +2573,25 @@ async def execute_dsl_workflow(req: Dict[str, Any]):
                         )
                         if resp.status_code == 200:
                             result = resp.json()
-                            results.append({"step": idx, "status": "ok", "executor": executor, "result": result})
+                            results.append(
+                                {
+                                    "step": idx,
+                                    "status": "ok",
+                                    "executor": executor,
+                                    "result": result,
+                                }
+                            )
                             final_result = result
                         else:
-                            results.append({"step": idx, "status": "error", "executor": executor, "error": resp.text})
-                
+                            results.append(
+                                {
+                                    "step": idx,
+                                    "status": "error",
+                                    "executor": executor,
+                                    "error": resp.text,
+                                }
+                            )
+
                 elif executor == "madre":
                     # Ejecutar localmente (recursive call)
                     if step.action == "register_task":
@@ -2269,21 +2608,46 @@ async def execute_dsl_workflow(req: Dict[str, Any]):
                             session.add(task)
                             session.commit()
                             task_id = task.uuid
-                            results.append({"step": idx, "status": "ok", "executor": executor, "task_id": task_id})
+                            results.append(
+                                {
+                                    "step": idx,
+                                    "status": "ok",
+                                    "executor": executor,
+                                    "task_id": task_id,
+                                }
+                            )
                             final_result = {"task_id": task_id}
                         finally:
                             session.close()
                     else:
-                        results.append({"step": idx, "status": "skip", "executor": executor})
-                
+                        results.append(
+                            {"step": idx, "status": "skip", "executor": executor}
+                        )
+
                 elif executor == "local":
                     # Stub local
-                    results.append({"step": idx, "status": "ok", "executor": executor, "result": {"stub": True}})
-                
+                    results.append(
+                        {
+                            "step": idx,
+                            "status": "ok",
+                            "executor": executor,
+                            "result": {"stub": True},
+                        }
+                    )
+
             except Exception as step_err:
-                write_log("madre", f"workflow_step_error:{idx}:{step_err}", level="ERROR")
-                results.append({"step": idx, "status": "error", "executor": executor, "error": str(step_err)})
-                
+                write_log(
+                    "madre", f"workflow_step_error:{idx}:{step_err}", level="ERROR"
+                )
+                results.append(
+                    {
+                        "step": idx,
+                        "status": "error",
+                        "executor": executor,
+                        "error": str(step_err),
+                    }
+                )
+
                 # Retry si aplica
                 if step.retry_count > 1:
                     for retry in range(1, step.retry_count):
@@ -2294,7 +2658,7 @@ async def execute_dsl_workflow(req: Dict[str, Any]):
                             break
                         except:
                             results[-1]["status"] = "error"
-        
+
         write_log("madre", f"workflow_completed:{plan.workflow_id}:success")
         return {
             "status": "ok",
@@ -2305,7 +2669,7 @@ async def execute_dsl_workflow(req: Dict[str, Any]):
             "results": results,
             "final_result": final_result,
         }
-    
+
     except Exception as e:
         write_log("madre", f"workflow_exec_crash:{e}", level="ERROR")
         return {"status": "error", "error": str(e)}
