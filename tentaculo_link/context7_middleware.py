@@ -18,10 +18,13 @@ class Context7Session:
         self.session_id = session_id
         self.user_id = user_id
         self.created_at = datetime.utcnow()
+        self.last_accessed = datetime.utcnow()
         self.messages: list[Dict[str, Any]] = []
         self.max_messages = 50
 
-    def add_message(self, role: str, content: str, metadata: Optional[Dict[str, Any]] = None):
+    def add_message(
+        self, role: str, content: str, metadata: Optional[Dict[str, Any]] = None
+    ):
         """Add message to session history."""
         msg = {
             "role": role,  # user, assistant, tool, system
@@ -31,7 +34,7 @@ class Context7Session:
         }
         self.messages.append(msg)
         if len(self.messages) > self.max_messages:
-            self.messages = self.messages[-self.max_messages:]
+            self.messages = self.messages[-self.max_messages :]
 
     def get_summary(self, max_chars: int = 512) -> str:
         """Generate a short text summary for LLM hints (no IA here, just text extraction)."""
@@ -47,7 +50,7 @@ class Context7Session:
         if len(summary) > max_chars:
             summary = summary[:max_chars] + "..."
         return summary
-    
+
     def get_session_signature(self) -> str:
         """Generate one-line session signature for metadata."""
         if not self.messages:
@@ -55,17 +58,40 @@ class Context7Session:
         msg_count = len(self.messages)
         last_msg = self.messages[-1].get("content", "")[:30]
         return f"Msgs:{msg_count} Last:{last_msg}..."
-    
+
     def get_topic_cluster(self) -> str:
         """Extract topic from recent messages (simple keyword-based)."""
         if not self.messages:
             return "general"
         recent = " ".join([msg.get("content", "") for msg in self.messages[-3:]])
         keywords = {
-            "code": ["code", "python", "javascript", "function", "class", "bug", "debug"],
+            "code": [
+                "code",
+                "python",
+                "javascript",
+                "function",
+                "class",
+                "bug",
+                "debug",
+            ],
             "audio": ["audio", "music", "sound", "shub", "ffmpeg", "mix", "frequency"],
-            "browser": ["browser", "screenshot", "page", "playwright", "click", "navigate"],
-            "system": ["vx11", "module", "health", "status", "operator", "switch", "madre"],
+            "browser": [
+                "browser",
+                "screenshot",
+                "page",
+                "playwright",
+                "click",
+                "navigate",
+            ],
+            "system": [
+                "vx11",
+                "module",
+                "health",
+                "status",
+                "operator",
+                "switch",
+                "madre",
+            ],
             "chat": ["hello", "hi", "how", "what", "question"],
         }
         recent_lower = recent.lower()
@@ -111,20 +137,32 @@ class Context7Manager:
         self.sessions: Dict[str, Context7Session] = {}
         self.max_sessions = max_sessions
 
-    def get_or_create_session(self, session_id: str, user_id: str = "local") -> Context7Session:
+    def get_or_create_session(
+        self, session_id: str, user_id: str = "local"
+    ) -> Context7Session:
         """Get existing session or create new one."""
         if session_id in self.sessions:
+            # Update last_accessed on every access (LRU)
+            self.sessions[session_id].last_accessed = datetime.utcnow()
             return self.sessions[session_id]
         session = Context7Session(session_id, user_id)
         self.sessions[session_id] = session
         if len(self.sessions) > self.max_sessions:
-            # Remove oldest session (basic LRU)
-            oldest_id = min(self.sessions.keys(), key=lambda k: self.sessions[k].created_at)
-            del self.sessions[oldest_id]
+            # Remove least recently accessed session (true LRU)
+            lru_id = min(
+                self.sessions.keys(), key=lambda k: self.sessions[k].last_accessed
+            )
+            del self.sessions[lru_id]
         write_log("tentaculo_link", f"context7_session_created:{session_id}")
         return session
 
-    def add_message(self, session_id: str, role: str, content: str, metadata: Optional[Dict[str, Any]] = None):
+    def add_message(
+        self,
+        session_id: str,
+        role: str,
+        content: str,
+        metadata: Optional[Dict[str, Any]] = None,
+    ):
         """Add message to session."""
         session = self.get_or_create_session(session_id)
         session.add_message(role, content, metadata)
@@ -133,7 +171,7 @@ class Context7Manager:
     def get_session(self, session_id: str) -> Optional[Context7Session]:
         """Retrieve session."""
         return self.sessions.get(session_id)
-    
+
     def get_metadata_for_switch(self, session_id: str) -> Dict[str, Any]:
         """Get metadata from session to send to Switch."""
         session = self.get_session(session_id)

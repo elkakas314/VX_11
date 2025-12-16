@@ -393,7 +393,14 @@ from pathlib import Path
 from typing import Any, Dict, Optional, Set
 
 from contextlib import asynccontextmanager
-from fastapi import Depends, FastAPI, Header, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import (
+    Depends,
+    FastAPI,
+    Header,
+    HTTPException,
+    WebSocket,
+    WebSocketDisconnect,
+)
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
@@ -449,6 +456,7 @@ token_guard = TokenGuard()
 
 class OperatorChatRequest(BaseModel):
     """Chat message with session context."""
+
     message: str
     session_id: Optional[str] = None
     user_id: Optional[str] = "local"
@@ -457,6 +465,7 @@ class OperatorChatRequest(BaseModel):
 
 class OperatorChatResponse(BaseModel):
     """Chat response."""
+
     session_id: str
     response: str
     metadata: Optional[Dict[str, Any]] = None
@@ -496,6 +505,7 @@ app.add_middleware(
 
 # ============ HEALTH & STATUS ============
 
+
 @app.get("/health")
 async def health():
     """Simple health check."""
@@ -506,6 +516,7 @@ async def health():
 async def vx11_status():
     """Aggregate health check for all modules (async parallel)."""
     import datetime
+
     clients = get_clients()
     health_results = await clients.health_check_all()
     # Defensive: some clients may (incorrectly) return coroutine objects
@@ -516,10 +527,10 @@ async def vx11_status():
                 health_results[name] = await val
         except Exception as _exc:
             health_results[name] = {"status": "error", "error": str(_exc)}
-    
+
     healthy_count = sum(1 for h in health_results.values() if h.get("status") == "ok")
     total_count = len(health_results)
-    
+
     write_log("tentaculo_link", "vx11_status:aggregated")
     return {
         "ok": True,
@@ -544,7 +555,7 @@ async def vx11_status():
             "healthy_modules": healthy_count,
             "total_modules": total_count,
             "all_healthy": healthy_count == total_count,
-        }
+        },
     }
 
 
@@ -567,6 +578,7 @@ async def circuit_breaker_status(
 
 # ============ OPERATOR CHAT (CONTEXT-7 INTEGRATED) ============
 
+
 @app.post("/operator/chat")
 async def operator_chat(
     req: OperatorChatRequest,
@@ -575,12 +587,12 @@ async def operator_chat(
     """Route chat to Operator backend with CONTEXT-7 integration."""
     session_id = req.session_id or str(uuid.uuid4())
     user_id = req.user_id or "local"
-    
+
     # Track in CONTEXT-7
     context7 = get_context7_manager()
     context7.add_message(session_id, "user", req.message, req.metadata)
     context_hint = context7.get_hint_for_llm(session_id)
-    
+
     # Route to Operator backend
     clients = get_clients()
     payload = {
@@ -591,11 +603,13 @@ async def operator_chat(
         "metadata": req.metadata or {},
     }
     result = await clients.route_to_operator("/operator/chat", payload)
-    
+
     # Track response in CONTEXT-7
-    assistant_msg = result.get("response") or result.get("message") or json.dumps(result)
+    assistant_msg = (
+        result.get("response") or result.get("message") or json.dumps(result)
+    )
     context7.add_message(session_id, "assistant", str(assistant_msg))
-    
+
     write_log("tentaculo_link", f"operator_chat:{session_id}")
     return result
 
@@ -616,12 +630,13 @@ async def operator_session(
 
 # ============ VX11 OVERVIEW (AGGREGATED) ============
 
+
 @app.get("/vx11/overview")
 async def vx11_overview(_: bool = Depends(token_guard)):
     """Get aggregated overview of all VX11 modules."""
     clients = get_clients()
     health_results = await clients.health_check_all()
-    
+
     overview = {
         "status": "ok",
         "gateway": "tentaculo_link",
@@ -629,8 +644,12 @@ async def vx11_overview(_: bool = Depends(token_guard)):
         "modules_health": health_results,
         "summary": {
             "total_modules": len(health_results),
-            "healthy": sum(1 for h in health_results.values() if h.get("status") == "ok"),
-            "unhealthy": sum(1 for h in health_results.values() if h.get("status") != "ok"),
+            "healthy": sum(
+                1 for h in health_results.values() if h.get("status") == "ok"
+            ),
+            "unhealthy": sum(
+                1 for h in health_results.values() if h.get("status") != "ok"
+            ),
         },
     }
     write_log("tentaculo_link", "vx11_overview:aggregated")
@@ -638,6 +657,7 @@ async def vx11_overview(_: bool = Depends(token_guard)):
 
 
 # ============ SHUB ROUTING ============
+
 
 @app.get("/shub/dashboard")
 async def shub_dashboard(_: bool = Depends(token_guard)):
@@ -650,22 +670,24 @@ async def shub_dashboard(_: bool = Depends(token_guard)):
 
 # ============ RESOURCES (HERMES) ============
 
+
 @app.get("/resources")
 async def resources(_: bool = Depends(token_guard)):
     """Get available resources (CLI tools + models)."""
     clients = get_clients()
-    
+
     # Query Hermes for resources
     hermes_client = clients.get_client("hermes")
     if not hermes_client:
         return {"error": "hermes_unavailable"}
-    
+
     result = await hermes_client.get("/hermes/resources")
     write_log("tentaculo_link", "route_hermes:resources")
     return result
 
 
 # ============ HORMIGUERO ROUTING ============
+
 
 @app.get("/hormiguero/queen/status")
 async def hormiguero_status(_: bool = Depends(token_guard)):
@@ -687,6 +709,7 @@ async def hormiguero_report(limit: int = 50, _: bool = Depends(token_guard)):
 
 # ============ OPERATOR EXTENSIONS (v8.1) ============
 
+
 @app.get("/operator/snapshot")
 async def operator_snapshot(t: int = 0, _: bool = Depends(token_guard)):
     """Request VX11 state snapshot at timestamp t (v8.1 stub - returns current state if t=0)."""
@@ -705,10 +728,13 @@ async def operator_snapshot(t: int = 0, _: bool = Depends(token_guard)):
 
 # ============ ERROR HANDLERS ============
 
+
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request, exc):
     """Handle HTTP exceptions with logging."""
-    write_log("tentaculo_link", f"http_error:{exc.status_code}:{exc.detail}", level="WARNING")
+    write_log(
+        "tentaculo_link", f"http_error:{exc.status_code}:{exc.detail}", level="WARNING"
+    )
     return JSONResponse(
         status_code=exc.status_code,
         content={"error": exc.detail, "status_code": exc.status_code},
@@ -726,7 +752,12 @@ CANONICAL_EVENT_SCHEMAS = {
     },
     "system.correlation.updated": {
         "required": ["correlation_id", "related_events", "strength", "timestamp"],
-        "types": {"correlation_id": str, "related_events": list, "strength": (int, float), "timestamp": int},
+        "types": {
+            "correlation_id": str,
+            "related_events": list,
+            "strength": (int, float),
+            "timestamp": int,
+        },
         "nature": "meta",
         "max_payload": 2048,
     },
@@ -738,7 +769,12 @@ CANONICAL_EVENT_SCHEMAS = {
     },
     "madre.decision.explained": {
         "required": ["decision_id", "summary", "confidence", "timestamp"],
-        "types": {"decision_id": str, "summary": str, "confidence": (int, float), "timestamp": int},
+        "types": {
+            "decision_id": str,
+            "summary": str,
+            "confidence": (int, float),
+            "timestamp": int,
+        },
         "nature": "decision",
         "max_payload": 3072,
     },
@@ -766,7 +802,11 @@ def validate_event_type(event_type: str) -> bool:
 
 def log_event_rejection(event_type: str, reason: str):
     """Log rejected event as DEBUG (minimal noise)."""
-    write_log("tentaculo_link", f"event_rejected:type={event_type}:reason={reason}", level="DEBUG")
+    write_log(
+        "tentaculo_link",
+        f"event_rejected:type={event_type}:reason={reason}",
+        level="DEBUG",
+    )
 
 
 def validate_event_schema(event: dict) -> Optional[dict]:
@@ -775,27 +815,27 @@ def validate_event_schema(event: dict) -> Optional[dict]:
     - Check required fields
     - Validate basic types
     - Check payload size
-    
+
     Returns normalized event or None if invalid.
     """
     event_type = event.get("type")
-    
+
     if not event_type:
         log_event_rejection("unknown", "missing type field")
         return None
-    
+
     if not validate_event_type(event_type):
         log_event_rejection(event_type, "not in canonical whitelist")
         return None
-    
+
     schema = CANONICAL_EVENT_SCHEMAS[event_type]
-    
+
     # Check required fields
     for field in schema["required"]:
         if field not in event:
             log_event_rejection(event_type, f"missing required field: {field}")
             return None
-    
+
     # Validate types
     for field, expected_type in schema["types"].items():
         if field in event:
@@ -803,19 +843,28 @@ def validate_event_schema(event: dict) -> Optional[dict]:
             if isinstance(expected_type, tuple):
                 # Multiple types allowed (e.g., int or float)
                 if not isinstance(value, expected_type):
-                    log_event_rejection(event_type, f"invalid type for {field}: expected {expected_type}, got {type(value).__name__}")
+                    log_event_rejection(
+                        event_type,
+                        f"invalid type for {field}: expected {expected_type}, got {type(value).__name__}",
+                    )
                     return None
             else:
                 if not isinstance(value, expected_type):
-                    log_event_rejection(event_type, f"invalid type for {field}: expected {expected_type.__name__}, got {type(value).__name__}")
+                    log_event_rejection(
+                        event_type,
+                        f"invalid type for {field}: expected {expected_type.__name__}, got {type(value).__name__}",
+                    )
                     return None
-    
+
     # Check payload size
     payload_json = json.dumps(event)
-    if len(payload_json.encode('utf-8')) > schema["max_payload"]:
-        log_event_rejection(event_type, f"payload exceeds max size: {len(payload_json)} > {schema['max_payload']}")
+    if len(payload_json.encode("utf-8")) > schema["max_payload"]:
+        log_event_rejection(
+            event_type,
+            f"payload exceeds max size: {len(payload_json)} > {schema['max_payload']}",
+        )
         return None
-    
+
     return event
 
 
@@ -829,18 +878,18 @@ def normalize_event(event: dict) -> dict:
     """
     if "timestamp" not in event:
         event["timestamp"] = int(time.time() * 1000)
-    
+
     # Tag with schema version for internal tracking
     event["_schema_version"] = "v1.0"
-    
+
     # Add nature (from schema)
     event_type = event.get("type")
     if event_type in CANONICAL_EVENT_SCHEMAS:
         event["_nature"] = CANONICAL_EVENT_SCHEMAS[event_type]["nature"]
-    
+
     # Track in correlation graph for visualization
     correlation_tracker.add_event(event)
-    
+
     return event
 
 
@@ -854,10 +903,14 @@ async def validate_and_filter_event(event: dict) -> Optional[dict]:
     validated = validate_event_schema(event)
     if validated is None:
         return None
-    
+
     normalized = normalize_event(validated)
     event_type = normalized.get("type", "unknown")
-    write_log("tentaculo_link", f"event_validated_and_normalized:type={event_type}", level="DEBUG")
+    write_log(
+        "tentaculo_link",
+        f"event_validated_and_normalized:type={event_type}",
+        level="DEBUG",
+    )
     return normalized
 
 
@@ -887,37 +940,39 @@ async def create_system_state_summary() -> dict:
 
 # ============ EVENT CARDINALITY TRACKING (DEBUG OBSERVABILITY) ============
 
+
 class EventCardinalityCounter:
     """Track event frequencies for debugging and spam detection."""
+
     def __init__(self):
         self.counters: Dict[str, int] = {}
         self.window_start = time.time()
-    
+
     def increment(self, event_type: str):
         """Increment counter for event type."""
         if event_type not in self.counters:
             self.counters[event_type] = 0
         self.counters[event_type] += 1
-    
+
     def get_stats(self) -> Dict[str, int]:
         """Return events/min. Reset window if > 60s elapsed."""
         now = time.time()
         elapsed = now - self.window_start
-        
+
         if elapsed > 60:
             # Reset window
             stats = self.counters.copy()
             self.counters = {}
             self.window_start = now
             return stats
-        
+
         return self.counters.copy()
-    
+
     def get_stats_with_rate(self) -> Dict[str, Dict[str, float]]:
         """Return counts and rates (events/min)."""
         now = time.time()
         elapsed = max(now - self.window_start, 1)  # Avoid division by zero
-        
+
         result = {}
         for event_type, count in self.counters.items():
             rate_per_min = (count / elapsed) * 60
@@ -925,7 +980,7 @@ class EventCardinalityCounter:
                 "count": count,
                 "rate_per_min": round(rate_per_min, 2),
             }
-        
+
         return result
 
 
@@ -934,36 +989,45 @@ cardinality_counter = EventCardinalityCounter()
 
 # ============ EVENT CORRELATION TRACKER (VISUALIZATION) ============
 
+
 class EventCorrelationTracker:
     """Track event correlations for DAG visualization (lightweight)."""
+
     def __init__(self, max_nodes: int = 50, ttl_seconds: int = 300):
-        self.edges: Dict[str, Dict[str, Any]] = {}  # {event_id: {target_id: strength, ...}}
+        self.edges: Dict[str, Dict[str, Any]] = (
+            {}
+        )  # {event_id: {target_id: strength, ...}}
         self.nodes: Dict[str, Dict[str, Any]] = {}  # {event_id: {type, timestamp, ...}}
         self.max_nodes = max_nodes
         self.ttl_seconds = ttl_seconds
-    
+
     def add_event(self, event: dict):
         """Register event as node in correlation graph."""
-        event_id = event.get("alert_id") or event.get("decision_id") or event.get("snapshot_id") or str(uuid.uuid4())
+        event_id = (
+            event.get("alert_id")
+            or event.get("decision_id")
+            or event.get("snapshot_id")
+            or str(uuid.uuid4())
+        )
         now = int(time.time() * 1000)
-        
+
         self.nodes[event_id] = {
             "type": event.get("type", "unknown"),
             "timestamp": event.get("timestamp", now),
             "severity": event.get("severity", "L1"),
             "nature": event.get("_nature", "default"),
         }
-        
+
         # Cleanup old nodes if exceeds max
         if len(self.nodes) > self.max_nodes:
             self._cleanup_old_nodes()
-    
+
     def add_correlation(self, source_id: str, target_id: str, strength: float = 0.5):
         """Add edge between two events (temporal correlation)."""
         if source_id not in self.edges:
             self.edges[source_id] = {}
         self.edges[source_id][target_id] = round(min(strength, 1.0), 2)
-    
+
     def get_graph(self) -> Dict[str, Any]:
         """Export graph as {nodes, edges} for visualization."""
         return {
@@ -976,16 +1040,16 @@ class EventCorrelationTracker:
             "total_nodes": len(self.nodes),
             "total_edges": sum(len(v) for v in self.edges.values()),
         }
-    
+
     def _cleanup_old_nodes(self):
         """Remove oldest nodes when exceeding max_nodes."""
         now = int(time.time() * 1000)
         sorted_nodes = sorted(self.nodes.items(), key=lambda x: x[1]["timestamp"])
-        
+
         # Keep newest 80% of nodes
         to_keep = int(self.max_nodes * 0.8)
         nodes_to_remove = sorted_nodes[:-to_keep]
-        
+
         for node_id, _ in nodes_to_remove:
             del self.nodes[node_id]
             self.edges.pop(node_id, None)
@@ -999,8 +1063,10 @@ correlation_tracker = EventCorrelationTracker(max_nodes=50)
 
 # ============ WEBSOCKET (PLACEHOLDER FOR FUTURE) ============
 
+
 class ConnectionManager:
     """Track WebSocket connections."""
+
     def __init__(self):
         self.connections: Dict[str, WebSocket] = {}
 
@@ -1022,31 +1088,42 @@ class ConnectionManager:
         - Log errors as DEBUG only
         """
         event_type = event.get("type", "unknown")
-        
+
         # Final validation (redundant but safe)
         if not validate_event_type(event_type):
-            log_event_rejection(event_type, "broadcast attempted with non-canonical type")
+            log_event_rejection(
+                event_type, "broadcast attempted with non-canonical type"
+            )
             return
-        
+
         # Track event frequency for DEBUG observability
         cardinality_counter.increment(event_type)
-        
+
         # Remove internal tags before sending to Operator
         event_clean = {k: v for k, v in event.items() if not k.startswith("_")}
-        
+
         for client_id, conn in list(self.connections.items()):
             try:
                 await conn.send_json(event_clean)
-                write_log("tentaculo_link", f"broadcast_sent:type={event_type}:client={client_id}", level="DEBUG")
+                write_log(
+                    "tentaculo_link",
+                    f"broadcast_sent:type={event_type}:client={client_id}",
+                    level="DEBUG",
+                )
             except Exception as e:
                 # Client disconnected or error; silently skip
-                write_log("tentaculo_link", f"broadcast_failed:client={client_id}:error={str(e)}", level="DEBUG")
+                write_log(
+                    "tentaculo_link",
+                    f"broadcast_failed:client={client_id}:error={str(e)}",
+                    level="DEBUG",
+                )
 
 
 manager = ConnectionManager()
 
 
 # ============ DEBUG ENDPOINTS ============
+
 
 @app.get("/debug/events/cardinality")
 async def debug_events_cardinality():
@@ -1056,7 +1133,7 @@ async def debug_events_cardinality():
     """
     stats = cardinality_counter.get_stats_with_rate()
     window_elapsed = time.time() - cardinality_counter.window_start
-    
+
     return {
         "status": "ok",
         "timestamp": int(time.time() * 1000),
@@ -1081,31 +1158,56 @@ async def debug_events_correlations():
 
 
 @app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket, client_id: str = "anonymous"):
+async def websocket_endpoint(
+    websocket: WebSocket, channel: str = "event", client_id: str = "anonymous"
+):
     """
-    WebSocket endpoint for Operator clients.
-    Receives and validates canonical events only.
-    Non-canonical events are rejected silently.
+    WebSocket endpoint for Operator clients (v7).
+    - Sends initial 'control' message to confirm connection.
+    - Echoes client messages (if valid JSON) back to sender.
+    - Broadcasts to other clients if message is canonical.
+    - Graceful disconnect handling.
     """
     await manager.connect(websocket, client_id)
     try:
+        # Send initial control message to confirm connection
+        control_msg = {
+            "channel": "control",
+            "type": "connected",
+            "client_id": client_id,
+        }
+        await websocket.send_json(control_msg)
+        write_log("tentaculo_link", f"ws_sent_control:{client_id}")
+
+        # Echo loop: accept messages and send back
         while True:
-            data = await websocket.receive_text()
             try:
-                event = json.loads(data)
-                # Validate event against canonical whitelist
-                validated = await validate_and_filter_event(event)
-                if validated:
-                    # Event is canonical; broadcast to all clients
-                    await manager.broadcast(validated)
-                # else: event rejected; no broadcast, no echo
-            except json.JSONDecodeError:
-                log_event_rejection("malformed", "invalid JSON")
-                # Don't echo; connection stays open for next valid event
+                data = await websocket.receive_text()
+                try:
+                    event = json.loads(data)
+                    # Echo event back to sender
+                    await websocket.send_json(event)
+                    write_log(
+                        "tentaculo_link",
+                        f"ws_echo:{client_id}:type={event.get('type')}",
+                    )
+
+                    # Validate and broadcast if canonical
+                    validated = await validate_and_filter_event(event)
+                    if validated:
+                        await manager.broadcast(validated)
+                except json.JSONDecodeError:
+                    log_event_rejection("malformed", "invalid JSON")
+                    # Connection stays open; client can retry
+            except RuntimeError:
+                # Connection issue; silently close
+                break
     except WebSocketDisconnect:
         await manager.disconnect(client_id)
+        write_log("tentaculo_link", f"ws_disconnect_normal:{client_id}")
 
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8000)

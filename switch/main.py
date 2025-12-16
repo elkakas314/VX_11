@@ -86,10 +86,30 @@ PRIORITY_MAP = {
 
 # Mode profiles for adaptive optimization
 MODE_PROFILES = {
-    "ECO": {"cpu_limit": 0.2, "max_models": 5, "timeout": 2000},
-    "BALANCED": {"cpu_limit": 0.5, "max_models": 10, "timeout": 1000},
-    "HIGH-PERF": {"cpu_limit": 0.9, "max_models": 20, "timeout": 500},
-    "CRITICAL": {"cpu_limit": 1.0, "max_models": 30, "timeout": 200},
+    "ECO": {
+        "cpu_limit": 0.2, "max_models": 5, "timeout": 2000,
+        "preferred_providers": ["local"],
+        "timeout_ms": 2000,
+        "max_workers": 2,
+    },
+    "BALANCED": {
+        "cpu_limit": 0.5, "max_models": 10, "timeout": 1000,
+        "preferred_providers": ["local", "cli"],
+        "timeout_ms": 1000,
+        "max_workers": 4,
+    },
+    "HIGH-PERF": {
+        "cpu_limit": 0.9, "max_models": 20, "timeout": 500,
+        "preferred_providers": ["cli", "local"],
+        "timeout_ms": 500,
+        "max_workers": 8,
+    },
+    "CRITICAL": {
+        "cpu_limit": 1.0, "max_models": 30, "timeout": 200,
+        "preferred_providers": ["cli"],
+        "timeout_ms": 200,
+        "max_workers": 16,
+    },
 }
 
 # Current mode (mutable)
