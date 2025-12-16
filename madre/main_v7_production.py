@@ -18,17 +18,19 @@ from .core import (
     ChatResponse,
     ControlRequest,
     ControlResponse,
-    HealthResponse,
     MadreDB,
     FallbackParser,
     PolicyEngine,
     Planner,
     Runner,
     DelegationClient,
+    HealthResponse,
 )
 
 log = logging.getLogger("vx11.madre")
 logger = log
+
+app = FastAPI(title="VX11 Madre v7 (Production)")
 
 VX11_TOKEN = (
     get_token("VX11_TENTACULO_LINK_TOKEN")
