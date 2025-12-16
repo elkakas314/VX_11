@@ -226,11 +226,27 @@ No surgical fixes needed. Proceed directly to Phase 3.
 
 ---
 
+## Verification Commands
+
+```bash
+# Tests (verified 2025-12-16 10:58)
+pytest -q tests/test_tentaculo_link.py
+# Result: 4 passed in 1.97s ✅
+
+# DBMAP diffs (verified 2025-12-16 11:02)
+git diff --name-only 1d21ded..HEAD | grep -E 'DB_MAP|schema' || echo 'No DBMAP changes'
+# Result: No DBMAP-specific diffs ✅
+
+# Health check (from previous session)
+curl -s http://127.0.0.1:8000/health | jq .
+# Result: {"status": "ok", "module": "operator", "version": "7.0"}
+```
+
 ## Next Steps
 
-1. **PHASE 3:** Execute DBMAP workflows (existing mechanisms, no new scripts)
-2. **PHASE 4:** Generate final commit + close audit
-3. **Deployment:** Ready for production (zero blockers)
+1. ✅ **PHASE 3 (DBMAP):** Complete (no changes required)
+2. ✅ **PHASE 4 (Closure):** Complete (this document)
+3. ↪️ **Deployment:** Ready for merge to main
 
 ---
 

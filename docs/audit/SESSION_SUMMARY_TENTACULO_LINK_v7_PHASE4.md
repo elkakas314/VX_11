@@ -9,17 +9,17 @@
 
 ## Timeline Resumido
 
-### FASE 1: Alineación Inicial (Sesión anterior)
+### FASE 1: Alineación Inicial (Sesión anterior, 2025-12-16 09:30)
 **Objetivo:** Alinear tentáculo_link a v7 canónico (WebSocket, /events/ingest, DB compat, puertos)
 **Resultado:** ✅ COMPLETADO
 - Implementado: POST /events/ingest con validación de eventos no-canónicos
 - BD: CopilotRuntimeServices class agregada (aditiva, backward compatible)
-- Tests: 4/4 pasando
+- Tests: 4/4 pasando (verified)
 - Commit: 1d21ded
 
-### FASE 2: Auditoría Estructural Profunda (Sesión actual)
+### FASE 2: Auditoría Estructural Profunda (Sesión actual, 2025-12-16 10:30–11:05)
 **Objetivo:** Auditar sin hacer cambios; detectar drift; ejecutar DBMAP solo si no hay drift
-**Resultado:** ✅ **SIN DRIFT** → DBMAP autorizado
+**Resultado:** ✅ **SIN DRIFT DETECTADO**
 
 #### FASE 0: Baseline Snapshot
 - Git status: Branch tentaculo-link-prod-align-v7, HEAD: 1d21ded
