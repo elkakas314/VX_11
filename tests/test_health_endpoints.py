@@ -1,4 +1,8 @@
 import requests
+import pytest
+
+
+pytestmark = pytest.mark.integration
 
 BASES = {
     "mcp": "http://127.0.0.1:8006/health",

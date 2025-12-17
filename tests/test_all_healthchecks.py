@@ -1,4 +1,8 @@
 import requests
+import pytest
+
+
+pytestmark = pytest.mark.integration
 
 MODULES = {
     "tentaculo_link": 8000,

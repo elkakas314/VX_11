@@ -1,6 +1,10 @@
+import pytest
 from fastapi.testclient import TestClient
 
 from switch.main import app as switch_app, breaker
+
+
+pytestmark = pytest.mark.integration
 
 
 def test_switch_chat_endpoint():
