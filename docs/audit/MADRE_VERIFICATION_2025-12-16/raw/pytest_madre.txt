@@ -1,0 +1,20 @@
+============================= test session starts ==============================
+platform linux -- Python 3.10.12, pytest-7.4.3, pluggy-1.6.0
+rootdir: /home/elkakas314/vx11
+configfile: pytest.ini
+plugins: cov-7.0.0, asyncio-0.21.1, anyio-3.7.1
+asyncio: mode=auto
+collected 33 items
+Collected 33 tests.
+
+tests/test_madre.py .Progress: 1/33 tests (3%).Progress: 2/33 tests (6%).Progress: 3/33 tests (9%).Progress: 4/33 tests (12%).Progress: 5/33 tests (15%).Progress: 6/33 tests (18%).Progress: 7/33 tests (21%).Progress: 8/33 tests (24%).Progress: 9/33 tests (27%).Progress: 10/33 tests (30%).Progress: 11/33 tests (33%).Progress: 12/33 tests (36%).Progress: 13/33 tests (39%).Progress: 14/33 tests (42%).Progress: 15/33 tests (45%).Progress: 16/33 tests (48%).Progress: 17/33 tests (51%).Progress: 18/33 tests (54%).Progress: 19/33 tests (57%).Progress: 20/33 tests (60%).Progress: 21/33 tests (63%).Progress: 22/33 tests (66%).Progress: 23/33 tests (69%).Progress: 24/33 tests (72%).Progress: 25/33 tests (75%).Progress: 26/33 tests (78%).Progress: 27/33 tests (81%).Progress: 28/33 tests (84%).Progress: 29/33 tests (87%).Progress: 30/33 tests (90%).Progress: 31/33 tests (93%)FProgress: 32/33 tests (96%).Progress: 33/33 tests (100%)
+                    [100%]
+
+=================================== FAILURES ===================================
+______________ TestEndpointExistence.test_main_module_importable _______________
+tests/test_madre.py:341: in test_main_module_importable
+    assert "/madre/chat" in routes
+E   AssertionError: assert '/madre/chat' in ['/openapi.json', '/docs', '/docs/oauth2-redirect', '/redoc', '/madre/power/on/{module}', '/madre/power/off/{module}', ...]
+=========================== short test summary info ============================
+FAILED tests/test_madre.py::TestEndpointExistence::test_main_module_importable
+=================== 1 failed, 32 passed, 7 warnings in 5.15s ===================

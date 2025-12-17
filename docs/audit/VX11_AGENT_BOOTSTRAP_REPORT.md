@@ -1,6 +1,6 @@
 # VX11 Agent Bootstrap Report
 
-**Generated:** 2025-12-16T02:29:15.627309Z  
+**Generated:** 2025-12-16T19:37:45.978476Z  
 **Repo:** /home/elkakas314/vx11  
 **DB:** /home/elkakas314/vx11/data/runtime/vx11.db
 
@@ -23,20 +23,22 @@
 
 | Service | Host | Port | Status |
 |---------|------|------|--------|
-| tentaculo_link | localhost | 8000 | 🟢 up |
-| madre | localhost | 8001 | 🟢 up |
-| switch | localhost | 8002 | 🟢 up |
-| hermes | localhost | 8003 | 🟢 up |
-| hormiguero | localhost | 8004 | 🟢 up |
-| manifestator | localhost | 8005 | 🟢 up |
-| mcp | localhost | 8006 | 🟢 up |
-| shub | localhost | 8007 | 🟢 up |
-| spawner | localhost | 8008 | 🟢 up |
-| operator_backend | localhost | 8011 | 🟢 up |
+| shubniggurath | localhost | 8007 | 🔴 BROKEN |
+| operator | localhost | 8011 | 🔴 OK |
+| tentaculo_link | localhost | 8000 | 🔴 down |
+| madre | localhost | 8001 | 🔴 down |
+| switch | localhost | 8002 | 🔴 down |
+| hermes | localhost | 8003 | 🔴 down |
+| hormiguero | localhost | 8004 | 🔴 down |
+| manifestator | localhost | 8005 | 🔴 down |
+| mcp | localhost | 8006 | 🔴 down |
+| shub | localhost | 8007 | 🔴 down |
+| spawner | localhost | 8008 | 🔴 down |
+| operator_backend | localhost | 8011 | 🔴 down |
 
 ## Database State
 
-Tables: 59
+Tables: 60
 - tasks
 - ia_decisions
 - module_health
@@ -96,3 +98,4 @@ Tables: 59
 - copilot_runtime_services
 - copilot_actions_log
 - copilot_workflows_catalog
+- chat_providers_stats

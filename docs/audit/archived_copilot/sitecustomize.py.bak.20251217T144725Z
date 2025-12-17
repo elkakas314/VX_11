@@ -1,0 +1,39 @@
+"""sitecustomize for VX11 — minimal, safe sys.path reordering.
+
+This implementation addresses the `ImportError` caused by a local
+`operator/` package shadowing the stdlib `operator` module by ensuring the
+repository root is not forced to the front of `sys.path` at Python startup.
+It moves the repo root to the end of `sys.path` when it appears as the
+first entry ('' or explicit path), giving the standard library priority.
+This is minimal and avoids touching package import machinery.
+"""
+
+from pathlib import Path
+import sys
+
+try:
+    REPO_ROOT = Path(__file__).resolve().parents[1]
+    repo_str = str(REPO_ROOT)
+    # If sys.path[0] is '' (current dir) or repo root, move all occurrences
+    # of the repo path to the end so stdlib imports take precedence.
+    if sys.path:
+        first = sys.path[0]
+        if first == "" or first == repo_str:
+            new_paths = [p for p in sys.path if p != "" and p != repo_str]
+            new_paths.append(repo_str)
+            # preserve any other entries (very conservative)
+            try:
+                # Replace sys.path in-place
+                sys.path[:] = new_paths
+            except Exception:
+                # best-effort: fallback to assignment
+                try:
+                    sys.path = new_paths
+                except Exception:
+                    pass
+except Exception:
+    # Do not break interpreter startup
+    pass
+
+# Minimal diagnostics for triage: avoid expensive imports. This file must
+# remain quick and safe at import time.

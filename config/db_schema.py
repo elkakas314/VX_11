@@ -1052,8 +1052,14 @@ class CopilotRuntimeServices(Base):
 
 
 # Create all tables (solo una vez) y migrar legacy → unificada
-Base.metadata.create_all(unified_engine)
-migrate_legacy_tables(unified_engine)
+if os.environ.get("VX11_TEST_IMPORT_SAFE", "0") in ("0", "false", "False", ""):
+    # Normal runtime: crear tablas y migrar legacy -> unified
+    Base.metadata.create_all(unified_engine)
+    migrate_legacy_tables(unified_engine)
+else:
+    # En modo de import seguro para tests, evitamos crear/migrar tablas
+    # para que los tests controlen la sesión/engine y no se poluyan datos en disco.
+    pass
 
 # Keep old engines dict for compatibility
 engines = {db_name: unified_engine for db_name in DATABASES.keys()}

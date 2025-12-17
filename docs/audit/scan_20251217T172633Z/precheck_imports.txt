@@ -1,0 +1,7 @@
+== from repo root ==
+operator= /usr/lib/python3.10/operator.py
+datetime_ok
+
+== from /tmp (aislar cwd) ==
+operator= /usr/lib/python3.10/operator.py
+datetime_ok

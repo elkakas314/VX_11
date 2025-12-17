@@ -46,7 +46,10 @@ async def _scan_loop():
             await asyncio.sleep(SCAN_INTERVAL_SECONDS)
             if _colony:
                 result = await _colony.scan_cycle()
-                write_log("hormiguero", f"scan_loop_iteration:incidents={result.get('total_incidents')}")
+                write_log(
+                    "hormiguero",
+                    f"scan_loop_iteration:incidents={result.get('total_incidents')}",
+                )
         except Exception as exc:
             write_log("hormiguero", f"scan_loop_error:{exc}", level="ERROR")
 
@@ -81,6 +84,7 @@ app = FastAPI(
 
 # ============ ENDPOINTS ============
 
+
 @app.get("/health")
 async def health():
     """Health check (no auth required)."""
@@ -93,7 +97,7 @@ async def trigger_scan(ok=Depends(check_token)):
     global _colony
     if not _colony:
         raise HTTPException(status_code=503, detail="colony_not_initialized")
-    
+
     try:
         result = await _colony.scan_cycle()
         return {
@@ -106,14 +110,45 @@ async def trigger_scan(ok=Depends(check_token)):
         raise HTTPException(status_code=500, detail=str(exc))
 
 
+# ============ TASK API (testing stubs) ============
+_TASK_STORE = {}
+
+
+@app.post("/hormiguero/task")
+async def create_task(payload: dict, ok=Depends(check_token)):
+    """Create a simple task (testing stub)."""
+    import uuid
+
+    tid = str(uuid.uuid4())
+    _TASK_STORE[tid] = {
+        "task_id": tid,
+        "task_type": payload.get("task_type"),
+        "payload": payload.get("payload"),
+        "status": "created",
+        "created_at": datetime.utcnow().isoformat(),
+    }
+    return {"status": "created", "task_id": tid}
+
+
+@app.get("/hormiguero/tasks")
+async def list_tasks(ok=Depends(check_token)):
+    """List created tasks (testing stub)."""
+    return list(_TASK_STORE.values())
+
+
 @app.get("/report")
 async def get_recent_incidents(limit: int = 50, ok=Depends(check_token)):
     """Get recent incidents (last N)."""
     from config.db_schema import get_session, Incident
-    
+
     session = get_session("vx11")
     try:
-        incidents = session.query(Incident).order_by(Incident.detected_at.desc()).limit(limit).all()
+        incidents = (
+            session.query(Incident)
+            .order_by(Incident.detected_at.desc())
+            .limit(limit)
+            .all()
+        )
         return {
             "count": len(incidents),
             "incidents": [
@@ -138,7 +173,7 @@ async def get_recent_incidents(limit: int = 50, ok=Depends(check_token)):
 async def queen_status(ok=Depends(check_token)):
     """Get Queen and Ant status."""
     from config.db_schema import get_session, HormigaState
-    
+
     session = get_session("vx11")
     try:
         ant_states = session.query(HormigaState).all()
@@ -152,7 +187,9 @@ async def queen_status(ok=Depends(check_token)):
                     "id": state.ant_id,
                     "role": state.role,
                     "status": state.status,
-                    "last_scan_at": state.last_scan_at.isoformat() if state.last_scan_at else None,
+                    "last_scan_at": (
+                        state.last_scan_at.isoformat() if state.last_scan_at else None
+                    ),
                     "mutation_level": state.mutation_level,
                     "cpu_percent": state.cpu_percent,
                     "ram_percent": state.ram_percent,
@@ -168,20 +205,20 @@ async def queen_status(ok=Depends(check_token)):
 async def queen_dispatch_intent(incident_id: int, ok=Depends(check_token)):
     """Manually trigger Reina decision for an incident."""
     from config.db_schema import get_session, Incident
-    
+
     global _colony
     if not _colony:
         raise HTTPException(status_code=503, detail="colony_not_initialized")
-    
+
     session = get_session("vx11")
     try:
         incident = session.query(Incident).filter_by(id=incident_id).first()
         if not incident:
             raise HTTPException(status_code=404, detail="incident_not_found")
-        
+
         decision = await _colony.queen._classify_and_decide(incident)
         await _colony.queen._execute_decision(decision)
-        
+
         return {
             "status": "ok",
             "incident_id": incident_id,
@@ -193,17 +230,18 @@ async def queen_dispatch_intent(incident_id: int, ok=Depends(check_token)):
 
 # ============ PASO 5: Mutant Ants + Pheromones ============
 
+
 @app.post("/hormiguero/colony/create")
 async def create_colony(req: dict, ok=Depends(check_token)):
     """
     Crear nueva colonia de hormigas mutantes (PASO 5).
-    
+
     Input:
       {
         "size": 8,
         "mutation_level": 0
       }
-    
+
     Output:
       {
         "status": "ok",
@@ -212,14 +250,14 @@ async def create_colony(req: dict, ok=Depends(check_token)):
       }
     """
     from hormiguero.ants_mutant import get_queen_brain
-    
+
     try:
         queen = get_queen_brain()
         size = req.get("size", 8)
         mutation_level = req.get("mutation_level", 0)
-        
+
         colony = await queen.create_colony(size=size, mutation_level=mutation_level)
-        
+
         write_log("hormiguero", f"colony_created_api:{colony.id}:size={size}")
         return {
             "status": "ok",
@@ -237,13 +275,13 @@ async def create_colony(req: dict, ok=Depends(check_token)):
 async def execute_colony_cycle(colony_id: str, ok=Depends(check_token)):
     """
     Ejecutar ciclo de actividad de colonia (PASO 5).
-    
+
     Cada hormiga:
     1. Escanea zona asignada
     2. Detecta drift
     3. Deposita feromonas
     4. Reporta resultados
-    
+
     Output:
       {
         "status": "ok",
@@ -253,12 +291,15 @@ async def execute_colony_cycle(colony_id: str, ok=Depends(check_token)):
       }
     """
     from hormiguero.ants_mutant import get_queen_brain
-    
+
     try:
         queen = get_queen_brain()
         result = await queen.execute_colony_cycle(colony_id)
-        
-        write_log("hormiguero", f"colony_cycle:{colony_id}:drift={result['decision']['drift_detected']}")
+
+        write_log(
+            "hormiguero",
+            f"colony_cycle:{colony_id}:drift={result['decision']['drift_detected']}",
+        )
         return result
     except Exception as e:
         write_log("hormiguero", f"colony_cycle_error:{colony_id}:{e}", level="ERROR")
@@ -269,14 +310,14 @@ async def execute_colony_cycle(colony_id: str, ok=Depends(check_token)):
 async def get_colony_status(colony_id: str, ok=Depends(check_token)):
     """Obtener estado de colonia específica."""
     from hormiguero.ants_mutant import get_queen_brain
-    
+
     try:
         queen = get_queen_brain()
         status = await queen.get_colony_status(colony_id)
-        
+
         if status is None:
             raise HTTPException(status_code=404, detail="Colony not found")
-        
+
         return {"status": "ok", "colony": status}
     except HTTPException:
         raise
@@ -289,11 +330,11 @@ async def get_colony_status(colony_id: str, ok=Depends(check_token)):
 async def list_colonies(ok=Depends(check_token)):
     """Listar todas las colonias activas."""
     from hormiguero.ants_mutant import get_queen_brain
-    
+
     try:
         queen = get_queen_brain()
         colonies = await queen.list_colonies()
-        
+
         write_log("hormiguero", f"list_colonies:{len(colonies)}")
         return {
             "status": "ok",
@@ -307,4 +348,5 @@ async def list_colonies(ok=Depends(check_token)):
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8004)

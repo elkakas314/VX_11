@@ -1,3 +1,17 @@
+# Minimal .gitignore to reduce noise; non-destructive and conservative
+# Do NOT ignore docs/audit or data/runtime/vx11.db
+.venv/
+__pycache__/
+*.pyc
+.tmp/
+tmp/
+.vscode/
+node_modules/
+.pytest_cache/
+forensic/
+forensic/*
+logs/
+playwright/
 # ============================================================
 # Python
 # ============================================================

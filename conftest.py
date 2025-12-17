@@ -29,6 +29,69 @@ def _ensure_event_loop():
 _ensure_event_loop()
 
 
+# Ensure the repository 'operator' package and its 'backend.browser' submodule
+# are available in sys.modules early so tests that patch
+# 'operator.backend.browser.async_playwright' can find the target reliably.
+try:
+    import importlib.util
+    import importlib
+
+    repo_root = Path(__file__).resolve().parents[1]
+    op_pkg_dir = repo_root / "operator"
+    if op_pkg_dir.exists():
+        # Load operator package from disk and install into sys.modules
+        init_py = op_pkg_dir / "__init__.py"
+        if init_py.exists():
+            spec = importlib.util.spec_from_file_location(
+                "operator", str(init_py), submodule_search_locations=[str(op_pkg_dir)]
+            )
+            op_mod = importlib.util.module_from_spec(spec)
+            sys.modules["operator"] = op_mod
+            try:
+                spec.loader.exec_module(op_mod)  # type: ignore
+            except Exception:
+                # best-effort: if exec fails, keep module object with __path__
+                op_mod.__path__ = [str(op_pkg_dir)]
+
+        # Ensure operator.backend package and browser submodule are loaded
+        backend_dir = op_pkg_dir / "backend"
+        browser_py = backend_dir / "browser.py"
+        if backend_dir.exists() and browser_py.exists():
+            # create a package module for operator.backend
+            if "operator.backend" not in sys.modules:
+                spec_pkg = importlib.util.spec_from_file_location(
+                    "operator.backend",
+                    (
+                        str(backend_dir / "__init__.py")
+                        if (backend_dir / "__init__.py").exists()
+                        else str(browser_py)
+                    ),
+                    submodule_search_locations=[str(backend_dir)],
+                )
+                pkg_mod = importlib.util.module_from_spec(spec_pkg)
+                pkg_mod.__path__ = [str(backend_dir)]
+                pkg_mod.__spec__ = spec_pkg
+                sys.modules["operator.backend"] = pkg_mod
+                try:
+                    if spec_pkg.loader is not None:
+                        spec_pkg.loader.exec_module(pkg_mod)  # type: ignore
+                except Exception:
+                    pass
+
+            # load browser module
+            spec_b = importlib.util.spec_from_file_location(
+                "operator.backend.browser", str(browser_py)
+            )
+            mod_b = importlib.util.module_from_spec(spec_b)
+            sys.modules["operator.backend.browser"] = mod_b
+            try:
+                spec_b.loader.exec_module(mod_b)  # type: ignore
+            except Exception:
+                pass
+except Exception:
+    pass
+
+
 @pytest.fixture(autouse=True)
 def _ensure_event_loop_per_test():
     """Ensure event loop exists before each test."""

@@ -80,3 +80,17 @@ Reglas:
 - No crear duplicados ni archivos final_v2.
 - Forense: forensic/crashes NUNCA borrar.
 
+
+## DBMAP maintenance (recent)
+
+- scanned_at: 2025-12-17T14:03:00Z
+- database_path: data/runtime/vx11.db
+- database_sha256: 0a8a2599e79044ec2e1cd02d25f5e546b85692d6697c998c38450cea8df4f4c8
+- copilot_repo_map_rows: 11
+- map_file: docs/audit/DB_MAP_v7_FINAL.md
+- schema_file: docs/audit/DB_SCHEMA_v7_FINAL.json
+- backups_dir: docs/audit/backups/dbmap/
+
+Actions:
+- Created timestamped backup copy of DB_MAP and DB_SCHEMA
+- Regenerated DB_SCHEMA and DB_MAP from live sqlite and persisted artifacts under docs/audit/

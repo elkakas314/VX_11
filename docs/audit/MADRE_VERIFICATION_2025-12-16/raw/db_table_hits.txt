@@ -1,0 +1,175 @@
+  madre/dsl_compiler.py:387:                    "context": params.get("context", {}),
+  madre/core/db.py:30:        """Insert row in intents_log. Returns ID."""
+  madre/core/db.py:55:        """Update intents_log row with final status."""
+  madre/core/db.py:124:    def set_context(
+  madre/core/db.py:130:        """Set context key-value pair."""
+  madre/core/db.py:142:            log.error(f"set_context failed: {e}")
+  madre/core/db.py:148:    def get_context(task_id: str, key: str) -> Optional[str]:
+  madre/core/db.py:149:        """Retrieve context value."""
+  madre/core/db.py:163:        """Record an action in madre_actions."""
+  madre/core/db.py:190:        """Insert daughter_tasks request. Returns daughter_task ID."""
+  madre/core/delegation.py:1:"""Delegation: HTTP calls to other modules + daughter_tasks insertions."""
+  madre/core/models.py:103:    context: Optional[Dict[str, Any]] = None
+  madre/core/planner.py:124:        # Audio tasks go to Shub (if enabled)
+  madre/core/runner.py:75:            # Insert into daughter_tasks and mark task WAITING (no hijas launched here)
+  madre/main_v7_production.py:113:            "context": req.context or {},
+  madre/main_v7_production.py:171:        MadreDB.set_context(plan_id, "madre:intent_id", intent_id)
+  madre/main_v7_production.py:172:        MadreDB.set_context(plan_id, "madre:mode", session_mode)
+  madre/main_v7_production.py:173:        MadreDB.set_context(plan_id, "madre:plan", plan.json())
+  madre/main_v7_production.py:178:            MadreDB.set_context(plan_id, "madre:confirm_token", confirm_token)
+  madre/main_v7_production.py:299:    """Get recent plans (from tasks where module='madre')."""
+  madre/main_v7_production.py:316:    plan_json = MadreDB.get_context(plan_id, "madre:plan")
+  madre/main_v7_production.py:317:    intent_id = MadreDB.get_context(plan_id, "madre:intent_id")
+  madre/main_v7_production.py:318:    mode = MadreDB.get_context(plan_id, "madre:mode")
+  madre/main_v7_production.py:331:    stored_token = MadreDB.get_context(plan_id, "madre:confirm_token")
+  madre/madre_shub_orchestrator.py:81:    """Madre orchestrator for Shub tasks"""
+  madre/bridge_handler.py:3:Implements HIJAS (ephemeral daughters) that execute specific tasks and report back.
+  madre/bridge_handler.py:99:    async def audit_full(self, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+  madre/bridge_handler.py:202:    async def scan_hive(self, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+  madre/bridge_handler.py:242:    async def route_query(self, query: str, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+  madre/bridge_handler.py:261:                json={"query": query, "context": context or {}},
+  madre/bridge_handler.py:277:    async def spawn_cmd(self, cmd: str, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+  madre/daughters.py:106:        self.daughters: Dict[str, Daughter] = {}
+  madre/daughters.py:157:                "context": {
+  madre/daughters.py:184:            self.daughters[daughter.id] = daughter
+  madre/daughters.py:208:        daughter = self.daughters.get(daughter_id)
+  madre/daughters.py:226:        daughter = self.daughters.get(daughter_id)
+  madre/daughters.py:241:        daughter = self.daughters.get(daughter_id)
+  madre/daughters.py:255:        daughter = self.daughters.get(daughter_id)
+  madre/daughters.py:269:    async def list_daughters(self, status_filter: Optional[str] = None) -> List[Dict[str, Any]]:
+  madre/daughters.py:271:        daughters_list = []
+  madre/daughters.py:272:        for daughter in self.daughters.values():
+  madre/daughters.py:280:            daughters_list.append(daughter.to_dict())
+  madre/daughters.py:282:        return daughters_list
+  madre/daughters.py:290:            daughter = self.daughters.get(daughter_id)
+  madre/daughters.py:306:    async def cleanup_expired_daughters(self):
+  madre/daughters.py:313:                for daughter_id, daughter in list(self.daughters.items()):
+  madre/daughters.py:326:                    del self.daughters[daughter_id]
+  madre/README.md:15:7. **Persistir en BD** (intents_log, tasks, context, madre_actions, daughter_tasks si spawn requerido)
+  madre/README.md:17:**🔴 CRITICO: Madre NO lanza hijas efímeras.** Solo GENERA SOLICITUDES a BD (daughter_tasks INSERT). La ejecución real la hace Spawner (implementación futura).
+  madre/README.md:31:│   └── delegation.py         # DelegationClient: HTTP calls + daughter_tasks
+  madre/README.md:83:- `intents_log` — INSERT al inicio, UPDATE al cierre (result_status)
+  madre/README.md:84:- `madre_actions` — INSERT audit trail (cada decision, action, confirmation)
+  madre/README.md:85:- `tasks` — INSERT plan, UPDATE status/result/error
+  madre/README.md:86:- `context` — INSERT session context, tokens, plan metadata
+  madre/README.md:87:- `daughter_tasks` — INSERT ONLY (cuando spawn requerido) - Spawner ejecuta luego
+  madre/README.md:90:- spawns, hijas_runtime, (cualquier tabla "de ejecución")
+  madre/README.md:108:ChatResponse(status=DONE) + UPDATE intents_log
+  madre/README.md:152:- **DB:** intents_log nunca se borra (forensic trail permanente)
+  madre/README.md:167:- `set_context()`, `get_context()` — Session state
+  madre/README.md:169:- `request_spawner_task()` — INSERT daughter_tasks (sin ejecutar)
+  madre/README.md:197:HTTP calls + daughter_tasks insertion:
+  madre/README.md:199:- `request_spawner_hija()` → INSERT daughter_tasks (sin ejecutar)
+  madre/README.md:224:| Plan stuck en WAITING | Hijo esperando confirmación o Spawner execution | Ver daughter_tasks, verificar Spawner |
+  madre/main_legacy.py:155:            {"step": "cierre", "persist": ["tasks", "context", "spawns"]},
+  madre/main_legacy.py:186:    context: Optional[Dict[str, Any]] = None
+  madre/main_legacy.py:202:    context: Optional[Dict[str, Any]] = None
+  madre/main_legacy.py:226:    context: Optional[Dict[str, Any]] = None
+  madre/main_legacy.py:286:        state.pending_tasks = data.get("pending_tasks", 0)
+  madre/main_legacy.py:430:        "context": {
+  madre/main_legacy.py:530:    context: Optional[Dict[str, Any]] = None,
+  madre/main_legacy.py:549:                    "context": context or {},
+  madre/main_legacy.py:550:                    "parent_task_id": context.get("task_id") if context else None,
+  madre/main_legacy.py:573:async def process_pending_tasks(db_session=None):
+  madre/main_legacy.py:600:        self.context: Dict[str, Any] = {}
+  madre/main_legacy.py:636:                        "context": self.context,
+  madre/main_legacy.py:647:                self.context["last_provider"] = provider
+  madre/main_legacy.py:648:                self.context["last_response_at"] = datetime.utcnow().isoformat()
+  madre/main_legacy.py:707:async def audio_analyze_task(req: ShubTaskRequest, background_tasks: BackgroundTasks):
+  madre/main_legacy.py:830:    pending_tasks = db_session.query(Task).filter(Task.status == "pending").count()
+  madre/main_legacy.py:833:        "value": pending_tasks + len(_SESSIONS),
+  madre/main_legacy.py:835:        "tasks": pending_tasks,
+  madre/main_legacy.py:844:    completed_tasks = db_session.query(Task).filter(Task.status == "completed").count()
+  madre/main_legacy.py:848:        "value": completed_tasks + total_messages,
+  madre/main_legacy.py:850:        "completed_tasks": completed_tasks,
+  madre/main_legacy.py:993:    # Store context
+  madre/main_legacy.py:994:    if req.context:
+  madre/main_legacy.py:995:        for key, value in req.context.items():
+  madre/main_legacy.py:1009:        await process_pending_tasks(db_session)
+  madre/main_legacy.py:1025:    context = {c.key: c.value for c in context_rows}
+  madre/main_legacy.py:1035:        "context": context,
+  madre/main_legacy.py:1041:@app.get("/tasks")
+  madre/main_legacy.py:1042:def list_tasks(
+  madre/main_legacy.py:1047:    """List tasks."""
+  madre/main_legacy.py:1052:    tasks = query.all()
+  madre/main_legacy.py:1054:        "tasks": [
+  madre/main_legacy.py:1063:            for t in tasks
+  madre/main_legacy.py:1077:        context=req.context,
+  madre/main_legacy.py:1108:    from madre.daughters import get_daughter_manager
+  madre/main_legacy.py:1149:    from madre.daughters import get_daughter_manager
+  madre/main_legacy.py:1174:    from madre.daughters import get_daughter_manager
+  madre/main_legacy.py:1200:    from madre.daughters import get_daughter_manager
+  madre/main_legacy.py:1221:    from madre.daughters import get_daughter_manager
+  madre/main_legacy.py:1236:@app.get("/madre/daughters")
+  madre/main_legacy.py:1237:async def list_all_daughters(status_filter: Optional[str] = None):
+  madre/main_legacy.py:1239:    from madre.daughters import get_daughter_manager
+  madre/main_legacy.py:1243:        daughters = await manager.list_daughters(status_filter=status_filter)
+  madre/main_legacy.py:1245:        write_log("madre", f"list_daughters:{len(daughters)}")
+  madre/main_legacy.py:1248:            "count": len(daughters),
+  madre/main_legacy.py:1249:            "daughters": daughters,
+  madre/main_legacy.py:1252:        write_log("madre", f"list_daughters_error:{e}", level="ERROR")
+  madre/main_legacy.py:1266:    from madre.daughters import get_daughter_manager
+  madre/main_legacy.py:1290:    Soporta context-7 opcional (backward compatible).
+  madre/main_legacy.py:1294:    # Generar o usar context-7
+  madre/main_legacy.py:1296:        req.context
+  madre/main_legacy.py:1297:        if hasattr(req, "context") and req.context
+  madre/main_legacy.py:1465:                    "context": {
+  madre/main_legacy.py:1719:    context: Optional[Dict[str, Any]] = None
+  madre/main_legacy.py:1763:            result = await bridge.audit_full(req.context)
+  madre/main_legacy.py:1765:            result = await bridge.scan_hive(req.context)
+  madre/main_legacy.py:1769:            result = await bridge.route_query(req.query, req.context)
+  madre/main_legacy.py:1773:            result = await bridge.spawn_cmd(req.query, req.context)
+  madre/main_legacy.py:1891:    pending_tasks = session.query(Task).filter(Task.status == "pending").count()
+  madre/main_legacy.py:1909:        "pending_tasks": pending_tasks,
+  madre/main_legacy.py:2007:                    "context": {"hija_id": source_hija_id} if source_hija_id else {},
+  madre/main_legacy.py:2038:    # Guardar en intents_log
+  madre/main_legacy.py:2104:@app.get("/madre/tasks/active")
+  madre/main_legacy.py:2106:    """Lista daughter_tasks activas (pending, planning, running, retrying)."""
+  madre/main_legacy.py:2116:        tasks = (
+  madre/main_legacy.py:2120:            "count": len(tasks),
+  madre/main_legacy.py:2121:            "tasks": [
+  madre/main_legacy.py:2134:                for t in tasks
+  madre/main_legacy.py:2247:async def _daughters_scheduler():
+  madre/main_legacy.py:2248:    """Background task: Procesa daughter_tasks pendientes/retrying, crea hijas, maneja TTL/reintentos."""
+  madre/main_legacy.py:2257:            # 1. Procesar tasks pending/retrying → crear hijas + invocar Spawner
+  madre/main_legacy.py:2258:            pending_tasks = (
+  madre/main_legacy.py:2264:            for task in pending_tasks[:3]:  # Limitar a 3 por ciclo
+  madre/main_legacy.py:2302:                        "context": (
+  madre/main_legacy.py:2373:            write_log("madre", f"daughters_scheduler_error:{exc}", level="ERROR")
+  madre/main_legacy.py:2700:    daughters_task = asyncio.create_task(_daughters_scheduler())
+  madre/main_legacy.py:2707:        for t in (monitor_task, scheduler_task, daughters_task):
+  madre/main_legacy.py:2718:app.router.lifespan_context = lifespan
+  madre/daughters_paso5.py:15:log = logging.getLogger("vx11.madre.daughters")
+  madre/daughters_paso5.py:67:        self.daughters: Dict[str, Daughter] = {}
+  madre/daughters_paso5.py:94:        self.daughters[daughter.id] = daughter
+  madre/daughters_paso5.py:101:    async def monitor_daughters(self):
+  madre/daughters_paso5.py:113:                for daughter_id, daughter in self.daughters.items():
+  madre/daughters_paso5.py:121:                    self.daughters.pop(daughter_id, None)
+  madre/daughters_paso5.py:124:                log.error(f"Error monitoreando daughters: {e}")
+  madre/daughters_paso5.py:128:        return self.daughters.get(daughter_id)
+  madre/daughters_paso5.py:130:    def get_all_daughters(self, status: str = None) -> List[Daughter]:
+  madre/daughters_paso5.py:133:            return [d for d in self.daughters.values() if d.status == status]
+  madre/daughters_paso5.py:134:        return list(self.daughters.values())
+  madre/main.py:111:            "context": req.context or {},
+  madre/main.py:169:        MadreDB.set_context(plan_id, "madre:intent_id", intent_id)
+  madre/main.py:170:        MadreDB.set_context(plan_id, "madre:mode", session_mode)
+  madre/main.py:171:        MadreDB.set_context(plan_id, "madre:plan", plan.json())
+  madre/main.py:176:            MadreDB.set_context(plan_id, "madre:confirm_token", confirm_token)
+  madre/main.py:297:    """Get recent plans (from tasks where module='madre')."""
+  madre/main.py:314:    plan_json = MadreDB.get_context(plan_id, "madre:plan")
+  madre/main.py:315:    intent_id = MadreDB.get_context(plan_id, "madre:intent_id")
+  madre/main.py:316:    mode = MadreDB.get_context(plan_id, "madre:mode")
+  madre/main.py:329:    stored_token = MadreDB.get_context(plan_id, "madre:confirm_token")
+  madre/main.py:363:    # Mark import-safe for tests to avoid legacy module running background tasks or seeding DB
+  madre/main.py:464:        "_daughters_scheduler",
+  madre/main.py:475:    # runner for the daughters scheduler as tests call `_daughters_scheduler.__wrapped__(db_session)`.
+  madre/main.py:478:        async def _daughters_scheduler_once(db_session):
+  madre/main.py:479:            """Run one iteration of the daughters scheduler using provided DB session."""
+  madre/main.py:483:            # Process pending/retrying tasks (limit 3)
+  madre/main.py:484:            pending_tasks = (
+  madre/main.py:490:            for task in pending_tasks[:3]:
+  madre/main.py:526:        # If _daughters_scheduler exists in globals, attach __wrapped__ for tests
+  madre/main.py:527:        if "_daughters_scheduler" in globals():
+  madre/main.py:530:                    "_daughters_scheduler"
+  madre/main.py:531:                ].__wrapped__ = _daughters_scheduler_once
+  madre/fluzo_integration.py:105:async def get_madre_fluzo_context() -> Dict[str, Any]:

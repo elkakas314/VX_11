@@ -38,7 +38,16 @@ def check_token(x_vx11_token: str = Header(None)):
 
 
 SAFE_MODULES = {"json", "math", "re", "random"}
-BANNED_FRAGMENTS = ["__import__", "open(", "subprocess", "socket", "requests", "httpx", "os.", "sys."]
+BANNED_FRAGMENTS = [
+    "__import__",
+    "open(",
+    "subprocess",
+    "socket",
+    "requests",
+    "httpx",
+    "os.",
+    "sys.",
+]
 ALLOWED_CMDS = {"echo", "python", "node", "ls", "cat", "bash"}
 
 
@@ -66,10 +75,14 @@ async def bypass_health(request: Request, call_next):
     return await call_next(request)
 
 
-def _record_sandbox(action: str, status: str, duration_ms: float = 0.0, error: str = ""):
+def _record_sandbox(
+    action: str, status: str, duration_ms: float = 0.0, error: str = ""
+):
     session: Session = get_session("vx11")
     try:
-        rec = SandboxExec(action=action, status=status, duration_ms=duration_ms, error=error)
+        rec = SandboxExec(
+            action=action, status=status, duration_ms=duration_ms, error=error
+        )
         session.add(rec)
         session.commit()
     finally:
@@ -86,7 +99,9 @@ def _audit(message: str, level: str = "INFO"):
         session.close()
 
 
-async def _run_sandbox_command(cmd: str, args: List[str], cwd: str, env: Dict[str, str], timeout: float) -> Dict[str, Any]:
+async def _run_sandbox_command(
+    cmd: str, args: List[str], cwd: str, env: Dict[str, str], timeout: float
+) -> Dict[str, Any]:
     if cmd not in ALLOWED_CMDS:
         _audit(f"forbidden_cmd:{cmd}", level="WARN")
         raise HTTPException(status_code=403, detail="command_not_allowed")
@@ -132,7 +147,10 @@ async def copilot_bridge(req: CopilotRequest):
             "status": "ok",
             "tools": [
                 {"name": "echo", "description": "echo payload"},
-                {"name": "context7_validate", "description": "validate context7 structure"},
+                {
+                    "name": "context7_validate",
+                    "description": "validate context7 structure",
+                },
             ],
         }
 
@@ -179,6 +197,15 @@ async def execute(payload: Dict[str, Any]):
         raise HTTPException(status_code=408, detail="timeout")
 
 
+@app.post("/mcp/action")
+async def mcp_action(payload: Dict[str, Any]):
+    """Legacy-compatible action endpoint used by tests (e.g. ping)."""
+    action = (payload or {}).get("action")
+    if action == "ping":
+        return {"result": "pong"}
+    raise HTTPException(status_code=400, detail="unknown_action")
+
+
 @app.get("/mcp/sandbox/check")
 async def sandbox_check():
     return {"status": "ok", "allowed_modules": list(SAFE_MODULES)}
@@ -200,6 +227,8 @@ async def sandbox_exec_cmd(req: SandboxCmdRequest):
     """
     cwd = req.cwd or "/app/sandbox"
     env = req.env or {}
-    res = await _run_sandbox_command(req.cmd, req.args or [], cwd, env, req.timeout or 30.0)
+    res = await _run_sandbox_command(
+        req.cmd, req.args or [], cwd, env, req.timeout or 30.0
+    )
     _audit(f"exec_cmd:{req.cmd}")
     return res

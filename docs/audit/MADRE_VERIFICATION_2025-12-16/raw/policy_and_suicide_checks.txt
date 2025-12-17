@@ -1,0 +1,119 @@
+  madre/core/models.py-14-    AUDIO_ENGINEER = "AUDIO_ENGINEER"
+  madre/core/models.py-15-
+  madre/core/models.py-16-
+  madre/core/models.py:17:class RiskLevel(str, Enum):
+  madre/core/models.py-18-    """Niveles de riesgo para acciones."""
+  madre/core/models.py-19-
+  madre/core/models.py-20-    LOW = "LOW"
+  --
+  madre/core/models.py-62-    session_id: str
+  madre/core/models.py-63-    mode: ModeEnum
+  madre/core/models.py-64-    dsl: DSL
+  madre/core/models.py:65:    risk: RiskLevel
+  madre/core/models.py:66:    requires_confirmation: bool = False
+  madre/core/models.py-67-    targets: List[str] = []
+  madre/core/models.py-68-    created_at: datetime = Field(default_factory=datetime.utcnow)
+  madre/core/models.py-69-
+  --
+  madre/core/parser.py-1-"""Fallback DSL Parser: simple keyword-based intent extraction."""
+  madre/core/parser.py-2-
+  madre/core/parser.py-3-import re
+  madre/core/parser.py:4:from .models import DSL, ModeEnum, RiskLevel
+  madre/core/parser.py-5-import logging
+  madre/core/parser.py-6-
+  madre/core/parser.py-7-log = logging.getLogger("madre.parser")
+  --
+  madre/core/planner.py-35-        plan.steps.append(
+  madre/core/planner.py-36-            StepV2(
+  madre/core/planner.py-37-                type=StepType.SYSTEM_HEALTHCHECK,
+  madre/core/planner.py:38:                payload={"targets": ["tentaculo_link", "madre"]},
+  madre/core/planner.py-39-            )
+  madre/core/planner.py-40-        )
+  madre/core/planner.py-41-
+  --
+  madre/core/planner.py-61-        steps = []
+  madre/core/planner.py-62-
+  madre/core/planner.py-63-        # If requires confirmation, add a blocking NOOP step
+  madre/core/planner.py:64:        if intent.requires_confirmation:
+  madre/core/planner.py-65-            steps.append(
+  madre/core/planner.py-66-                StepV2(
+  madre/core/planner.py-67-                    type=StepType.NOOP,
+  --
+  madre/core/planner.py-111-        steps = []
+  madre/core/planner.py-112-
+  madre/core/planner.py-113-        # If requires confirmation, add blocking step
+  madre/core/planner.py:114:        if intent.requires_confirmation:
+  madre/core/planner.py-115-            steps.append(
+  madre/core/planner.py-116-                StepV2(
+  madre/core/planner.py-117-                    type=StepType.NOOP,
+  --
+  madre/core/policy.py-3-import secrets
+  madre/core/policy.py-4-import logging
+  madre/core/policy.py-5-from typing import Optional, Dict, Any
+  madre/core/policy.py:6:from .models import RiskLevel
+  madre/core/policy.py-7-
+  madre/core/policy.py-8-log = logging.getLogger("madre.policy")
+  madre/core/policy.py-9-
+  --
+  madre/core/policy.py-17-        ("hormiguero", "status"),
+  madre/core/policy.py-18-        ("manifestator", "status"),
+  madre/core/policy.py-19-        ("shub", "status"),
+  madre/core/policy.py:20:        ("tentaculo_link", "status"),
+  madre/core/policy.py-21-        ("hermes", "status"),
+  madre/core/policy.py-22-        ("health", "*"),
+  madre/core/policy.py-23-        ("read", "*"),
+  --
+  madre/core/policy.py-49-    }
+  madre/core/policy.py-50-
+  madre/core/policy.py-51-    @staticmethod
+  madre/core/policy.py:52:    def classify_risk(target: str, action: str) -> RiskLevel:
+  madre/core/policy.py-53-        """Classify action risk level."""
+  madre/core/policy.py-54-        action_lower = action.lower()
+  madre/core/policy.py-55-        target_lower = target.lower()
+  madre/core/policy.py-56-
+  madre/core/policy.py:57:        # Deny suicidal actions: madre, tentaculo_link
+  madre/core/policy.py:58:        if target_lower in ["madre", "tentaculo_link"]:
+  madre/core/policy.py-59-            if action_lower in ["delete", "stop", "kill", "destroy"]:
+  madre/core/policy.py:60:                log.warning(f"Deny suicidal action: {action} on {target}")
+  madre/core/policy.py:61:                return RiskLevel.HIGH
+  madre/core/policy.py-62-
+  madre/core/policy.py-63-        # Check allowlist
+  madre/core/policy.py-64-        if (target_lower, action_lower) in PolicyEngine.ALLOWLIST:
+  madre/core/policy.py:65:            return RiskLevel.LOW
+  madre/core/policy.py-66-        if (target_lower, "*") in PolicyEngine.ALLOWLIST:
+  madre/core/policy.py:67:            return RiskLevel.LOW
+  madre/core/policy.py-68-
+  madre/core/policy.py-69-        # Destructive verbs are always HIGH
+  madre/core/policy.py-70-        if action_lower == "delete":
+  madre/core/policy.py:71:            return RiskLevel.HIGH
+  madre/core/policy.py-72-
+  madre/core/policy.py-73-        # Check high-risk
+  madre/core/policy.py-74-        for hr in PolicyEngine.HIGH_RISK_ACTIONS:
+  madre/core/policy.py-75-            if hr in action_lower:
+  madre/core/policy.py:76:                return RiskLevel.HIGH
+  madre/core/policy.py-77-
+  madre/core/policy.py-78-        # Check med-risk
+  madre/core/policy.py-79-        for mr in PolicyEngine.MED_RISK_ACTIONS:
+  madre/core/policy.py-80-            if mr in action_lower:
+  madre/core/policy.py:81:                return RiskLevel.MED
+  madre/core/policy.py-82-
+  madre/core/policy.py-83-        # Default: LOW for unknown
+  madre/core/policy.py:84:        return RiskLevel.LOW
+  madre/core/policy.py-85-
+  madre/core/policy.py-86-    @staticmethod
+  madre/core/policy.py:87:    def requires_confirmation(risk: RiskLevel, policy_override: bool = False) -> bool:
+  madre/core/policy.py-88-        """Check if confirmation is required."""
+  madre/core/policy.py-89-        if policy_override:
+  madre/core/policy.py-90-            return False
+  madre/core/policy.py:91:        return risk in [RiskLevel.MED, RiskLevel.HIGH]
+  madre/core/policy.py-92-
+  madre/core/policy.py-93-    @staticmethod
+  madre/core/policy.py-94-    def generate_confirm_token() -> str:
+  --
+  madre/core/runner.py-119-        result = {}
+  madre/core/runner.py-120-        for target in targets:
+  madre/core/runner.py-121-            if target == "all":
+  madre/core/runner.py:122:                targets_list = ["tentaculo_link", "madre", "switch", "hermes"]
+  madre/core/runner.py-123-            else:
+  madre/core/runner.py-124-                targets_list = [target]
+  madre/core/runner.py-125-

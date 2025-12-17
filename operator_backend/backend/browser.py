@@ -99,7 +99,30 @@ class BrowserClient:
         )
 
     async def navigate(self, url: str) -> Dict[str, Any]:
-        """Navigate to URL and capture screenshot + text (delegation to client)."""
+        """Navigate to URL and capture screenshot + text.
+
+        Use the internal stub implementation when `impl == 'stub'` so tests
+        expecting the stub string `Page Title (stub)` pass deterministically.
+        Otherwise delegate to the Playwright client.
+        """
+        # Unknown implementation: return explicit error so tests can assert it.
+        if self.impl not in ("stub", "playwright"):
+            write_log(
+                "operator_backend",
+                f"browser:navigate:unknown_impl:{self.impl}",
+                level="WARNING",
+            )
+            return {
+                "status": "error",
+                "error": f"unknown_impl:{self.impl}",
+                "url": url,
+            }
+
+        if self.impl == "stub":
+            res = self._stub_navigate(url)
+            write_log("operator_backend", f"browser:navigate:stub:{url}")
+            return res
+
         result = await self.client.navigate(url)
         write_log("operator_backend", f"browser:navigate:{result.get('status')}:{url}")
         return result

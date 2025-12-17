@@ -1,0 +1,41 @@
+============================= test session starts ==============================
+platform linux -- Python 3.10.12, pytest-7.4.3, pluggy-1.6.0
+rootdir: /home/elkakas314/vx11
+configfile: pytest.ini
+testpaths: tests
+plugins: cov-7.0.0, asyncio-0.21.1, anyio-3.7.1
+asyncio: mode=auto
+collected 76 items
+Collected 76 tests.
+
+tests/test_all_healthchecks.py .Progress: 1/76 tests (1%)                                         [  1%]
+tests/test_cli_concentrator_selection.py .Progress: 2/76 tests (2%).Progress: 3/76 tests (3%).Progress: 4/76 tests (5%).Progress: 5/76 tests (6%).Progress: 6/76 tests (7%)                           [  7%]
+tests/test_cli_usage_db_writes.py .Progress: 7/76 tests (9%).Progress: 8/76 tests (10%).Progress: 9/76 tests (11%).Progress: 10/76 tests (13%)                                   [ 13%]
+tests/test_context7_v7.py .Progress: 11/76 tests (14%).Progress: 12/76 tests (15%).Progress: 13/76 tests (17%).Progress: 14/76 tests (18%).Progress: 15/76 tests (19%).Progress: 16/76 tests (21%).Progress: 17/76 tests (22%).Progress: 18/76 tests (23%).Progress: 19/76 tests (25%)                                      [ 25%]
+tests/test_fluzo_scoring_influence.py .Progress: 20/76 tests (26%).Progress: 21/76 tests (27%).Progress: 22/76 tests (28%).Progress: 23/76 tests (30%).Progress: 24/76 tests (31%)                              [ 31%]
+tests/test_forensics_rotate.py .Progress: 25/76 tests (32%)                                         [ 32%]
+tests/test_ga_router_tokens.py .Progress: 26/76 tests (34%)                                         [ 34%]
+tests/test_health_endpoints.py .Progress: 27/76 tests (35%)                                         [ 35%]
+tests/test_hermes_cli_detection.py .Progress: 28/76 tests (36%)                                     [ 36%]
+tests/test_hermes_cli_registry_module.py .Progress: 29/76 tests (38%)                               [ 38%]
+tests/test_hermes_registry_db.py .Progress: 30/76 tests (39%)                                       [ 39%]
+tests/test_leonidas_permissions.py .Progress: 31/76 tests (40%).Progress: 32/76 tests (42%)                                    [ 42%]
+tests/test_madre_orchestration.py sProgress: 33/76 tests (43%)sProgress: 34/76 tests (44%)sProgress: 35/76 tests (46%)sProgress: 36/76 tests (47%)                                   [ 47%]
+tests/test_operator_db_schema_v7.py .Progress: 37/76 tests (48%).Progress: 38/76 tests (50%).Progress: 39/76 tests (51%).Progress: 40/76 tests (52%).Progress: 41/76 tests (53%)                                [ 53%]
+tests/test_pnp_and_switch_integration.py .Progress: 42/76 tests (55%).Progress: 43/76 tests (56%).Progress: 44/76 tests (57%).Progress: 45/76 tests (59%).Progress: 46/76 tests (60%).Progress: 47/76 tests (61%).Progress: 48/76 tests (63%).Progress: 49/76 tests (64%).Progress: 50/76 tests (65%).Progress: 51/76 tests (67%).Progress: 52/76 tests (68%).Progress: 53/76 tests (69%).Progress: 54/76 tests (71%).Progress: 55/76 tests (72%).Progress: 56/76 tests (73%).Progress: 57/76 tests (75%).Progress: 58/76 tests (76%).Progress: 59/76 tests (77%).Progress: 60/76 tests (78%).Progress: 61/76 tests (80%).Progress: 62/76 tests (81%).Progress: 63/76 tests (82%)          [ 82%]
+tests/test_routingresult_compat.py .Progress: 64/76 tests (84%)                                     [ 84%]
+tests/test_shubniggurath_phase8.py .Progress: 65/76 tests (85%).Progress: 66/76 tests (86%)                                    [ 86%]
+tests/test_switch_auto.py .Progress: 67/76 tests (88%)                                              [ 88%]
+tests/test_switch_chat_and_breaker.py .Progress: 68/76 tests (89%).Progress: 69/76 tests (90%)                                 [ 90%]
+tests/test_switch_deepseek_staging.py .Progress: 70/76 tests (92%)                                  [ 92%]
+tests/test_switch_local.py .Progress: 71/76 tests (93%)                                             [ 93%]
+tests/test_switch_registry_enqueue.py .Progress: 72/76 tests (94%)                                  [ 94%]
+tests/test_tentaculo_link.py .Progress: 73/76 tests (96%).Progress: 74/76 tests (97%).Progress: 75/76 tests (98%).Progress: 76/76 tests (100%)
+                                        [100%]
+
+=========================== short test summary info ============================
+SKIPPED [1] tests/test_madre_orchestration.py:21: Madre not running
+SKIPPED [1] tests/test_madre_orchestration.py:45: Madre not running
+SKIPPED [1] tests/test_madre_orchestration.py:61: Madre not running
+SKIPPED [1] tests/test_madre_orchestration.py:77: Madre not running
+================= 72 passed, 4 skipped, 10 warnings in 20.18s ==================

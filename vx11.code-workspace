@@ -30,7 +30,8 @@
             "**/.venv": true,
             "**/node_modules": true,
             ".vscode": true
-        }
+        },
+        "github.copilot.nextEditSuggestions.enabled": true
     },
     "extensions": {
         "recommendations": [

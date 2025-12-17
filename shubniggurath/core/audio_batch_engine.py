@@ -36,6 +36,7 @@ except ImportError:
     def get_shub_audio_batch_reporter():
         return None
 
+
 # =============================================================================
 # LOGGING & CONSTANTS
 # =============================================================================
@@ -56,7 +57,12 @@ JOB_STATUS_CANCELLED = "cancelled"
 
 @dataclass
 class BatchJob:
-    """Modelo de batch job"""
+    """Modelo de batch job
+
+    Backwards-compatible initializer: accept `batch_name` as alias for
+    `job_name` to satisfy older tests/clients.
+    """
+
     job_id: str
     job_name: str
     audio_files: List[str]
@@ -75,6 +81,36 @@ class BatchJob:
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
 
+    # Backcompat factory to accept batch_name
+    def __init__(self, *args, **kwargs):
+        # Map legacy keys
+        if "batch_name" in kwargs and "job_name" not in kwargs:
+            kwargs["job_name"] = kwargs.pop("batch_name")
+        # dataclass default init won't run if we override, so assign attributes
+        # Use asdict-like assignment for known fields
+        fields = [
+            "job_id",
+            "job_name",
+            "audio_files",
+            "analysis_type",
+            "priority",
+            "status",
+            "total_files",
+            "processed_files",
+            "failed_files",
+            "created_at",
+            "started_at",
+            "completed_at",
+            "results",
+            "error_message",
+        ]
+
+        for i, name in enumerate(fields):
+            if i < len(args):
+                setattr(self, name, args[i])
+            else:
+                setattr(self, name, kwargs.get(name))
+
 
 # =============================================================================
 # AUDIO BATCH ENGINE
@@ -84,7 +120,7 @@ class BatchJob:
 class AudioBatchEngine:
     """
     Motor de procesamiento por lotes para audio.
-    
+
     Métodos principales:
     - enqueue_job(): Agregar job a cola
     - get_status(): Consultar estado
@@ -103,33 +139,51 @@ class AudioBatchEngine:
         """Inicializar engine y cargar jobs existentes de BD"""
         try:
             self.db = get_session("audio_batch_engine")
-            write_log("audio_batch_engine", "INITIALIZE: Cargando jobs existentes de BD", level="INFO")
-            
+            write_log(
+                "audio_batch_engine",
+                "INITIALIZE: Cargando jobs existentes de BD",
+                level="INFO",
+            )
+
             # Cargar jobs no completados
-            existing_tasks = self.db.query(Task).filter(
-                Task.module == "shubniggurath",
-                Task.action == "batch_job",
-                Task.status.in_(["pending", "processing"]),
-            ).all()
-            
+            existing_tasks = (
+                self.db.query(Task)
+                .filter(
+                    Task.module == "shubniggurath",
+                    Task.action == "batch_job",
+                    Task.status.in_(["pending", "processing"]),
+                )
+                .all()
+            )
+
             for task in existing_tasks:
                 # Reconstruir job desde BD
                 try:
                     job_data = json.loads(task.metadata or "{}")
                     job = BatchJob(**job_data)
                     self.jobs[job.job_id] = job
-                    
+
                     if job.status == JOB_STATUS_QUEUED:
                         self.queue.append(job.job_id)
-                        
+
                 except Exception as e:
-                    write_log("audio_batch_engine", f"INITIALIZE_LOAD_ERROR: {str(e)}", level="WARNING")
-            
-            write_log("audio_batch_engine", f"INITIALIZE_COMPLETE: {len(self.jobs)} jobs cargados", level="INFO")
-            
+                    write_log(
+                        "audio_batch_engine",
+                        f"INITIALIZE_LOAD_ERROR: {str(e)}",
+                        level="WARNING",
+                    )
+
+            write_log(
+                "audio_batch_engine",
+                f"INITIALIZE_COMPLETE: {len(self.jobs)} jobs cargados",
+                level="INFO",
+            )
+
         except Exception as e:
             record_crash("audio_batch_engine", e)
-            write_log("audio_batch_engine", f"INITIALIZE_ERROR: {str(e)}", level="ERROR")
+            write_log(
+                "audio_batch_engine", f"INITIALIZE_ERROR: {str(e)}", level="ERROR"
+            )
 
     # =========================================================================
     # MÉTODO 1: enqueue_job
@@ -137,20 +191,21 @@ class AudioBatchEngine:
 
     async def enqueue_job(
         self,
-        audio_files: List[str],
+        audio_files: Optional[List[str]] = None,
         job_name: str = None,
         analysis_type: str = "full",
         priority: int = 5,
+        **kwargs,
     ) -> Dict[str, Any]:
         """
         Encolar job de procesamiento.
-        
+
         Args:
             audio_files: Lista de rutas de archivos
             job_name: Nombre del job (auto-generado si None)
             analysis_type: 'quick', 'full', 'deep'
             priority: 1-10 (10 = máxima prioridad)
-            
+
         Retorna:
         {
             "status": "success",
@@ -163,10 +218,22 @@ class AudioBatchEngine:
         """
         try:
             job_id = str(uuid.uuid4())
-            job_name = job_name or f"batch_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-            
-            write_log("audio_batch_engine", f"ENQUEUE_JOB: {job_name}, files={len(audio_files)}, priority={priority}", level="INFO")
-            
+            # Backcompat: accept `files` or `audio_files`, and `batch_name` as alias for job_name
+            if audio_files is None:
+                audio_files = kwargs.get("files") or kwargs.get("audio_files") or []
+
+            if job_name is None:
+                job_name = (
+                    kwargs.get("batch_name")
+                    or f"batch_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+                )
+
+            write_log(
+                "audio_batch_engine",
+                f"ENQUEUE_JOB: {job_name}, files={len(audio_files)}, priority={priority}",
+                level="INFO",
+            )
+
             # Crear job
             job = BatchJob(
                 job_id=job_id,
@@ -180,28 +247,32 @@ class AudioBatchEngine:
                 failed_files=0,
                 created_at=datetime.now().isoformat(),
             )
-            
+
             # Guardar en memoria
             self.jobs[job_id] = job
-            
+
             # Insertar en cola (respetando prioridades)
             self.queue.append(job_id)
             self.queue.sort(key=lambda jid: self.jobs[jid].priority, reverse=True)
-            
+
             queue_position = self.queue.index(job_id) + 1
-            
+
             # Persistir en BD
             await self._save_job_to_db(job)
-            
+
             # Notificar a Hormiguero
             hormiguero_response = await self.vx11_bridge.batch_submit(
                 audio_files=audio_files,
                 analysis_type=analysis_type,
                 priority=priority,
             )
-            
-            write_log("audio_batch_engine", f"ENQUEUE_JOB_SUCCESS: job_id={job_id}, queue_pos={queue_position}", level="INFO")
-            
+
+            write_log(
+                "audio_batch_engine",
+                f"ENQUEUE_JOB_SUCCESS: job_id={job_id}, queue_pos={queue_position}",
+                level="INFO",
+            )
+
             return {
                 "status": "success",
                 "job_id": job_id,
@@ -211,10 +282,12 @@ class AudioBatchEngine:
                 "estimated_wait_seconds": queue_position * 30,  # Heurística
                 "timestamp": datetime.now().isoformat(),
             }
-            
+
         except Exception as e:
             record_crash("audio_batch_engine", e)
-            write_log("audio_batch_engine", f"ENQUEUE_JOB_ERROR: {str(e)}", level="ERROR")
+            write_log(
+                "audio_batch_engine", f"ENQUEUE_JOB_ERROR: {str(e)}", level="ERROR"
+            )
             return {"status": "error", "message": str(e)}
 
     # =========================================================================
@@ -224,10 +297,10 @@ class AudioBatchEngine:
     async def get_status(self, job_id: str) -> Dict[str, Any]:
         """
         Consultar estado de batch job.
-        
+
         Args:
             job_id: ID del job
-            
+
         Retorna:
         {
             "status": "success",
@@ -248,17 +321,27 @@ class AudioBatchEngine:
         """
         try:
             if job_id not in self.jobs:
-                write_log("audio_batch_engine", f"GET_STATUS: job_id not found: {job_id}", level="WARNING")
+                write_log(
+                    "audio_batch_engine",
+                    f"GET_STATUS: job_id not found: {job_id}",
+                    level="WARNING",
+                )
                 return {"status": "error", "message": f"Job {job_id} not found"}
-            
+
             job = self.jobs[job_id]
-            
+
             # Calcular progreso
             percent_complete = (job.processed_files / max(job.total_files, 1)) * 100
-            estimated_remaining = (job.total_files - job.processed_files) * 3  # ~3s por archivo
-            
-            write_log("audio_batch_engine", f"GET_STATUS: job_id={job_id}, progress={percent_complete:.1f}%", level="INFO")
-            
+            estimated_remaining = (
+                job.total_files - job.processed_files
+            ) * 3  # ~3s por archivo
+
+            write_log(
+                "audio_batch_engine",
+                f"GET_STATUS: job_id={job_id}, progress={percent_complete:.1f}%",
+                level="INFO",
+            )
+
             return {
                 "status": "success",
                 "job": {
@@ -278,7 +361,7 @@ class AudioBatchEngine:
                     "timestamp": datetime.now().isoformat(),
                 },
             }
-            
+
         except Exception as e:
             record_crash("audio_batch_engine", e)
             return {"status": "error", "message": str(e)}
@@ -290,10 +373,10 @@ class AudioBatchEngine:
     async def cancel_job(self, job_id: str) -> Dict[str, Any]:
         """
         Cancelar batch job pendiente.
-        
+
         Args:
             job_id: ID del job
-            
+
         Retorna:
         {
             "status": "success",
@@ -305,36 +388,42 @@ class AudioBatchEngine:
         try:
             if job_id not in self.jobs:
                 return {"status": "error", "message": f"Job {job_id} not found"}
-            
+
             job = self.jobs[job_id]
-            
+
             # Solo cancelar si está en cola o procesando
             if job.status not in [JOB_STATUS_QUEUED, JOB_STATUS_PROCESSING]:
                 return {"status": "error", "message": f"Cannot cancel {job.status} job"}
-            
+
             # Cambiar estado
             job.status = JOB_STATUS_CANCELLED
             job.completed_at = datetime.now().isoformat()
-            
+
             # Remover de cola
             if job_id in self.queue:
                 self.queue.remove(job_id)
-            
+
             # Persistir
             await self._save_job_to_db(job)
-            
-            write_log("audio_batch_engine", f"CANCEL_JOB_SUCCESS: job_id={job_id}", level="INFO")
-            
+
+            write_log(
+                "audio_batch_engine",
+                f"CANCEL_JOB_SUCCESS: job_id={job_id}",
+                level="INFO",
+            )
+
             return {
                 "status": "success",
                 "job_id": job_id,
                 "message": "Job cancelled",
                 "timestamp": datetime.now().isoformat(),
             }
-            
+
         except Exception as e:
             record_crash("audio_batch_engine", e)
-            write_log("audio_batch_engine", f"CANCEL_JOB_ERROR: {str(e)}", level="ERROR")
+            write_log(
+                "audio_batch_engine", f"CANCEL_JOB_ERROR: {str(e)}", level="ERROR"
+            )
             return {"status": "error", "message": str(e)}
 
     # =========================================================================
@@ -348,21 +437,21 @@ class AudioBatchEngine:
         """
         if self.processing:
             return  # Ya está procesando
-        
+
         self.processing = True
-        
+
         try:
             write_log("audio_batch_engine", "PROCESS_QUEUE: iniciando", level="INFO")
-            
+
             while len(self.queue) > 0:
                 job_id = self.queue[0]
                 job = self.jobs[job_id]
-                
+
                 # Cambiar estado a processing
                 job.status = JOB_STATUS_PROCESSING
                 job.started_at = datetime.now().isoformat()
                 await self._save_job_to_db(job)
-                
+
                 # Procesar archivos
                 try:
                     results = []
@@ -370,44 +459,64 @@ class AudioBatchEngine:
                         try:
                             # Aquí iría el análisis real usando dsp_pipeline_full
                             # Por ahora, simulado:
-                            write_log("audio_batch_engine", f"PROCESSING: {audio_file}", level="INFO")
-                            
+                            write_log(
+                                "audio_batch_engine",
+                                f"PROCESSING: {audio_file}",
+                                level="INFO",
+                            )
+
                             # Simulación
                             await asyncio.sleep(0.1)
-                            
+
                             job.processed_files += 1
-                            results.append({
-                                "file": audio_file,
-                                "status": "success",
-                                "analysis": {"mock": "data"},
-                            })
-                            
+                            results.append(
+                                {
+                                    "file": audio_file,
+                                    "status": "success",
+                                    "analysis": {"mock": "data"},
+                                }
+                            )
+
                         except Exception as e:
-                            write_log("audio_batch_engine", f"PROCESS_FILE_ERROR: {audio_file}: {str(e)}", level="WARNING")
+                            write_log(
+                                "audio_batch_engine",
+                                f"PROCESS_FILE_ERROR: {audio_file}: {str(e)}",
+                                level="WARNING",
+                            )
                             job.failed_files += 1
-                            results.append({
-                                "file": audio_file,
-                                "status": "error",
-                                "error": str(e),
-                            })
-                    
+                            results.append(
+                                {
+                                    "file": audio_file,
+                                    "status": "error",
+                                    "error": str(e),
+                                }
+                            )
+
                     # Completar job
                     job.status = JOB_STATUS_COMPLETED
                     job.completed_at = datetime.now().isoformat()
                     job.results = results
-                    
-                    write_log("audio_batch_engine", f"PROCESS_QUEUE_JOB_COMPLETE: job_id={job_id}, processed={job.processed_files}, failed={job.failed_files}", level="INFO")
-                    
+
+                    write_log(
+                        "audio_batch_engine",
+                        f"PROCESS_QUEUE_JOB_COMPLETE: job_id={job_id}, processed={job.processed_files}, failed={job.failed_files}",
+                        level="INFO",
+                    )
+
                 except Exception as e:
                     record_crash("audio_batch_engine", e)
                     job.status = JOB_STATUS_FAILED
                     job.completed_at = datetime.now().isoformat()
                     job.error_message = str(e)
-                    write_log("audio_batch_engine", f"PROCESS_QUEUE_JOB_ERROR: {str(e)}", level="ERROR")
-                
+                    write_log(
+                        "audio_batch_engine",
+                        f"PROCESS_QUEUE_JOB_ERROR: {str(e)}",
+                        level="ERROR",
+                    )
+
                 # Persistir
                 await self._save_job_to_db(job)
-                
+
                 # FASE 6: Reportar issues a Hormiguero si hay fallos
                 if job.failed_files > 0 or job.status == JOB_STATUS_FAILED:
                     try:
@@ -420,14 +529,24 @@ class AudioBatchEngine:
                                 "restoration_needed": job.failed_files > 0,
                                 "files_affected": job.failed_files,
                             }
-                            report_result = await reporter.report_batch_issues(job_id, issues)
-                            write_log("audio_batch_engine", f"BATCH_REPORT_TO_HORMIGUERO: {report_result.get('status')}", level="INFO")
+                            report_result = await reporter.report_batch_issues(
+                                job_id, issues
+                            )
+                            write_log(
+                                "audio_batch_engine",
+                                f"BATCH_REPORT_TO_HORMIGUERO: {report_result.get('status')}",
+                                level="INFO",
+                            )
                     except Exception as e:
-                        write_log("audio_batch_engine", f"BATCH_HORMIGUERO_REPORT_ERROR: {str(e)}", level="WARNING")
-                
+                        write_log(
+                            "audio_batch_engine",
+                            f"BATCH_HORMIGUERO_REPORT_ERROR: {str(e)}",
+                            level="WARNING",
+                        )
+
                 # Remover de cola
                 self.queue.pop(0)
-                
+
                 # Notificar a Madre
                 await self.vx11_bridge.notify_madre(
                     event_type="batch_job_complete",
@@ -440,13 +559,17 @@ class AudioBatchEngine:
                     },
                     priority="normal",
                 )
-            
-            write_log("audio_batch_engine", "PROCESS_QUEUE_COMPLETE: Cola vacía", level="INFO")
-            
+
+            write_log(
+                "audio_batch_engine", "PROCESS_QUEUE_COMPLETE: Cola vacía", level="INFO"
+            )
+
         except Exception as e:
             record_crash("audio_batch_engine", e)
-            write_log("audio_batch_engine", f"PROCESS_QUEUE_ERROR: {str(e)}", level="ERROR")
-        
+            write_log(
+                "audio_batch_engine", f"PROCESS_QUEUE_ERROR: {str(e)}", level="ERROR"
+            )
+
         finally:
             self.processing = False
 
@@ -459,10 +582,10 @@ class AudioBatchEngine:
         try:
             if self.db is None:
                 self.db = get_session("audio_batch_engine")
-            
+
             # Crear o actualizar Task
             task = self.db.query(Task).filter(Task.uuid == job.job_id).first()
-            
+
             if task is None:
                 task = Task(
                     uuid=job.job_id,
@@ -477,11 +600,13 @@ class AudioBatchEngine:
             else:
                 task.status = job.status
                 task.metadata = json.dumps(job.to_dict())
-            
+
             self.db.commit()
-            
+
         except Exception as e:
-            write_log("audio_batch_engine", f"SAVE_JOB_DB_ERROR: {str(e)}", level="WARNING")
+            write_log(
+                "audio_batch_engine", f"SAVE_JOB_DB_ERROR: {str(e)}", level="WARNING"
+            )
             if self.db:
                 self.db.rollback()
 
@@ -490,10 +615,10 @@ class AudioBatchEngine:
         if self.db:
             self.db.close()
             self.db = None
-        
+
         if self.vx11_bridge:
             await self.vx11_bridge.cleanup()
-        
+
         write_log("audio_batch_engine", "CLEANUP: Motor detenido", level="INFO")
 
 

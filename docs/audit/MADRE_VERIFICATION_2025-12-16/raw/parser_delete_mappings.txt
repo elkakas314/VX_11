@@ -1,0 +1,21 @@
+  madre/core/parser.py-11-    """Keyword-based parser when Switch is unavailable."""
+  madre/core/parser.py-12-
+  madre/core/parser.py-13-    # Destructive verbs (HIGH risk, require confirmation)
+  madre/core/parser.py:14:    DESTRUCTIVE_VERBS = {
+  madre/core/parser.py-15-        "delete",
+  madre/core/parser.py-16-        "remove",
+  madre/core/parser.py-17-        "drop",
+  --
+  madre/core/parser.py-65-
+  madre/core/parser.py-66-        # Detect destructive intent (HIGHEST priority)
+  madre/core/parser.py-67-        is_destructive = any(
+  madre/core/parser.py:68:            verb in text_lower for verb in FallbackParser.DESTRUCTIVE_VERBS
+  madre/core/parser.py-69-        )
+  madre/core/parser.py-70-        if is_destructive:
+  madre/core/parser.py-71-            warnings.append("destructive_intent_detected")
+  madre/core/parser.py-72-            return DSL(
+  madre/core/parser.py-73-                domain="system",
+  madre/core/parser.py:74:                action="delete",
+  madre/core/parser.py-75-                parameters={"original_message": text},
+  madre/core/parser.py-76-                confidence=0.9,  # High confidence for destructive
+  madre/core/parser.py-77-                original_text=text,

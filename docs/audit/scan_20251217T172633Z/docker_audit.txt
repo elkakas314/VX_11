@@ -1,0 +1,467 @@
+== compose files present ==
+-rw-rw-r-- 1 elkakas314 elkakas314 2326 dic 16 11:21 docker-compose.playwright.yml
+-rw-rw-r-- 1 elkakas314 elkakas314 3137 dic 12 11:35 docker-compose.shub.yml
+-rw-rw-r-- 1 elkakas314 elkakas314 9820 dic 16 11:21 docker-compose.yml
+
+== docker version ==
+Docker version 28.2.2, build 28.2.2-0ubuntu1~22.04.1
+docker-compose version 1.29.2, build unknown
+
+== docker-compose config (if available) ==
+networks:
+  default:
+    driver: bridge
+    name: vx11-network
+services:
+  hermes:
+    container_name: vx11-hermes
+    depends_on:
+      tentaculo_link:
+        condition: service_started
+    environment:
+      API_TOKEN: vx11-local-token
+      LOG_LEVEL: INFO
+      PYTHONUNBUFFERED: '1'
+      ULTRA_LOW_MEMORY: "true"
+      VX11_GATEWAY_TOKEN: vx11-local-token
+      VX11_LOCAL_TOKEN: vx11-local-token
+      VX11_OPERATOR_TOKEN: vx11-local-token
+      VX11_TENTACULO_LINK_TOKEN: vx11-local-token
+    healthcheck:
+      interval: 30s
+      retries: 3
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:8003/health
+      timeout: 5s
+    image: vx11-hermes:v6.7
+    mem_limit: 512m
+    ports:
+    - published: 8003
+      target: 8003
+    restart: unless-stopped
+    volumes:
+    - /home/elkakas314/vx11/build/artifacts/logs:/app/logs:rw
+    - /home/elkakas314/vx11/data/runtime:/app/data/runtime:rw
+    - /home/elkakas314/vx11/models:/app/models:rw
+  hormiguero:
+    container_name: vx11-hormiguero
+    depends_on:
+      tentaculo_link:
+        condition: service_started
+    environment:
+      API_TOKEN: vx11-local-token
+      LOG_LEVEL: INFO
+      PYTHONUNBUFFERED: '1'
+      ULTRA_LOW_MEMORY: "true"
+      VX11_GATEWAY_TOKEN: vx11-local-token
+      VX11_LOCAL_TOKEN: vx11-local-token
+      VX11_OPERATOR_TOKEN: vx11-local-token
+      VX11_TENTACULO_LINK_TOKEN: vx11-local-token
+    healthcheck:
+      interval: 30s
+      retries: 3
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:8004/health
+      timeout: 5s
+    image: vx11-hormiguero:v6.7
+    mem_limit: 512m
+    ports:
+    - published: 8004
+      target: 8004
+    restart: unless-stopped
+    volumes:
+    - /home/elkakas314/vx11/build/artifacts/logs:/app/logs:rw
+    - /home/elkakas314/vx11/data/runtime:/app/data/runtime:rw
+  madre:
+    build:
+      context: /home/elkakas314/vx11
+      dockerfile: madre/Dockerfile
+    container_name: vx11-madre
+    depends_on:
+      tentaculo_link:
+        condition: service_started
+    environment:
+      API_TOKEN: vx11-local-token
+      LOG_LEVEL: INFO
+      PYTHONUNBUFFERED: '1'
+      ULTRA_LOW_MEMORY: "true"
+      VX11_GATEWAY_TOKEN: vx11-local-token
+      VX11_LOCAL_TOKEN: vx11-local-token
+      VX11_OPERATOR_TOKEN: vx11-local-token
+      VX11_TENTACULO_LINK_TOKEN: vx11-local-token
+    healthcheck:
+      interval: 30s
+      retries: 3
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:8001/health
+      timeout: 5s
+    image: vx11-madre:v6.7
+    mem_limit: 512m
+    ports:
+    - published: 8001
+      target: 8001
+    restart: unless-stopped
+    volumes:
+    - /home/elkakas314/vx11/build/artifacts/logs:/app/logs:rw
+    - /home/elkakas314/vx11/data/runtime:/app/data/runtime:rw
+    - /home/elkakas314/vx11/build/artifacts/sandbox:/app/sandbox:rw
+    - /home/elkakas314/vx11/models:/app/models:rw
+  manifestator:
+    build:
+      context: /home/elkakas314/vx11
+      dockerfile: manifestator/Dockerfile
+    container_name: vx11-manifestator
+    depends_on:
+      tentaculo_link:
+        condition: service_started
+    environment:
+      API_TOKEN: vx11-local-token
+      LOG_LEVEL: INFO
+      PYTHONUNBUFFERED: '1'
+      ULTRA_LOW_MEMORY: "true"
+      VX11_GATEWAY_TOKEN: vx11-local-token
+      VX11_LOCAL_TOKEN: vx11-local-token
+      VX11_OPERATOR_TOKEN: vx11-local-token
+      VX11_TENTACULO_LINK_TOKEN: vx11-local-token
+    healthcheck:
+      interval: 30s
+      retries: 3
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:8005/health
+      timeout: 5s
+    image: vx11-manifestator:v6.7
+    mem_limit: 512m
+    ports:
+    - published: 8005
+      target: 8005
+    profiles:
+    - disabled
+    restart: unless-stopped
+    volumes:
+    - /home/elkakas314/vx11/build/artifacts/logs:/app/logs:rw
+    - /home/elkakas314/vx11/data/runtime:/app/data/runtime:rw
+    - /home/elkakas314/vx11:/app/vx11:ro
+  mcp:
+    build:
+      context: /home/elkakas314/vx11
+      dockerfile: mcp/Dockerfile
+    container_name: vx11-mcp
+    depends_on:
+      tentaculo_link:
+        condition: service_started
+    environment:
+      API_TOKEN: vx11-local-token
+      LOG_LEVEL: INFO
+      PYTHONUNBUFFERED: '1'
+      ULTRA_LOW_MEMORY: "true"
+      VX11_GATEWAY_TOKEN: vx11-local-token
+      VX11_LOCAL_TOKEN: vx11-local-token
+      VX11_OPERATOR_TOKEN: vx11-local-token
+      VX11_TENTACULO_LINK_TOKEN: vx11-local-token
+    healthcheck:
+      interval: 30s
+      retries: 3
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:8006/health
+      timeout: 5s
+    image: vx11-mcp:v6.7
+    mem_limit: 512m
+    ports:
+    - published: 8006
+      target: 8006
+    restart: unless-stopped
+    volumes:
+    - /home/elkakas314/vx11/build/artifacts/logs:/app/logs:rw
+    - /home/elkakas314/vx11/data/runtime:/app/data/runtime:rw
+  operator-backend:
+    build:
+      context: /home/elkakas314/vx11
+      dockerfile: operator_backend/backend/Dockerfile
+    container_name: vx11-operator-backend
+    depends_on:
+      switch:
+        condition: service_started
+      tentaculo_link:
+        condition: service_started
+    environment:
+      API_TOKEN: vx11-local-token
+      LOG_LEVEL: INFO
+      PYTHONUNBUFFERED: '1'
+      ULTRA_LOW_MEMORY: "true"
+      VX11_GATEWAY_TOKEN: vx11-local-token
+      VX11_LOCAL_TOKEN: vx11-local-token
+      VX11_OPERATOR_TOKEN: vx11-local-token
+      VX11_TENTACULO_LINK_TOKEN: vx11-local-token
+    healthcheck:
+      interval: 30s
+      retries: 3
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:8011/health
+      timeout: 5s
+    image: vx11-operator-backend:v7.0
+    mem_limit: 512m
+    ports:
+    - published: 8011
+      target: 8011
+    restart: unless-stopped
+    volumes:
+    - /home/elkakas314/vx11/build/artifacts/logs:/app/logs:rw
+    - /home/elkakas314/vx11/data:/app/data:rw
+    - /home/elkakas314/vx11/models:/app/models:rw
+  operator-frontend:
+    build:
+      context: /home/elkakas314/vx11/operator_backend/frontend
+      dockerfile: Dockerfile
+    container_name: vx11-operator-frontend
+    depends_on:
+      operator-backend:
+        condition: service_started
+    environment:
+      API_TOKEN: vx11-local-token
+      VX11_GATEWAY_TOKEN: vx11-local-token
+      VX11_LOCAL_TOKEN: vx11-local-token
+      VX11_OPERATOR_TOKEN: vx11-local-token
+      VX11_TENTACULO_LINK_TOKEN: vx11-local-token
+    healthcheck:
+      interval: 30s
+      retries: 3
+      test:
+      - CMD
+      - curl
+      - -fsS
+      - http://127.0.0.1:8020
+      timeout: 5s
+    ports:
+    - published: 8020
+      target: 8020
+    restart: unless-stopped
+  shubniggurath:
+    container_name: vx11-shubniggurath
+    depends_on:
+      tentaculo_link:
+        condition: service_started
+    environment:
+      API_TOKEN: vx11-local-token
+      LOG_LEVEL: INFO
+      PYTHONUNBUFFERED: '1'
+      ULTRA_LOW_MEMORY: "true"
+      VX11_GATEWAY_TOKEN: vx11-local-token
+      VX11_LOCAL_TOKEN: vx11-local-token
+      VX11_OPERATOR_TOKEN: vx11-local-token
+      VX11_TENTACULO_LINK_TOKEN: vx11-local-token
+    healthcheck:
+      interval: 30s
+      retries: 3
+      test:
+      - CMD-SHELL
+      - "true"
+      timeout: 5s
+    image: vx11-shub:v6.7
+    mem_limit: 512m
+    ports:
+    - published: 8007
+      target: 8007
+    restart: unless-stopped
+    volumes:
+    - /home/elkakas314/vx11/build/artifacts/logs:/app/logs:rw
+    - /home/elkakas314/vx11/data/runtime:/app/data/runtime:rw
+    - /home/elkakas314/vx11/models:/app/models:rw
+    - /home/elkakas314/vx11/build/artifacts/sandbox:/app/sandbox:rw
+  spawner:
+    build:
+      context: /home/elkakas314/vx11
+      dockerfile: spawner/Dockerfile
+    container_name: vx11-spawner
+    depends_on:
+      tentaculo_link:
+        condition: service_started
+    environment:
+      API_TOKEN: vx11-local-token
+      LOG_LEVEL: INFO
+      PYTHONUNBUFFERED: '1'
+      ULTRA_LOW_MEMORY: "true"
+      VX11_GATEWAY_TOKEN: vx11-local-token
+      VX11_LOCAL_TOKEN: vx11-local-token
+      VX11_OPERATOR_TOKEN: vx11-local-token
+      VX11_TENTACULO_LINK_TOKEN: vx11-local-token
+    healthcheck:
+      interval: 30s
+      retries: 3
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:8008/health
+      timeout: 5s
+    image: vx11-spawner:v6.7
+    mem_limit: 512m
+    ports:
+    - published: 8008
+      target: 8008
+    restart: unless-stopped
+    volumes:
+    - /home/elkakas314/vx11/build/artifacts/logs:/app/logs:rw
+    - /home/elkakas314/vx11/data/runtime:/app/data/runtime:rw
+    - /home/elkakas314/vx11/build/artifacts/sandbox:/app/sandbox:rw
+  switch:
+    build:
+      context: /home/elkakas314/vx11
+      dockerfile: switch/Dockerfile
+    container_name: vx11-switch
+    depends_on:
+      tentaculo_link:
+        condition: service_started
+    environment:
+      API_TOKEN: vx11-local-token
+      LOG_LEVEL: INFO
+      PYTHONUNBUFFERED: '1'
+      ULTRA_LOW_MEMORY: "true"
+      VX11_GATEWAY_TOKEN: vx11-local-token
+      VX11_LOCAL_TOKEN: vx11-local-token
+      VX11_OPERATOR_TOKEN: vx11-local-token
+      VX11_TENTACULO_LINK_TOKEN: vx11-local-token
+    healthcheck:
+      interval: 30s
+      retries: 3
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:8002/health
+      timeout: 5s
+    image: vx11-switch:v6.7
+    mem_limit: 512m
+    ports:
+    - published: 8002
+      target: 8002
+    restart: unless-stopped
+    volumes:
+    - /home/elkakas314/vx11/build/artifacts/logs:/app/logs:rw
+    - /home/elkakas314/vx11/data/runtime:/app/data/runtime:rw
+    - /home/elkakas314/vx11/models:/app/models:rw
+  tentaculo_link:
+    build:
+      args:
+        REQUIREMENTS_FILE: requirements_tentaculo.txt
+      context: /home/elkakas314/vx11
+      dockerfile: tentaculo_link/Dockerfile
+    container_name: vx11-tentaculo-link
+    environment:
+      API_TOKEN: vx11-local-token
+      LOG_LEVEL: INFO
+      PYTHONUNBUFFERED: '1'
+      ULTRA_LOW_MEMORY: "true"
+      VX11_GATEWAY_TOKEN: vx11-local-token
+      VX11_LOCAL_TOKEN: vx11-local-token
+      VX11_OPERATOR_TOKEN: vx11-local-token
+      VX11_TENTACULO_LINK_TOKEN: vx11-local-token
+    healthcheck:
+      interval: 30s
+      retries: 3
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:8000/health
+      timeout: 5s
+    hostname: tentaculo-link
+    image: vx11-tentaculo-link:v6.7
+    mem_limit: 512m
+    networks:
+      default:
+        aliases:
+        - tentaculo_link
+    ports:
+    - published: 8000
+      target: 8000
+    restart: unless-stopped
+    volumes:
+    - /home/elkakas314/vx11/build/artifacts/logs:/app/logs:rw
+    - /home/elkakas314/vx11/data/runtime:/app/data/runtime:rw
+    - /home/elkakas314/vx11/build/artifacts/sandbox:/app/sandbox:rw
+    - /home/elkakas314/vx11/models:/app/models:rw
+version: '3.9'
+volumes:
+  data:
+    driver: local
+  logs:
+    driver: local
+  models:
+    driver: local
+  sandbox:
+    driver: local
+
+
+== key lines: ports/container_name/healthcheck/volumes/depends_on ==
+12:    container_name: vx11-tentaculo-link
+18:    ports:
+20:    volumes:
+36:    healthcheck:
+48:    container_name: vx11-madre
+49:    ports:
+51:    volumes:
+66:    depends_on:
+69:    healthcheck:
+81:    container_name: vx11-switch
+82:    ports:
+84:    volumes:
+98:    depends_on:
+101:    healthcheck:
+110:    container_name: vx11-hermes
+111:    ports:
+113:    volumes:
+127:    depends_on:
+130:    healthcheck:
+139:    container_name: vx11-hormiguero
+140:    ports:
+142:    volumes:
+155:    depends_on:
+158:    healthcheck:
+170:    container_name: vx11-manifestator
+172:    ports:
+174:    volumes:
+188:    depends_on:
+191:    healthcheck:
+203:    container_name: vx11-mcp
+204:    ports:
+206:    volumes:
+219:    depends_on:
+222:    healthcheck:
+231:    container_name: vx11-shubniggurath
+232:    ports:
+234:    volumes:
+249:    depends_on:
+252:    healthcheck:
+264:    container_name: vx11-spawner
+265:    ports:
+267:    volumes:
+281:    depends_on:
+284:    healthcheck:
+296:    container_name: vx11-operator-backend
+297:    ports:
+299:    volumes:
+313:    depends_on:
+317:    healthcheck:
+328:    container_name: vx11-operator-frontend
+329:    ports:
+331:    depends_on:
+340:    healthcheck:
+346:volumes:
