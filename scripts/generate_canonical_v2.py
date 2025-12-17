@@ -12,6 +12,17 @@ import sqlite3
 import json
 import os
 import time
+import sys
+from pathlib import Path
+
+try:
+    from scripts.cleanup_guard import is_core_path
+except Exception:
+    # best-effort: if helper missing, proceed but warn
+    def is_core_path(p):
+        return False
+
+
 from datetime import datetime
 from collections import defaultdict
 
@@ -338,6 +349,10 @@ def main():
     final_json = os.path.join(BACKUP_DIR, "vx11_CANONICAL_STATE.json")
     for p in (final_db, final_json):
         if os.path.exists(p):
+            # abort if target is considered CORE
+            if is_core_path(p):
+                print(f"ABORT: existing path marked CORE: {p}", file=sys.stderr)
+                sys.exit(2)
             bak = p + f".bak_{timestamp}"
             os.rename(p, bak)
     os.rename(DISTILLED_DB_NEW, final_db)

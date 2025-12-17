@@ -19,6 +19,9 @@
 
 set -o pipefail
 
+# Load cleanup protection helpers to avoid touching CORE paths
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/cleanup_protect.sh" || exit 1
+
 ################################################################################
 # GLOBAL CONFIGURATION
 ################################################################################
@@ -243,7 +246,7 @@ phase_uninstall_previous() {
             
             # Remove
             log_info "Removing: $target"
-            rm -rf "$target" || {
+            safe_rm "$target" || {
                 log_error "Cannot remove: $target"
                 return 1
             }
@@ -319,19 +322,19 @@ phase_extract_reaper() {
         
         # Move extracted files (usually from REAPER_*/bin subdirectory)
         if [ -d "$temp_extract_dir/REAPER" ]; then
-            mv "$temp_extract_dir/REAPER"/* "${REAPER_INSTALL_DIR}/"
+            safe_mv "$temp_extract_dir/REAPER"/* "${REAPER_INSTALL_DIR}/"
         elif [ -d "$temp_extract_dir/reaper" ]; then
-            mv "$temp_extract_dir/reaper"/* "${REAPER_INSTALL_DIR}/"
+            safe_mv "$temp_extract_dir/reaper"/* "${REAPER_INSTALL_DIR}/"
         else
             # Try moving whatever is in temp
             find "$temp_extract_dir" -maxdepth 1 -type f | head -1 | while read -r file; do
                 if [ -f "$file" ]; then
-                    mv "$temp_extract_dir"/* "${REAPER_INSTALL_DIR}/"
+                    safe_mv "$temp_extract_dir"/* "${REAPER_INSTALL_DIR}/"
                 fi
             done
         fi
         
-        rm -rf "$temp_extract_dir"
+        safe_rm "$temp_extract_dir"
     else
         log_error "REAPER source not found: $reaper_source"
         return 1
