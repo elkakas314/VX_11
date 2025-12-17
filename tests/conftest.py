@@ -15,6 +15,8 @@ def pytest_collection_modifyitems(config, items):
     for item in list(items):
         if "integration" in item.keywords:
             item.add_marker(skip)
+
+
 import pytest
 from config.settings import settings
 

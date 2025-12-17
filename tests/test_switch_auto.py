@@ -24,4 +24,3 @@ def test_switch_auto_returns_engine():
     assert "status" in body and body["status"] == "ok"
     assert "engine" in body
     assert body["engine"] in ("local", "deepseek", "hermes")
-
