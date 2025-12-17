@@ -1,0 +1,6 @@
+total 20
+drwxrwxr-x  4 elkakas314 elkakas314 4096 dic 17 15:47 .
+drwxr-xr-x 40 elkakas314 elkakas314 4096 dic 17 20:03 ..
+drwxrwxr-x  3 elkakas314 elkakas314 4096 dic 17 02:06 backend
+-rw-rw-r--  1 elkakas314 elkakas314 1653 dic 17 09:32 __init__.py.disabled.20251217T144725Z
+drwxrwxr-x  2 elkakas314 elkakas314 4096 dic 17 10:42 __pycache__
