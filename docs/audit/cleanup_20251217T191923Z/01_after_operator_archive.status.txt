@@ -1,0 +1,3 @@
+## P0 python check after operator archive
+operator= /usr/lib/python3.10/operator.py
+datetime_ok
