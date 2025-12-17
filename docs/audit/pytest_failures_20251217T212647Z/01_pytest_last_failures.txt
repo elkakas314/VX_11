@@ -1,0 +1,166 @@
+============================= test session starts ==============================
+platform linux -- Python 3.10.12, pytest-7.4.3, pluggy-1.6.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+rootdir: /home/elkakas314/vx11
+configfile: pytest.ini
+testpaths: tests
+plugins: cov-7.0.0, asyncio-0.21.1, anyio-3.7.1
+asyncio: mode=auto
+collecting ... collected 6 items
+run-last-failure: rerun previous 6 failures (skipped 17 files)
+
+tests/test_all_healthchecks.py::test_health_all FAILED                   [ 16%]
+tests/test_health_endpoints.py::test_health_endpoints FAILED             [ 33%]
+tests/test_switch_auto.py::test_switch_auto_returns_engine FAILED        [ 50%]
+tests/test_switch_chat_and_breaker.py::test_switch_chat_endpoint FAILED  [ 66%]
+tests/test_switch_deepseek_staging.py::test_switch_deepseek_fallback_when_no_key FAILED [ 83%]
+tests/test_switch_local.py::test_switch_local_route FAILED               [100%]
+
+=================================== FAILURES ===================================
+_______________________________ test_health_all ________________________________
+/usr/lib/python3/dist-packages/urllib3/connection.py:169: in _new_conn
+    conn = connection.create_connection(
+/usr/lib/python3/dist-packages/urllib3/util/connection.py:96: in create_connection
+    raise err
+/usr/lib/python3/dist-packages/urllib3/util/connection.py:86: in create_connection
+    sock.connect(sa)
+E   ConnectionRefusedError: [Errno 111] Connection refused
+
+During handling of the above exception, another exception occurred:
+/usr/lib/python3/dist-packages/urllib3/connectionpool.py:700: in urlopen
+    httplib_response = self._make_request(
+/usr/lib/python3/dist-packages/urllib3/connectionpool.py:395: in _make_request
+    conn.request(method, url, **httplib_request_kw)
+/usr/lib/python3/dist-packages/urllib3/connection.py:234: in request
+    super(HTTPConnection, self).request(method, url, body=body, headers=headers)
+/usr/lib/python3.10/http/client.py:1283: in request
+    self._send_request(method, url, body, headers, encode_chunked)
+/usr/lib/python3.10/http/client.py:1329: in _send_request
+    self.endheaders(body, encode_chunked=encode_chunked)
+/usr/lib/python3.10/http/client.py:1278: in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+/usr/lib/python3.10/http/client.py:1038: in _send_output
+    self.send(msg)
+/usr/lib/python3.10/http/client.py:976: in send
+    self.connect()
+/usr/lib/python3/dist-packages/urllib3/connection.py:200: in connect
+    conn = self._new_conn()
+/usr/lib/python3/dist-packages/urllib3/connection.py:181: in _new_conn
+    raise NewConnectionError(
+E   urllib3.exceptions.NewConnectionError: <urllib3.connection.HTTPConnection object at 0x7823f88281f0>: Failed to establish a new connection: [Errno 111] Connection refused
+
+During handling of the above exception, another exception occurred:
+/usr/lib/python3/dist-packages/requests/adapters.py:439: in send
+    resp = conn.urlopen(
+/usr/lib/python3/dist-packages/urllib3/connectionpool.py:756: in urlopen
+    retries = retries.increment(
+/usr/lib/python3/dist-packages/urllib3/util/retry.py:576: in increment
+    raise MaxRetryError(_pool, url, error or ResponseError(cause))
+E   urllib3.exceptions.MaxRetryError: HTTPConnectionPool(host='127.0.0.1', port=8001): Max retries exceeded with url: /health (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7823f88281f0>: Failed to establish a new connection: [Errno 111] Connection refused'))
+
+During handling of the above exception, another exception occurred:
+tests/test_all_healthchecks.py:18: in test_health_all
+    r = requests.get(f"http://127.0.0.1:{port}/health", timeout=2)
+/usr/lib/python3/dist-packages/requests/api.py:76: in get
+    return request('get', url, params=params, **kwargs)
+/usr/lib/python3/dist-packages/requests/api.py:61: in request
+    return session.request(method=method, url=url, **kwargs)
+/usr/lib/python3/dist-packages/requests/sessions.py:544: in request
+    resp = self.send(prep, **send_kwargs)
+/usr/lib/python3/dist-packages/requests/sessions.py:657: in send
+    r = adapter.send(request, **kwargs)
+/usr/lib/python3/dist-packages/requests/adapters.py:516: in send
+    raise ConnectionError(e, request=request)
+E   requests.exceptions.ConnectionError: HTTPConnectionPool(host='127.0.0.1', port=8001): Max retries exceeded with url: /health (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7823f88281f0>: Failed to establish a new connection: [Errno 111] Connection refused'))
+
+During handling of the above exception, another exception occurred:
+tests/test_all_healthchecks.py:20: in test_health_all
+    raise AssertionError(f"{name} no respondió: {e}")
+E   AssertionError: madre no respondió: HTTPConnectionPool(host='127.0.0.1', port=8001): Max retries exceeded with url: /health (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7823f88281f0>: Failed to establish a new connection: [Errno 111] Connection refused'))
+____________________________ test_health_endpoints _____________________________
+/usr/lib/python3/dist-packages/urllib3/connection.py:169: in _new_conn
+    conn = connection.create_connection(
+/usr/lib/python3/dist-packages/urllib3/util/connection.py:96: in create_connection
+    raise err
+/usr/lib/python3/dist-packages/urllib3/util/connection.py:86: in create_connection
+    sock.connect(sa)
+E   ConnectionRefusedError: [Errno 111] Connection refused
+
+During handling of the above exception, another exception occurred:
+/usr/lib/python3/dist-packages/urllib3/connectionpool.py:700: in urlopen
+    httplib_response = self._make_request(
+/usr/lib/python3/dist-packages/urllib3/connectionpool.py:395: in _make_request
+    conn.request(method, url, **httplib_request_kw)
+/usr/lib/python3/dist-packages/urllib3/connection.py:234: in request
+    super(HTTPConnection, self).request(method, url, body=body, headers=headers)
+/usr/lib/python3.10/http/client.py:1283: in request
+    self._send_request(method, url, body, headers, encode_chunked)
+/usr/lib/python3.10/http/client.py:1329: in _send_request
+    self.endheaders(body, encode_chunked=encode_chunked)
+/usr/lib/python3.10/http/client.py:1278: in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+/usr/lib/python3.10/http/client.py:1038: in _send_output
+    self.send(msg)
+/usr/lib/python3.10/http/client.py:976: in send
+    self.connect()
+/usr/lib/python3/dist-packages/urllib3/connection.py:200: in connect
+    conn = self._new_conn()
+/usr/lib/python3/dist-packages/urllib3/connection.py:181: in _new_conn
+    raise NewConnectionError(
+E   urllib3.exceptions.NewConnectionError: <urllib3.connection.HTTPConnection object at 0x7823f86d1ab0>: Failed to establish a new connection: [Errno 111] Connection refused
+
+During handling of the above exception, another exception occurred:
+/usr/lib/python3/dist-packages/requests/adapters.py:439: in send
+    resp = conn.urlopen(
+/usr/lib/python3/dist-packages/urllib3/connectionpool.py:756: in urlopen
+    retries = retries.increment(
+/usr/lib/python3/dist-packages/urllib3/util/retry.py:576: in increment
+    raise MaxRetryError(_pool, url, error or ResponseError(cause))
+E   urllib3.exceptions.MaxRetryError: HTTPConnectionPool(host='127.0.0.1', port=8006): Max retries exceeded with url: /health (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7823f86d1ab0>: Failed to establish a new connection: [Errno 111] Connection refused'))
+
+During handling of the above exception, another exception occurred:
+tests/test_health_endpoints.py:11: in test_health_endpoints
+    r = requests.get(url)
+/usr/lib/python3/dist-packages/requests/api.py:76: in get
+    return request('get', url, params=params, **kwargs)
+/usr/lib/python3/dist-packages/requests/api.py:61: in request
+    return session.request(method=method, url=url, **kwargs)
+/usr/lib/python3/dist-packages/requests/sessions.py:544: in request
+    resp = self.send(prep, **send_kwargs)
+/usr/lib/python3/dist-packages/requests/sessions.py:657: in send
+    r = adapter.send(request, **kwargs)
+/usr/lib/python3/dist-packages/requests/adapters.py:516: in send
+    raise ConnectionError(e, request=request)
+E   requests.exceptions.ConnectionError: HTTPConnectionPool(host='127.0.0.1', port=8006): Max retries exceeded with url: /health (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7823f86d1ab0>: Failed to establish a new connection: [Errno 111] Connection refused'))
+_______________________ test_switch_auto_returns_engine ________________________
+tests/test_switch_auto.py:21: in test_switch_auto_returns_engine
+    assert "status" in body and body["status"] == "ok"
+E   AssertionError: assert ('status' in {'model': 'general-7b', 'queue_size': 7, 'reply': '[general-7b] hello world', 'status': 'queued', ...} and 'queued' == 'ok'
+E     - ok
+E     + queued)
+__________________________ test_switch_chat_endpoint ___________________________
+tests/test_switch_chat_and_breaker.py:11: in test_switch_chat_endpoint
+    assert data.get("status") == "ok"
+E   AssertionError: assert 'partial' == 'ok'
+E     - ok
+E     + partial
+__________________ test_switch_deepseek_fallback_when_no_key ___________________
+tests/test_switch_deepseek_staging.py:24: in test_switch_deepseek_fallback_when_no_key
+    assert body["status"] == "ok"
+E   AssertionError: assert 'queued' == 'ok'
+E     - ok
+E     + queued
+___________________________ test_switch_local_route ____________________________
+tests/test_switch_local.py:11: in test_switch_local_route
+    assert j.get("engine") == "local"
+E   AssertionError: assert None == 'local'
+E    +  where None = <built-in method get of dict object at 0x7823f8562bc0>('engine')
+E    +    where <built-in method get of dict object at 0x7823f8562bc0> = {'model': 'general-7b', 'queue_size': 9, 'reply': '[general-7b] hello', 'status': 'queued', ...}.get
+=========================== short test summary info ============================
+FAILED tests/test_all_healthchecks.py::test_health_all - AssertionError: madr...
+FAILED tests/test_health_endpoints.py::test_health_endpoints - requests.excep...
+FAILED tests/test_switch_auto.py::test_switch_auto_returns_engine - Assertion...
+FAILED tests/test_switch_chat_and_breaker.py::test_switch_chat_endpoint - Ass...
+FAILED tests/test_switch_deepseek_staging.py::test_switch_deepseek_fallback_when_no_key
+FAILED tests/test_switch_local.py::test_switch_local_route - AssertionError: ...
+======================== 6 failed, 6 warnings in 3.90s =========================
