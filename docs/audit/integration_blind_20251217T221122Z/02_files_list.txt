@@ -1,0 +1,2 @@
+-rw-rw-r-- 1 elkakas314 elkakas314  336 dic 17 23:11 docs/audit/integration_blind_20251217T221122Z/02_cleanup_excludes_core.txt
+-rw-rw-r-- 1 elkakas314 elkakas314 1832 dic 17 23:11 docs/audit/integration_blind_20251217T221122Z/02_contract_snippets.txt

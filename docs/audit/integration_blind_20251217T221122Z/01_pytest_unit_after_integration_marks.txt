@@ -1,0 +1,45 @@
+============================= test session starts ==============================
+platform linux -- Python 3.10.12, pytest-7.4.3, pluggy-1.6.0
+rootdir: /home/elkakas314/vx11
+configfile: pytest.ini
+testpaths: tests
+plugins: cov-7.0.0, asyncio-0.21.1, anyio-3.7.1
+asyncio: mode=auto
+collected 76 items
+
+tests/test_all_healthchecks.py s                                         [  1%]
+tests/test_cli_concentrator_selection.py .....                           [  7%]
+tests/test_cli_usage_db_writes.py ....                                   [ 13%]
+tests/test_context7_v7.py .........                                      [ 25%]
+tests/test_fluzo_scoring_influence.py .....                              [ 31%]
+tests/test_forensics_rotate.py .                                         [ 32%]
+tests/test_ga_router_tokens.py .                                         [ 34%]
+tests/test_health_endpoints.py s                                         [ 35%]
+tests/test_hermes_cli_detection.py .                                     [ 36%]
+tests/test_hermes_cli_registry_module.py .                               [ 38%]
+tests/test_hermes_registry_db.py .                                       [ 39%]
+tests/test_leonidas_permissions.py ..                                    [ 42%]
+tests/test_madre_orchestration.py ssss                                   [ 47%]
+tests/test_operator_db_schema_v7.py .....                                [ 53%]
+tests/test_pnp_and_switch_integration.py ......................          [ 82%]
+tests/test_routingresult_compat.py .                                     [ 84%]
+tests/test_shubniggurath_phase8.py ..                                    [ 86%]
+tests/test_switch_auto.py s                                              [ 88%]
+tests/test_switch_chat_and_breaker.py ss                                 [ 90%]
+tests/test_switch_deepseek_staging.py s                                  [ 92%]
+tests/test_switch_local.py s                                             [ 93%]
+tests/test_switch_registry_enqueue.py .                                  [ 94%]
+tests/test_tentaculo_link.py ....                                        [100%]
+
+=========================== short test summary info ============================
+SKIPPED [1] tests/test_all_healthchecks.py: Integration tests skipped by default. Set VX11_INTEGRATION=1 to run.
+SKIPPED [1] tests/test_health_endpoints.py: Integration tests skipped by default. Set VX11_INTEGRATION=1 to run.
+SKIPPED [1] tests/test_madre_orchestration.py:21: Madre not running
+SKIPPED [1] tests/test_madre_orchestration.py:45: Madre not running
+SKIPPED [1] tests/test_madre_orchestration.py:61: Madre not running
+SKIPPED [1] tests/test_madre_orchestration.py:77: Madre not running
+SKIPPED [1] tests/test_switch_auto.py: Integration tests skipped by default. Set VX11_INTEGRATION=1 to run.
+SKIPPED [2] tests/test_switch_chat_and_breaker.py: Integration tests skipped by default. Set VX11_INTEGRATION=1 to run.
+SKIPPED [1] tests/test_switch_deepseek_staging.py: Integration tests skipped by default. Set VX11_INTEGRATION=1 to run.
+SKIPPED [1] tests/test_switch_local.py: Integration tests skipped by default. Set VX11_INTEGRATION=1 to run.
+================== 65 passed, 11 skipped, 8 warnings in 3.59s ==================

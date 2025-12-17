@@ -1,0 +1,5 @@
+ tests/conftest.py                     |  2 ++
+ tests/test_all_healthchecks.py        |  3 +--
+ tests/test_switch_auto.py             |  1 -
+ tests/test_switch_chat_and_breaker.py | 12 +++++++++---
+ 4 files changed, 12 insertions(+), 6 deletions(-)
