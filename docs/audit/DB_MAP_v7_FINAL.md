@@ -1,988 +1,864 @@
-# DB_MAP_v7_FINAL (regenerated)
-Generated: 2025-12-17T16:14:32.309810Z
+# VX11 Database Map (generated)
 
-| path | sha256 | mime-type | status | updated_at |
-|---|---|---|---|---|
-| .copilot-audit/AUDIT_CONCLUSIONS_AND_CANONICAL_LAYOUT.md | aacfb1ed14a9836c6fc479b223078c8a093a2d4112df46becb08d5d3b028b86d | text/plain | tracked | 2025-12-17T16:14:17.623481Z |
-| .copilot-audit/AUDIT_DOCKER_AND_DEPLOYMENT.md | 949021143cdfebf79507f1a291aefafbebfb9bdf7fbf1ff5b6614560cc873960 | text/plain | tracked | 2025-12-17T16:14:17.638213Z |
-| .copilot-audit/AUDIT_DOCUMENTATION_AND_DRIFT.md | 15a572e083627902a7f48caea367ef49bf121d73ae3c0bbbe6c6b0334a15015a | text/plain | tracked | 2025-12-17T16:14:17.651695Z |
-| .copilot-audit/AUDIT_EXECUTIVE_SUMMARY.md | 9d01f901777662161a81a6f5651945cd62bdc34a6097f54fdd47381f41f1f20c | text/plain | tracked | 2025-12-17T16:14:17.661017Z |
-| .copilot-audit/AUDIT_NODE_MODULES_AND_DEPENDENCIES.md | c2bb86a61b6636f93c103aae13363ae7308e39ecd81eda0207172ce57c1250e4 | text/plain | tracked | 2025-12-17T16:14:17.672892Z |
-| .copilot-audit/AUDIT_OPERATOR_BACKEND_REAL_STATE.md | 871ab90c0a416910da564e2fa06bbd01c2ff8530fd0d2225316143c840ad8a76 | text/plain | tracked | 2025-12-17T16:14:17.683940Z |
-| .copilot-audit/AUDIT_OPERATOR_FRONTEND_REAL_STATE.md | 3344794a648b08e8cdde032f383f41e331b625d8b19b03aa31a4a7f770c9e8b8 | text/x-Algol68 | tracked | 2025-12-17T16:14:17.695085Z |
-| .copilot-audit/AUDIT_VX11_GLOBAL_STRUCTURE.md | 87dbd9f68a933aab758570c065cb582897483da0e3087134e2bb22b530a7c255 | text/plain | tracked | 2025-12-17T16:14:17.705791Z |
-| .copilot-audit/INDICE_OPERATOR_AUDITORIA.md | 16b8faa6053f4bcc8442489f9be983b4113f29af3e07563fbbfc0849a6d36c7e | text/plain | tracked | 2025-12-17T16:14:17.716075Z |
-| .copilot-audit/OPERATOR_AUDIT_FASE1_REAL_STATE.md | 92a7bd5a214664fff3a48683a9ad903e13570a117afb4ef405858a4d0f6c16b9 | text/x-c++ | tracked | 2025-12-17T16:14:17.720758Z |
-| .copilot-audit/OPERATOR_COMPLETION_SUMMARY.md | d67334872e1e3c234c29197e7a79913e8cb24ffb2013348ee82c97d2957c4933 | text/plain | tracked | 2025-12-17T16:14:17.731013Z |
-| .copilot-audit/OPERATOR_FASE2_BACKEND_CONTRACT.md | ac7dd82213e1516a009171b115c7bf43f5854b1ce39fcf290779c5cdb7a223f0 | text/x-script.python | tracked | 2025-12-17T16:14:17.737127Z |
-| .copilot-audit/OPERATOR_FASE3_AI_INTEGRATION.md | ba82c40b354519578bcbba5d8992d887fabaae02ef59d920252b71fbd07a4c51 | text/plain | tracked | 2025-12-17T16:14:17.749777Z |
-| .copilot-audit/OPERATOR_FASE4_ENHANCEMENTS.md | c7125722c136006b14af1872436d656c7658322170484f83e4ff8ea382b60e67 | text/plain | tracked | 2025-12-17T16:14:17.760614Z |
-| .copilot-audit/OPERATOR_RESUMEN_EJECUTIVO.md | 6f917a791a9457932ae92c97daf30a3d4ff276521240bc7f7c0232bd798f48a6 | text/plain | tracked | 2025-12-17T16:14:17.772010Z |
-| .copilot-audit/PHASE1_SUMMARY.txt | 39f31e90a2a90c79ff9f73d720fd74f31b0d6de55b7feb0059a272d1bdfd5155 | text/plain | tracked | 2025-12-17T16:14:17.782780Z |
-| .copilot-audit/README.md | deccd79c44d81b153f54b2fe9e1395fa9419238edec9f228b8e14723ca91a37b | text/plain | tracked | 2025-12-17T16:14:17.794434Z |
-| .copilot-audit/merge_report.md | aecd15cce1348bba89585cd78dee62610844c082f1a419453def24ace8f2cef3 | text/plain | tracked | 2025-12-17T16:14:17.812667Z |
-| .copilot-audit/operator_audit.md | 44864de17dbce6cd87499f67e63d3a39e1c46ff401da9f0405aa64f951d6285b | text/plain | tracked | 2025-12-17T16:14:17.829599Z |
-| .copilot-audit/operator_structure.json | cce596f88addab11ce130251e8da5bbd091f179f98f05c1bfe85988c01549987 | application/json | tracked | 2025-12-17T16:14:17.832986Z |
-| .copilot-audit/plan_operator_upgrade.md | 4405df6b64c97ffdbfe618de4a741aab8a222ad83a9d90780b119df8523c0c20 | text/plain | tracked | 2025-12-17T16:14:17.844552Z |
-| .copilot-audit/tentaculo_link_audit.md | 01691fe481090547d58ddf68a2cad15dabfdaae1c88ddd87022d58843d538ffe | text/plain | tracked | 2025-12-17T16:14:17.862760Z |
-| .copilot-audit/tentaculo_link_reorg_plan.md | 242c4187fd71c8bb4f09ddb1c2fcf531d9c656fd5d95b64ce482126dd3b3b1bc | text/x-script.python | tracked | 2025-12-17T16:14:17.871303Z |
-| .copilot-audit/tentaculo_link_structure.json | 097584eb336fe617d4137febcc51d5f1cf344ace274e7ddfc3e920bbe73d9e27 | application/json | tracked | 2025-12-17T16:14:17.874273Z |
-| .copilot-audit/vscode_copilot_setup.md | cd54ff69ec12bce5d72bf76ba80f4a6b277fa3c7e9c241c5d9db71caa7059a85 | text/plain | tracked | 2025-12-17T16:14:17.886214Z |
-| .devcontainer/Dockerfile | 379ae729e41a2f5ead7a70a4da9f5e4eab6b15cb8c63b619cafb1461ba983667 | text/plain | tracked | 2025-12-17T16:14:17.893852Z |
-| .devcontainer/devcontainer.json | 227783ae01e83d0e0a79c6f8f76be57182db0d6fe2259e9048f03591142165fa | application/json | tracked | 2025-12-17T16:14:17.896594Z |
-| .env.example | 4b7827d68dc2d0d1239a5794c63cfb13e5450274aa5985c5df4351ddea5c776d | text/plain | tracked | 2025-12-17T16:14:17.907440Z |
-| .github/AGENT_GUIDE.md | ba52427f4342297b96f3b42ec6e724676f64c674678e5e7fd5ed0dff04e40518 | text/x-script.python | tracked | 2025-12-17T16:14:17.912359Z |
-| .github/PROMPT_COPILOT_DEEPSEEK_CANONICAL.md | 34987ac1d0cf32eaf9d475bc04b3a12a7505e2f1faa269ac8a236e912a3d4c22 | text/plain | tracked | 2025-12-17T16:14:17.923538Z |
-| .github/UPDATE_SUMMARY.md | 3790fb7b6d6f5a90a6ee4e92a3b47838c88f7c8ce57f85726890c2d357b218ab | text/plain | tracked | 2025-12-17T16:14:17.932981Z |
-| .github/agents/QUICK_REFERENCE.md | 0d6eed0dd36ea647b52b1c1e7bd97b71eb5daad7ac9aeb44deeff312039704f9 | text/plain | tracked | 2025-12-17T16:14:17.942795Z |
-| .github/agents/vx11.agent.md | 389be75d825c1317451ee22131cf2920d4a119d37a41ea3899cda6749ee5f041 | text/plain | tracked | 2025-12-17T16:14:17.950435Z |
-| .github/copilot-agents/VX11-Inspector.prompt.md | 3e7a039943cb1ff07c7ff6771ee117a23c59fdf34ff7cc46f2282555b69ab4b6 | text/plain | tracked | 2025-12-17T16:14:17.959825Z |
-| .github/copilot-agents/VX11-Operator-Lite.prompt.md | e80ef196c7a748eba5d746e53cf086dc78e64590129eb2551e195427f1806441 | text/plain | tracked | 2025-12-17T16:14:17.968668Z |
-| .github/copilot-agents/VX11-Operator.prompt.md | a383b88405d725dde5d06041c744a7df2a4fcd0c9554701ed2e3ad456fb82781 | text/plain | tracked | 2025-12-17T16:14:17.978053Z |
-| .github/copilot-instructions.md | 41c661ddebbc93fddd48c18d852196157d84f5244af641af5f19673549fb1cdc | text/plain | tracked | 2025-12-17T16:14:17.984747Z |
-| .github/instructions/docs-audit.instructions.md | e4e720d0ea563b1dcdb9641efb110126e116e79da8d726ba53e2e9c284d0aaf0 | text/plain | tracked | 2025-12-17T16:14:17.992565Z |
-| .github/instructions/vx11-core.instructions.md | 95475fa458f787c575320cf8f984777b8a211220f73ce3c8bdeba2ef7ec8c493 | text/x-script.python | tracked | 2025-12-17T16:14:17.996795Z |
-| .github/instructions/vx11_global.instructions.md | 02555bb5ae1d06b9afe48ededd3e65cf9e83b5fea78225ebf934912ff3dc759d | text/plain | tracked | 2025-12-17T16:14:18.002972Z |
-| .github/instructions/workflows.instructions.md | 617337fa0c6c926ced410e90dbed4f4b23d99050f975e35407c6980b25648123 | text/plain | tracked | 2025-12-17T16:14:18.011285Z |
-| .github/prompts/VX11_Audit_LowPower.prompt.md | c4405fa227a2fa8f42174a6d0e3029bf22d1c8d38a9b463bb2807a8cbe565410 | text/plain | tracked | 2025-12-17T16:14:18.020000Z |
-| .github/prompts/VX11_DBMAP.prompt.md | f7aaf7c9edefa41ded7e46a26838dfe432109484c30276a3573acc140c8148e6 | text/x-script.python | tracked | 2025-12-17T16:14:18.023651Z |
-| .github/prompts/VX11_Status.prompt.md | 6d77e0b414dfa00643d792aae7f8edd26b9dbdb0931d7e5f5b345200eb8429be | text/plain | tracked | 2025-12-17T16:14:18.030654Z |
-| .github/prompts/VX11_Workflows.prompt.md | 9d67dcf568682def458b63192e244e7fddc65c6ec77de15990869d8512c380cf | text/plain | tracked | 2025-12-17T16:14:18.038740Z |
-| .github/prompts/vx11_dbmap.prompt.md | 797b33c8e12b9481badf97714a82fbf9e20cd905ea46c1d22eb02030128e2142 | text/plain | tracked | 2025-12-17T16:14:18.045304Z |
-| .github/scripts/audit_runtime_lowpower.sh | 9039ab7f97897a9b0b0ab6b20035e48a2393433238b66c1880ca0459036a40df | text/x-shellscript | tracked | 2025-12-17T16:14:18.049743Z |
-| .github/vx11_operator.md | 2ea26d8e5f219045338e4570431bf844d9b512ac79c4da81467d97a5897b66c9 | text/plain | tracked | 2025-12-17T16:14:18.057509Z |
-| .github/workflows/ci.yml | 488449d1291c53121648972fa2b7b1c1f1d789c6a6319d95c39d025266d20efe | text/plain | tracked | 2025-12-17T16:14:18.069242Z |
-| .github/workflows/vx11-audit-static.yml | d1e9f9a6936a14a46967725e1e8984d7c1e96cde29e7381e34d8ecf589b22ad0 | text/plain | tracked | 2025-12-17T16:14:18.081024Z |
-| .github/workflows/vx11-autosync.yml | 68ef2057e50f814debbf67ccb133cc878b328f5f528a6197d03d6343cd93c392 | text/plain | tracked | 2025-12-17T16:14:18.092624Z |
-| .github/workflows/vx11-validate.yml | f6b39cd98ff689b8319d76e7a8836699f0efbd6bcac52e9b117682c9bf566f86 | text/plain | tracked | 2025-12-17T16:14:18.102905Z |
-| .gitignore | da907f09ab03b6890b65f673aa875849b27e13ddb832c1775928721ba4fc1fc5 | text/plain | tracked | 2025-12-17T16:14:18.114865Z |
-| .vscode/tasks.json | b40db8d0d46ba8bde53fbc293166bb9e693b52e398858435a55c5eae23edc988 | application/json | tracked | 2025-12-17T16:14:18.117629Z |
-| AGENTS.md | 1b33945f93b634a19dc6bea89b5f7dcfc532024f22ede9c97d6325ffdd92cb9f | text/plain | tracked | 2025-12-17T16:14:18.125477Z |
-| ANALISIS_MAESTRO_ESTADO_ACTUAL.md | 8090046ebd1dc5feff63d98b886a210bb30ec95a4ee8b8a826bfbae4721e88e0 | text/plain | tracked | 2025-12-17T16:14:18.138445Z |
-| MADRE_v7_COMPLETE.md | bf51eedd8fa4921a120f9ca85d06d877b39a0841068d1f7e59e0a29ecb05ec66 | text/plain | tracked | 2025-12-17T16:14:18.152093Z |
-| MADRE_v7_TAREA_COMPLETADA.md | 9106415453cc64b099623727c5dc45dc8d1e744d2bfac2456f53c19596c4ba7f | text/plain | tracked | 2025-12-17T16:14:18.164883Z |
-| PHASE4_CLOSURE_REPORT.txt | 3f4dff7bc38b2e05c466a2d65b58c05e9ae5016c3dc437bde9b4cb8fcc4db186 | text/plain | tracked | 2025-12-17T16:14:18.179792Z |
-| PHASE4_EXECUTIVE_SUMMARY.txt | f90fb26beec999574c5b9d2978efdf103b60ca16671d1973c2cff8de0a704716 | text/plain | tracked | 2025-12-17T16:14:18.191706Z |
-| PHASE_5_FINAL_SUMMARY.md | 413855031c0d6a4a1f7e05005876c0d167fa4650ffc3b43529d68a9f20c6fc4d | text/plain | tracked | 2025-12-17T16:14:18.206799Z |
-| README.md | 770b435333e06e485194d1d9c6568577855efa87961f21333d5e3777ff849ab5 | text/plain | tracked | 2025-12-17T16:14:18.220247Z |
-| REPAIR_STATUS_20251215.md | 26830c0f341650b7e6c23e86699b315dc1c724e895523d0789c0bc9f857b8e6d | text/plain | tracked | 2025-12-17T16:14:18.229591Z |
-| VX11_SYSTEM_STATUS.md | 866bf61ee036ce7f52bd7d0a55a8b24eebc32f39bb590e50d571023816bf9190 | text/plain | tracked | 2025-12-17T16:14:18.240977Z |
-| archive/README.md | 10be88b9c34e287cf55b657470761b8035a79b87a6d34d4a3f05b56cdffa794a | text/plain | tracked | 2025-12-17T16:14:18.249980Z |
-| config/__init__.py | 206bef7971a51e5297043f4e5242383e50757dfcc9ea4e6e9ce6e0a65d2b0988 | text/plain | tracked | 2025-12-17T16:14:18.257204Z |
-| config/container_state.py | 6a0132a2e92290a76e60c561225bbc3fab5272142f3e54584bde9e874a74687c | text/plain | tracked | 2025-12-17T16:14:18.263380Z |
-| config/context7.py | 6c1544696349c68c4191088a71bc065ce41631e3c38f49539356582156bba779 | text/plain | tracked | 2025-12-17T16:14:18.269838Z |
-| config/copilot_bridge_validator.py | 20f40409742c47c0e3a69657ea2374e358b80e5baaa0c1be8f8081c7005a57b8 | text/plain | tracked | 2025-12-17T16:14:18.274528Z |
-| config/copilot_bridge_validator_operator.py | c8116e35a64ee01eeef1e05ebc8003bcec2889b53fa7cb9f55ed0ac830c2dba5 | text/plain | tracked | 2025-12-17T16:14:18.280951Z |
-| config/copilot_operator.py | f56a7c562e24e7a1165f5d4c306fc1f26024e1c99cababb7dcbd8c12de20bace | text/plain | tracked | 2025-12-17T16:14:18.285970Z |
-| config/database.py | 23f3090db6dd11a54a5b2d26e750749e064b862cc29771b6a6ca5b2ffa969e32 | text/x-script.python | tracked | 2025-12-17T16:14:18.289582Z |
-| config/db_schema.py | fb47a32cf66bc5c10c4bf8cd050d3d44893372c2f9aeb42ec648e145c9eb1cdb | text/plain | tracked | 2025-12-17T16:14:18.298606Z |
-| config/deepseek.py | e6495ac124cb77483da9ec729f400362e2b0e1f09a7ab27ae5ad5ab5819f8fa6 | text/plain | tracked | 2025-12-17T16:14:18.305788Z |
-| config/dns_resolver.py | 2c1843939df94948eea9cbad469b130a35bcaeadc6616a91d6eaf7e27bb23eab | text/plain | tracked | 2025-12-17T16:14:18.309417Z |
-| config/forensic_middleware.py | d555af94a490b9712669bf304f6e5d0bdfef17e051c77e02702562a24bb9d94e | text/x-script.python | tracked | 2025-12-17T16:14:18.316179Z |
-| config/forensics.py | 0c3ecccc48d74fd70975c8776e653868447a088d2eb6c64ad25e7786318f1279 | text/x-script.python | tracked | 2025-12-17T16:14:18.320844Z |
-| config/metrics.py | a8d4be9efe883fff8c75911ab4b56a30fa58e7127a194da63195113bf5e45452 | text/plain | tracked | 2025-12-17T16:14:18.325195Z |
-| config/metrics_endpoints.py | 0bba55251d0de1d33634117e14bcf8d4b05726c3a6447f235f31137e68c3b479 | text/plain | tracked | 2025-12-17T16:14:18.330730Z |
-| config/models.py | d174ac41ac9cbbbce30552ef3a7c86916bb96e3f769da19a7389c34745df1ff5 | text/x-script.python | tracked | 2025-12-17T16:14:18.335011Z |
-| config/module_template.py | ccca5a476e64bac3d0f7cf48dce6414e9a9453fc017e9b2e726abf824b450721 | text/x-script.python | tracked | 2025-12-17T16:14:18.339453Z |
-| config/orchestration_bridge.py | 2dc6234ef965bbea2774bafadc1e53de0bb0eebbd771fc108dad13b548a9b348 | text/plain | tracked | 2025-12-17T16:14:18.344549Z |
-| config/playwright_config.py | ec78124a45f001c8bd62613fd172752ede03a04d66f6d8c111c6897aab11d10c | text/plain | tracked | 2025-12-17T16:14:18.350516Z |
-| config/settings.py | 31c36590cb1b0c83087222d9d1ce0188fa95fd1d84148391e2fc7338ca0d77eb | text/x-script.python | tracked | 2025-12-17T16:14:18.355014Z |
-| config/shubniggurath_settings.py | f39b87ca96dfec4b5e9ac827209e426d7abd373a1da63cf4a121ab6dd1912c41 | text/plain | tracked | 2025-12-17T16:14:18.359725Z |
-| config/state_endpoints.py | 21459c8cd945f28bb39ad4904f59207e8716a1c771daae29318e0f13ad194274 | text/plain | tracked | 2025-12-17T16:14:18.365828Z |
-| config/switch_hermes_integration.py | 02b19c7b9e71b2da363a2413887f7fb7b173a7ac28cb845bd3bba4b6cad67fe8 | text/plain | tracked | 2025-12-17T16:14:18.371036Z |
-| config/tokens.py | 5cb6f86f6bae1e8eac3d5e32b20c2967005a6fe783ba528f54498bdd03525ad9 | text/x-script.python | tracked | 2025-12-17T16:14:18.377995Z |
-| config/utils.py | 9a0eda39d16a251e23e77ce6db97dc1379ab3909621dc5cf54157f56a57b1067 | text/x-script.python | tracked | 2025-12-17T16:14:18.381497Z |
-| conftest.py | 1c1f3c036165d8d8aac73f46451507690c4854fe5d3ed477da834c10ca76de5f | text/plain | tracked | 2025-12-17T16:14:18.389225Z |
-| docker-compose.playwright.yml | 3fc7e82bc5f7f8e7b33848a5a91b9c15504081e4c0b832e6b7344d53ddc898b8 | text/plain | tracked | 2025-12-17T16:14:18.404099Z |
-| docker-compose.shub.yml | bc0bc06e7518328a5120e8ddf5f1eaef2c8c5907e0941581949c78143370a165 | text/plain | tracked | 2025-12-17T16:14:18.419723Z |
-| docker-compose.yml | bbaea1f7124be6f26d5f24aaf44c46743551ce0139da37eb4c07fea753053339 | text/plain | tracked | 2025-12-17T16:14:18.436815Z |
-| docs/API_OPERATOR_CHAT.md | 069c74d3b70d1d93350712908dbe375f0399f5fe07d4b3f7e83c41e7fe5d6e05 | text/x-script.python | tracked | 2025-12-17T16:14:18.448443Z |
-| docs/API_REFERENCE.md | addb21bed5935e631e7b272e0f9d52617ae4bda09234d9152fcb4542940ba3a9 | text/plain | tracked | 2025-12-17T16:14:18.462679Z |
-| docs/ARCHITECTURE.md | abfad072fe550a31a8401c1ffbcd7281a98c75973cb0ab652219a88901094a2e | text/plain | tracked | 2025-12-17T16:14:18.475395Z |
-| docs/AUDITORIA_CONSOLIDADA_VX11_v7_BLOQUE6.md | aa036bafc480dd6c6c88a8e1183a95c37716c20a0dd258a2a9936163df44958a | text/plain | tracked | 2025-12-17T16:14:18.490198Z |
-| docs/AUDITORIA_ESTRUCTURA_VX11_v7_1_COMPLETA.md | 9c7f9630161d866a66401ad214b55b59be1df1bfd8c8bd8367bc388914fcebaf | text/plain | tracked | 2025-12-17T16:14:18.504605Z |
-| docs/AUDITORIA_FASE3_COHERENCIA_v7.md | 0b8a6d039db5b92e937ffc3adc7f93dd5fd0986d23302f7ad73b56d9b6d57ebf | text/plain | tracked | 2025-12-17T16:14:18.519770Z |
-| docs/AUDITORIA_SHUBNIGGURATH_v7.md | 8385829f259e92301915d6ffb1d24305564719872377c082452d2ba9bb249b45 | text/plain | tracked | 2025-12-17T16:14:18.534078Z |
-| docs/AUDITORIA_VX11_ESTRUCTURA_COMPLETA_v7.md | a5732b0b428bab904b76c48e9b87437161c277840a1224931406294f4231a5b4 | text/plain | tracked | 2025-12-17T16:14:18.550429Z |
-| docs/AUDIT_SWITCH_HERMES_v7.md | d090a5dd27431c38be15085080b664ab9d677dec5095d8a9f590b3564ef7eaed | text/plain | tracked | 2025-12-17T16:14:18.567079Z |
-| docs/AUTOSYNC_SYSTEMD_DESIGN.md | aec99beda3d55396c2f2fd0a85aebe294be35283a34eae81982e2f0ebeda231f | text/plain | tracked | 2025-12-17T16:14:18.578173Z |
-| docs/BLOQUE_E_DOCKER_OPTIMIZATION_v7_1.md | 8b8a2aca36f1696d0df9e8c167b57ec6044143a27d0ac66bf9eaca31e6a43f31 | text/plain | tracked | 2025-12-17T16:14:18.590407Z |
-| docs/BLOQUE_F_FINAL_VALIDATION_v7_1.md | 3c42bdfb403ef88b8e6823636b92f2c8c3d7933761cee10339b88fa534681423 | text/plain | tracked | 2025-12-17T16:14:18.602512Z |
-| docs/CLEANUP_D_E_COMPLETION_REPORT.md | 2a43e9e7ac3de6cd99b629b7fee35ef9e197895065af9a3108ae0001369d1d28 | text/plain | tracked | 2025-12-17T16:14:18.615522Z |
-| docs/CLEANUP_EXECUTION_PLAN.md | 1bda95b9a8b390b240900a9aa03cb36c437f1f981fa457dd3dcab1a232ebe3c0 | text/plain | tracked | 2025-12-17T16:14:18.627091Z |
-| docs/CLEANUP_RULES.md | 62839b1e62394f64b5d4d302abf679a0ad4292298756c3b419770dbd1ab482d4 | text/plain | tracked | 2025-12-17T16:14:18.636898Z |
-| docs/COPILOT_INSTRUCTIONS_QUICK_GUIDE.md | 751370b0e923933a6adee3586a8433b202ff7f8fdb43508e8a74fde89d84f074 | text/x-script.python | tracked | 2025-12-17T16:14:18.642670Z |
-| docs/COPILOT_INSTRUCTIONS_UPDATE_SUMMARY.md | c776cc46f39bdbf1fa14b7da7a57dc732c10e611285d0a7a39960754e0456c39 | text/plain | tracked | 2025-12-17T16:14:18.655592Z |
-| docs/DECISION_OPERATOR_FRONTEND.md | 968e519b04da44166bc4c75750acbb0d25bfb5a69361df4ecfcbf25fc61bdba3 | text/plain | tracked | 2025-12-17T16:14:18.663879Z |
-| docs/DEEP_SURGEON_FASE_3_OPERATOR_BACKEND_v7_COMPLETE.md | 2d01d65a72a393522e8decbd875301198f86b8107cc1a2729c9abc354bef48f1 | text/x-script.python | tracked | 2025-12-17T16:14:18.669633Z |
-| docs/DEEP_SURGEON_PHASE_PROGRESS_OPERATOR_v7.md | 38df20bc4627926462725137bd6646a91b72784fc682d3094c08045aefcdddb2 | text/plain | tracked | 2025-12-17T16:14:18.681015Z |
-| docs/DEEP_SURGEON_VX11_v7_FINAL_COMPLETION.md | 03e589ecad783efff441f78df98accc953f424bd53f2b02451a40de9b7bca772 | text/plain | tracked | 2025-12-17T16:14:18.694997Z |
-| docs/DEPLOYMENT_TENTACULO_LINK.md | 241713484af32e210a377c08afffd16d3b8b7940d0c60bf0380a79099de86751 | text/plain | tracked | 2025-12-17T16:14:18.703603Z |
-| docs/DOCKER_PERFORMANCE_VX11_v7.md | a71d69ff11de8c2295b86b7801ae6415ee3b08b08d62835ef953f35f21bd46a9 | text/plain | tracked | 2025-12-17T16:14:18.719066Z |
-| docs/FASE_1_CAMBIOS_INDICE.md | 9dc1cfb86c38a27cf76f1f883e2412ed7ea55461e861ec062d93d280e23648cc | text/plain | tracked | 2025-12-17T16:14:18.735773Z |
-| docs/FASE_1_COMPLETION_REPORT.md | 16fc338c9d420ff4a45aa4bb7d016701162d86feefc0dda15692e7b2ac741cec | text/plain | tracked | 2025-12-17T16:14:18.758366Z |
-| docs/FASE_1_RESUMEN_EJECUCION.md | 6b3f189536e76adda039406aa318e869cb71b5260639b188aa9c180d0591900f | text/plain | tracked | 2025-12-17T16:14:18.776054Z |
-| docs/FASE_1_SHUB_REAL_PLAN.md | cd5a1666eb3e969d3591e58a24ba9bb544fe63435f55ddfde6b013e71389d3ca | text/x-script.python | tracked | 2025-12-17T16:14:18.782429Z |
-| docs/HORMIGUERO_UI_CANONICAL.md | b76a527ff716e092fba333dc57fbc6ffcaaf33700d4df5963ffcdac7df0cd8af | text/plain | tracked | 2025-12-17T16:14:18.793123Z |
-| docs/INDEX.md | 61099c3edb088d5375bbb2ca51d5dd093bb43bb79fa60fe47d43a11ceec2b394 | text/plain | tracked | 2025-12-17T16:14:18.800649Z |
-| docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md | e16a4f09a6bbe32ade88f6844d05d77c5ce441fba4521098fe9c9714a2cbed2e | text/plain | tracked | 2025-12-17T16:14:18.818899Z |
-| docs/MADRE_v7_EXECUTION_REPORT.md | 99b9530824d1fb46ab9d38927c11b5c457d49ed03c8659e93e1974fcbf609827 | text/plain | tracked | 2025-12-17T16:14:18.830956Z |
-| docs/MADRE_v7_QUICKSTART.md | 5ce5df36a34da649090679cdab80f4bea74574bcb200a108b603337306b08de6 | text/plain | tracked | 2025-12-17T16:14:18.841630Z |
-| docs/MADRE_v7_ROADMAP.md | 7a860c3a7b382b5b991990d6eb59d21d37c0bdb0f006607695326e782b8c0d38 | text/plain | tracked | 2025-12-17T16:14:18.854713Z |
-| docs/NODE_POLICY.md | 8da65413fd8a594cc3b2c680fe69041d7c09b711a3237ef258fe92b7b32fa54c | text/plain | tracked | 2025-12-17T16:14:18.862266Z |
-| docs/OPERATOR_CHAT_v6.7.md | 81e4a3f7d10cb424ffb82670302bd75c9456dcb5a1eaca684753da4b2619e54d | text/plain | tracked | 2025-12-17T16:14:18.870985Z |
-| docs/OPERATOR_DASHBOARD_v7.0.md | 03debe5150abb3674cb67ebbe6f77669bf0eb276b5098195cc161687e734b181 | text/plain | tracked | 2025-12-17T16:14:18.884576Z |
-| docs/OPERATOR_UI_RUNTIME.md | 1922435c1b9f40cbd39fefcf0828f88e018c030ec870bd6cb76611011c60886d | text/x-java | tracked | 2025-12-17T16:14:18.901481Z |
-| docs/OPERATOR_UI_v7_1_MODERNIZATION_GUIDE.md | bfab6b1241a1e92d9a5e708546379e042e6519d1f01daa45774ba7c8e42cc74e | text/plain | tracked | 2025-12-17T16:14:18.916416Z |
-| docs/OPERATOR_VX11_V8_1_EXTENSIONS.md | 9dc7665c8ea41c21a57070c0ae440c7adb33026ff10a42668902fc6ded80c447 | text/plain | tracked | 2025-12-17T16:14:18.931338Z |
-| docs/OPERATOR_VX11_V8_CANONICAL.md | bf4fed6bc483724ea47be441007868caf235bc63121c92888002bdc9ca18850e | text/plain | tracked | 2025-12-17T16:14:18.943202Z |
-| docs/REPO_LAYOUT.md | ccf5457c798b2a287d81d6213cb65978b5c9e12a7c21639520e708d19180806e | text/plain | tracked | 2025-12-17T16:14:18.952984Z |
-| docs/ROADMAP_CANONICAL_PHASE_FINAL.md | 34e5f6eed79197f9250909fbdd4062b6d224b0181f9e3e5398a4321aef4146ca | text/x-script.python | tracked | 2025-12-17T16:14:18.957420Z |
-| docs/SECRETS_ROTATE.md | 8c780dcb8245a27285c28341a0aaca9dde7b3f2a7a0f80d84d013561b8875356 | text/plain | tracked | 2025-12-17T16:14:18.968229Z |
-| docs/SHUBNIGGURATH_COMPLETE.md | 8665e943c64c5e62cd4dad06d4652051b3c6d4a48da544f7844e967348f7d6e9 | text/plain | tracked | 2025-12-17T16:14:18.979232Z |
-| docs/SHUB_API_EXAMPLES.md | 1cbdb68df46b605bb9746bf1c28f74f8e5028acea3dfacb83700c132ad4a77a4 | text/plain | tracked | 2025-12-17T16:14:18.992565Z |
-| docs/SHUB_NIGGURATH_v7_1_FINAL_AUDIT.md | 41eea369c69bda3b111a4ee829356d16de4aff97aebad1a8b8bea7f261d77f61 | text/plain | tracked | 2025-12-17T16:14:19.010794Z |
-| docs/SHUB_OPERATOR_AUDIT_v1.md | 3eaeb070dcb3c4de868557d6401a3e351b88c8f961ea60013a210b044e6c8ed7 | text/plain | tracked | 2025-12-17T16:14:19.023448Z |
-| docs/SHUB_STATE_v7.1.md | e1bc20158f7a209855d2893278f656279e8d35d3cf5b5f44b6b01c5a51291651 | text/plain | tracked | 2025-12-17T16:14:19.031734Z |
-| docs/SHUB_VX11_V7_FINAL_REPORT.md | d147d83c36a582d0e22dedfaa00316649eaceea27987eeae42a2d2a30793954c | text/plain | tracked | 2025-12-17T16:14:19.046416Z |
-| docs/USO_RAPIDO_VX11_v6_6.md | 962f881f9fe59f57dcd2ddd08c6fe33a250f0f623bb6ddb3a14d905554d9fc85 | text/plain | tracked | 2025-12-17T16:14:19.055067Z |
-| docs/VX11_AGENT_DEFINITION_v7.1_DELIVERED.md | 7bc577c978247df2062e0d791b3960d8c20fcaffcc12caacf37ac709a128aa31 | text/plain | tracked | 2025-12-17T16:14:19.066653Z |
-| docs/VX11_EVENT_MAP_CANONICAL.md | 16e650f28d1c17593c27fba6948eb19d275d109def1b75a6f20b03e150d8f311 | text/plain | tracked | 2025-12-17T16:14:19.082928Z |
-| docs/VX11_EVENT_SCHEMAS_CANONICAL.md | aa2ff9015df8f6486686e48d89551ac46a51206b06a2df5d4573e493c19533a2 | text/plain | tracked | 2025-12-17T16:14:19.093180Z |
-| docs/VX11_HORMIGUERO_v7_COMPLETION.md | ef3128376bdc715adbf809891f19867f7b2bd3f77a996e9b0fa1e639465717b1 | text/plain | tracked | 2025-12-17T16:14:19.105978Z |
-| docs/VX11_OPERATOR_AGENT_EXAMPLES.md | 2b6ee803ffef5f8d5afa72f6e3d81d01f19cb719823bac4287e486e6dc12f8bc | text/plain | tracked | 2025-12-17T16:14:19.124647Z |
-| docs/VX11_OPERATOR_AGENT_MANUAL.md | 24805f957af337aefa43e59353808e99bf148bc736801839fea974e2b4ea875f | text/plain | tracked | 2025-12-17T16:14:19.141508Z |
-| docs/VX11_OPERATOR_v7_FULL_COMPLETION.md | 5c1f8ac47103734670a6c90388d6a58307d50b0ef25c86c7b41f37f93a8dfc39 | text/plain | tracked | 2025-12-17T16:14:19.162634Z |
-| docs/VX11_REPAIR_REPORT.md | c912e7527aaf02f773c7ece01d12f35d18fda7c3b087211348de7e62a84242f7 | text/plain | tracked | 2025-12-17T16:14:19.176675Z |
-| docs/VX11_SHUB_SWITCH_HERMES_FLOWS_v7.x.md | 524b0ed14fb77077537c33497dc5a763044390168f94464835648b6221667083 | text/plain | tracked | 2025-12-17T16:14:19.187417Z |
-| docs/VX11_SWITCH_HERMES_EXECUTION_SUMMARY.md | 234f6b5f3cf8a41b65d40130c9df5f10d040b78de67f2a4696e0322b080e1871 | text/plain | tracked | 2025-12-17T16:14:19.205558Z |
-| docs/VX11_SWITCH_HERMES_v7_COMPLETION.md | 85cce7f0d5fc3033648122e0b55e227b134661f295aafa9df86f97d71ecfdaab | text/plain | tracked | 2025-12-17T16:14:19.226828Z |
-| docs/VX11_v6.4_ANTI_CAOS_REPORT.md | fb256400dff6b6fd54adf80ed4cdfa3ce0c70e0030a80b057b4adba76e931c8c | text/plain | tracked | 2025-12-17T16:14:19.243096Z |
-| docs/VX11_v6.4_CANONICAL.json | 1cb0d02dc8170f910536e740ca003c640ec943e2922f957af400bd7a45c8d8cd | application/json | tracked | 2025-12-17T16:14:19.247495Z |
-| docs/VX11_v6.5_CANONICAL.json | 57c12abeeb73f783175b1317d1761194f141a44ef6d94c2f4aada1f5e5fdd366 | application/json | tracked | 2025-12-17T16:14:19.250531Z |
-| docs/VX11_v6.6_CANONICAL.json | 22c371c18d41bab982b3b943ccbafaa5e569b3f8e47ccb3d60b74b248a274edb | application/json | tracked | 2025-12-17T16:14:19.253467Z |
-| docs/VX11_v7_1_DOCUMENTATION_INDEX.md | 38d2ca70177b826574c949160cdb5a1a5d71ad0784e412c96243c68df8480d62 | text/plain | tracked | 2025-12-17T16:14:19.273751Z |
-| docs/VX11_v7_FINAL_PRODUCTION_READY.md | d979ad9d7e51c43530c60d0c3960e49499150535c702aef3d8499b0ee106108d | text/plain | tracked | 2025-12-17T16:14:19.284796Z |
-| docs/WORKFLOWS_VX11_LOW_COST.md | c9a0324eb49286edb24e31584a5d79ee6c66cc66f50820e2611e94c8d9ced5b9 | text/plain | tracked | 2025-12-17T16:14:19.298131Z |
-| docs/archive/ADAPTIVE_OPTIMIZATION.md | 98858cfc9912b5a9a9a0b616ff50a0bc84021bf4523bfe345c169dc7a52cb9c3 | text/plain | tracked | 2025-12-17T16:14:19.318178Z |
-| docs/archive/ADAPTIVE_OPTIMIZATION_PHASE1_REPORT.md | 38abc1a8c5af4233d5288c25ad26e851caea627fcec393309350ab34d92b0858 | text/x-script.python | tracked | 2025-12-17T16:14:19.326182Z |
-| docs/archive/ADAPTIVE_OPTIMIZATION_QUICK_START.md | ced6048990edb36eae42e796a34f79f4044486954b1001d6b12d5c19b1b19815 | text/plain | tracked | 2025-12-17T16:14:19.346718Z |
-| docs/archive/ADAPTIVE_OPTIMIZATION_SUMMARY.txt | ef6ea859707ad8b3b0c6fd1ca331da00a95673a699f59743adaf9e9e0bcfc57e | text/plain | tracked | 2025-12-17T16:14:19.367544Z |
-| docs/archive/ARCHITECTURE_v4.md | 9d79b7b1ae94b43ce73591f7dd802ddffc8203cd35e021dc1e897eb2e3a39e43 | text/plain | tracked | 2025-12-17T16:14:19.394670Z |
-| docs/archive/AUDITORIA_FASE_6_WIRING.md | ff81c50448bf6a724da85485d3d9da49453143d8a77fb5879edadb7d7552c2f1 | text/plain | tracked | 2025-12-17T16:14:19.413856Z |
-| docs/archive/AUDITORIA_FINAL_COMPLETA.md | f4cd3033e2f642b56244c85be2a99e3dfe0f50a6f0278b6930ac808d316683e2 | text/x-script.python | tracked | 2025-12-17T16:14:19.423323Z |
-| docs/archive/AUDITORIA_FINAL_PRODUCCION_READY.md | c8a28dded6788e04f5b1efde8862b6434334d6de04585754d3312221eb3da863 | text/plain | tracked | 2025-12-17T16:14:19.442278Z |
-| docs/archive/AUDITORIA_FORENSE_FASE1_COMPLETA.md | 8474762c004923de9c639f03971e5c2542dc619333a45f999786d1f68ea0af7d | text/plain | tracked | 2025-12-17T16:14:19.472730Z |
-| docs/archive/AUDITORIA_INTERMEDIA_1.md | 9ac3551ef321200eed8f5025f03014b2bbc9a0b6fddaf6191eb693c5a0a052fe | text/plain | tracked | 2025-12-17T16:14:19.490412Z |
-| docs/archive/AUDITORIA_OPERADOR_FINAL_v7_2.md | e9be1c80cc5d20d4254ea66051819b2529ae7de20f2d1eac8122713254985e8d | text/plain | tracked | 2025-12-17T16:14:19.511015Z |
-| docs/archive/AUDITORIA_VX11_v7_COMPLETADA.md | 234f83965fe46e9432c1955b2d92b755987bd25d99670cc213af935f0849d1a7 | text/plain | tracked | 2025-12-17T16:14:19.531139Z |
-| docs/archive/CAMBIOS_SUMMARY_v7_2.md | c9cfa67d33508bd81452cf46d5430e1254b5cb261e160e40d818e191e980d2f0 | text/html | tracked | 2025-12-17T16:14:19.539811Z |
-| docs/archive/CANONIZATION_v6.1_REPORT.md | 2e29fa73a918b3f713d905a75fe4cd32eb3d826861a404d5047c3d40adb68d05 | text/plain | tracked | 2025-12-17T16:14:19.558305Z |
-| docs/archive/CHANGES_SUMMARY.txt | 3b8e52ac0b9bfac27c23995891b225e250b3bd90e841fc5a02f95c2152da12ef | text/plain | tracked | 2025-12-17T16:14:19.578593Z |
-| docs/archive/CICLO_COMPLETO_MODO_OPERADOR.md | 79471a86270f94dba62668b311474485f92e20d60cb24eb4539e2b7524824246 | text/plain | tracked | 2025-12-17T16:14:19.595203Z |
-| docs/archive/COMPLETION_STATUS.md | 870821a64dbc32f6525a09e682f42d19f529eb764cf837b46aea7274f895d663 | text/plain | tracked | 2025-12-17T16:14:19.619080Z |
-| docs/archive/COMPLETION_SUMMARY.md | de877b55f5434b0eef212ff4077bc5babf303c1db5d41393028809eaf88bdf1b | text/plain | tracked | 2025-12-17T16:14:19.643136Z |
-| docs/archive/COPILOT_OPERATOR_MODE.md | 0a214b9f6f1d67e8eccdfbedf75fd6edb5b2aa06b5a1599aa991af56b27ea378 | text/plain | tracked | 2025-12-17T16:14:19.666835Z |
-| docs/archive/COPILOT_OPERATOR_QUICKSTART.md | f8e00dbf857ac1db506505b6f0cd69645839073d0f75ec0812799a5ef21d7537 | text/plain | tracked | 2025-12-17T16:14:19.735468Z |
-| docs/archive/DECISIONS_PENDING.md | eb0cf6b3e2d98fbe80e828c9b50de6608983151ad84deb70bcc0f7b5ca3ee69d | text/plain | tracked | 2025-12-17T16:14:19.758806Z |
-| docs/archive/DEEP_SURGEON_MADRE_SPAWNER_v7_COMPLETION.md | 26ab9c6d3ca341ace747de6244102f03de173043d801e8f3e1ef406b5470da14 | text/plain | tracked | 2025-12-17T16:14:19.778870Z |
-| docs/archive/DEPENDENCIAS_VX11_v6_4_CIERRE.md | 1a3c57384781fa602e24bc74c7b3041389ee36bac1cc9ed928978753be71cdea | text/plain | tracked | 2025-12-17T16:14:19.794460Z |
-| docs/archive/DEPENDENCIAS_VX11_v6_4_FIXED.md | 10fad1da17f5914be782937f674fa3bf8851b0e89225f0c212306cf7a2e09075 | text/plain | tracked | 2025-12-17T16:14:19.809021Z |
-| docs/archive/DEPENDENCIAS_VX11_v6_4_REPORT.md | ab052a492f74957bbfbb4d164127f8d8fec54f7e969eae97f8986156980deca7 | text/plain | tracked | 2025-12-17T16:14:19.824536Z |
-| docs/archive/DEPLOYMENT_CHECKLIST.md | 68a83bcc0fad384540aa416be577f3795694fea85e7d9bd6553bbbd8fe325622 | text/plain | tracked | 2025-12-17T16:14:19.841388Z |
-| docs/archive/DEPLOYMENT_INDEX.md | d9d0456bbe1412ef6de44b393a2b3fca6c71d14d6d8d12b57255010566c531bc | text/plain | tracked | 2025-12-17T16:14:19.856065Z |
-| docs/archive/DEPLOYMENT_MANIFEST_v6.2.json | 429f223f378817d14f5bdfa28d993729b2fc7474c0efebf0dd76de845dbf978b | application/json | tracked | 2025-12-17T16:14:19.858517Z |
-| docs/archive/DEPLOY_FASE_INDEX.md | 05aff4ae564671af99eb1bb5f4333ba0ae41388132d754ba98e20c75dbf1654a | text/plain | tracked | 2025-12-17T16:14:19.872404Z |
-| docs/archive/DEPLOY_MODO_CONTROLADO_RESUMEN_EJECUTIVO.md | d79609faf2a2b6b3752fe304169b657d61e2b5ec8b66b7d83f9b3aab49a1ebf0 | text/plain | tracked | 2025-12-17T16:14:19.888190Z |
-| docs/archive/DEVELOPMENT.md | 803f24e1ff81a37de5c081238600f7a073fe084104e56e4bf490395d17af0cfa | text/x-script.python | tracked | 2025-12-17T16:14:19.910613Z |
-| docs/archive/DOCUMENTATION_INDEX.md | 3a9972a936b6afd11b0cff8c567938271da05785817d4c9cd17211383b24b255 | text/plain | tracked | 2025-12-17T16:14:19.942370Z |
-| docs/archive/FASE1_DIAGNOSTICO_REAL.md | 24a1e794083b145a76eef3ed4b6d0bb4426ddd51ce9c692ca4aca1726441fab4 | text/plain | tracked | 2025-12-17T16:14:19.969108Z |
-| docs/archive/FASE2_REPARACION_INSTALACION.md | 07ea5b0db786c4efaa696251dafb560bb01c02b98da07b29e369f5c55b2071ed | text/plain | tracked | 2025-12-17T16:14:19.987140Z |
-| docs/archive/FASE3_INTEGRACION_SHUB.md | aac72b495da79aec1166c104be2008b5142b1b502cb64da8d35001b17c94fa61 | text/plain | tracked | 2025-12-17T16:14:20.001113Z |
-| docs/archive/FASE3_STATUS_FINAL.md | c7f1d591b7bef3fa528355297932622ffd68362ffc0f1aa2c1a6e752824debc2 | text/x-script.python | tracked | 2025-12-17T16:14:20.006454Z |
-| docs/archive/FASE4_TESTING.md | 63c3149b1330f944c0b3a8e3489eca45c9bd988d74a794a4dbcd9bb83fd36f2f | text/plain | tracked | 2025-12-17T16:14:20.018323Z |
-| docs/archive/FASE7_CONFIRMACION_FINAL.md | cab721c58bcd968eebd9f9c6fe4d0fc340fc06a78c6cdf0ed3335480368677e0 | text/plain | tracked | 2025-12-17T16:14:20.030243Z |
-| docs/archive/FASES_1_TO_8_IMPLEMENTATION.md | f43c5842661f3e2a1b51aedad7beb630e95e6dd07adb6d39478cb257aac1d536 | text/plain | tracked | 2025-12-17T16:14:20.041899Z |
-| docs/archive/FASES_4_7_COMPLETION_EXECUTIVE_SUMMARY.md | 672b48fcae27c7a7087165096ad1b4ad35b1d50311f00d4c057a0b6418f63867 | text/plain | tracked | 2025-12-17T16:14:20.054117Z |
-| docs/archive/FASE_3_RESUMEN_EJECUTIVO.md | f7b818dc87a20da92c7ee851f0b34fbf4da5e2b1166d6a7d215750d730a873fb | text/x-script.python | tracked | 2025-12-17T16:14:20.058625Z |
-| docs/archive/FASE_4_ENDPOINTS_AUDIT.md | 60cab8432f9887cc74dcf085bbbda623175250a7f652fa5ee9972bcf56861fd5 | text/x-script.python | tracked | 2025-12-17T16:14:20.064468Z |
-| docs/archive/FINAL_COMMANDS.md | 9c552c50bd565ef6d2e327949e9f3a0fbc26c00984310831a480db14cb3ed5f9 | text/plain | tracked | 2025-12-17T16:14:20.074887Z |
-| docs/archive/FINAL_DELIVERY_SHUB_PRO.md | acc158b43424b25792c1547ed668b153ec0fdc6c7a2b82c12b991fd231f63cf4 | text/x-script.python | tracked | 2025-12-17T16:14:20.080764Z |
-| docs/archive/FINAL_REPORT_v6.2.json | 39b227e2ae522fbb434e1248929dc06a5d986b8ff40a0c6f0bcccea40b61c60f | application/json | tracked | 2025-12-17T16:14:20.083420Z |
-| docs/archive/FINAL_SUMMARY.txt | e455107ed49283dfefa135135410ed374f08b0255ffda6f96eb5640751049b43 | text/plain | tracked | 2025-12-17T16:14:20.092557Z |
-| docs/archive/FINAL_VERIFICATION.txt | e3a2fa5efe22341894fc61e5218fddc0d0a864937ebc411d826e01521546fd9b | text/plain | tracked | 2025-12-17T16:14:20.103458Z |
-| docs/archive/FLOWS.md | 1a296bde680fb359c38fe58050e07e608d934bee63630e0a22276ca5625bd009 | text/plain | tracked | 2025-12-17T16:14:20.115042Z |
-| docs/archive/INDEX_COPILOT_OPERATOR.md | a3c203917c84547c4c297e3fb20eab5602809d35c426efe45f09a081cb46dbb3 | text/plain | tracked | 2025-12-17T16:14:20.124234Z |
-| docs/archive/INDICE_AUDITORIA_VX11_v7.md | c327d701a9a5f5ce1168f0315cdef7feb9bb2527bc7c7d1319751de418329399 | text/plain | tracked | 2025-12-17T16:14:20.134643Z |
-| docs/archive/INSTRUCCIONES_PASO_2_1.md | d5b645e647f7b878703aa79c15a7bc61afb95a8747797c0c44581fa962c8b757 | text/x-script.python | tracked | 2025-12-17T16:14:20.139194Z |
-| docs/archive/MANIFESTATOR_INTEGRATION.md | 9efe77caff41aa679ee35b859af5744019828885f71a9f3258c681875cb94b38 | text/plain | tracked | 2025-12-17T16:14:20.149970Z |
-| docs/archive/MISSION_STATUS_FINAL_v7.0.md | 74916bfb70ecae3b979b6db8406e19e12b6980536455d32dfa312ab01473b28f | text/x-script.python | tracked | 2025-12-17T16:14:20.154854Z |
-| docs/archive/MODO_CONFIGURACION_FINAL_REPORT.md | ad9e2f4781cd44c7efc60c222328de1c5c43951b93772dd4f6aa33b4224e3428 | text/plain | tracked | 2025-12-17T16:14:20.165460Z |
-| docs/archive/MODO_DEPLOY_FASE4_READY.txt | 2258411567249b6eae279c54d517c3f0ed2409c0ec549bd6ff4118261a7a675e | text/plain | tracked | 2025-12-17T16:14:20.174571Z |
-| docs/archive/MODO_DEPLOY_FASE6_DEPLOYMENT_COMPLETE.md | a8d78477e86e49134811d4220273a36f930c87aafd4dc8806ec818b483134217 | text/plain | tracked | 2025-12-17T16:14:20.186129Z |
-| docs/archive/MODO_OPERADOR_FINAL.txt | 42cb018f4a2c4914c8650268225b37de2441ffb35fbcc0fa556ab4dca9730f27 | text/plain | tracked | 2025-12-17T16:14:20.195317Z |
-| docs/archive/NIST_COMPLIANCE_REPORT_v6.2.md | c6bb38c77e327a4ae8f9854e0d8493b52339053b1c98495d3d9abab627e70fcd | text/plain | tracked | 2025-12-17T16:14:20.205781Z |
-| docs/archive/OPERADOR_REPARACION_FINAL_COMPLETA_v7_3.md | 529affd29cd1ac44449e97309f54121fb04844750b47a28554ff1daa17b68f0d | text/html | tracked | 2025-12-17T16:14:20.212950Z |
-| docs/archive/OPERATIONAL_MANUAL.md | 2444c9350ff8076ba1890a4b046697f9bd7bb8d32b6175e60f94660aac7b8da2 | text/plain | tracked | 2025-12-17T16:14:20.222227Z |
-| docs/archive/OPERATOR_AUDIT_v6_4.md | 1d36cf7714cca08579733431da12098476b6d64df0c8a39bafa7740a718b67f1 | text/plain | tracked | 2025-12-17T16:14:20.233824Z |
-| docs/archive/OPERATOR_AUDIT_v6_4_DIAGRAMS.md | 8c112a4e00bdfd527c2f1d5f55fe0c782d0adfc408f7ebf525e517e22b33ee68 | text/plain | tracked | 2025-12-17T16:14:20.243699Z |
-| docs/archive/OPERATOR_AUDIT_v6_4_QUICK_START.md | 1e8a676b0c39796eeef55a357621e8c6b8ed2a08f9c4b111c61dfd2cbd4cb912 | text/x-script.python | tracked | 2025-12-17T16:14:20.249328Z |
-| docs/archive/OPERATOR_AUDIT_v6_4_RESUMEN.txt | e75576b82083dbae56ae97b09552db72d90308cb6f240517712ab79b5f28376f | text/plain | tracked | 2025-12-17T16:14:20.258538Z |
-| docs/archive/OPERATOR_COMPLETION_REPORT.md | dffa8258dfc8e55d9405451c6ccd4c4f4f4f08354440efcf5a2bcee6acd03802 | text/plain | tracked | 2025-12-17T16:14:20.268770Z |
-| docs/archive/OPERATOR_MODE_AUDIT.json | 30a55a3229e072b18b2d3e05225a0f1913d8efd906d23d213c56130edeaba63e | application/json | tracked | 2025-12-17T16:14:20.270721Z |
-| docs/archive/OPERATOR_MODE_SUMMARY.md | 3c7f80530b0a1b34c280372f81fee1a6163d59d6edcaafe4d860263b6bdd78c2 | text/plain | tracked | 2025-12-17T16:14:20.282367Z |
-| docs/archive/OPERATOR_RECONSTRUCTION_COMPLETE.md | e59f1fc423d674793820e2f735662afd831c70ab510d53ded4318accdc7683bb | text/plain | tracked | 2025-12-17T16:14:20.290857Z |
-| docs/archive/OPERATOR_REPARACION_FINAL_v7_2_COMPLETA.md | d35a52d710adfed940022b9c4a725a82711da447a533467f25343eee184bec81 | text/html | tracked | 2025-12-17T16:14:20.298567Z |
-| docs/archive/OPERATOR_VX11_v6_4_FINAL.md | 6bb500d9857a13164c94af04f518ae737fa7cd5a6c66b5d4ee2fa5dc225602fa | text/x-script.python | tracked | 2025-12-17T16:14:20.302521Z |
-| docs/archive/PASOS_2_6_COMPLETION.md | 944f5bb191f135aece0d8b266d26ef800115d7f5be88b98ade49804117d62634 | text/plain | tracked | 2025-12-17T16:14:20.312075Z |
-| docs/archive/PASO_7_DOCUMENTACION_FINAL.txt | b91286c4d5c9274e8d64317f0a5f029311472091543d3ca27cba8276592fa592 | text/plain | tracked | 2025-12-17T16:14:20.320791Z |
-| docs/archive/PASO_8_FINAL_AUDIT.md | a3f83134982745a4abe454a5744fcb64f7ae2eaacf938d6a749112190d54efec | text/plain | tracked | 2025-12-17T16:14:20.334363Z |
-| docs/archive/PHASE_11_CLEANUP_REPORT.json | de38810d2412a0cf43c106ee5463eb7af078388f24c9c49d4622990f3cf065da | application/json | tracked | 2025-12-17T16:14:20.336439Z |
-| docs/archive/PHASE_13_E2E_PLAN.json | 25897d37fd78f2ab6a0698723288800ce7aeed0883a91a25a1b7916fa5523ce4 | application/json | tracked | 2025-12-17T16:14:20.338186Z |
-| docs/archive/PHASE_14_INTEGRATION_GUIDE.md | 17999e3079a1a17716eb20279ccb96199f0bb488b2b31f626cba1d4bf42ffccf | text/plain | tracked | 2025-12-17T16:14:20.350454Z |
-| docs/archive/PLAN_TENTACULAR_FINAL.md | cbc9aa5880b1748ff783a62a8226486100a377e60ea1febbc58647f8ba3a3b8f | text/plain | tracked | 2025-12-17T16:14:20.361401Z |
-| docs/archive/PLAN_TENTACULAR_FINAL_v7_1.md | 5e7147264b103a4d279eb88ff0d2dd1ca1d35725662fb9f02d8ec503267b01e9 | text/plain | tracked | 2025-12-17T16:14:20.373268Z |
-| docs/archive/PNP_AND_ADAPTIVE_ROUTING.md | 7a03e21755f860beaa819eba66b3db9829974fa44b493e66d5cd9b3a6b62a4d2 | text/x-script.python | tracked | 2025-12-17T16:14:20.378710Z |
-| docs/archive/PRODUCTION_READY.md | 0a9556dfdf73a6ca405ccd17d427ec4c36825a4573816bbce3329a9c63578f91 | text/plain | tracked | 2025-12-17T16:14:20.386791Z |
-| docs/archive/QUICK_REFERENCE.md | b0d114bda1849bb97d15c11462494de3239d4c0570991a7474ec68dea38e3e08 | text/x-script.python | tracked | 2025-12-17T16:14:20.390447Z |
-| docs/archive/QUICK_START_REAPER_SHUB.md | 0ef5a2ba875e6528e15f455f2e23185d27a69d4938aea7aeb6650ebda7213800 | text/plain | tracked | 2025-12-17T16:14:20.401045Z |
-| docs/archive/README.md | 10be88b9c34e287cf55b657470761b8035a79b87a6d34d4a3f05b56cdffa794a | text/plain | tracked | 2025-12-17T16:14:20.406768Z |
-| docs/archive/README_CONTROL.md | 09a5624bced2daac6b8f88362cb36d43ddc1c7c66ae41b74bb1c39ff697fc402 | text/plain | tracked | 2025-12-17T16:14:20.414556Z |
-| docs/archive/README_COPILOT_OPERATOR.md | e1101e346a18cf79f6e2a077e682e88033b9155d5133d68f20fc60eb66bbcf2b | text/plain | tracked | 2025-12-17T16:14:20.423940Z |
-| docs/archive/README_REAPER_INSTALL.md | e9801c0d1bf0cf1ca8a050fd7d81a7233800a92d463fd467ba568dbe2670bc0c | text/plain | tracked | 2025-12-17T16:14:20.436272Z |
-| docs/archive/README_VX11_v6.md | f71f2920460d7889a05be40d318793b1d2578de7f65a8b90df0e0afe313c985d | text/plain | tracked | 2025-12-17T16:14:20.446732Z |
-| docs/archive/RELEASE_NOTES_v4.md | 6016ea974479c21229f59de8757d053e33bb60090e4fe3f03558ee63593b976a | text/plain | tracked | 2025-12-17T16:14:20.456490Z |
-| docs/archive/REMEDIATION_COMPLETION_v7.md | 2a151ef1a67168950a068003decc0b1c9df03477167dc6394346314b6419769b | text/x-script.python | tracked | 2025-12-17T16:14:20.460514Z |
-| docs/archive/REPORTE_FASE2_RECONSTRUCCION.md | 9ad830e0a290258fb0cb09a30a6e829204bd0cab9bab2638ea87561512e60851 | text/plain | tracked | 2025-12-17T16:14:20.471051Z |
-| docs/archive/REPORTE_FASE3_AUTONOMIA.md | 91a8301920284cb7b6564a36225e1e9d79ddd7d88c1e21f3271df8fd31c530e2 | text/plain | tracked | 2025-12-17T16:14:20.485658Z |
-| docs/archive/REPO_CLEANUP_SUMMARY.md | e1375552ce75c155647058abfdb32b3e7e4264d2a76d2431cd8b726d88c3ec2a | text/plain | tracked | 2025-12-17T16:14:20.493359Z |
-| docs/archive/RESUMEN_EJECUTIVO_FINAL.md | 6ffae8d310beb5ebe1c2b6eef7dc6f39b4c3069b4f2d82ddb636c5f851e15df6 | text/plain | tracked | 2025-12-17T16:14:20.506455Z |
-| docs/archive/RESUMEN_SESION_EJECUCION.md | 1dc459f60153e933f5a0c42b7020f257b78e3898f939931ba15adee02a0eb769 | text/plain | tracked | 2025-12-17T16:14:20.521046Z |
-| docs/archive/SHUBNIGGURATH_EXECUTION_COMPLETE.md | 56cc1c5d9fa201ba9b047e215117b92e1869c36b81a43fe599bf2845e309de6b | text/plain | tracked | 2025-12-17T16:14:20.534388Z |
-| docs/archive/SHUB_CANONICAL_TODO_LIST.md | e46809dd579a67cf09b3d611095a4dc76e28e82bb885927c4b9d0ecec80b0167 | text/plain | tracked | 2025-12-17T16:14:20.545362Z |
-| docs/archive/SHUB_CANON_REWRITE.md | a67ecf5c16f8f7e55d085d92b0fb8b04ca0274d9e410c5ebae93f65ac0726200 | text/plain | tracked | 2025-12-17T16:14:20.556117Z |
-| docs/archive/SHUB_DEPLOYMENT_FINAL_REPORT.txt | b148a13aca6cb52f03a464a3b1eb80a0689329d2ca46b621754bc610a6b923b9 | text/plain | tracked | 2025-12-17T16:14:20.567265Z |
-| docs/archive/SHUB_FASE1_COMPLETION.md | e9257057aea33b574e0deadda3f59adb067f6fb1fe5a01155bbd3f48941388e7 | text/plain | tracked | 2025-12-17T16:14:20.579365Z |
-| docs/archive/SHUB_FINAL_METRICS_v31.json | 621363a5960f966094f05dec40b0f45d790e8be6c92d88fe74e4b6f84f6c8a65 | text/plain | tracked | 2025-12-17T16:14:20.590175Z |
-| docs/archive/SHUB_FINAL_METRICS_v31_REAL.json | adc3f73e7acec41eaab02324509fc09df5f065bf8dd702b25a5f0ca5454df009 | application/json | tracked | 2025-12-17T16:14:20.592071Z |
-| docs/archive/SHUB_INTEGRATION_FASES_1_5_COMPLETE.md | 57a45bf60c04b3ed5dbc74d1648c8cecc1e0b35b907e92e40457e0312de35c9b | text/plain | tracked | 2025-12-17T16:14:20.603267Z |
-| docs/archive/SHUB_PRO_CHANGES.md | 02bbd389d48a61a1d7176b8dc3086ddad619e341a0dad005c8f8c9ac34453c6d | text/plain | tracked | 2025-12-17T16:14:20.613825Z |
-| docs/archive/SHUB_PRO_COMPLETION_SUMMARY.md | 28e37bf04dd9dfc0c9150f5a6bff1fb7d8e5ea776b8858d190c61b17a9fbc6d8 | text/x-script.python | tracked | 2025-12-17T16:14:20.618855Z |
-| docs/archive/SHUB_PRO_INTEGRATION_GUIDE.md | 3bb2fa7e657b4240d5ba5c5d6731df636e89a0e11965395763efa237c0391d55 | text/x-script.python | tracked | 2025-12-17T16:14:20.623369Z |
-| docs/archive/SHUB_PRO_QUICKSTART.md | 040e717e13fa044a5813f739ea9e53aaf583b86f0048a0711520d159ff21d9fc | text/x-script.python | tracked | 2025-12-17T16:14:20.627115Z |
-| docs/archive/SHUB_READY_FOR_PRODUCTION.md | d52c161406012c1304d1af142519976d1bfb346f369c000530ce66f78fad9162 | text/plain | tracked | 2025-12-17T16:14:20.636916Z |
-| docs/archive/SHUB_REAPER_PRODUCTION_REPORT.md | c9b49ee45cd886079c4ea4bcaf1c7c09c73540cc3a8c6ea1410be992fde0cad6 | text/plain | tracked | 2025-12-17T16:14:20.646872Z |
-| docs/archive/SHUB_REESCRITURA_FINAL.md | b89fd110495555c66830ccc55736fce3fb7d3985a64e5ab026de3dac08300cc3 | text/x-script.python | tracked | 2025-12-17T16:14:20.652223Z |
-| docs/archive/SNAPSHOT_POST_AUDITORIA_v7.md | f24118c5d00b225249e9d8ee6989263b49315ad0bf8dc0c7f840b02ca2bc1164 | text/plain | tracked | 2025-12-17T16:14:20.659140Z |
-| docs/archive/START_HERE.md | 21f65e93e8aa4d66cffadb17a0ab8bbeb5c8fdfdd6692a2825510f584a1ce296 | text/plain | tracked | 2025-12-17T16:14:20.670014Z |
-| docs/archive/SUMMARY_v6.2.md | 3fe336e6e97867612b6d4db841f25e26cf95125ac42a5f3e6acfe43e91884b47 | text/plain | tracked | 2025-12-17T16:14:20.679286Z |
-| docs/archive/SYSTEM_PROCESS_CLASSIFICATION.md | ab9f24fa159143b6400503359a798c89f84aa5332ef2dd490b1434c2d80aa784 | text/plain | tracked | 2025-12-17T16:14:20.690118Z |
-| docs/archive/TODO_CANON_SHUB_MAESTRO.md | 57010c6db81fea2c15152d5111558968bd3827514eb0fab1309d34b2b8658665 | text/plain | tracked | 2025-12-17T16:14:20.699841Z |
-| docs/archive/VX11/_index.md | 68a7fca2dd45cc6a10806771a66518ead6ede32f550ad985f5aab69826673ca6 | text/plain | tracked | 2025-12-17T16:14:20.705360Z |
-| docs/archive/VX11/arquitectura.md | 6fb1159c5404293020efc8a67ad727118cd4dbb15da6b115fb440c5163de910c | text/plain | tracked | 2025-12-17T16:14:20.711460Z |
-| docs/archive/VX11/bd.md | b8ed2bb99bc5c86d2e0521c8db8ee683750f6198d3d452d3c6d62116a855c07e | text/plain | tracked | 2025-12-17T16:14:20.718446Z |
-| docs/archive/VX11/flujos.md | b635557e38eeb811ac18198988419e5f6756426bf64129c505f22f27977b35ab | text/plain | tracked | 2025-12-17T16:14:20.723833Z |
-| docs/archive/VX11/health.md | 309c424bdad77bf054c6667ea3c5bbfeefacdb650a1cf16b387371adc98e15f8 | text/plain | tracked | 2025-12-17T16:14:20.729545Z |
-| docs/archive/VX11/seguridad.md | e0569674ea535761c0173cadb19a245c645715f3b1e8cd88103e03038d09f6a8 | text/plain | tracked | 2025-12-17T16:14:20.735013Z |
-| docs/archive/VX11_AUDIT_v6.3.md | 5e51086864a67d444d0f6045cd66638b83dda63eea97183b7be16bd77caf0096 | text/plain | tracked | 2025-12-17T16:14:20.742011Z |
-| docs/archive/VX11_AUDIT_v6_3.md | 30824114b3248dd32cf2146abee823beef763791c83a145ffd4915ab2e0e6412 | text/plain | tracked | 2025-12-17T16:14:20.752153Z |
-| docs/archive/VX11_AUDIT_v6_4_RUNTIME.md | e074a22c16f22413fc43d3b9395bb0deda8f562ad8f80f4a247ce35015a1b503 | text/plain | tracked | 2025-12-17T16:14:20.758970Z |
-| docs/archive/VX11_CANON_v6.1.md | 9093e0b495a642a864757b564acc48a5594ae34074a0187df41422648dd3a941 | text/plain | tracked | 2025-12-17T16:14:20.768616Z |
-| docs/archive/VX11_CANON_v6_4.md | 993b8e58b4054e104fa65c44b97fe2267a46fc551c8d287e3a4573d87e38510f | text/plain | tracked | 2025-12-17T16:14:20.775836Z |
-| docs/archive/VX11_FINAL_REPORT_v6.0.md | 13b600a5db8d293fc51fb4379fbfcad61132cd86023f2587795e379e35550214 | text/plain | tracked | 2025-12-17T16:14:20.787502Z |
-| docs/archive/VX11_NAVIGATION_GUIDE.md | bcfd589250ac7ec019b20a6b554aaccf0a8d988ccc6bb96a6fabca4d63b29d61 | text/plain | tracked | 2025-12-17T16:14:20.798252Z |
-| docs/archive/VX11_v4_FINAL_STATUS.txt | 4df8583dfe797241c28a861820470d64400402653225d143affb07ae082d65a9 | text/plain | tracked | 2025-12-17T16:14:20.812241Z |
-| docs/archive/VX11_v6.2_CANONICAL.json | f86e4162bd3aa830922792aa8253474d054336b08e8b3128760cfe866032a4cf | application/json | tracked | 2025-12-17T16:14:20.815593Z |
-| docs/archive/VX11_v6.3_CANONICAL.json | 3419ff4040773fb38a08738751914ac082ae030c7283d000d2022ceacb6ba775 | application/json | tracked | 2025-12-17T16:14:20.818571Z |
-| docs/archive/VX11_v6_COMPLETION_REPORT.md | ee0a9516dbe7f3d90cb374a0ba1f510524f3692eaf76c85d2a54a2558bb4760e | text/plain | tracked | 2025-12-17T16:14:20.831350Z |
-| docs/archive/VX11_v6_EXECUTIVE_SUMMARY.txt | a966d13325c2feb2f33f9fc171b5393c180e32e079fd2b9ac49881f4dc6ddebc | text/plain | tracked | 2025-12-17T16:14:20.842356Z |
-| docs/archive/VX11_v7_1_COMPLETION_REPORT.md | 118ce3c647240ace0cbba7ceed24af221ed2f2a3509465a18ee8d400319a9544 | text/plain | tracked | 2025-12-17T16:14:20.856704Z |
-| docs/archive/VX11_v7_DEPLOYMENT_READY.md | 6e54a6c4e67e61f257b33ecc9de7fc05974984d8f02ad1c989bdeb7fa95b9d20 | text/plain | tracked | 2025-12-17T16:14:20.871542Z |
-| docs/archive/WORKSPACE_CLEANUP_REPORT.md | 31b038ea436cf9dfdcfd7d9a2c5616645b6257ed693063563aa04ce5432b3624 | text/plain | tracked | 2025-12-17T16:14:20.888009Z |
-| docs/archive/WORKSPACE_REPAIR_SUMMARY.txt | d1d4c37f699366d4eb3566d520469c155bd0b26274ef3fee74807347997b0aa0 | text/plain | tracked | 2025-12-17T16:14:20.899905Z |
-| docs/archive/audits/DB_MAP_v7_FINAL.md | 89a6883465b64621fd0c31d40173a6ba82540ad54a30992d5c41088e32657d13 | text/plain | tracked | 2025-12-17T16:14:20.907592Z |
-| docs/archive/audits/DB_SCHEMA_v7_FINAL.json | e28122de03c676e06335c5526cc000570e4f5bfa21b0a98a919c83d412f79b39 | text/plain | tracked | 2025-12-17T16:14:20.914623Z |
-| docs/archive/audits/PHASE2B_DECISIONS.md | edbf699281156a0705a71b2c5062ccb8d436d900a96bf19728bfe91a1c9e8678 | text/plain | tracked | 2025-12-17T16:14:20.921335Z |
-| docs/archive/audits/PHASE2B_DOCUMENTATION_INDEX.md | df68e6adc26873a7e73c938b4256563ff5ebca69e71e7d13f04df358530f8494 | text/plain | tracked | 2025-12-17T16:14:20.927960Z |
-| docs/archive/audits/PHASE2B_EXECUTION_PLAN.md | 4e78e3b8e384d2d5da015d61044a6da32327facdd78fc5846cf2cd08147e19fb | text/plain | tracked | 2025-12-17T16:14:20.935711Z |
-| docs/archive/audits/PHASE2B_FINAL_CLOSURE.md | d41a89bc749f2af0ceadd2254fd598cdda800b3d38b44f5cc91ae1d1f9adba70 | text/plain | tracked | 2025-12-17T16:14:20.942420Z |
-| docs/archive/audits/PHASE2B_ROADMAP_PLAYWRIGHT_MODELS.md | 0553453030d254c1b73af7224aeeb8a74213ced42f2c32111aac94ac15e049ad | text/plain | tracked | 2025-12-17T16:14:20.948859Z |
-| docs/archive/audits/PHASE2B_RUN_LOG.md | 9c48d865b3b1d7d7165ecfae4d6bca5d414089893e9a3aa3d0db1447d520a0f4 | text/plain | tracked | 2025-12-17T16:14:20.958723Z |
-| docs/archive/audits/README.md | 9db560be3e4726562df1aa17898313e33c78a7a9aad7a3c4ec04416be9f0cd39 | text/plain | tracked | 2025-12-17T16:14:20.966064Z |
-| docs/archive/glossary.md | 6b737ce1961d2df771bce12992dbb328295f81eb1d90ed2052a68574b8717187 | text/plain | tracked | 2025-12-17T16:14:20.973421Z |
-| docs/archive/hermes/_index.md | 52adf03e736ad75c0e41d1a9ea6fe9088c988c1cd0fd38f4a092bc63a664d727 | text/plain | tracked | 2025-12-17T16:14:20.980058Z |
-| docs/archive/hormiguero/_index.md | 7b91f15308fd259b9b27f7615674fecc024e8c1e0a454371e83c605e7064068f | text/plain | tracked | 2025-12-17T16:14:20.986171Z |
-| docs/archive/logs_vx11.md | cfde92a2fcb1d6f3782ca339d3db15f046e8ba28f0f03454757c56ba7ee9797a | text/plain | tracked | 2025-12-17T16:14:20.992442Z |
-| docs/archive/madre/_index.md | 861aec6389813fd51ab966aa2db26bcb053c910716748683e6da8ddc80864192 | text/plain | tracked | 2025-12-17T16:14:20.999585Z |
-| docs/archive/manifestator/_index.md | ad37b8e15e0ea2ab74d3da066a3512530c26073916bdf419f98b5e3012188364 | text/plain | tracked | 2025-12-17T16:14:21.005592Z |
-| docs/archive/mcp/_index.md | 0b4c891281a18eb4905c8b081b7bf001f0d88821ee809f5503ab69910ca2a2ed | text/plain | tracked | 2025-12-17T16:14:21.011798Z |
-| docs/archive/operator/_index.md | 9acef897f1a0286b36a56e99cc42967fee19206a5a75551f26f3b2f85c60b561 | text/plain | tracked | 2025-12-17T16:14:21.017980Z |
-| docs/archive/panel_vx11.md | a8ef70ecc23a558adc7e49579001e8b73c2d9ec41f6c4ed91e73078965f58a04 | text/plain | tracked | 2025-12-17T16:14:21.024542Z |
-| docs/archive/repo_inventory.csv | 9683b4bc6f3d963cd62f20ffe60d7dd7eb96112efb7aca372e469379ce764622 | text/csv | tracked | 2025-12-17T16:14:21.043283Z |
-| docs/archive/shub/_index.md | d71b5e906820e4892a736b3d941f84d85b367a48c669e5831ab626cc476f1896 | text/plain | tracked | 2025-12-17T16:14:21.049626Z |
-| docs/archive/shub/bd.md | f7dab984a3ca9b37521bdede8107816ad9f64fafb8a89db5a03e25572917d44b | text/plain | tracked | 2025-12-17T16:14:21.055404Z |
-| docs/archive/shub/dsp.md | 8f1bc03e108c14634b28f3bd9ab0a07044455be62c60a4c136f75897e67867a9 | text/plain | tracked | 2025-12-17T16:14:21.061402Z |
-| docs/archive/shub/fx_chains.md | 89ad2fbf172abca015e2db5ae1c64fbf3c41f2b6b08db699a3ae940c81049136 | text/plain | tracked | 2025-12-17T16:14:21.068018Z |
-| docs/archive/shub/ingeniero_vivo.md | c741ad624e1924306d3d162ccbeb843d637d199e1d6cc200fb923b10fb9997d9 | text/plain | tracked | 2025-12-17T16:14:21.073856Z |
-| docs/archive/shub/modo_c.md | 4a77e146e5588a91e05136270e7dc2b45576efdbe9bd4302a3cc89a31fc16684 | text/plain | tracked | 2025-12-17T16:14:21.080128Z |
-| docs/archive/shub/pipelines.md | a6a7f8d31cc41271450239ef29d432ad400634683c989718da3b86f896d4e641 | text/plain | tracked | 2025-12-17T16:14:21.086187Z |
-| docs/archive/shub/reaper.md | dc3da4971bac5af87ee8bcab2d8ceba399d9343d2c81134f1305c7c24804eeee | text/plain | tracked | 2025-12-17T16:14:21.091717Z |
-| docs/archive/shub/shub2.txt | 0defb2c6ae8e1587b683f951275ad9abffff683dddc34e8519fc835826b8b834 | text/x-script.python | tracked | 2025-12-17T16:14:21.097873Z |
-| docs/archive/spawner/_index.md | c2bc3ee70efcb5d3b638d7f9fca9a0bd046e2bf11df0b9609ace1b77d881a38b | text/plain | tracked | 2025-12-17T16:14:21.107083Z |
-| docs/archive/switch/_index.md | 3f91265d82f3b08e4a5f12b6a6843491ffb9f25fe1268e70db7b7573b3ccb977 | text/plain | tracked | 2025-12-17T16:14:21.115874Z |
-| docs/archive/vx11_1.txt | 87eb6af73d9146db3b756e0844acd9a39856ee307f5de83bafc582ae289cb40e | text/x-script.python | tracked | 2025-12-17T16:14:21.121353Z |
-| docs/audit/AGENTS_SUITE_FINAL_SUMMARY.md | c615e0059d474f728158a968df89e1c45606f4c46731ae24b9c4e92224ae393c | text/plain | tracked | 2025-12-17T16:14:21.132246Z |
-| docs/audit/AGENTS_SUITE_VALIDATION_20251214.md | c9fc2df2865965902bfb30c249f1940ee0b0a3d08747a989b2507050d9ccaaad | text/plain | tracked | 2025-12-17T16:14:21.143345Z |
-| docs/audit/AGENT_VX11_CONFIG_COMPLETION.md | a6e74c5330ed5a2c9751df11789840ad85b75574d6370a76459c7a7a3019cf57 | text/plain | tracked | 2025-12-17T16:14:21.159311Z |
-| docs/audit/ARCHIVE_REFERENCES.md | b847caf908cdb92d4942257b75c7b91f6e97ee04cf09ef1281f5288f6dbc6c71 | text/plain | tracked | 2025-12-17T16:14:21.167738Z |
-| docs/audit/BUILD_ARTIFACTS_INVENTORY.md | 05a89f20c772d4cbeb1ffa797b1e768e14a7d26cf7e6648ca1e050de1b595b46 | text/plain | tracked | 2025-12-17T16:14:21.175207Z |
-| docs/audit/CIERRE_CANONICO_TENTACULO_LINK_v7.md | 8a5d41a4a17e318667d9404d9c7f95ca69edf8ae1484887e5de0eba5346bfe5b | text/plain | tracked | 2025-12-17T16:14:21.185962Z |
-| docs/audit/COMPOSE_PORT_MAP_AFTER.md | ff83adebc2c3e07c5d08d9a6ea9f9474bdd2a5a77e8a5ebacc199d28c256bd7e | text/plain | tracked | 2025-12-17T16:14:21.196948Z |
-| docs/audit/COMPOSE_PORT_MAP_BEFORE.md | 6f57039d2964952bab910c5d5f2c9d7ad8d03f7a78a6b8671edf88040f886f0a | text/plain | tracked | 2025-12-17T16:14:21.210308Z |
-| docs/audit/COPILOT_BOOTSTRAP.md | e270b3684de699358a80a6f16bd9f01511cc5568d658d50692c53d2e0fbfa304 | text/plain | tracked | 2025-12-17T16:14:21.226491Z |
-| docs/audit/COPILOT_CONFIG_FINAL.md | 7705b7ba32adc8ffd6f1626f6ffd961f4e1bf11087df621e7b0023bcd7561891 | text/plain | tracked | 2025-12-17T16:14:21.240581Z |
-| docs/audit/DBMAP_MAINTENANCE.md | dda0f1530a11f64d1dbb502e6fd4a67cc59d6d494f3b064e4918b93b2a4749af | text/plain | tracked | 2025-12-17T16:14:21.252017Z |
-| docs/audit/DB_CONTRACT_REPORT.md | 6694814fc8120a3d4a7ea2549791d8c2feccdfdeaaf9ee46de9f8fd1ce500553 | text/plain | tracked | 2025-12-17T16:14:21.259649Z |
-| docs/audit/DB_MAP_v7_FINAL.md | e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855 | inode/x-empty | tracked | 2025-12-17T16:14:21.263429Z |
-| docs/audit/DB_MAP_v7_META.txt | dc2f88c32f7fc65ad43aa8ee99e90b00571c0222485a51220522a2b022679802 | text/plain | tracked | 2025-12-17T16:14:21.271715Z |
-| docs/audit/DB_SCHEMA_v7_FINAL.json | 17a5136eb7460369b1d39485febfe530d08d6ce9236c0ea2416345391ed85556 | application/json | tracked | 2025-12-17T16:14:21.275369Z |
-| docs/audit/DOCS_DRIFT_MAP.md | 8d079cb73517962434cc4486e7e4a7f9196d03079fa391a0bf353a6b249ac95c | text/plain | tracked | 2025-12-17T16:14:21.289002Z |
-| docs/audit/FINAL_TEST_RESULTS_P0_COMPLETE.txt | 15a8a1c6bc11434baa0c0323f4cd06657974638dcdb266702e64a017e869c20d | text/plain | tracked | 2025-12-17T16:14:21.302751Z |
-| docs/audit/GFH_FINAL_SUMMARY.md | e05f2d33837d5720f215e9cc86b1def63225676b3e044bcd10cc5bb5ff59450f | text/plain | tracked | 2025-12-17T16:14:21.317019Z |
-| docs/audit/NODE_MODULES_INVENTORY.md | a381ca277791c698176e85d144a6ebeba197b08789085a9560eafe540ef425fa | text/plain | tracked | 2025-12-17T16:14:21.325815Z |
-| docs/audit/PHASE0_COPILOT_CONTROLPLANE_REPORT.md | 74627acbe00f976fd520ed4e79948a9b53c22a426a1115a12f37c7f99099d3d3 | text/plain | tracked | 2025-12-17T16:14:21.344641Z |
-| docs/audit/PHASE2B_DECISIONS.md | 03d7bf4618bfa39cca4c698262444abf79a1fa82c939b0380d5704e642e4a810 | text/plain | tracked | 2025-12-17T16:14:21.356475Z |
-| docs/audit/PHASE2B_DOCUMENTATION_INDEX.md | caeb127a3d571ccdd472736e2a3195dca9e495803e817101698250be2bb61fa6 | text/plain | tracked | 2025-12-17T16:14:21.367449Z |
-| docs/audit/PHASE2B_EXECUTION_PLAN.md | ede598ab82bcafc43009da1baa86772eda59bbdf7f48c3153f5d881453080081 | text/plain | tracked | 2025-12-17T16:14:21.379184Z |
-| docs/audit/PHASE2B_FINAL_CLOSURE.md | 1de609ee099a56361bb598e3ee59c87ba6c9c74b14ff4bfbeb125c508a393269 | text/plain | tracked | 2025-12-17T16:14:21.390418Z |
-| docs/audit/PHASE2B_ROADMAP_PLAYWRIGHT_MODELS.md | 67f80e76c6fe792dffd505a2fcc764094bb906098d6377a1d520636022f80d4e | text/x-script.python | tracked | 2025-12-17T16:14:21.398435Z |
-| docs/audit/PHASE2B_RUN_LOG.md | f5542ddb70e624e612b1d655cb124178dd6cbaa674110ef7ea29a2baae429cc9 | text/plain | tracked | 2025-12-17T16:14:21.408175Z |
-| docs/audit/PHASE2_COMPLETE_PICTURE.md | 85738cb0406d58737df2f30368e3255166bf314129bec2246083e1e72b21429e | text/plain | tracked | 2025-12-17T16:14:21.419922Z |
-| docs/audit/PHASE2_SWITCH_HERMES_P0_COMPLETION.md | 9f54d75fe11fc10ceb556faa6005575d0939a38cd61032a0cf7824345d9cf9ad | text/plain | tracked | 2025-12-17T16:14:21.428736Z |
-| docs/audit/PHASE3_CLI_CONCENTRATOR_FLUZO.md | 278c616740f2a057762cbd85583959a1ba174e1f6ad75b77c135c9878f3ba303 | text/x-script.python | tracked | 2025-12-17T16:14:21.433022Z |
-| docs/audit/PHASE3_CLOSURE_SUMMARY.md | daead90b7dcbafa208a6beca26b33e4427c27aa3dd1788417f16abec1234c524 | text/plain | tracked | 2025-12-17T16:14:21.442131Z |
-| docs/audit/PHASE4_CLOSURE_TENTACULO_LINK_v7.md | a3fa29bc5e377a7d4d35bdd3b8795eecb75cbe856710970a5158bae59dd193bf | text/x-script.python | tracked | 2025-12-17T16:14:21.446402Z |
-| docs/audit/PHASE4_COMPLETION_REPORT.md | 7e9b0aa6605fe662dfee09102074b0785ed3dd22abbe09467ae8f8b9af12e34b | text/plain | tracked | 2025-12-17T16:14:21.455233Z |
-| docs/audit/PHASEF_OPERATOR_CHAT_IMPLEMENTATION_REPORT.md | 12233720e0ca51aa87c33d1039f26c10cfcb4f2b6498ea06b88ed966e2fc2d09 | text/x-script.python | tracked | 2025-12-17T16:14:21.459654Z |
-| docs/audit/PHASEG_TENTACULO_LINK_ROUTER_REPORT.md | 9443300eb8a631730c846d6254116b43902315c6e41c4f7e1f7bbd2fe435cf6d | text/plain | tracked | 2025-12-17T16:14:21.471483Z |
-| docs/audit/PHASEH_OPERATOR_UI_TIER1_REPORT.md | 796c80489554763f11cb4ad85e27e035d264ac24fd6045c720a09801e26550f7 | text/x-java | tracked | 2025-12-17T16:14:21.484095Z |
-| docs/audit/PLAN_A_F_COMPLETION_REPORT.md | bd8dbb0e5a61423be09b6edb45ced9239089c8f37b1e57b3079a098ef259bcd6 | text/plain | tracked | 2025-12-17T16:14:21.494803Z |
-| docs/audit/PRODUCTION_READINESS_CHECK_v7_FINAL.md | fecb20e3c0278abda79487f24ea32303ac075ca87f0b388670a3441d120f6e58 | text/plain | tracked | 2025-12-17T16:14:21.510061Z |
-| docs/audit/RUNTIME_PROCESS_AND_PORT_AUDIT.md | f3cab78e1734b0653dda0710245b3ada8411b50c47e051bdb6f02cf6d43d220e | text/plain | tracked | 2025-12-17T16:14:21.522852Z |
-| docs/audit/SECRETS_SCAN_2025-12-16.md | 966553f619817fed4ef5d8d3b6deb501c3c0aa51190a765c1c4eaac8e265ffbf | text/plain | tracked | 2025-12-17T16:14:21.532540Z |
-| docs/audit/SESSION_SUMMARY_TENTACULO_LINK_v7_PHASE4.md | caa7f92102777da97da4200327b2d8f05b40fc34aa95eb1c1d5c89b0c1ef02dc | text/x-script.python | tracked | 2025-12-17T16:14:21.537483Z |
-| docs/audit/SWITCH_HERMES_ACCEPTANCE.md | 9992e0871dd8098f825aa77aecaab6ef6c09f23fe2220eb284d66018f2ef0427 | text/plain | tracked | 2025-12-17T16:14:21.545601Z |
-| docs/audit/SWITCH_HERMES_ACCEPTANCE_DB.json | 7d5437e581d8f4b13100a0cc892a73e2882b0362780b2fe91f115836d8e37d05 | application/json | tracked | 2025-12-17T16:14:21.547982Z |
-| docs/audit/SWITCH_HERMES_PRODUCTION_READY.md | 25d2c1370ae9651216a94ec20d093e2e0577ff1081cacffb7717be7dfde06987 | text/plain | tracked | 2025-12-17T16:14:21.558244Z |
-| docs/audit/SWITCH_HERMES_REALITY.md | 100da4be151584d045a1f90e185f1901db4f5b309cd4863902c95304f838b0de | text/plain | tracked | 2025-12-17T16:14:21.567143Z |
-| docs/audit/SWITCH_HERMES_SMOKE.md | 42f09cd51fa5ddad3036b5f71bd05cfb485673cbb893bee25ce9fb74972ab011 | text/plain | tracked | 2025-12-17T16:14:21.577089Z |
-| docs/audit/TENTACULO_LINK_AUDIT_BEFORE_2025-12-16.md | 6b11d4373370c6120e62c71281d344876feffb163048d6a1c5a0a1aae8de84b2 | text/plain | tracked | 2025-12-17T16:14:21.585659Z |
-| docs/audit/TENTACULO_LINK_PRODUCTION_ALIGNMENT.md | f91704d11cae0b4b843b997968a5029f4d6f08b7651fa494b32565adb32c81ed | text/x-script.python | tracked | 2025-12-17T16:14:21.590024Z |
-| docs/audit/TENTACULO_LINK_STRUCTURAL_AUDIT.md | 073a18cd7b02fa6ebbc1148b3b897c7ffffc93016a8a8108755e6cb43243e307 | text/plain | tracked | 2025-12-17T16:14:21.601801Z |
-| docs/audit/TEST_FAILS_SWITCH_HERMES_baseline.txt | 129dc491728124156c7a65e12afa77b0af27a4c9e856d5e08c6a8ce82127ff57 | text/plain | tracked | 2025-12-17T16:14:21.615117Z |
-| docs/audit/TEST_RESULTS_P0_FINAL.txt | 11a095693f9317763891fa5aac0951120d4753b1fa69531b331f36d219bdfe29 | text/plain | tracked | 2025-12-17T16:14:21.630840Z |
-| docs/audit/TEST_RESULTS_P0_FIX.txt | 24f607972b8c535563a87b76d62ba034eec5344ac272bf9071367fa851d96d1c | text/plain | tracked | 2025-12-17T16:14:21.642152Z |
-| docs/audit/VX11_AGENT_BOOTSTRAP_REPORT.md | 6cab346ba67ae9030f3b40047750637d0d56d00dbef62f9bc64695b3ebfa89a0 | text/plain | tracked | 2025-12-17T16:14:21.654615Z |
-| docs/audit/VX11_AGENT_IMPLEMENTATION_REPORT.md | 48147b10c75bbe31e55170a9d60106657f8106195f0b3c09edcf8de3224e4bdb | text/plain | tracked | 2025-12-17T16:14:21.668278Z |
-| docs/audit/VX11_API_DISCOVERY.md | d629760bcc0daaacf813a88d61ecb0ff8d6fcb1e1ebed286a15e8acf4597d8c7 | text/plain | tracked | 2025-12-17T16:14:21.680181Z |
-| docs/audit/VX11_BUILD_ISSUES.md | c0087543a00449eb55a70ab4d244aaea2f6b53b442f7dd77a2c7cce482a5c9f0 | text/plain | tracked | 2025-12-17T16:14:21.693015Z |
-| docs/audit/VX11_CANONICAL_AUDIT.md | 7d31628e2d2336261f5d1b09b1b2478a88b945edce7302e9abe85fde4e041466 | text/plain | tracked | 2025-12-17T16:14:21.706382Z |
-| docs/audit/VX11_COPILOT_ONBOARDING_AND_WORKFLOWS.md | 9a4fb5dae5faf0e21df55a0a8774da9d97133205d4190ba62b4fac99fc96cdc8 | text/x-script.python | tracked | 2025-12-17T16:14:21.711476Z |
-| docs/audit/VX11_DIAGNOSTICS_AND_REPAIRS_20251215.md | 2b55d8374e46513e6dede55c30bac2683546b10e8ff2888247f92e763545b358 | text/plain | tracked | 2025-12-17T16:14:21.720612Z |
-| docs/audit/VX11_RUNTIME_TRUTH_REPORT.md | dcbf331e206843f0dc5ec9504eb8d8f60ccdd924cd90157ae52f26ba25e248cb | text/plain | tracked | 2025-12-17T16:14:21.730495Z |
-| docs/audit/VX11_RUNTIME_VS_CANON.md | e7bb2b0bd7c843fb89c01a12a8cb453dc414ace75d59efe8a6b752c12b2fea16 | text/plain | tracked | 2025-12-17T16:14:21.738838Z |
-| docs/audit/VX11_STATUS_REPORT.md | e05184611116b142fd1a3cc5dbc7be477de60edeb60932b73cc98d861a158c80 | text/plain | tracked | 2025-12-17T16:14:21.747580Z |
-| docs/audit/VX11_VALIDATE_REPORT.md | d503735063d8cd1b5535c79d3618a39191b3ef4a701e94bc7048a348d3edaa54 | text/plain | tracked | 2025-12-17T16:14:21.755963Z |
-| docs/audit/backups/dbmap/20251217T140330Z/DB_MAP_v7_FINAL.md | f52ad3ff6424a56efbf6e7b36104399345687107e62ba67bc843cce689735aba | text/plain | tracked | 2025-12-17T16:14:21.768250Z |
-| docs/audit/backups/dbmap/20251217T140330Z/DB_SCHEMA_v7_FINAL.json | 6366d5fef1cb5f192b340526d318b0d63a9cedb37c24a81b3922bdc1d0968e42 | application/json | tracked | 2025-12-17T16:14:21.771378Z |
-| docs/audit/copilot_archive/VX11-Inspector.prompt.md | 3e7a039943cb1ff07c7ff6771ee117a23c59fdf34ff7cc46f2282555b69ab4b6 | text/plain | tracked | 2025-12-17T16:14:21.781753Z |
-| docs/audit/copilot_archive/VX11-Operator-Lite.prompt.md | e80ef196c7a748eba5d746e53cf086dc78e64590129eb2551e195427f1806441 | text/plain | tracked | 2025-12-17T16:14:21.791068Z |
-| docs/audit/copilot_archive/VX11-Operator.prompt.md | a383b88405d725dde5d06041c744a7df2a4fcd0c9554701ed2e3ad456fb82781 | text/plain | tracked | 2025-12-17T16:14:21.804817Z |
-| docs/docsset/shub.txt | 9b4536f089bd877a4f9628a28e1c0e1bce99dcde722faaaec91e99cc72c2244d | text/plain | tracked | 2025-12-17T16:14:21.820280Z |
-| docs/docsset/shub2.txt | 0defb2c6ae8e1587b683f951275ad9abffff683dddc34e8519fc835826b8b834 | text/x-script.python | tracked | 2025-12-17T16:14:21.828611Z |
-| docs/docsset/shubnoggurath.txt | df49b68e953b9a97abcd0d641853172b18c90b741d42e6a24e27b34423bd3f76 | text/plain | tracked | 2025-12-17T16:14:21.845726Z |
-| docs/docsset/tokens | a7e8b3de31636cde4a2cbfd9c9bc23d5684a6adece6eafc91264425acc461f88 | text/plain | tracked | 2025-12-17T16:14:21.856710Z |
-| docs/docsset/vx11.txt | e0330e0e845938e920defd6d3f93774555747343c8315ce59fb5da7262626b73 | text/x-script.python | tracked | 2025-12-17T16:14:21.865538Z |
-| docs/docsset/vx11_funcional | e8d8af56a99effc201da476848ac671e7b8703b375c944dd5682ec6c1bccf43b | text/plain | tracked | 2025-12-17T16:14:21.884890Z |
-| docs/docsset/vx11_union.txt | d0ba2eed49c0675d29746b3fe919957fe1e933e8a5d163b25f2c7ae18721ee14 | text/x-script.python | tracked | 2025-12-17T16:14:21.892808Z |
-| docs/docsset/vx11_zip.txt | 169eaaf7e8e9596301b14d20f1a7a4ecc363f64f61b70d3e6d55097b79a623bc | text/x-script.python | tracked | 2025-12-17T16:14:21.902166Z |
-| docs/shub_specs/shub.txt | 9b4536f089bd877a4f9628a28e1c0e1bce99dcde722faaaec91e99cc72c2244d | text/plain | tracked | 2025-12-17T16:14:21.914383Z |
-| docs/shub_specs/shub2.txt | 0defb2c6ae8e1587b683f951275ad9abffff683dddc34e8519fc835826b8b834 | text/x-script.python | tracked | 2025-12-17T16:14:21.921728Z |
-| docs/shub_specs/shubnoggurath.txt | df49b68e953b9a97abcd0d641853172b18c90b741d42e6a24e27b34423bd3f76 | text/plain | tracked | 2025-12-17T16:14:21.935935Z |
-| forensic/crashes/CRASH_20251216T032116Z/dsp_pipeline_trace.txt | 10841fd0fd46dbce5f7a417c8086ff9f9375deb9103d02341a6e0c4dae6a8b2a | text/plain | tracked | 2025-12-17T16:14:21.943471Z |
-| forensic/crashes/CRASH_20251216T032116Z/main.py | 4f6973640f36f1ac91c325a810ac52335bb968f252a6406d85efd253c8c17bf3 | text/plain | tracked | 2025-12-17T16:14:21.949563Z |
-| forensic/crashes/CRASH_20251216T032117Z/dsp_pipeline_trace.txt | 354865d3a923ccc3c700248d0e1ef9f7caf090489bd795a06982f96e54c4046e | text/plain | tracked | 2025-12-17T16:14:21.956589Z |
-| forensic/crashes/CRASH_20251216T032117Z/main.py | 4f6973640f36f1ac91c325a810ac52335bb968f252a6406d85efd253c8c17bf3 | text/plain | tracked | 2025-12-17T16:14:21.962458Z |
-| forensic/crashes/CRASH_20251216T033751Z/dsp_pipeline_trace.txt | aa9fa7222182669ae2403ace401f00b4fe589a33d0b52ff28cb914087a749a55 | text/plain | tracked | 2025-12-17T16:14:21.968960Z |
-| forensic/crashes/CRASH_20251216T033751Z/main.py | 4f6973640f36f1ac91c325a810ac52335bb968f252a6406d85efd253c8c17bf3 | text/plain | tracked | 2025-12-17T16:14:21.974358Z |
-| forensic/crashes/CRASH_20251216T033803Z/dsp_pipeline_trace.txt | 5646066db4ec7634d04a2d75103e6e78fd955380920ee597a8fb7a8d41af5dde | text/plain | tracked | 2025-12-17T16:14:21.981619Z |
-| forensic/crashes/CRASH_20251216T033803Z/main.py | 4f6973640f36f1ac91c325a810ac52335bb968f252a6406d85efd253c8c17bf3 | text/plain | tracked | 2025-12-17T16:14:21.987781Z |
-| forensic/crashes/CRASH_20251216T033804Z/dsp_pipeline_trace.txt | 71105410c94dfeb76ef9acbfdcfd290df79eb3d39018164005e4cba81f1fa925 | text/plain | tracked | 2025-12-17T16:14:21.996483Z |
-| forensic/crashes/CRASH_20251216T033804Z/main.py | 4f6973640f36f1ac91c325a810ac52335bb968f252a6406d85efd253c8c17bf3 | text/plain | tracked | 2025-12-17T16:14:22.004503Z |
-| forensic/crashes/CRASH_20251216T034013Z/dsp_pipeline_trace.txt | d2fb928e2a686871daaa6ee78aa74122396605b3e0e8f68820635519e89c434f | text/plain | tracked | 2025-12-17T16:14:22.014370Z |
-| forensic/crashes/CRASH_20251216T034013Z/main.py | 4f6973640f36f1ac91c325a810ac52335bb968f252a6406d85efd253c8c17bf3 | text/plain | tracked | 2025-12-17T16:14:22.022630Z |
-| forensic/crashes/CRASH_20251216T034024Z/dsp_pipeline_trace.txt | 0d2de9c828d05cab5fb06b12f8e79e2aa14cbe71492590b2353b199dd3308500 | text/plain | tracked | 2025-12-17T16:14:22.032143Z |
-| forensic/crashes/CRASH_20251216T034024Z/main.py | 4f6973640f36f1ac91c325a810ac52335bb968f252a6406d85efd253c8c17bf3 | text/plain | tracked | 2025-12-17T16:14:22.037552Z |
-| forensic/crashes/CRASH_20251216T034025Z/dsp_pipeline_trace.txt | 6606ad1e24889046dafb4f3597d23596da6d7fb22b3feef9eadc6b43b8080589 | text/plain | tracked | 2025-12-17T16:14:22.044083Z |
-| forensic/crashes/CRASH_20251216T034025Z/main.py | 4f6973640f36f1ac91c325a810ac52335bb968f252a6406d85efd253c8c17bf3 | text/plain | tracked | 2025-12-17T16:14:22.050852Z |
-| forensic/crashes/CRASH_20251216T034026Z/dsp_pipeline_trace.txt | 17830f7822f58a1d39f9eb1879c68926defd8587459a4c83e2830d559e0dabbb | text/plain | tracked | 2025-12-17T16:14:22.057879Z |
-| forensic/crashes/CRASH_20251216T034026Z/main.py | 4f6973640f36f1ac91c325a810ac52335bb968f252a6406d85efd253c8c17bf3 | text/plain | tracked | 2025-12-17T16:14:22.063966Z |
-| gateway.deprecated/README.md | 80eb422275229edbab571a4702968e91bf785dd14c878ea71ea422b0c0a74fec | text/plain | tracked | 2025-12-17T16:14:22.069964Z |
-| hormiguero/Dockerfile | 2683fcf7971f575b0668805de2104d30dcf620ff6000d0285ceebc985228c080 | text/plain | tracked | 2025-12-17T16:14:22.077107Z |
-| hormiguero/__init__.py | a5ed5433243c50085803de2ff124ad9188ecf675cad5a9ca966ecb3f894a9cc6 | text/plain | tracked | 2025-12-17T16:14:22.083873Z |
-| hormiguero/ants_mutant.py | d5a64f36b6710ea62a1b7a56917982e6e5e864d24316aed01408e145c814e60d | text/plain | tracked | 2025-12-17T16:14:22.088026Z |
-| hormiguero/auto_organizer.py | 198a60f270a6e277b951d26ffec3e2f00fe716084fe78734d97c679331521a1e | text/plain | tracked | 2025-12-17T16:14:22.092301Z |
-| hormiguero/core/ant_colony.py | cecc02aeb24127a48f5877a5c94105eb287cf16cb1be01c230b5ce0f30929fb9 | text/x-script.python | tracked | 2025-12-17T16:14:22.095972Z |
-| hormiguero/core/queen.py | e7a6ee54d770d3454f995706154048906faf5c53b2a4653fef35d5dd0ef78e79 | text/x-script.python | tracked | 2025-12-17T16:14:22.099660Z |
-| hormiguero/core/reina_ia.py | d2d8c35cef01c64c7d9a5732953c17e931f98f9773db7a9f4d728159dfa805b2 | text/plain | tracked | 2025-12-17T16:14:22.103704Z |
-| hormiguero/core/task_distributor.py | 54ece2710ef4a6459dc2aef3c9e6e5bff6a3a967eb3cc8b27997761bbb9fcdcc | text/x-script.python | tracked | 2025-12-17T16:14:22.107116Z |
-| hormiguero/genetic_algorithm.py | 4548f1c09af532f6411995c7f186567bfda572173bced477427daa96604b5df6 | text/plain | tracked | 2025-12-17T16:14:22.112407Z |
-| hormiguero/hormiguero_shub_integration.py | 49eb4ca195289300c3551559aeca2c9f0245f10fa0e89e0d9d60750f416688d9 | text/plain | tracked | 2025-12-17T16:14:22.116942Z |
-| hormiguero/hormiguero_v7.py | 5f8c7d18b926534cda4da10488fd417810efdf2a3740db9da17b93da170ff4ea | text/plain | tracked | 2025-12-17T16:14:22.121862Z |
-| hormiguero/main.py | 2d404c1977ca3bf6286d309712344df538a087356d8cf14c820d3476880a7584 | text/plain | tracked | 2025-12-17T16:14:22.124961Z |
-| hormiguero/main_v7.py | 1c6670f264af7e012409449dbd72490e705d91a989fe4bd8cb864b31c6f34276 | text/plain | tracked | 2025-12-17T16:14:22.129334Z |
-| hormiguero/pheromone_engine.py | 211201a667abf0c0117f33ea9342c38429a047eb9babb068cb2cadf969d6ce7e | text/plain | tracked | 2025-12-17T16:14:22.133613Z |
-| hormiguero/queen_paso6.py | e05116535da0b81a571cf8436e5fac00555f67fb454455b55f159af347a1758a | text/plain | tracked | 2025-12-17T16:14:22.137320Z |
-| hormiguero/shub_audio_pheromones.py | c36bc3103ef16a08d11a89914b47308dce250e6e8c3fab1618a5e30096a9a36e | text/plain | tracked | 2025-12-17T16:14:22.141104Z |
-| madre/Dockerfile | 64b74920f527d629a0f63101599b9194a8deb58def947f0552d67fbb11ffb1e9 | text/plain | tracked | 2025-12-17T16:14:22.150738Z |
-| madre/README.md | 1b86574f6429f09d7a8e7667db136d1babcf35976e555da54fedec75a37be869 | text/plain | tracked | 2025-12-17T16:14:22.166546Z |
-| madre/__init__.py | 43a07167bd5ed27cde47e7010ba6da170f93e43c0edd966e3aa0937a3af739b6 | text/plain | tracked | 2025-12-17T16:14:22.171922Z |
-| madre/bridge_handler.py | 541a80c18366ad19142bbba6312c123cf9ad6a7e9a9f3bb85fc012fd715953a5 | text/plain | tracked | 2025-12-17T16:14:22.175589Z |
-| madre/core/__init__.py | 6cbb788b500b8377a17e7276ae144f7601f87b354c926ec0aed6ab0650171e4b | text/plain | tracked | 2025-12-17T16:14:22.179597Z |
-| madre/core/db.py | 6802f354f5c435f38f231c904d1635d540b9cd513a443da9574a86e0a8ac10e2 | text/plain | tracked | 2025-12-17T16:14:22.185504Z |
-| madre/core/delegation.py | f5835ac101f55ed422011177535a13418f8e93a26f9e390cf7eb25119ff1731e | text/plain | tracked | 2025-12-17T16:14:22.189569Z |
-| madre/core/models.py | dff99089a251c29fe1fe3645b0dd0065cd08dd9609332b4b79383bc1b3f46769 | text/plain | tracked | 2025-12-17T16:14:22.193472Z |
-| madre/core/parser.py | 0321b3b4905e4766038dd292c4c3d4c07f9adbf543f37d70049cdbe7155402e6 | text/plain | tracked | 2025-12-17T16:14:22.200727Z |
-| madre/core/planner.py | fde9346a2f8d7936f416bd884dae34e838aa5729c6df80b3d825304079a015dd | text/plain | tracked | 2025-12-17T16:14:22.204576Z |
-| madre/core/policy.py | b6c8a3744fb9448ef3637e764030d61393c37856596b9599d8a8a6908b7f247d | text/plain | tracked | 2025-12-17T16:14:22.207934Z |
-| madre/core/runner.py | d7d2e4b459af86fb3b81a31040306838de3eec215e2c8efee25638e3a323490a | text/plain | tracked | 2025-12-17T16:14:22.215499Z |
-| madre/daughters.py | 60061dbab1d9dd8ae64c6d1bb8ef84edadd6d08606d8369dfe97b3a628be567c | text/plain | tracked | 2025-12-17T16:14:22.222251Z |
-| madre/daughters_paso5.py | 18e3f8eec549125a15c757524dd99ee0c0ce35faf45d201621dcc762f007f7ad | text/plain | tracked | 2025-12-17T16:14:22.226107Z |
-| madre/dsl_compiler.py | 1fb7eaab2bbdc284fd48ce301cd0064d0e82feed12c1af326c2a3e87ce9b1cc9 | text/plain | tracked | 2025-12-17T16:14:22.233847Z |
-| madre/dsl_parser.py | 982437a7e5cc630a09c4561156888a05840f4a29e0012bd4024cfb57268b27d0 | text/plain | tracked | 2025-12-17T16:14:22.237973Z |
-| madre/fluzo_integration.py | c562a3f1503adba9d56239f45dcfad58f4b411834ae469127123df2b61274d6c | text/plain | tracked | 2025-12-17T16:14:22.241418Z |
-| madre/madre_shub_orchestrator.py | 0b7b36db193fa0f112ad5f47b306f00567c01bd9458cad9dda3c63a0f783d364 | text/plain | tracked | 2025-12-17T16:14:22.247347Z |
-| madre/main.py | 8e82c87a7d742cec47589e0d08595c88f5cdbf7f1b8cd8665de2612008ee48c6 | text/plain | tracked | 2025-12-17T16:14:22.254012Z |
-| madre/main_legacy.py | 2e79ca4dfe965d0eb4e7efc9f3d1e591e2753b58d2ded6bd23d45c42ca12b5bb | text/plain | tracked | 2025-12-17T16:14:22.262540Z |
-| madre/main_v7_production.py | 7e6aa21f870e29ceb28e9e2d26306c92a9e9b8e0c727aa2e1349f6a3aca4ff5d | text/plain | tracked | 2025-12-17T16:14:22.270330Z |
-| manifestator.http | a7e904ed22e1de3e6bf62cfb77aecbc72e741682844184bd4d4f03fab701d6cd | text/plain | tracked | 2025-12-17T16:14:22.278706Z |
-| manifestator/Dockerfile | 8e898bf17c14dfc1dd4e086a49f5fb27a8df0876744a2fd0bf838caa582d26fe | text/plain | tracked | 2025-12-17T16:14:22.289054Z |
-| manifestator/__init__.py | b5484fbaa032dacf2111531a4d506bfc555f4f20b73aaeac3db1143f3fd7ac60 | text/plain | tracked | 2025-12-17T16:14:22.298392Z |
-| manifestator/auto_patcher.py | 8b70d3183e5b0fcc3ea381536d4e92cffb875ba992bdff4c4264187ea8054030 | text/plain | tracked | 2025-12-17T16:14:22.303462Z |
-| manifestator/autopatcher_v2.py | 4ab0506e8f153cb7933041a4b55b92db8dc3aa3b324daafe77220d42bed85439 | text/plain | tracked | 2025-12-17T16:14:22.307952Z |
-| manifestator/dsl.py | 067e429caeecf29ea6a61bf3890264a823c562cebf75341605abe98fcc1c608e | text/plain | tracked | 2025-12-17T16:14:22.314832Z |
-| manifestator/main.py | 4814fcc13035ec55d8b386c7b8105e4f3eaa1839ae9962cc35a486ad7cfc45ac | text/plain | tracked | 2025-12-17T16:14:22.321317Z |
-| manifestator/manifestator_shub_bridge.py | 49a92b34135316325199d19d7fa322e58c51219b886021eb1e9baf520f9dbfd7 | text/plain | tracked | 2025-12-17T16:14:22.325264Z |
-| manifestator/patch_generator.py | 9742447db6e09f4c9ece7680b7b1a7c21d22a20984c49f511a38c3395906d3bc | text/plain | tracked | 2025-12-17T16:14:22.331960Z |
-| manifestator/patch_generator_paso7.py | b2f630a7b0d8288f8fe9aab0d8ca68d35fdb47e94bd7bdd02b6ce4154a400361 | text/plain | tracked | 2025-12-17T16:14:22.336947Z |
-| manifestator/patch_generator_v2.py | 06e96bc229cfbe149df4996e860609ad3e70a59027d8a768f1fee261e8d142a8 | text/plain | tracked | 2025-12-17T16:14:22.341463Z |
-| mcp/Dockerfile | b294ff9ed15438b3758c194bb51afd8695f4e6a85ea83804792ca5fb300a979c | text/plain | tracked | 2025-12-17T16:14:22.350012Z |
-| mcp/README.md | e8ef317708bc1da4b1187159a6f81f18d7bc137307b17fef412f975ba6808a32 | text/plain | tracked | 2025-12-17T16:14:22.356660Z |
-| mcp/__init__.py | 0fa42c4f036c553bcafccd12c09fef3e3b11771215bd86a8e1e8c813ed88da34 | text/plain | tracked | 2025-12-17T16:14:22.363154Z |
-| mcp/conversational_v2.py | 1bce3201f84c5a2d0d61cbd4e6f8546a44ba5cb154a422aa69a92c4ece0b16ba | text/plain | tracked | 2025-12-17T16:14:22.370690Z |
-| mcp/main.py | 7c7e12d2252b45d2765740af75817e3024df998a6deb505ba0bf4c75e91bd4fb | text/plain | tracked | 2025-12-17T16:14:22.374841Z |
-| mcp/mcp_shub_bridge.py | 96d863ce12904ba3e9076cf5093e9807dbe95a98e9b662a0159bc4b0b078e10a | text/plain | tracked | 2025-12-17T16:14:22.378750Z |
-| mcp/tools_wrapper.py | 1bfae76b9c3926f3c90a8efea58fa0981dcd13fc8779b401e92c5001f7927989 | text/plain | tracked | 2025-12-17T16:14:22.382754Z |
-| operador_ui/.gitignore | fe718e7babb14f3cbad2d97f08889b9ce5215ed3fe0e43b2b8cfbfb3b9b844e8 | text/plain | tracked | 2025-12-17T16:14:22.389192Z |
-| operador_ui/README.md | f58b5b17f83db63c09a9f2c059ec435ac8a3feb66f9337391ed5f3f62cff4e63 | text/plain | tracked | 2025-12-17T16:14:22.397729Z |
-| operador_ui/__init__.py | f2c4c429d0a54e25a0f59f07d5bbd821838dd4a3234821910c2d0981519c6ace | text/plain | tracked | 2025-12-17T16:14:22.401551Z |
-| operador_ui/backend/__init__.py | 62a32c80021ca9f2ff3a8c86591d4964456388949d9a0a5e9e8e7be88a3522da | text/plain | tracked | 2025-12-17T16:14:22.404652Z |
-| operador_ui/backend/main.py | b4ed185d84561ea9949d4c4cbb7221760f8f4cebdc54357300c7be7842b48730 | text/plain | tracked | 2025-12-17T16:14:22.407750Z |
-| operador_ui/eslint.config.js | 4efe97b16d1200fac0eaf07aa00930a8668b1f96a0be1891ace8c1e712ff0ccb | text/plain | tracked | 2025-12-17T16:14:22.414854Z |
-| operador_ui/index-test.html | 687a9318d8cd1ca6172c28297db23752cf18d7b7056030f15119c4d735c8bc99 | text/html | tracked | 2025-12-17T16:14:22.418319Z |
-| operador_ui/index.html | 33dff200f04ed3a7afc3286b5697df086925a19985407ba329f854956a867e7a | text/html | tracked | 2025-12-17T16:14:22.421666Z |
-| operador_ui/package.json | 783fd231509fc136baf778cd7435ce821ed29dd85ca230de3d972f5dc0eaf5dd | application/json | tracked | 2025-12-17T16:14:22.423394Z |
-| operador_ui/postcss.config.cjs | 7ba9a73b8e05ab7658d11753040f0da9afd22b5b256e8f2cbcf18bd4cc1e64bb | text/plain | tracked | 2025-12-17T16:14:22.429703Z |
-| operador_ui/public/vite.svg | 4a748afd443918bb16591c834c401dae33e87861ab5dbad0811c3a3b4a9214fb | image/svg+xml | tracked | 2025-12-17T16:14:22.433356Z |
-| operador_ui/src/App.css | a0715e0a09edbd0fbde65816a75e0fa0fc8b314c5260c0768c19bf3aac22621a | text/plain | tracked | 2025-12-17T16:14:22.439762Z |
-| operador_ui/src/App.tsx | eab1ecc6fc1a75d8d6b4217f3cec769198f9909bf55a90244f56ab0e4388c5de | text/x-java | tracked | 2025-12-17T16:14:22.445711Z |
-| operador_ui/src/assets/react.svg | 35ef61ed53b323ae94a16a8ec659b3d0af3880698791133f23b084085ab1c2e5 | image/svg+xml | tracked | 2025-12-17T16:14:22.448312Z |
-| operador_ui/src/components/chat/ChatView.tsx | 7cb4ce59f32e7cfd820a359350c617556a6251bbac76add171521cba8b63df21 | text/x-java | tracked | 2025-12-17T16:14:22.455939Z |
-| operador_ui/src/components/chat/useChat.ts | 6cef92c79250c78d596ba0a7d7030e3d48fcbf6b1c772c713e8b5e0262d747ea | text/x-java | tracked | 2025-12-17T16:14:22.464440Z |
-| operador_ui/src/components/dashboard/DashboardView.tsx | ced7829579759cf49ea399de2b0fd172c4fcec623a9cd9e09f74b5d03a992f72 | text/html | tracked | 2025-12-17T16:14:22.471521Z |
-| operador_ui/src/components/dashboard/TabsView.tsx | d5726cd508b4b83c01046f8279dd7d19c6bff61e6b705f7cfe3b78d5cbb285af | text/x-java | tracked | 2025-12-17T16:14:22.482616Z |
-| operador_ui/src/components/layout/AppErrorBoundary.tsx | b032db1714b8c8b53765391c6be0fb1ad61461a8d5b03ca33eb5ddfe6d1a45ec | text/x-java | tracked | 2025-12-17T16:14:22.491072Z |
-| operador_ui/src/components/layout/Header.tsx | 260bc310c1d588f895bf3fa4480abfee2f7cdf496b5047d47d3a077b1adcc83c | text/html | tracked | 2025-12-17T16:14:22.496473Z |
-| operador_ui/src/components/layout/Layout.tsx | ede1b562bd3e5cc066a4a5ffb885d33676a1019d75af779743e997ef9342b047 | text/html | tracked | 2025-12-17T16:14:22.504732Z |
-| operador_ui/src/components/panels/Panel.tsx | ee843d818b8c25913892ac90885568241e8030140165a8aeecdc727d1e5539b7 | text/x-java | tracked | 2025-12-17T16:14:22.515915Z |
-| operador_ui/src/components/panels/index.tsx | f88c7c1ccdf00bdbcdc9746523362b04b7dd61221fc5199200d0df52f34d0943 | text/x-java | tracked | 2025-12-17T16:14:22.526205Z |
-| operador_ui/src/config/vx11.config.ts | 4c336c697e39030bf2c0657dbbe78f1b79992b4404d923891875c4dd6c1866d7 | text/plain | tracked | 2025-12-17T16:14:22.536092Z |
-| operador_ui/src/hooks/useChat.ts | a1c470acfe49ff54b8b3e8d472aa286591966799cca123a9ac328bedd4df4bb4 | text/plain | tracked | 2025-12-17T16:14:22.542378Z |
-| operador_ui/src/hooks/useDashboardEvents.ts | 1160188605e31e7e5f445ba6ac17a4eacb2abc589852d0798ef50e7137a12e39 | text/x-java | tracked | 2025-12-17T16:14:22.551259Z |
-| operador_ui/src/index.css | cf03962c129ba0d3a3583d7dd9901dad06645b7d9f66af9a536b8d50d9617749 | text/plain | tracked | 2025-12-17T16:14:22.558698Z |
-| operador_ui/src/main.tsx | 9c8124a715092b9aeb3656fa0c0255ea53dcf5956af101305aa79d7713e8e8b3 | text/x-java | tracked | 2025-12-17T16:14:22.568246Z |
-| operador_ui/src/services/chat-api.ts | b05a247cecfdf44db025e4baa107e3a17ea09c55cbf62fe30babd1f15e19fec3 | text/x-java | tracked | 2025-12-17T16:14:22.579500Z |
-| operador_ui/src/services/event-client.ts | a87f5750a2812dbaa98558b016d63625239824ed561fe1e7900b93ce787d2eb9 | text/x-java | tracked | 2025-12-17T16:14:22.587353Z |
-| operador_ui/src/types/canonical-events.ts | d8fdd01d8da979233799e03cf9348f73587370fd7be8df826748ef4fb2d2a858 | text/plain | tracked | 2025-12-17T16:14:22.595497Z |
-| operador_ui/src/types/chat.ts | 13fbca7a5fd3dad1cdb8df7ca2cea3d7b18c1c529951607d03b9903414628d21 | text/plain | tracked | 2025-12-17T16:14:22.603537Z |
-| operador_ui/src/vite-env.d.ts | bf144e3cdae616e27b064c8c2b94b14525e220fb3facc4cb4884d21b65eb5aa5 | text/plain | tracked | 2025-12-17T16:14:22.611413Z |
-| operador_ui/tailwind.config.js | e974538b58e0eac30a34bf314c6e15f5402e1ae6e86d32df7f4de1b0d309f83f | text/plain | tracked | 2025-12-17T16:14:22.621284Z |
-| operador_ui/test-static.html | d865aeadeb4dce540dede18543bab5b5a0c1e7e9fd41a30e10b82ad3d448eabd | text/html | tracked | 2025-12-17T16:14:22.624875Z |
-| operador_ui/tsconfig.app.json | 7852d040a820ba680aae219f3cfe771e7ad33bb26e9d1578e3ee21c70fad5acc | text/plain | tracked | 2025-12-17T16:14:22.636375Z |
-| operador_ui/tsconfig.json | 770b4140bbb581e2dfd9ea9946ffc9c75a1d86ba7d2db5f77c83e37cbdf9d808 | application/json | tracked | 2025-12-17T16:14:22.638621Z |
-| operador_ui/tsconfig.node.json | c3dd0fb522feba3596713f51b95bd53d781d845d24aedbfa2ac093d8b39c5120 | text/plain | tracked | 2025-12-17T16:14:22.647907Z |
-| operador_ui/vite.config.ts | 4d36db3522a7b2dd10e0936e1004373c7ee65f10f7cd7920cd76410459c15a45 | text/plain | tracked | 2025-12-17T16:14:22.659387Z |
-| operator_backend/Dockerfile | 02a990140f8138fb8c2b83f44da654ff678adff93699a2eb6f441319758fce18 | text/plain | tracked | 2025-12-17T16:14:22.672011Z |
-| operator_backend/README.md | 0b03ded25d32115a79536ec190ba6945e82f1ad8742ff7ccec4fdfbc947af718 | text/plain | tracked | 2025-12-17T16:14:22.679303Z |
-| operator_backend/__init__.py | f77ac5e0afef6002794528ed71c94039f5203c57a7367979d09e03324deb7bb7 | text/plain | tracked | 2025-12-17T16:14:22.684380Z |
-| operator_backend/backend/Dockerfile | 33d87edbc79a52013690085e80a929a7941d7d484a8deae07232ea689f66faa2 | text/plain | tracked | 2025-12-17T16:14:22.691793Z |
-| operator_backend/backend/__init__.py | 4aedca80d1194eb16cff42c4ec26027dca225b5b9f0eac3dcda8a8de7ebcaf2c | text/plain | tracked | 2025-12-17T16:14:22.695264Z |
-| operator_backend/backend/browser.py | cac4f8d920f2785f1ef9f04f790b0b59594fdd9216305099a732047341b85fae | text/plain | tracked | 2025-12-17T16:14:22.699427Z |
-| operator_backend/backend/feedback_loop.py | b2c165e06b5dca4ce9da77882d2a198438ad9b4bfd2dbb9d86f3475fe4487fe9 | text/plain | tracked | 2025-12-17T16:14:22.703029Z |
-| operator_backend/backend/main.py | c1a6e5b8320d9232dcec218e721dc9d4c150ea941fa39859b438730686ddbeb8 | text/plain | tracked | 2025-12-17T16:14:22.706270Z |
-| operator_backend/backend/main_v7.py | 18260939f994fad550e2b9f2766a1f1d7403b3ccab42689c6a609152dd92d431 | text/plain | tracked | 2025-12-17T16:14:22.711275Z |
-| operator_backend/backend/operator_shub_prompts.py | 14d5c1ebce0df75f16d4b61e1dc212fd18265036bddfc74a553ebd626167aceb | text/plain | tracked | 2025-12-17T16:14:22.716737Z |
-| operator_backend/backend/requirements.txt | 8bacb91180fc102593cf679cc3a0f5a9ea721197c074913d22fab822557478d4 | text/plain | tracked | 2025-12-17T16:14:22.724075Z |
-| operator_backend/backend/services/__init__.py | b6301d28762cc0d935960061b2fe9951ab75eaaad6d9165b0fbb4f3199edf432 | text/plain | tracked | 2025-12-17T16:14:22.727667Z |
-| operator_backend/backend/services/clients.py | 047768609bff1180cd465c0544ae84d38ae420a0b3bce20f92cfdbad20615382 | text/plain | tracked | 2025-12-17T16:14:22.731691Z |
-| operator_backend/backend/services/health_aggregator.py | 8f73467d28ccf2defc0c41dafe3e95a71b896e9782d1cdc27cf06a4081ea5842 | text/x-script.python | tracked | 2025-12-17T16:14:22.735756Z |
-| operator_backend/backend/services/intent_parser.py | 4dd83cf22f96da82ac9dead323d84b7728ce1a0df9f78a4fe73f9602412de827 | text/x-script.python | tracked | 2025-12-17T16:14:22.739361Z |
-| operator_backend/backend/services/job_queue.py | e132fc7787654e338eb60e6b8f9930c0658721615ae5aea933fd0136b5d9aac3 | text/x-script.python | tracked | 2025-12-17T16:14:22.742424Z |
-| operator_backend/backend/services/model_rotator.py | f074f1250bbeed90581d1daca982f0a0d84476e61353b961133891b83d778661 | text/x-script.python | tracked | 2025-12-17T16:14:22.745770Z |
-| operator_backend/backend/services/operator_brain.py | 4dc13d49c7a8724d55f1c55178e3db46f03ca7567821350e141aafcd7c33eeea | text/x-script.python | tracked | 2025-12-17T16:14:22.749975Z |
-| operator_backend/backend/shub_api.py | d1e8d31dc1d6f23f74aac1989e101e00dc491367ff96dcc599e538bf0f0c2a23 | text/plain | tracked | 2025-12-17T16:14:22.753766Z |
-| operator_backend/backend/switch_integration.py | 5216507ac1e40f4c893fb0eab48b7ed107972d01331d4efbd1676c54b52725be | text/plain | tracked | 2025-12-17T16:14:22.757415Z |
-| operator_backend/disabled/__init__.py | 3b93e140b872289df45bba029c1f987f38b4eba857e99cc252dfb3698aea4e3d | text/plain | tracked | 2025-12-17T16:14:22.760764Z |
-| operator_backend/frontend/.env.example | 7572f30d272a51208a3e795caf292ee954c5533ab82562848a487b1629056317 | text/plain | tracked | 2025-12-17T16:14:22.767886Z |
-| operator_backend/frontend/Dockerfile | a7d3ce696967fec6befd9efdbb76b350b06de6894eb743908f348a47b29139a0 | text/plain | tracked | 2025-12-17T16:14:22.773409Z |
-| operator_backend/frontend/README_OPERATOR_UI_v7.md | 3983311cc377fceb9a2a7f53a8c866a2a153715f94d6689614d8d9cdf0476577 | text/plain | tracked | 2025-12-17T16:14:22.785768Z |
-| operator_backend/frontend/build.sh | 93d0f555bb4a362323efc0c9663f66d0f2d3467080d4a40fa7b4c57a7e0c3701 | text/x-shellscript | tracked | 2025-12-17T16:14:22.788909Z |
-| operator_backend/frontend/components/ShubDashboard.vue | 47682c2ecc95913db84694288f91ed1cf6aee07f89459de6e160f46e4465e22d | text/plain | tracked | 2025-12-17T16:14:22.792525Z |
-| operator_backend/frontend/index.html | f1b2bdb573d8f124a6c846dccbd53016cc7dc71f8b3806774e912321936a5897 | text/html | tracked | 2025-12-17T16:14:22.798705Z |
-| operator_backend/frontend/nginx.conf | f4d053c525c17d9bbe6777bc025aaef335df694e91693ff9ba1eb9343c7ce018 | text/plain | tracked | 2025-12-17T16:14:22.806581Z |
-| operator_backend/frontend/package.json | 082e55d4c596f063c23495713b91100510a07aaf401ea4dab2025f3267b5d2df | application/json | tracked | 2025-12-17T16:14:22.808351Z |
-| operator_backend/frontend/postcss.config.js | c3275e0c1ab2639ab056915eac2a806b997a7879c31edce8898ec443a4823a06 | text/plain | tracked | 2025-12-17T16:14:22.819121Z |
-| operator_backend/frontend/src/App.tsx | fe4ef7734efb3ab4f57c729bc3126e02e6cd130246ee1225d35316149e928cb5 | text/x-java | tracked | 2025-12-17T16:14:22.829362Z |
-| operator_backend/frontend/src/api/operatorClient.js | a5fa3d9af8d31d56d48012c218d2a7457afb27d22a1f16f2fe823d28f7db1647 | text/x-java | tracked | 2025-12-17T16:14:22.837732Z |
-| operator_backend/frontend/src/components/BridgePanel.tsx | 2e9cb4bd886a20a02138157ca2e3b70a502a27a2b9e12470a4c6944bfa2b4eb5 | text/x-java | tracked | 2025-12-17T16:14:22.847520Z |
-| operator_backend/frontend/src/components/ChatPanel.tsx | aa62f43264cb30b4042e26c9924c8d31d0f00ca977972988ece06496bfd2fda9 | text/x-Algol68 | tracked | 2025-12-17T16:14:22.856683Z |
-| operator_backend/frontend/src/components/Dashboard.tsx | 4c65743f0eff7450e0ab0d7db5d235544abb7be6d1852994e3b2788780bdab48 | text/x-java | tracked | 2025-12-17T16:14:22.866407Z |
-| operator_backend/frontend/src/components/HermesPanel.tsx | 1bb86bf470f340711371cf8b5b631e57394e561ae89a79559688a99e30e696f6 | text/html | tracked | 2025-12-17T16:14:22.872653Z |
-| operator_backend/frontend/src/components/HormigueroMapPanel.tsx | b06b8f3cb456fe7fc6c7645947444348b1eb2350ca6345d8e43695a8b998142f | text/x-java | tracked | 2025-12-17T16:14:22.884046Z |
-| operator_backend/frontend/src/components/HormigueroPanel.tsx | e5c5ce7416af26b55641a036432b490d0fd664f5dd3b28007f014309d04234e9 | text/html | tracked | 2025-12-17T16:14:22.889592Z |
-| operator_backend/frontend/src/components/Layout.css | 9dfc71258fd025e64025fffe88117cb70ab7c74618952b4b1717f73dfaff501b | text/plain | tracked | 2025-12-17T16:14:22.900944Z |
-| operator_backend/frontend/src/components/Layout.jsx | df025e5056a81273909ba09bec2b8d2ab457c73c4e0e7b7901d4268cc6cbd3ab | text/html | tracked | 2025-12-17T16:14:22.904779Z |
-| operator_backend/frontend/src/components/LogsPanel.tsx | e7e95c5c17a39737949404b3ee475331be0952e0ee50b355d5f2e5eecff26040 | text/x-java | tracked | 2025-12-17T16:14:22.912829Z |
-| operator_backend/frontend/src/components/MCPPanel.tsx | 2b2563df0943de1b571c6f61a69c0f3d191a4ea00ef3a10dab7f02924a6a219a | text/html | tracked | 2025-12-17T16:14:22.918465Z |
-| operator_backend/frontend/src/components/MadrePanel.tsx | 575cc11ceefbb4434bb48b9f0d4a9f61d9807a03877c23b119a679b5aa372203 | text/html | tracked | 2025-12-17T16:14:22.923263Z |
-| operator_backend/frontend/src/components/ManifestatorPanel.tsx | 28b830f3a8c75331f4237738a7b207910e94e8f573976c5e572ba905eeb0d832 | text/x-java | tracked | 2025-12-17T16:14:22.930426Z |
-| operator_backend/frontend/src/components/MiniMapPanel.tsx | 2874bbbc0259949dc7750f18332209e1a8c25b0129d231a051854a9f18bbf38c | text/x-java | tracked | 2025-12-17T16:14:22.937745Z |
-| operator_backend/frontend/src/components/MiniStatusPanel.tsx | d66c8686ceba461e43cff83a7113f0fc5fea4eb395e6868cd38934c9c4e47482 | text/x-java | tracked | 2025-12-17T16:14:22.944418Z |
-| operator_backend/frontend/src/components/ShubPanel.tsx | 24e506e89e0e5ad14f9256547e627fca7ade7f69995b0ba2a219337cd91c6713 | text/x-java | tracked | 2025-12-17T16:14:22.951737Z |
-| operator_backend/frontend/src/components/SpawnerPanel.tsx | 873033dcbf048c2d16c68821ff268a2815077a48f98dfd52170a95bfd7beaf47 | text/x-java | tracked | 2025-12-17T16:14:22.960017Z |
-| operator_backend/frontend/src/components/StatusBar.tsx | 67aa6c3db0e0a1abdb3e6eb642642406b055785a5074053d1cde74bd9fd9f613 | text/x-java | tracked | 2025-12-17T16:14:22.966211Z |
-| operator_backend/frontend/src/components/SwitchQueuePanel.tsx | 7ae082b591808f17cc201a3008c5934f5054a5c2fa8b291d1aa2546376f9f429 | text/x-java | tracked | 2025-12-17T16:14:22.974000Z |
-| operator_backend/frontend/src/components/hormiguero/D3Overlay.tsx | df6d61b9cdfa2ed9cf3ddc4c288920556ea69c5153c0a9bb633b775620e2e6c8 | text/x-java | tracked | 2025-12-17T16:14:22.980547Z |
-| operator_backend/frontend/src/components/hormiguero/FlowCanvas.tsx | 0db68a4cbd0c20930c8735035640dce4c047b9725c606ec424c1e7e88dab1fe7 | text/x-java | tracked | 2025-12-17T16:14:22.989482Z |
-| operator_backend/frontend/src/components/hormiguero/NodeDrawer.tsx | 6e8dccdb14af5f3cfd45405df8ccb66d4dbd0053fe77f8fc4428db33eccbc814 | text/x-java | tracked | 2025-12-17T16:14:22.996951Z |
-| operator_backend/frontend/src/components/hormiguero/helpers.ts | 6e556d0f469e6ddf6a3e8f3f0c075ad04399179efe8a1785d550ef7ee1cdeb1e | text/plain | tracked | 2025-12-17T16:14:23.003149Z |
-| operator_backend/frontend/src/components/manifestator/ManifestEditor.tsx | a1849b282439ffaf13e83440236d11616bf35fae7c2f15679f6c5654b7dd1fe7 | text/x-java | tracked | 2025-12-17T16:14:23.011133Z |
-| operator_backend/frontend/src/config.ts | 496a5d8d861b947ba5446881e0ee2b176ecc7b746ce8b374612a2b3661c2e9e3 | text/plain | tracked | 2025-12-17T16:14:23.017932Z |
-| operator_backend/frontend/src/context/OperatorContext.jsx | 81cdf072c1a95ae7b6f86b31cfe248d40ee5a39bdae60a98e0d976acb3d2ccbf | text/x-java | tracked | 2025-12-17T16:14:23.024200Z |
-| operator_backend/frontend/src/hooks/useOperatorStreams.ts | c01fa32e38c773bf5daf794ed5447c2c2b684a6d2c083227a1c55189e900a12c | text/x-java | tracked | 2025-12-17T16:14:23.032735Z |
-| operator_backend/frontend/src/hooks/useWebSocket.tsx | 2601fe2cd0728f53d0e30b98ca4a4425bd07587c719343db4eb51d111cda13f9 | text/x-java | tracked | 2025-12-17T16:14:23.039347Z |
-| operator_backend/frontend/src/main.tsx | 0250da54eaba472aa1947577438413ac9ddb6febec0494e6f959a401b703c6a7 | text/x-java | tracked | 2025-12-17T16:14:23.045894Z |
-| operator_backend/frontend/src/pages/Chat.css | ec93e5a67404ee717a7967af1f4532de504f12a8f9edfea335df12a05a5fc26f | text/plain | tracked | 2025-12-17T16:14:23.053262Z |
-| operator_backend/frontend/src/pages/Chat.jsx | 5219216fdd9e1a6e9e29c847069fd37f4066871194ba2553e5e97acf559300f9 | text/x-java | tracked | 2025-12-17T16:14:23.060914Z |
-| operator_backend/frontend/src/pages/Dashboard.css | 78ca8c15991a89b15d506e0890246c348dcc1faa83c68dcf9a448d5f7bd7d805 | text/plain | tracked | 2025-12-17T16:14:23.069124Z |
-| operator_backend/frontend/src/pages/Dashboard.jsx | 0b5e3dd422dd7a865ae3cb1a172ef7094db4a3320037ac25e5d95b0746792867 | text/x-java | tracked | 2025-12-17T16:14:23.076628Z |
-| operator_backend/frontend/src/pages/Resources.css | aecc7d1d7a380131523b8b668e44e8f2119d09535770fc8e958cc9cbd1d15df7 | text/plain | tracked | 2025-12-17T16:14:23.083556Z |
-| operator_backend/frontend/src/pages/Resources.jsx | 1fb57d651d735ea38ca682d22eb0efa2282cec6ebec5262327a8642049a69d0c | text/x-java | tracked | 2025-12-17T16:14:23.090875Z |
-| operator_backend/frontend/src/query/client.ts | df501535a780f7defec68ee4f2e9d6c721591fa96fb6cb5cdf1253c3c82f7560 | text/x-java | tracked | 2025-12-17T16:14:23.097014Z |
-| operator_backend/frontend/src/services/api-improved.ts | d7a15c3408149de0d0f8a936cb5d138aac55a73dfb607189be21740ff00e29ec | text/x-c++ | tracked | 2025-12-17T16:14:23.102037Z |
-| operator_backend/frontend/src/services/api.ts | 4dedbc0d9fee88861d4c4414cd87da3457abe09544e8e6127f7d534d29c5afaa | text/x-java | tracked | 2025-12-17T16:14:23.112147Z |
-| operator_backend/frontend/src/services/websocket.ts | 6f6b206443152e233905886d93fca1f99664ac71aa0711b584863d888a66cc66 | text/x-java | tracked | 2025-12-17T16:14:23.119436Z |
-| operator_backend/frontend/src/store/operatorStore.ts | 1343cd7d126aabd360bfc02ff96e67ccbc20ef169598451530cebf39b99f9fdc | text/x-java | tracked | 2025-12-17T16:14:23.126463Z |
-| operator_backend/frontend/src/styles.css | 511a747ee80ca20991205614f186a75c404ede73d59ed19ffc7569cff55b8e3c | text/x-asm | tracked | 2025-12-17T16:14:23.138837Z |
-| operator_backend/frontend/src/types/api.ts | 64815879092a6a98f6f97a9003cd0f315aa71cb43ed9a359361314b40564fd07 | text/plain | tracked | 2025-12-17T16:14:23.147987Z |
-| operator_backend/frontend/tailwind.config.js | 0d7cdfc7a92c66231a706b204d5a0ba917b52d6bb08328c8b3079c9750079175 | text/plain | tracked | 2025-12-17T16:14:23.162102Z |
-| operator_backend/frontend/tsconfig.json | 0929b738e721dd4388c2518666ec103ad0106f9e3aef03d565c2d5c507fea98b | application/json | tracked | 2025-12-17T16:14:23.164810Z |
-| operator_backend/frontend/tsconfig.node.json | d167f26594eca8fbb96fd6dfb121e5061b8be6308d1715bdaa0449406de13929 | application/json | tracked | 2025-12-17T16:14:23.168453Z |
-| operator_backend/frontend/vite.config.ts | 19e0c12166d7dc173504bcf516ddf55f6fb71c9bc8c176dddf9d6c0cff6c0798 | text/x-java | tracked | 2025-12-17T16:14:23.175798Z |
-| operator_local/__init__.py | 1a9fcc664189656e514809e75c8d96620b1b7b40f0c9c20f159d2ede40418ac5 | text/plain | tracked | 2025-12-17T16:14:23.180830Z |
-| operator_local/backend/__init__.py | 0e5e83704d5d1524be9cac7cb18fc36f83956c56bc163274e4aee90e83945b1f | text/plain | tracked | 2025-12-17T16:14:23.184119Z |
-| operator_local/backend/main.py | 2702052354adb379083421739976b7f3847bf26298e8c5e3c9298c7a45037346 | text/plain | tracked | 2025-12-17T16:14:23.187047Z |
-| package.json | a84a93cb152aa93b64e5d477e2d976851126877841aed08e9b644165067c5980 | application/json | tracked | 2025-12-17T16:14:23.188828Z |
-| prompts/context-7.schema.json | b8432cb5e60c8715f48e906e903215f83feab7eaa8dc6fdd475d23485a168823 | application/json | tracked | 2025-12-17T16:14:23.190550Z |
-| prompts/gateway.md | a872c0e6176fa2c88297fd164f71eaa9343fabf9807d70ca50189b48d6af1240 | text/plain | tracked | 2025-12-17T16:14:23.201229Z |
-| prompts/hermes.md | 4fa6c349295eab8096f441d417699b1c458d8f895f72b1648c341c1ce5f5b39e | text/plain | tracked | 2025-12-17T16:14:23.210967Z |
-| prompts/hermes.prompt.json | 44f47600a9a3f3c879dc6d3ff0f04810b1743217ff33a3004f553a3f6d213b12 | application/json | tracked | 2025-12-17T16:14:23.214690Z |
-| prompts/hormiguero.md | 2d976e5ffa7f4276aa81ca8af8bc76d17acbc7e08f9524d9583b7d470b282a0f | text/plain | tracked | 2025-12-17T16:14:23.223062Z |
-| prompts/hormiguero.prompt.json | 44ae0055c44538ea9cfd52b9034312a251f9b7639f6bd8756536fb538da11fc3 | application/json | tracked | 2025-12-17T16:14:23.224862Z |
-| prompts/madre.md | 9f268de6792836b2c30a9b9a21e0bf4d4a701c793c874c31cbce1709fee05698 | text/plain | tracked | 2025-12-17T16:14:23.236009Z |
-| prompts/madre.prompt.json | 83ae6874c11fd0e8413555bc6f83148a58383efae4a0b92d986fb0e167153303 | application/json | tracked | 2025-12-17T16:14:23.237962Z |
-| prompts/manifestator.md | 22bc6eaf54842c8abd111639a5fc03934481bfba880d57b50015e4278db67d72 | text/plain | tracked | 2025-12-17T16:14:23.246376Z |
-| prompts/mcp.md | 1abee16f4e0571c7223909ab926692e00b8f8deafb814eef20bf24b324364899 | text/plain | tracked | 2025-12-17T16:14:23.255653Z |
-| prompts/shubniggurath.md | 739e056c067ea02950c715017453ded7dbcfd1dacdcc250c89c8713d90f09f5d | text/plain | tracked | 2025-12-17T16:14:23.265362Z |
-| prompts/shubniggurath.prompt.json | 89e005acd14c06dc0ccfb9983949837d27830d6d0ea6b6187fa498207129ffe7 | application/json | tracked | 2025-12-17T16:14:23.268041Z |
-| prompts/spawner.md | cad7afd2477bb213ac6cab31a527b99be101562e3ff96197f28b175d0670287b | text/plain | tracked | 2025-12-17T16:14:23.275220Z |
-| prompts/switch.md | be054f7f7e328dc3486c09c3fbc811f14ab2a288edcdcdf78abebaed0e94df19 | text/plain | tracked | 2025-12-17T16:14:23.285304Z |
-| prompts/switch.prompt.json | 9a3cbdcf738d3f60fb49d159346fa5320077016a4e4d527db970ad10a1707dc5 | application/json | tracked | 2025-12-17T16:14:23.287347Z |
-| pytest.ini | e241668c4af507486a888cc858b8a05942179e3d8680bc196078894610907ca7 | text/plain | tracked | 2025-12-17T16:14:23.295515Z |
-| requirements.txt | 24cdacb8bd800c69b74f78009da779d49a82431800f43a523071a5020f8c97d4 | text/plain | tracked | 2025-12-17T16:14:23.303886Z |
-| requirements_minimal.txt | 3d4cf515dbd90d6d093d7cae44cecc15413b6625a19eeb6fa00aa34531f08bcb | text/plain | tracked | 2025-12-17T16:14:23.311815Z |
-| requirements_shub.txt | 89070f312e31637357fa35adc3668caf4b19481db775110bf4fc9855bd18cf47 | text/plain | tracked | 2025-12-17T16:14:23.320081Z |
-| requirements_switch.txt | 51a34e1198be9b2269fba0bd434de9adbe114ab5d67c22075019cbefe3fc59ae | text/plain | tracked | 2025-12-17T16:14:23.326991Z |
-| requirements_tentaculo.txt | 956aed4a9139203649282cfc2c6262eec3b60f94775843f608a2ba67fe73a8f0 | text/plain | tracked | 2025-12-17T16:14:23.334851Z |
-| scripts/acceptance_e2e.py | b922f62a3d7aad2fe66f189f9700ca3eb85bf21226c66c9890d2a598b22f4255 | text/x-script.python | tracked | 2025-12-17T16:14:23.338270Z |
-| scripts/auditor_orden_vx11.py | bde22ac4b0c24bffcb715f5aee56e2953cc1bda651e0f2ee8a7ae0f84853c0de | text/x-script.python | tracked | 2025-12-17T16:14:23.341124Z |
-| scripts/clean_fs_vx11.sh | 97e8ce3b2d35405908a02d8f4a9340d27385e26f1a4dc3b818694953f5b91fda | text/x-shellscript | tracked | 2025-12-17T16:14:23.344389Z |
-| scripts/cleanup.sh | f3d087cce95b9ad1046d01cdbc7b3c2d7282840f13ad655161562763f22e48a8 | text/x-shellscript | tracked | 2025-12-17T16:14:23.347359Z |
-| scripts/copilot_repo_scan.py | f0e9ad543c3ef8aba8736073e79cbb4dcc106a2824cdf527eb351e6dd0c855f5 | text/x-script.python | tracked | 2025-12-17T16:14:23.351347Z |
-| scripts/fill_ia_from_switch_queue.py | ea29aa28694a72f43b2bd5a328eeeff0eff976c01c321dac83736adf4b774005 | text/x-script.python | tracked | 2025-12-17T16:14:23.354550Z |
-| scripts/generate_canonical.py | 1bd54774e0710a454d72e8830fdc6b23436b575a4bc22cc5e2d805fca0795cda | text/x-script.python | tracked | 2025-12-17T16:14:23.357941Z |
-| scripts/generate_canonical_v2.py | fad476467be7c95e666aa7ad74ac335ca381c53611977ab1c4d102ba76f4f689 | text/x-script.python | tracked | 2025-12-17T16:14:23.361964Z |
-| scripts/generate_db_map.py | 0807b0c0b3b1fe353028539a9327e165ce2d1ec256b0eb4b13eb3ae8f56ea97f | text/x-script.python | tracked | 2025-12-17T16:14:23.365469Z |
-| scripts/generate_db_map_from_db.py | aae3cedb956fcc53c5716d40aecd20a7c7f14980d125c81ba193f5edd927d1de | text/x-script.python | tracked | 2025-12-17T16:14:23.368750Z |
-| scripts/health_monitor.sh | 012d6fb193ae2abbfd2721ab2f6af7626e0c368012f9e29afddb60a9315f0b77 | text/x-shellscript | tracked | 2025-12-17T16:14:23.371431Z |
-| scripts/hermes_cli_discovery_playwright.py | 9717251638bc275d39e6beb18a53ef8836a9f458ccc84e4ba99416f2a73be1d9 | text/x-script.python | tracked | 2025-12-17T16:14:23.375564Z |
-| scripts/hermes_download_test_models.py | 27a4119c40cbae4373f052a7305457436d54b896c5857d76c8bf696ade7c75a0 | text/x-script.python | tracked | 2025-12-17T16:14:23.379588Z |
-| scripts/install_reaper_safe.sh | 5c1cc2efb7aca48e9d31cccbbca465d791d699f4d23d88956fed1b9dddc167f1 | text/x-shellscript | tracked | 2025-12-17T16:14:23.384267Z |
-| scripts/kill_zombies_vx11.sh | e1cb6b41cb56b3d400cd456a336c4ba7aecd0beaa29d3320b63ab89403f273c0 | text/x-shellscript | tracked | 2025-12-17T16:14:23.387371Z |
-| scripts/migrate_databases.py | 60f532d6fb38b608643449d318d5c6a20b03b85f5d54e453599630877950f0fc | text/x-script.python | tracked | 2025-12-17T16:14:23.390845Z |
-| scripts/phase3_cli_fluzo_e2e.py | d3e126540a588100eb273d2042ee0c21eb34b2c529b914cd060a34febb728bf1 | text/x-script.python | tracked | 2025-12-17T16:14:23.394541Z |
-| scripts/rebuild_core_v7_1.sh | 4c67dc9e88c2f7cac2b40004b9ca1b9a1d0e61fc668b55bdf512af30b00b3398 | text/x-shellscript | tracked | 2025-12-17T16:14:23.397560Z |
-| scripts/repo_inventory_and_readmes.py | 7c8b293abfd8a51d46114209bc57e5bab49f231e3142eaecdaf25e04514aea74 | text/x-script.python | tracked | 2025-12-17T16:14:23.400781Z |
-| scripts/restart_all.sh | 55796b74d24f9b8dc85fdb2dcace1b8b2def5cdc3e73a779cd90019c19bde496 | text/x-shellscript | tracked | 2025-12-17T16:14:23.403508Z |
-| scripts/run_all_dev.sh | 1809c3d158cfa02657f2f9aef78c9aba101c91ae4b91787384e9d54b99324fd8 | text/x-shellscript | tracked | 2025-12-17T16:14:23.406357Z |
-| scripts/run_anti_chaos_once.sh | 16d70b2bf3f4f8d22d313b35d74e6822062925b4f31a7e64aa82525b5de9f0c3 | text/x-shellscript | tracked | 2025-12-17T16:14:23.408978Z |
-| scripts/run_shub_dev.sh | 158607c9bbeaf91d406e34c0fd2f97fde998df51d53cd8311228e3a745644c26 | text/x-shellscript | tracked | 2025-12-17T16:14:23.412031Z |
-| scripts/run_switch_debug_tests.py | bd87f910f9716f450042d9b143094ee6b18ecdd736e0a1df04a4e7a7871a68b5 | text/x-script.python | tracked | 2025-12-17T16:14:23.415695Z |
-| scripts/run_switch_e2e_debug.py | a990120aee87fd6f0669ebe7bc366c1fe633271aeb73a61d4d23ca6fb76725ff | text/x-script.python | tracked | 2025-12-17T16:14:23.418711Z |
-| scripts/run_switch_queue_test.py | 56815a8dd154c8369ceadeac3d5fb54dffb026e045a444ec1decd3fd02014674 | text/plain | tracked | 2025-12-17T16:14:23.421351Z |
-| scripts/start_all.sh | fd205dce697c109677d0176a3a349d235ff022ef2e6c339426d3789e3ad1cbdc | text/x-shellscript | tracked | 2025-12-17T16:14:23.424053Z |
-| scripts/start_vx11_v6_6.sh | 6bab65e1939a7ea7e189567b52475840c345bb4f608b45122f234ec33ba91008 | text/x-shellscript | tracked | 2025-12-17T16:14:23.426955Z |
-| scripts/status_dashboard.sh | d30c28f768cb913648e4f84266a2d1e2e06cbbf0b67916a09303acb575cce711 | text/x-shellscript | tracked | 2025-12-17T16:14:23.430072Z |
-| scripts/stop_all.sh | 8a674fe552e6fce688575f49ebd862afcdf7f1ed2fbe72579789bf7e2e0c071d | text/x-shellscript | tracked | 2025-12-17T16:14:23.432709Z |
-| scripts/stop_vx11_v6_6.sh | 2388a691f3db8a51b320c71e8a8824b88ffccc44c5fe8f6f2c456184c6c2bc20 | text/x-shellscript | tracked | 2025-12-17T16:14:23.435354Z |
-| scripts/system_classify.py | 5a9b64becc0ee247a1bff7be4a15f92ba44d525a2f3b549f0232aa3b074dc730 | text/x-script.python | tracked | 2025-12-17T16:14:23.438384Z |
-| scripts/system_cleanup_safe.sh | f384df3e019b881134da8fe7bcdd93e0a33959678703faa2446823ecc4dc6e39 | text/x-shellscript | tracked | 2025-12-17T16:14:23.441086Z |
-| scripts/systemd/install_all.sh | 9cf301d0e12534873ebe2c38b7b948e37dbc993a1aed6840769382faee2423b5 | text/x-shellscript | tracked | 2025-12-17T16:14:23.443777Z |
-| scripts/systemd/vx11-autosync.service | b75140334118845fbe7d739c1972c56f2cbab878623c709012c93d992a05803f | text/plain | tracked | 2025-12-17T16:14:23.451409Z |
-| scripts/systemd/vx11-autosync.timer | 6d22ca4d1dff4dc12e0c2439536bc7a31404b624efa62efdb866232f731f6c75 | text/plain | tracked | 2025-12-17T16:14:23.457870Z |
-| scripts/systemd/vx11-hermes.service | d431507ee43cf61fcdf548f75b47fcab0ef4e08d0c4d261a56c101acd6890a5a | text/plain | tracked | 2025-12-17T16:14:23.465988Z |
-| scripts/systemd/vx11-hormiguero.service | 5ac41ccac206b68be19bc6a466b4752f984bd1b28e4abeed2a3ad519758a92ea | text/plain | tracked | 2025-12-17T16:14:23.472602Z |
-| scripts/systemd/vx11-madre.service | d67a4807af27f2830d5ab178cd6b8207c6339a8f39236953a930496b810e69e8 | text/plain | tracked | 2025-12-17T16:14:23.482706Z |
-| scripts/systemd/vx11-manifestator.service | 18ca366025c2649f0bb0af9b4c7e96e4b32295e22394589b28b5a05e9ba08942 | text/plain | tracked | 2025-12-17T16:14:23.489804Z |
-| scripts/systemd/vx11-mcp.service | 74e57d24f209aa75cde3ccd78b453ce07527c03e3a018273c16f9feafcdc9235 | text/plain | tracked | 2025-12-17T16:14:23.498214Z |
-| scripts/systemd/vx11-shubniggurath.service | cd22b1aeb1bf0063e12bd57c2e025587501a65e9243810b4e028b0f9bac911ac | text/plain | tracked | 2025-12-17T16:14:23.505071Z |
-| scripts/systemd/vx11-switch.service | c0af4df617a3e05bb75fdb1b38adeb744bbe95c9d0491506c1f495ad4daa8d64 | text/plain | tracked | 2025-12-17T16:14:23.512510Z |
-| scripts/systemd/vx11-template.service | 387c913a9ef5ebe99cf8bce661dd5f1b9c9f674567724dd3c19bed096347000f | text/plain | tracked | 2025-12-17T16:14:23.520991Z |
-| scripts/systemd/vx11-tentaculo_link.service | 398f23e5e7a33e924d09456da8bb84b44b19ccdecb3e41a1c447651cad7ef4b4 | text/plain | tracked | 2025-12-17T16:14:23.528373Z |
-| scripts/test_v6_features.sh | 2078d263bbe0b0c8a4ede5ac99f561cd7d2883216a99bd021106cb061504925a | text/x-shellscript | tracked | 2025-12-17T16:14:23.531550Z |
-| scripts/test_vx11_v6_6.sh | 9e4497a60c2ade61f851bfa95fb12a229934e424e992ceac638939977188f2d8 | text/x-shellscript | tracked | 2025-12-17T16:14:23.535374Z |
-| scripts/validate_adaptive_optimization.sh | 4beb02d5f21f84a51cfe2a59e80f71f44224ff8baf93fe1ecca120c9deb9279d | text/x-shellscript | tracked | 2025-12-17T16:14:23.538610Z |
-| scripts/validate_canon_v6.1.sh | dc46d61572ee21b4133802c6f22c53b9c0237adee5815ef58dfd3bef1f69eaaf | text/x-shellscript | tracked | 2025-12-17T16:14:23.541600Z |
-| scripts/validate_prompts.py | 3d7418d53b60d8350911ddca06c663a13c4e5ef1d15c42dc49a68f496aa49341 | text/x-script.python | tracked | 2025-12-17T16:14:23.545248Z |
-| scripts/validate_switch_hermes_db_contract.py | 54021766219b87bb69e9cbb48bfb3a2d0151489682dd1731460609d716a285f4 | text/x-script.python | tracked | 2025-12-17T16:14:23.550137Z |
-| scripts/vx11_agent_bootstrap.py | eaebd49cec2f3e69af2e49aa2cc577c19f6c42dd0643855a32b5d9ce5cf80ee5 | text/x-script.python | tracked | 2025-12-17T16:14:23.553729Z |
-| scripts/vx11_canonical_db_generate.py | f021552362f7fc21e9ac3449959ad1017ea573417fa031f43b33bd0b1597bb49 | text/x-script.python | tracked | 2025-12-17T16:14:23.557052Z |
-| scripts/vx11_export_canonical_state.py | f9051f59e03e2245e504df24094300e02ed0dfc52d09395bce59bd9733e5f15f | text/x-script.python | tracked | 2025-12-17T16:14:23.560755Z |
-| scripts/vx11_production_readiness.py | 88223154d906572183e793a9c2cbfd877de9a0295d7a004882bc0f5af63214de | text/x-script.python | tracked | 2025-12-17T16:14:23.564492Z |
-| scripts/vx11_runtime_truth.py | d75bceed61fef510e7c1447c628788532c103eb0aea71b71f88c4ccfc64eb42f | text/x-script.python | tracked | 2025-12-17T16:14:23.567869Z |
-| scripts/vx11_scan_and_map.py | 9b702efa9f5936761477d064bfe31a8849b24dc8a443415ae364705debea08fd | text/x-script.python | tracked | 2025-12-17T16:14:23.571316Z |
-| scripts/vx11_task_router.py | a7dd3d7b636af5418b97bf51f28119fc79d1c4f2f9478790139206aa278cde0c | text/x-script.python | tracked | 2025-12-17T16:14:23.574800Z |
-| scripts/vx11_workflow_runner.py | c437914ce79936558cccba636a34c873060df7198559d04af99b3783ba1996df | text/x-script.python | tracked | 2025-12-17T16:14:23.578247Z |
-| scripts/warmup_smoke_test.py | 8dc7b73df048c7b6d8d8e43d48209af491ff6dafea1f0e3eb4b1c1a6da8f77a3 | text/x-script.python | tracked | 2025-12-17T16:14:23.583035Z |
-| shubniggurath/Dockerfile | 6819d0d236dae5b29099ec1998c70ef539bcac1153d817874edb9944b0961144 | text/plain | tracked | 2025-12-17T16:14:23.588994Z |
-| shubniggurath/README.md | acc4fd93688b52996f85d81fed6008eec925c70b42b21c70bbf44a98cc65a980 | text/plain | tracked | 2025-12-17T16:14:23.597602Z |
-| shubniggurath/README_FASE1.md | 0118aa516c448ed0047d798c2e4fdcd479be2406f8a605e2e0c69f633858f720 | text/plain | tracked | 2025-12-17T16:14:23.606687Z |
-| shubniggurath/__init__.py | 9ac4f72dc74d04c17e3cc89ffeca4f27a8df607914b9ce9d21c12513d12ecd1e | text/plain | tracked | 2025-12-17T16:14:23.610354Z |
-| shubniggurath/api/__init__.py | 2a30c4f0898e16747d9bf36e117495e7861604e7017da995fbf57a1decce8572 | text/plain | tracked | 2025-12-17T16:14:23.615289Z |
-| shubniggurath/api/madre_shub_handler.py | 3a0d8c99f9f3a12785a7fb58747ba71cac23904d2a9229432f9c2891e7410124 | text/plain | tracked | 2025-12-17T16:14:23.620744Z |
-| shubniggurath/api/madre_shub_router.py | 728f02d6aaa8ee672ce4873f33e2e5a0e88624b5ff55b4adde3db94df682d4ec | text/plain | tracked | 2025-12-17T16:14:23.624292Z |
-| shubniggurath/core/__init__.py | 81d9357d6fbff8d38b0e526a6f02420f0a3b35c8f2426098087f1213c9ff42dc | text/plain | tracked | 2025-12-17T16:14:23.629246Z |
-| shubniggurath/core/audio_analysis.py | 69af2fabc395bb265edf6ac22e57954fdc62c40648ff11c26c8240e62c751960 | text/plain | tracked | 2025-12-17T16:14:23.634521Z |
-| shubniggurath/core/audio_batch_engine.py | 9a4594b806857f2dc36dbdf1299b07ef85cd06c721a99a5881129b177c3dcf67 | text/plain | tracked | 2025-12-17T16:14:23.638701Z |
-| shubniggurath/core/dsp_engine.py | 0f120a54ab00bb49dffa11a50e1346c709bd1793778771c0b3eba513cbce7de8 | text/plain | tracked | 2025-12-17T16:14:23.641957Z |
-| shubniggurath/core/dsp_pipeline_full.py | eec5c2de11eac8518e6973d5a335c0c368359a6aea76a64e775483757649335d | text/plain | tracked | 2025-12-17T16:14:23.648398Z |
-| shubniggurath/core/engine.py | 0251d492a42f81053ee0294709ef99fb89b0fac272217f5e27b9771c454b068e | text/plain | tracked | 2025-12-17T16:14:23.653060Z |
-| shubniggurath/core/fx_engine.py | 5575885371f2a652f31c856c44fe1af5b857915d021ac20b0126c3efdbfa3c57 | text/plain | tracked | 2025-12-17T16:14:23.657002Z |
-| shubniggurath/core/initializer.py | 28b4f5baae93a32998c9df7430b898c85f285d185213932f6265d8475e5ae12a | text/plain | tracked | 2025-12-17T16:14:23.661791Z |
-| shubniggurath/core/models.py | b85a5944d30ac545d430272b798c7d77965b806680b9ff4fc57a7a7bb22279e5 | text/x-script.python | tracked | 2025-12-17T16:14:23.665048Z |
-| shubniggurath/core/registry.py | bfa8a6d01a9ec9b294154587db88b17300a020e7b5ec92f880942e1e27ce811f | text/plain | tracked | 2025-12-17T16:14:23.668902Z |
-| shubniggurath/core/router.py | e650f4d6c053017ac3f9c11fdb92d2b14138744d116e16f9f893125ca96444c5 | text/plain | tracked | 2025-12-17T16:14:23.671886Z |
-| shubniggurath/core/virtual_engineer.py | b1ae34198e2e6350edf55016ef328daee2d75302fb46aa13a4a53c54f96c77c7 | text/plain | tracked | 2025-12-17T16:14:23.676106Z |
-| shubniggurath/database/__init__.py | a96de4e4d5cd147697827052f9fb0d7e87f58c39689d2fccb96d69dbee0a18fe | text/plain | tracked | 2025-12-17T16:14:23.678956Z |
-| shubniggurath/database/migrations/__init__.py | d35e04d20501cc9d083dc75b24cb720d1568282e9d4fec85fa52c5a4bca233e5 | text/plain | tracked | 2025-12-17T16:14:23.682410Z |
-| shubniggurath/database/models.py | 602ead5ff9c0af38bc329b85f3c0dff7f539e75a1782afe0549a4afd01a48090 | text/plain | tracked | 2025-12-17T16:14:23.687340Z |
-| shubniggurath/database/models_shub.py | 446043ec0e2df1018a35751bfdca3a36610c03e1af809a4407c30dd644b88e07 | text/plain | tracked | 2025-12-17T16:14:23.690390Z |
-| shubniggurath/database/schema_14_tables.sql | dd98683defedb3772a10bbef239ff9fdb47d7ff7b7ec5b32aa7c2d6f1ccdd1b9 | text/plain | tracked | 2025-12-17T16:14:23.698829Z |
-| shubniggurath/docker/docker_shub_compose.yml | a4e6115a71e9c9f48f3eb61f1d7c85a4ac37207f7404f68a8d84db036c92372b | text/plain | tracked | 2025-12-17T16:14:23.705724Z |
-| shubniggurath/docs/API_SHUB_VX11.md | 04fd253b0fc8f80deb6eb3ef85ba70ac584023bae780030313083b4749edc40f | text/plain | tracked | 2025-12-17T16:14:23.711665Z |
-| shubniggurath/docs/CICLO_COMPLETO_CIERRE.md | 5faeb9bf327d2c8b05010e43778fe52dad6075a228d7292bf4b8b1d53993f192 | text/plain | tracked | 2025-12-17T16:14:23.720268Z |
-| shubniggurath/docs/MODO_DEPLOY_FASE5_COMPLETED.txt | 2cad0465cb476cffb5eb654726e44ce50b3b322c2b1abd964b145c28d2385017 | text/plain | tracked | 2025-12-17T16:14:23.728018Z |
-| shubniggurath/docs/MODO_OPERADOR_CIERRE_VISUAL.txt | 56290f93cefbf3257e954319c55dfec69a82d5bc90281695942b40696d8ae71b | text/plain | tracked | 2025-12-17T16:14:23.737593Z |
-| shubniggurath/docs/README_START_HERE.txt | 63ffffb6221c25509230be02578cb65bdb14a527d98133b077466a218383fa29 | text/plain | tracked | 2025-12-17T16:14:23.744241Z |
-| shubniggurath/docs/SHUB_AUDIT.json | 36a15af6bbf9e0ecae318c1d5eaddc8839b52421cef02c2d989e77a035e7efb7 | application/json | tracked | 2025-12-17T16:14:23.745862Z |
-| shubniggurath/docs/SHUB_AUDIT_STRUCTURAL.json | b711fde97d35329faeded11ad2b71e090ebfe6fbdc3c449855c46ec5a7ed477c | application/json | tracked | 2025-12-17T16:14:23.747565Z |
-| shubniggurath/docs/SHUB_CODE_COHERENCE_REPORT.md | 258972aece757e17c756b22361e8a4bf22b306fa197684eb204b10e1fd70e89c | text/plain | tracked | 2025-12-17T16:14:23.756639Z |
-| shubniggurath/docs/SHUB_DEPRECATION_REPORT.json | 517511d52738240084fa1c8b4f86396a866d071f27f0000a55bc8746c81cecfd | application/json | tracked | 2025-12-17T16:14:23.758345Z |
-| shubniggurath/docs/SHUB_DESIGN.md | 50c678d2835d4428ca0a047368db47bb84f17b42a4e5c9dce6396c355b38d510 | text/plain | tracked | 2025-12-17T16:14:23.765530Z |
-| shubniggurath/docs/SHUB_FINAL_METRICS_v31.json | e8cf15bce35e264282901f7ac40e89700c000b5d7dc28a5fcb94796def9cd120 | application/json | tracked | 2025-12-17T16:14:23.767560Z |
-| shubniggurath/docs/SHUB_MANUAL.md | c8fd5c8f8b612b56e91229f8e5cdc6961d969dc545b90fab43705507f0b423fc | text/x-script.python | tracked | 2025-12-17T16:14:23.770997Z |
-| shubniggurath/docs/SHUB_NEXT_STEPS.md | 9614978b9f82bacc2f6784a7d62e8d4d3915e37a0154c922c88d62d5cf6df6d7 | text/plain | tracked | 2025-12-17T16:14:23.781182Z |
-| shubniggurath/docs/SHUB_PHASE2_EXTENSIONS.md | 15df4a40e5bbc6b578c3b4e0ed12d373b11b4745a2f18c5f6d2cb01b1b0117fe | text/plain | tracked | 2025-12-17T16:14:23.789826Z |
-| shubniggurath/docs/SHUB_PHASE3_BRIDGE.md | 3fd6f66c25e80cad35c8138b8501f0be3a8a281c2657254d975f268fbae73d05 | text/x-script.python | tracked | 2025-12-17T16:14:23.795334Z |
-| shubniggurath/docs/SHUB_PHASE4_DATABASE.md | ffc640e3817ece0410ea2651363ca468b5bca0892fd502b4a37c97703d30e865 | text/plain | tracked | 2025-12-17T16:14:23.806747Z |
-| shubniggurath/docs/SHUB_PHASE5_TESTS.md | d7afe393ba262c7a81e21f0f16b106108eb35681c01068ebbcea17f38d1c3a3c | text/plain | tracked | 2025-12-17T16:14:23.818351Z |
-| shubniggurath/docs/SHUB_PHASE6_AUDIT.md | 3165202f9fd4662cc0ef54986ccbe7260cf50511b7799e64ea8e4c1ba52089f7 | text/plain | tracked | 2025-12-17T16:14:23.830128Z |
-| shubniggurath/docs/SHUB_PHASE7_CLEANUP.md | ff270e53a8a82d97ddc2f7ba55dc0f39ada539547675aeb628bb2a1a7000a6eb | text/plain | tracked | 2025-12-17T16:14:23.848237Z |
-| shubniggurath/docs/SHUB_READY_FOR_REAPER.md | 44b288b28e68a8fdfb7b470c5ab00bf142471d2ee300d8912e8d4931641ae4ba | text/plain | tracked | 2025-12-17T16:14:23.862422Z |
-| shubniggurath/docs/SHUB_REAPER_INSTALL_EXECUTION.md | 0c3890d69dccd76f630e25b21ecb7df1cd1b9c9e264240b076e2a442ea3097bb | text/plain | tracked | 2025-12-17T16:14:23.871891Z |
-| shubniggurath/docs/SHUB_REAPER_INSTALL_PLAN.md | 09d8765b39feae1539558308a7a442bc3c44a694d7d0477e282722ee81020eb8 | text/x-script.python | tracked | 2025-12-17T16:14:23.877280Z |
-| shubniggurath/docs/SHUB_REAPER_PRODUCTION_REPORT.md | 316f9bf01fb140d8d409828ab2c1cc33e4c5b842bdf21c91731cdab9ef24262c | text/plain | tracked | 2025-12-17T16:14:23.887715Z |
-| shubniggurath/docs/SHUB_REAPER_SIM_TEST.md | 54149846bfbc3262257bcaf310873543cf6feafc6f088fb3158b94507c129036 | text/plain | tracked | 2025-12-17T16:14:23.897337Z |
-| shubniggurath/docs/SHUB_TEST_RESULTS.json | 9818c74a2e28e0edb98ad8da3cb4458946698c3048c9bc21af8a82b3d0e11247 | application/json | tracked | 2025-12-17T16:14:23.899967Z |
-| shubniggurath/docs/SHUB_TEST_RESULTS_v31.json | b050955129b24824d0a1d2e8c4efdbe6b9ba2820052d12c8f421cb9a6f15abf7 | application/json | tracked | 2025-12-17T16:14:23.902097Z |
-| shubniggurath/docs/SHUB_VX11_SAFETY_REPORT.json | 7dab9b8c9866326f55166298a7e3fc192587385948b9d100ad0c76363d12ee16 | application/json | tracked | 2025-12-17T16:14:23.904021Z |
-| shubniggurath/docs/ÍNDICE_FINAL.md | 2ee4681bd6df977555f22bb98bbb4194b4f0c11176cf0cc811324fce8393363f | text/markdown | tracked | 2025-12-17 14:38:06 |
-| shubniggurath/dsp/__init__.py | ca477970b9b511ec0c9a5e7819b09910550dd8f3bc5f2bc1705b4888bd30fc06 | text/plain | tracked | 2025-12-17T16:14:23.907097Z |
-| shubniggurath/dsp/analyzers.py | 33486828d87ec2635f2ed5882d62ccb40e7b912c280679c6f30bcdffb14b6734 | text/plain | tracked | 2025-12-17T16:14:23.910509Z |
-| shubniggurath/dsp/filters.py | b163bda72e43832158d04d677e2807a842681b9364905f95bba0477583d7fa4e | text/plain | tracked | 2025-12-17T16:14:23.913479Z |
-| shubniggurath/dsp/segmenter.py | 245f19b7a3977fb66f7c89d995b5fa40b2565c77c68ce536984ce16e6ca55970 | text/plain | tracked | 2025-12-17T16:14:23.917024Z |
-| shubniggurath/dsp_pipeline.py | bf971f5d18c10c33e3befb35650a880dd8992852e1b05392b15ccc84bb909d48 | text/x-script.python | tracked | 2025-12-17T16:14:23.922923Z |
-| shubniggurath/engines.py | 169891b9f14d1f7ea5a2ddca1018654745f544aa91ba54fcf8df9b07399417e0 | text/x-script.python | tracked | 2025-12-17T16:14:23.925922Z |
-| shubniggurath/engines/__init__.py | a9be445410fc4b14ac2dea792874b0cf602a988224604ae4903c076e56c42a52 | text/plain | tracked | 2025-12-17T16:14:23.929136Z |
-| shubniggurath/engines/ai_assistant_engine.py | fa3a1dd489fb5459487c60fd1f0275a7e1ff41bf857187b23d7261efb37fb1a2 | text/plain | tracked | 2025-12-17T16:14:23.933462Z |
-| shubniggurath/engines/analyzer_engine.py | e68c81de0dbeddc065ba7bd1ec6407dfa398427dd4a6dee4acae61423e7b1436 | text/plain | tracked | 2025-12-17T16:14:23.937237Z |
-| shubniggurath/engines/arrangement_engine.py | 9f2eca849b9cf5b82ac76797e0f205907d86f4fef25d4e57f28849748294ac74 | text/plain | tracked | 2025-12-17T16:14:23.940545Z |
-| shubniggurath/engines/master_engine.py | bce44aa6bce840878f4999f793c7a21b9a1fbc886b41ccd5fa638cbeaea10e58 | text/plain | tracked | 2025-12-17T16:14:23.943940Z |
-| shubniggurath/engines/mix_engine.py | 6fb5ecfa3acd5411009b0c0f8fd8cb8174a8604830fccc6ebdafc231c4c41cae | text/plain | tracked | 2025-12-17T16:14:23.947703Z |
-| shubniggurath/engines/restoration_engine.py | 8931b884a893ef532677acdd9cc8341c0b41fe6d2086eba9e7920a392145fe86 | text/plain | tracked | 2025-12-17T16:14:23.950803Z |
-| shubniggurath/engines/spectral_engine.py | cfc5d206dc1cb0585f40cb40384d4838b6a3f57b0d281169e2f8b62400a211db | text/plain | tracked | 2025-12-17T16:14:23.953903Z |
-| shubniggurath/engines_paso8.py | fff10286bf59309fb02686ddb9c82f108fa2f62540f9e7787e6fe0b4d2e62b0f | text/plain | tracked | 2025-12-17T16:14:23.958951Z |
-| shubniggurath/integrations/__init__.py | ed9477a09974d8e7992641f751854fc86a15387c264d4771643f7abf40c9ec64 | text/plain | tracked | 2025-12-17T16:14:23.962986Z |
-| shubniggurath/integrations/db_sync.py | 0261e48f942d08a4333df659a7ba497387332181aec0d56c1b6ed9529b0cc977 | text/plain | tracked | 2025-12-17T16:14:23.966596Z |
-| shubniggurath/integrations/hermes_shub_provider.py | f1d0b5c33b11b142f2cb5515e260b49d78c92e73edf9b1073f5cb4976b499f8d | text/plain | tracked | 2025-12-17T16:14:23.969589Z |
-| shubniggurath/integrations/reaper_rpc.py | 72b19a802b1f169385e933ade241f14153efc46e1a12a2c78b5cfcfedefa20c9 | text/plain | tracked | 2025-12-17T16:14:23.973477Z |
-| shubniggurath/integrations/vx11_bridge.py | a04acdbde63c7fe8dd53e0d8ef3603238a5f8b61630a5895a7f32e27de86799b | text/plain | tracked | 2025-12-17T16:14:23.977707Z |
-| shubniggurath/main.py | fd8e2619a8ad27a67b51d23ae725f93198c94d261e947dd987f217f3ac65bf1d | text/plain | tracked | 2025-12-17T16:14:23.981569Z |
-| shubniggurath/ops/__init__.py | 96505904108c2859185f5d3d6b1655b37341e235c52c9418083a3d4540d84f38 | text/plain | tracked | 2025-12-17T16:14:23.984284Z |
-| shubniggurath/ops/comp_ops.py | 90c885c8471cbb880a0aaf5a757fd358800975168ba8df07709b5c9dabd7069a | text/plain | tracked | 2025-12-17T16:14:23.987081Z |
-| shubniggurath/ops/diagnostic_ops.py | eebf48fabefc50638240f24558d33019e548ac4e299d927716f90d0c99050c03 | text/plain | tracked | 2025-12-17T16:14:23.989788Z |
-| shubniggurath/ops/mix_ops.py | 2cf9a1e6c516be9c9d316e9aaeefc4f423d5d3cc3fe40948475f825b72f8e171 | text/plain | tracked | 2025-12-17T16:14:23.992612Z |
-| shubniggurath/ops/stem_ops.py | 6b40c537ef55eeb9498fb7ab6ee7e5877d8094a26907b1fe95817e4127732b7c | text/plain | tracked | 2025-12-17T16:14:23.995684Z |
-| shubniggurath/pipelines/__init__.py | f7870ba6b73ed6881e5d7516c522d8e614c40fcefcf7eabea5496d15fb82510c | text/plain | tracked | 2025-12-17T16:14:23.999245Z |
-| shubniggurath/pipelines/analysis.py | 08fec75ef4e9e67f9d547e76e11b4d84aec936e309ead59e78589a95b8f970d4 | text/plain | tracked | 2025-12-17T16:14:24.002713Z |
-| shubniggurath/pipelines/audio_analyzer.py | d24e55b0784d67300e285fdf8cc80c113ee91375a30d5a2e9aac3675927cac98 | text/plain | tracked | 2025-12-17T16:14:24.005678Z |
-| shubniggurath/pipelines/mastering.py | 77138a7a7d510b3c4e711df39fe0e391bc3cc8d32a30598bf8a4e9418f042e77 | text/plain | tracked | 2025-12-17T16:14:24.008570Z |
-| shubniggurath/pipelines/mix_pipeline.py | 0f1e8b7e7851e09490a2387ff42e014067fb2ad3617144746269c13a0e7faa19 | text/plain | tracked | 2025-12-17T16:14:24.012273Z |
-| shubniggurath/pipelines/mixing.py | 7f8acd5d3dde717f28040b10970a0a84d70b91399874a1dbfc8c199c3cf35b73 | text/plain | tracked | 2025-12-17T16:14:24.015612Z |
-| shubniggurath/pipelines/reaper_pipeline.py | fafbde900a35e99c9e6512311ce8e4f107aa59d9a0f69daf8a2b527be5b8c288 | text/plain | tracked | 2025-12-17T16:14:24.018390Z |
-| shubniggurath/presets/style_templates.json | 5c3dd7819beb4a410fd084118ac93d2dca1b28bb90bb18c301153adee76b929f | application/json | tracked | 2025-12-17T16:14:24.020235Z |
-| shubniggurath/pro/__init__.py | 04390bf200eddb6215a2bfec95e10116e90d18cca965178db74f46e339165200 | text/plain | tracked | 2025-12-17T16:14:24.022918Z |
-| shubniggurath/pro/analysis.py | 0212b00fdf205e098cf8eb61c2f8dc41bd7abf1684fa9ebba5a9d13d57a62f3c | text/plain | tracked | 2025-12-17T16:14:24.026865Z |
-| shubniggurath/pro/audio_io.py | 3a8bf2c597a27e3dbacd26c899084e4cee3fe62a2aa5b267a4751e167c078575 | text/plain | tracked | 2025-12-17T16:14:24.030263Z |
-| shubniggurath/pro/core.py | 2c9d2fd94ea88151c54c0d7eb7e9536ccb6a04ef70f217e983072413a6d35cb7 | text/plain | tracked | 2025-12-17T16:14:24.033592Z |
-| shubniggurath/pro/dsp.py | 314b133944974cfafaaff4b06fc7cb2a9482efa8960dac9122ff4eb8e0fa53d7 | text/plain | tracked | 2025-12-17T16:14:24.037153Z |
-| shubniggurath/pro/dsp_engine.py | 28acb79b8aecba6bcf6342a375c986caefaa54aa55337d1bad5557cd3a69edb7 | text/plain | tracked | 2025-12-17T16:14:24.041487Z |
-| shubniggurath/pro/dsp_fx.py | 460fdc23c93751392b628ff358c477e41ddb0aec1e804160923ee28159110290 | text/plain | tracked | 2025-12-17T16:14:24.045413Z |
-| shubniggurath/pro/dsp_pipeline_full.py | 40edddc97f603181d2e433c07777bb6a2e9eb0a9c80f7dd525350f7b9db3ca38 | text/plain | tracked | 2025-12-17T16:14:24.049682Z |
-| shubniggurath/pro/exporter.py | dd75668884f2e1be73464c55e9f293f5b5dfa461fb03bd5b29791562a34d66ee | text/plain | tracked | 2025-12-17T16:14:24.052881Z |
-| shubniggurath/pro/integration_switch.py | 885ba28cdc113236b9a1685aaebc7e1462bcc0b843fbf4767d05c067db5a04d6 | text/plain | tracked | 2025-12-17T16:14:24.055922Z |
-| shubniggurath/pro/interface_api.py | f7068803ce342ab4ae64ad6534971c664b5f3fed32f4cdcd3a16f078d77f3cb9 | text/plain | tracked | 2025-12-17T16:14:24.059052Z |
-| shubniggurath/pro/metadata_manager.py | 80851d03335828df3bd69d1be80d488a6f8d85faf258b5fb82ebccb119d5bd7b | text/plain | tracked | 2025-12-17T16:14:24.062015Z |
-| shubniggurath/pro/mixing.py | 2121750831c31356614d6310d0224c4303b16cd12f941403a44f58ffa79b341c | text/plain | tracked | 2025-12-17T16:14:24.064913Z |
-| shubniggurath/pro/mode_c_pipeline.py | bdb67cf3f82e75b0b7dbc394548edd9c63a4a7569ed4e6c8a44599b65d9756c6 | text/plain | tracked | 2025-12-17T16:14:24.068339Z |
-| shubniggurath/pro/pipeline.py | b50e5b50c9772d40c8fd79e48d5db1b5ad2e954a618c49a14814c06d1de90738 | text/plain | tracked | 2025-12-17T16:14:24.071413Z |
-| shubniggurath/pro/project_db.py | f5d57d0eae46f4da64d42e913c75102d38e8d610d24be827d219bad6f073d0a7 | text/plain | tracked | 2025-12-17T16:14:24.074498Z |
-| shubniggurath/pro/shub_core_init.py | 96b61a9b2c6ca8514c8a47a37fc522f7f63b625aaed1867af1ae90f662eb0a0e | text/plain | tracked | 2025-12-17T16:14:24.078269Z |
-| shubniggurath/pro/shub_db.py | e899ee239a1d95bfefd648212f514c005a05dc0dcea00dd38b2f407074b6ff64 | text/plain | tracked | 2025-12-17T16:14:24.082401Z |
-| shubniggurath/pro/studio_agent.py | 083e6fc136a3d4ff3ee584231b15314b981bdf4a642d527f7780854aaafc099d | text/plain | tracked | 2025-12-17T16:14:24.085480Z |
-| shubniggurath/pro/virtual_engineer.py | 77c740d4ca681f133435db782e14c9f9a63c3e04c651d4691d8f241d3671c3ae | text/plain | tracked | 2025-12-17T16:14:24.088885Z |
-| shubniggurath/reaper/__init__.py | e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855 | inode/x-empty | tracked | 2025-12-17T16:14:24.090386Z |
-| shubniggurath/reaper/osc_bridge.py | 79bdb3ba81b8ab7d929ff71ff0ac3a5f98f0544a97c2c17b699f8b2f81c2b104 | text/plain | tracked | 2025-12-17T16:14:24.093273Z |
-| shubniggurath/reaper/project_manager.py | ce96ba513980c5deb0b5550c1dc479c80f49b96f193ac57a4dc72ddece652d30 | text/plain | tracked | 2025-12-17T16:14:24.096268Z |
-| shubniggurath/reaper/track_manager.py | ffb2b52bca85e5d4b801dafaf61f0ddc7e684f3cce8258fc52a3df054ed66c20 | text/plain | tracked | 2025-12-17T16:14:24.099249Z |
-| shubniggurath/router/__init__.py | e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855 | inode/x-empty | tracked | 2025-12-17T16:14:24.100845Z |
-| shubniggurath/router/dispatcher.py | 7a8362f2f7fb1d66501b25fa4b32deaf55475f1c47b9a07caae8d971e8709891 | text/plain | tracked | 2025-12-17T16:14:24.104032Z |
-| shubniggurath/routes/__init__.py | ed6539d29118c4429dac89609184035f5b6582e8ac29b8d3b2d90166534e5cce | text/plain | tracked | 2025-12-17T16:14:24.106892Z |
-| shubniggurath/routes/schemas.py | d2f4b75bae680f7b208fcedd0ca6669172e179fa51eb215f53f20bdaff4ff813 | text/plain | tracked | 2025-12-17T16:14:24.110854Z |
-| shubniggurath/shub_copilot_bridge_adapter.py | 3867a340eebba166da02d06bb414fb1ff71659d4b396a5cbe67636e600be621a | text/plain | tracked | 2025-12-17T16:14:24.116886Z |
-| shubniggurath/shub_core_init.py | 7cb296d2e48614d5a7d6cf18a35962a3a83bde1b92ccfe22253d505582b4ee43 | text/plain | tracked | 2025-12-17T16:14:24.121132Z |
-| shubniggurath/shub_db_schema.py | 954cf4ee12bb8488399d076983a139c8fd79df60d514a251c64d6b44cbd603f7 | text/plain | tracked | 2025-12-17T16:14:24.124205Z |
-| shubniggurath/shub_reaper_bridge.py | bc400402a76e2a63e4c67086e768d404adf893b97f3ddcbbc2be3b8ece2a1a17 | text/plain | tracked | 2025-12-17T16:14:24.129528Z |
-| shubniggurath/shub_routers.py | f29c35cf988a8279b7d6974ad5c9a9b222992c4a6f2f0e8eb8e5c05419055db6 | text/plain | tracked | 2025-12-17T16:14:24.134711Z |
-| shubniggurath/shub_vx11_bridge.py | 3ecf9bf4efbedef61c6bb6f5fb36abcd4b4799e2105370c60b2ecaf4128a8128 | text/plain | tracked | 2025-12-17T16:14:24.138624Z |
-| shubniggurath/tests/test_shub_core.py | 46e7de0e41616100f20f4c8693e5ae456885bf78238cb7b354693faaca556eed | text/x-script.python | tracked | 2025-12-17T16:14:24.143775Z |
-| shubniggurath/tests/test_shub_pipelines.py | 0bd97a9a24e76cd8680b3dae68e468af799237ff07412f24c943016f91dfcbeb | text/x-script.python | tracked | 2025-12-17T16:14:24.150077Z |
-| shubniggurath/tests/test_shub_reaper_bridge.py | e3e3a0621dbb7f9921daebfbd17326eaa9197bd7438497a85e2254bfb4436be9 | text/plain | tracked | 2025-12-17T16:14:24.154382Z |
-| shubniggurath/utils/__init__.py | ad15dbd8ba6dff7abf85188478f3116571bd026d3b3cafad082b070fb34f5246 | text/plain | tracked | 2025-12-17T16:14:24.157654Z |
-| sitecustomize.py | 66b6012eabbfb57f8be75be3e66731acfb733d53e1972631706735b4ecd70684 | text/x-script.python | tracked | 2025-12-17T16:14:24.160770Z |
-| spawner/Dockerfile | 6f0de70dc84178ebe8b401306cce421979db6560796b886678d1bcc3bbc2d464 | text/plain | tracked | 2025-12-17T16:14:24.166946Z |
-| spawner/README.md | e3e1faf48f6e1c5e1fbc250b7aa8887b057e56cb0394473ef843e7b6976fa80a | text/plain | tracked | 2025-12-17T16:14:24.172135Z |
-| spawner/__init__.py | e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855 | inode/x-empty | tracked | 2025-12-17T16:14:24.173866Z |
-| spawner/ephemeral_v2.py | 49ce077f084c5e1cbf7f69e8da1c2d3c088fd6004c03976bda3e340766cf34c1 | text/plain | tracked | 2025-12-17T16:14:24.177641Z |
-| spawner/main.py | 9407d0fda0a8f2862b94dafae3b6cad05bd763f3f71d442dc0c0fe7b72a6cb8c | text/plain | tracked | 2025-12-17T16:14:24.182398Z |
-| switch/Dockerfile | eb36a03cc51c0ffd29be8f3ea84d160dc4f4b2af6016adc48653767f792bc469 | text/plain | tracked | 2025-12-17T16:14:24.190957Z |
-| switch/README.md | fd888790e3c42a007d29343af3b5cc57ce2e749f05fb3f59e532268d50e05fed | text/plain | tracked | 2025-12-17T16:14:24.199745Z |
-| switch/__init__.py | 52203fc48ad523422f7fd6a15c949ca1da5832486b6205216b0d67fe42631bdf | text/plain | tracked | 2025-12-17T16:14:24.204586Z |
-| switch/adapters.py | 85efde5875d3c5ca75c887ca45b376c0cac0acc6422d1c8e74ed8a6183e9061b | text/x-script.python | tracked | 2025-12-17T16:14:24.208413Z |
-| switch/cli_concentrator/README.md | e57dd28d52a5a1020f7704b418532ce12ccd9f922acc579e0f11a68a47ec9866 | text/x-script.python | tracked | 2025-12-17T16:14:24.214759Z |
-| switch/cli_concentrator/__init__.py | 7962e2f7bbd843c762749a4d7331055e8a16a4530fc372af29e74a1ec3e9b630 | text/plain | tracked | 2025-12-17T16:14:24.219057Z |
-| switch/cli_concentrator/breaker.py | c91eb4cccdd6ab1ff51baf1cb2b2b1f76fd2b829099fd90aace23bca46b733d3 | text/plain | tracked | 2025-12-17T16:14:24.222519Z |
-| switch/cli_concentrator/executor.py | 55063bcf4ed5418ad599e5de00bdf52606cc7402b6a17075882c35f52f2892eb | text/plain | tracked | 2025-12-17T16:14:24.227508Z |
-| switch/cli_concentrator/providers/__init__.py | 4996527bfa5191bc33e7baa2d644b556e5d2819cfb215322068b92fcd0fafdbd | text/plain | tracked | 2025-12-17T16:14:24.232917Z |
-| switch/cli_concentrator/providers/copilot_cli.py | f8c5b6c2bfd52bdd88b22bcd989bdd3d07f143894e513720a8c04c26895c9899 | text/plain | tracked | 2025-12-17T16:14:24.236459Z |
-| switch/cli_concentrator/providers/generic_shell_cli.py | 0c55249580aecd0bd1c364c1fffb3ea2dd294e29f516fe81a45268f5fff37042 | text/plain | tracked | 2025-12-17T16:14:24.239145Z |
-| switch/cli_concentrator/registry.py | 671929e57b06e5b49c034d787dd50a0ab16297644c86bf6327bacb6c92bccefa | text/plain | tracked | 2025-12-17T16:14:24.242219Z |
-| switch/cli_concentrator/schemas.py | 7377af49a2bbea9d64e0ecc62294b0bf09a46d6b75737d6d05daf423a9881215 | text/plain | tracked | 2025-12-17T16:14:24.249150Z |
-| switch/cli_concentrator/scoring.py | b2598e023fca59855ab9b6c3655c369276b35e8d59426251140d36d59074f0ce | text/plain | tracked | 2025-12-17T16:14:24.253034Z |
-| switch/deepseek_r1_provider.py | 7d287a2fca616e01b33ec71e687732ba5242f22ee57bcaf7924b925bc57436bd | text/plain | tracked | 2025-12-17T16:14:24.255997Z |
-| switch/fluzo/README.md | 042b6e98d40cf3109816074f05c43c95fd88bea5d16ffab0dd6849c0ce758969 | text/x-script.python | tracked | 2025-12-17T16:14:24.264110Z |
-| switch/fluzo/__init__.py | f90ec09143d24659ccbede3bfa153195b3b2dd892821d994d3a4cd7a441dbef8 | text/plain | tracked | 2025-12-17T16:14:24.267889Z |
-| switch/fluzo/client.py | b185ee14fa2e12478e12b7b840054c57b452504f8f0cae0de5f5ca9a7addf9ba | text/plain | tracked | 2025-12-17T16:14:24.270906Z |
-| switch/fluzo/profile.py | 4b11c947756ed05e5a7162b3c19af6f334e01b9f2fa432f1f82ac87a5c19d297 | text/plain | tracked | 2025-12-17T16:14:24.273779Z |
-| switch/fluzo/signals.py | e55763862855edb34c7a5e9b3518eed3d74883f84c4c304cc9b383115d61688e | text/plain | tracked | 2025-12-17T16:14:24.278696Z |
-| switch/ga_optimizer.py | b09c374ac9f17267aaee48ddff8d3c69e9dccb844a5d51a7f5cf7b547d19e27f | text/plain | tracked | 2025-12-17T16:14:24.284541Z |
-| switch/ga_population.json | de3cf970ab26d672e10479178bbb6c4f6eab1dce0c1b470cd806991b2af6daa8 | application/json | tracked | 2025-12-17T16:14:24.286808Z |
-| switch/ga_router.py | d01f84f686dd0113078a5c0ad3c8481f3fc8c425fe2b67cd63e37526c2d71c86 | text/plain | tracked | 2025-12-17T16:14:24.290450Z |
-| switch/hermes/Dockerfile | 3c9da62ec7f44e67afa7921d8037ecf8473ed02430875a3d61bbf1de4555319e | text/plain | tracked | 2025-12-17T16:14:24.301764Z |
-| switch/hermes/README.md | fbd5e8ed6f2bd0ccadf57a431d93e1e0979874978c46ae35c9615182efe7ab33 | text/plain | tracked | 2025-12-17T16:14:24.307620Z |
-| switch/hermes/__init__.py | f26bad8683e46815c73dd95b6af4c12536eae40a1f9f153b78b734764603809f | text/plain | tracked | 2025-12-17T16:14:24.312491Z |
-| switch/hermes/cli_metrics.py | c40eda021960516a68351489c9b3a7f3599e7792e5671beb37bcccde40f4b2ad | text/plain | tracked | 2025-12-17T16:14:24.317841Z |
-| switch/hermes/cli_registry.py | 6cde4943c43b06bae40fa522d13d664afd540ab96f06599e91e1861110babaec | text/plain | tracked | 2025-12-17T16:14:24.321442Z |
-| switch/hermes/cli_selector.py | e35d5ef229340083818127ad374fb7915f243004be69ec75f2542e9e357ae93b | text/plain | tracked | 2025-12-17T16:14:24.325030Z |
-| switch/hermes/hermes_core.py | 3f5749b2bdf0f70703bc0b588e6b230eed9a6367576b4d9a95429296e48e7711 | text/plain | tracked | 2025-12-17T16:14:24.329768Z |
-| switch/hermes/hf_scanner.py | 30e1bbfb9758964fbde524044b97545658b91941c08894241aff2f099b2e56b4 | text/plain | tracked | 2025-12-17T16:14:24.333785Z |
-| switch/hermes/leonidas.py | e4f0c1035e8696de1909375b31454acf1aa996a29c6cf1e947a8646904743dc7 | text/plain | tracked | 2025-12-17T16:14:24.337008Z |
-| switch/hermes/local_scanner.py | 05d4296c3f392ee9b6a2b547600e0823bf24d134be622bbcff66f287d0e6e4f8 | text/plain | tracked | 2025-12-17T16:14:24.340610Z |
-| switch/hermes/main.py | c6fce621ee8dbde0fbc633208eb1bed00b7e876b4b07f059c2cf1e9a20aa59b4 | text/plain | tracked | 2025-12-17T16:14:24.344945Z |
-| switch/hermes/model_scanner.py | c2e0e430e299a53097bf39b0f860360dbe89d5a51d2020e8a610e8e050019522 | text/plain | tracked | 2025-12-17T16:14:24.349642Z |
-| switch/hermes/models_catalog.json | 4a0cab848707d69ed26979a138e4e716fadb88c045b4c56624bd992c6d7450f4 | application/json | tracked | 2025-12-17T16:14:24.352308Z |
-| switch/hermes/registry_manager.py | b37e0d23c5a50345ad7ebeed7f449d760d2408a32523eb86d7b1f8b5a12d49f6 | text/plain | tracked | 2025-12-17T16:14:24.355960Z |
-| switch/hermes/scanner_v2.py | 8899c94da9c75f8eadbb03c30195b47c21e64f9712d6aa8fed2a8e2c46a201bb | text/plain | tracked | 2025-12-17T16:14:24.359289Z |
-| switch/hermes_shub_registration.py | f42e303853084aeceb5a921ccac79d0b42ca19563ba2a864c69161d640616cc1 | text/plain | tracked | 2025-12-17T16:14:24.362471Z |
-| switch/intelligence_layer.py | e0b0f0b72cca7fdb0f3db57555c0c0e5600b68c9f7b975c3f0dd902d13137cbd | text/plain | tracked | 2025-12-17T16:14:24.365867Z |
-| switch/learner.json | d45b7c90dbf950cc933da44abe58f3669aeef3b9c4fa6528693bc347cec6c87e | application/json | tracked | 2025-12-17T16:14:24.367596Z |
-| switch/main.py | 0791fb9dbcc33cf878672002e74abedcb120f6a96caa8cc45d103fdd830ca0ed | text/plain | tracked | 2025-12-17T16:14:24.372075Z |
-| switch/pheromone_engine.py | c4995da8d5103ad6f71340a4c136ffeef5675620fae506837bb75388122769fc | text/plain | tracked | 2025-12-17T16:14:24.375373Z |
-| switch/pheromones.json | 7755842f5d91b7593ba1f73cd158863e88ca499082a470880c2c768201adee59 | application/json | tracked | 2025-12-17T16:14:24.377170Z |
-| switch/router_v5.py | 375dfbb62045b2d7c470819a2cfed9ed3b5049243d7f00d8efb8fc0a63d00fbd | text/plain | tracked | 2025-12-17T16:14:24.381045Z |
-| switch/scoring_engine.py | a9ea253113ffa5032892e6e7f818e28534a3fa8b64733343878e57f18ed90504 | text/plain | tracked | 2025-12-17T16:14:24.384439Z |
-| switch/shub_forwarder.py | 76a91dba83936553e9b75bf11554a265a3574b1967a3fc86876a2cc0ce1362c2 | text/plain | tracked | 2025-12-17T16:14:24.387683Z |
-| switch/shub_router.py | 6dc2ce0baf391483cdbdc11c003e64ce65e5de59fcea3b5d5a7d8ed106a16a10 | text/plain | tracked | 2025-12-17T16:14:24.390924Z |
-| switch/switch_audio_router.py | d8b134cfc0bc619902afe992c21e4fb65db990e08f44bb7fbf0f2dc6ca581bdd | text/plain | tracked | 2025-12-17T16:14:24.394273Z |
-| switch/warm_up.py | a1d2fb9de8a6ac6b53e6ad511863905864f57f03deaafad435c72411ab663629 | text/plain | tracked | 2025-12-17T16:14:24.398934Z |
-| switch/warm_up_config.json | 92518949203a60c2e8126cb254921af02399c62e61bcc4a5a2e60bb33885222e | application/json | tracked | 2025-12-17T16:14:24.401070Z |
-| switch/workers/queue_consumer.py | e1c7ddbd4bac5cdb307584c9de0f4d58ba9d06a4a79d25df6d19b7e28a60233e | text/plain | tracked | 2025-12-17T16:14:24.404420Z |
-| tentaculo_link/Dockerfile | 74df3dfc34e86da081dfad9dc472781fb877ff984fca27335c42aac279313257 | text/plain | tracked | 2025-12-17T16:14:24.411784Z |
-| tentaculo_link/__init__.py | 048aaa8b4ffa6fb5bc912e807d633a88f82112a10b198805cc154c92bd6b5182 | text/plain | tracked | 2025-12-17T16:14:24.415429Z |
-| tentaculo_link/_legacy/inbox/MOVE_PLAN_20251216.md | 972ef6f784d3027e14060d6df74d676d5957f9bfbdccd64e8457787256da6f84 | text/plain | tracked | 2025-12-17T16:14:24.423802Z |
-| tentaculo_link/_legacy/notes/MOVE_PLAN_2025-12-16.md | 576d5e435cc88e8c09a66d2feec6126f71be05e814f32ff1301bfee30c823632 | text/plain | tracked | 2025-12-17T16:14:24.431521Z |
-| tentaculo_link/adapters/telegram_adapter.py | 01347da924bd42de64694bd270314fcef499dfd661e78a67f68170b5d427b524 | text/plain | tracked | 2025-12-17T16:14:24.434978Z |
-| tentaculo_link/api/v1_gateway.py | c28eab88f541abc1b057711d3b22a01c8044d2667ffc06cea27d245af1323eac | text/plain | tracked | 2025-12-17T16:14:24.437621Z |
-| tentaculo_link/clients.py | f5f9ae72f5f196c1b4d5fd4d8dd2e7c45ad59c09ee229c47284a77af3770df6d | text/plain | tracked | 2025-12-17T16:14:24.441108Z |
-| tentaculo_link/config/command_routes.json | b4038ffbd2759f797fbec63ac5cd6a963d374eee3fefa2dd106e64a8d9b07cb8 | application/json | tracked | 2025-12-17T16:14:24.442889Z |
-| tentaculo_link/context7_middleware.py | 64018d6007781cfbb26e2b948c0e4f4b1232b4f4a44bd90526d4ff6d8f0b0772 | text/plain | tracked | 2025-12-17T16:14:24.446310Z |
-| tentaculo_link/core/routing.py | 6f4c56b3e7d49dcf26b9fc83720702f59efe6fdfb35b6688e0a5633d41af9582 | text/plain | tracked | 2025-12-17T16:14:24.449056Z |
-| tentaculo_link/db/sqlite.py | 29e336e56c706dbefce38db38ce2a1c5c9aa039fc4b526a4bc7f6d6bd35b8c97 | text/plain | tracked | 2025-12-17T16:14:24.451784Z |
-| tentaculo_link/main.py | bdd2fe2186bc2213b52cab4ea905bd317fff198f7d7d9bb9545d8347f6ed06fb | text/plain | tracked | 2025-12-17T16:14:24.454433Z |
-| tentaculo_link/main_v7.py | df686129899c23a82c353d7581444bea910eb9b685777e8b101f68710b8d4dc8 | text/plain | tracked | 2025-12-17T16:14:24.458704Z |
-| tentaculo_link/routes.py | 4f4ad7a6586931a23f39bab94b0c6fb18934305971e1f71d2c2b731d311c5b4a | text/plain | tracked | 2025-12-17T16:14:24.463040Z |
-| tentaculo_link/systemd/vx11-autosync.service | 14acc9625b4848bf57b78c9c7121688a53ae21802bbe1fbe1b42bd222ff12aaf | text/plain | tracked | 2025-12-17T16:14:24.471590Z |
-| tentaculo_link/systemd/vx11-autosync.timer | 0eaf9e813b46ac69e15f5a4a80b28806a60d713db33d32e215a6c82c6a3e3ddf | text/plain | tracked | 2025-12-17T16:14:24.479889Z |
-| tentaculo_link/tentaculo_shub_gateway.py | 0b97f84bd002c52618b26295540a52a07022999159b27dbf026b349ac4d5dad7 | text/plain | tracked | 2025-12-17T16:14:24.484419Z |
-| tentaculo_link/tests/test_compose_ports_smoke.py | 0e1f194c035e1e8018ead6df3851dca687d9e88fd06b93ea849c99f26d8aa0bf | text/x-script.python | tracked | 2025-12-17T16:14:24.489485Z |
-| tentaculo_link/tests/test_gateway_status.py | 1328fbcc05c9bae5b2bd1c8888469b9f0a1027622bcc33bc50cf2a88533ee945 | text/x-script.python | tracked | 2025-12-17T16:14:24.496150Z |
-| tentaculo_link/tools/autosync.sh | 152265557e3fdf4518ad20608eb1b31fb25ceedd7b6e0bdbf8bd2daad14eb4a4 | text/x-shellscript | tracked | 2025-12-17T16:14:24.500886Z |
-| test-path | h | md | tracked | 2025-12-17 13:12:34 |
-| test.rest | 09110ced510676ff7fd38e49c7da9a4705eee2cdf2b098b995a1a7ee5d4a8320 | text/plain | tracked | 2025-12-17T16:14:24.506388Z |
-| tests/__init__.py | e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855 | inode/x-empty | tracked | 2025-12-17T16:14:24.508335Z |
-| tests/conftest.py | 0c605c3fbb91fb0ff253a41abdfe1e62426727d069a837dcb1f115ca564bf470 | text/x-script.python | tracked | 2025-12-17T16:14:24.515238Z |
-| tests/test_all_healthchecks.py | e757aaca9a7524e7eac3945af4f6e49245f02bad1927133a049b120bff8bc35d | text/x-script.python | tracked | 2025-12-17T16:14:24.519307Z |
-| tests/test_cardinality_counter.py | e7ef26b5e8b546be32ad3f789b7b618dd8d22af6fa73c258172fe34618deb8f1 | text/plain | tracked | 2025-12-17T16:14:24.522879Z |
-| tests/test_cli_concentrator_selection.py | f01728def54aba3f60d0a573d0a9707b5569de5b9aabec6782626157b2bb7327 | text/plain | tracked | 2025-12-17T16:14:24.526966Z |
-| tests/test_cli_usage_db_writes.py | a53c59a78d80180f6b844edb73749288c5214b12513266a601288b5a116d41bb | text/plain | tracked | 2025-12-17T16:14:24.531626Z |
-| tests/test_context7_v7.py | 0a2324a8dd27b622a612e4ed8372039894e0d19fe58bc54f1538b1ccc8736ca2 | text/plain | tracked | 2025-12-17T16:14:24.535633Z |
-| tests/test_copilot_operator.py | 644a0b83bc4a0ed258e5f9f867028002fb393a73749818f9089d8e65131e5468 | text/plain | tracked | 2025-12-17T16:14:24.539347Z |
-| tests/test_correlation_tracker.py | 0b21c2934049e7f9dd6e26fd41e4d9a1f914fb751f7d882301e74dc70530d1dd | text/plain | tracked | 2025-12-17T16:14:24.542569Z |
-| tests/test_db_schema.py | f19e6767b81a31728250014c9031b4237400eb25db0f5ee2b360845f23c0d053 | text/plain | tracked | 2025-12-17T16:14:24.545426Z |
-| tests/test_dynamic_optimization.py | bd67c113206ee13b4999f6a653a8f9a75a84dbd8ebf8b660b715408edd4bc824 | text/plain | tracked | 2025-12-17T16:14:24.549460Z |
-| tests/test_event_validation.py | 58d163a72b1626caa617ab34e7cb479d8cd8c185ae136f994c5c045ad0f83206 | text/plain | tracked | 2025-12-17T16:14:24.553107Z |
-| tests/test_fluzo_scoring_influence.py | 7eee59ec5ec6567260bff0395654ae08fb0ca449ef9317cda4248e77be69985b | text/plain | tracked | 2025-12-17T16:14:24.556387Z |
-| tests/test_forensics_rotate.py | 4f421021943d80c3030dc92f22e7dd5fdb9cb3bd39b784bf9befb2fd38fbcdda | text/x-script.python | tracked | 2025-12-17T16:14:24.561745Z |
-| tests/test_ga_router_tokens.py | 922f9476879b37076555d0367a7f81245ad3761322395850885d273735a02930 | text/x-script.python | tracked | 2025-12-17T16:14:24.565210Z |
-| tests/test_gateway_v7.py | 5a2692d1a07a36589cd431105ceb76a280637e1fdf82ef268bbb5a3b53d25843 | text/plain | tracked | 2025-12-17T16:14:24.569624Z |
-| tests/test_health_endpoints.py | 9bfa51f49510297c744f4104bd4b15168bee7d175835c8b9e68795c68a846d9f | text/x-script.python | tracked | 2025-12-17T16:14:24.574785Z |
-| tests/test_health_smoke.py | ece22c8f3378cb5d5b88c061e6fcb17cd3312af6cf97c6b7c937b170e28b975a | text/plain | tracked | 2025-12-17T16:14:24.578076Z |
-| tests/test_hermes_cli_detection.py | 658e3e8caa4f366d7ed41c70d95ba7086f2e63035c904d1a1896edf670298ffc | text/x-script.python | tracked | 2025-12-17T16:14:24.583001Z |
-| tests/test_hermes_cli_registry_module.py | d88e411d98f6456dd830351c3f407dd740ae15d7ff738fc8dbca03731f963d02 | text/x-script.python | tracked | 2025-12-17T16:14:24.587949Z |
-| tests/test_hermes_discovery_apply.py | 51f90790e758c5f28e44e8fe61433d2d89d9c0debce18c430e7ae9e74f1da1b4 | text/x-script.python | tracked | 2025-12-17T16:14:24.590896Z |
-| tests/test_hermes_registry_db.py | 6018f027db6498079fddc9a573721b7e985836c20fb1dce6c98fc32034d0cc20 | text/x-script.python | tracked | 2025-12-17T16:14:24.597592Z |
-| tests/test_hermes_waveform.py | 811e2894dc75b71aa9df9978c055fdffd6bba8dfed00f1b52ce23a5e534e7092 | text/x-script.python | tracked | 2025-12-17T16:14:24.603242Z |
-| tests/test_hormiguero.py | 3c6f68d0aa48d87d3885888788e2c9934f65fdb828acf19a2da8551b75c29418 | text/x-script.python | tracked | 2025-12-17T16:14:24.608354Z |
-| tests/test_hormiguero_queen.py | bd33504c2326ffa2a2f4470ea10c474ed1443e2a081cf979f806ddec977ec39f | text/x-script.python | tracked | 2025-12-17T16:14:24.616774Z |
-| tests/test_hormiguero_v7.py | 3ee80dbaa5f5e1615d0d14aa66af6443d6509c9c12302fcb4f3473eb807d2a79 | text/plain | tracked | 2025-12-17T16:14:24.620636Z |
-| tests/test_leonidas_permissions.py | c1a67648b9d1d84c9657ee7f901fdf3c28f08f1305a21a4066e9e1253087d1aa | text/x-script.python | tracked | 2025-12-17T16:14:24.626963Z |
-| tests/test_madre.py | cdaf0100bbdd16b02c7463fde759eea24f67a10451d0d39872f0c47a6b65ee52 | text/plain | tracked | 2025-12-17T16:14:24.633890Z |
-| tests/test_madre_fluzo_integration.py | 9e09b90c3a63b9ee3923316cd2be7cf9506d301a4731ad2ac95553ce7ed20e1b | text/plain | tracked | 2025-12-17T16:14:24.638042Z |
-| tests/test_madre_orchestration.py | a715806521f4e13e0eaa7af7de954b78b34e1864f51ba0c80565bd66ecf3457c | text/plain | tracked | 2025-12-17T16:14:24.640873Z |
-| tests/test_madre_spawner_v7.py | 1fece2e3a5a836e350f5338bb1b271a760076145eb05e5e87843f12ae5523c4d | text/plain | tracked | 2025-12-17T16:14:24.646708Z |
-| tests/test_madre_spawner_v7_simple.py | eacb2d2890b7f2a0c578cc80db106553964da2cfff9a7e27b8ec600eeb5a94a8 | text/plain | tracked | 2025-12-17T16:14:24.651486Z |
-| tests/test_madre_states.py | ae2fef78b5677a16bb075675de377e1bf357b015630e44cc31d4143d60b09855 | text/x-script.python | tracked | 2025-12-17T16:14:24.656763Z |
-| tests/test_manifestator_drift.py | e841aab85b5615423f2781c6f4ed8aa0221110779300765710f1c12eea758dc4 | text/x-script.python | tracked | 2025-12-17T16:14:24.663482Z |
-| tests/test_mcp_action.py | 667e7240747bfce413b866f72c3de3144dde2eef679f98e61c8b22690328a7ba | text/x-script.python | tracked | 2025-12-17T16:14:24.670287Z |
-| tests/test_mcp_switch_integration.py | 33b77916384538e7fc936c08e48a8390b4ff640e2ce029b1eb1926695e6aa5da | text/x-script.python | tracked | 2025-12-17T16:14:24.675235Z |
-| tests/test_modes_transition.py | f2aa5858b2b510dcf61d9b959493017258e21accc87d4f7c71d41721f15ee279 | text/plain | tracked | 2025-12-17T16:14:24.678949Z |
-| tests/test_operator_backend_v7.py | 6e30f1cd525286a7ed69e638926501a6f5762541a9d31972a564392acfdc64f7 | text/plain | tracked | 2025-12-17T16:14:24.683213Z |
-| tests/test_operator_browser_v7.py | cb99f1dab5f68a900db9ad3deebcafe1b26b373d64a2bf1d94ac5f80518bc0dc | text/plain | tracked | 2025-12-17T16:14:24.686621Z |
-| tests/test_operator_db_schema_v7.py | 5c389ed2debd1ca9e3cc33d1e6464a3c522f166fc434a242d9e17db7c4725365 | text/plain | tracked | 2025-12-17T16:14:24.689669Z |
-| tests/test_operator_intents.py | e2ac4b4f79fe8ae3ada9d4df9c129cd563bd825225f9e26f9fdbb8cc648cc652 | text/x-script.python | tracked | 2025-12-17T16:14:24.694683Z |
-| tests/test_operator_shub_phase4.py | 2b1e8c2829a44ef31381f5435203b1e53400b624e2efa5371f658d90f2c98a06 | text/plain | tracked | 2025-12-17T16:14:24.698260Z |
-| tests/test_operator_switch_hermes_flow.py | bbd09d2fe6bbd776a442f2295a0b71854d400ff614b5d0959e0d84d7f1009474 | text/x-script.python | tracked | 2025-12-17T16:14:24.702219Z |
-| tests/test_operator_ui_status_events.py | 6f4441c1f34351fe53c1840433e53ed185bba12048ebf9108d30a25984db6dab | text/x-script.python | tracked | 2025-12-17T16:14:24.705164Z |
-| tests/test_operator_version_core.py | db0a3ef0cb64e7b258ed4a031651d6cd13fe6636a3456457635534380d888799 | text/x-script.python | tracked | 2025-12-17T16:14:24.710459Z |
-| tests/test_paso7_integration.py | ce368f74f16dae049eeba8b2d5fd955f72bcba7cd810e8f1e0ea0e5406c3effd | text/plain | tracked | 2025-12-17T16:14:24.714372Z |
-| tests/test_phase12_fases2_10.py | b3800ee145193a22c0bf17c71fe182f2fd9011823df539543e1e4a2329cce2e8 | text/plain | tracked | 2025-12-17T16:14:24.717850Z |
-| tests/test_pnp_and_integration.py | f56357cdf8bd367e6683738c928b7a2dd18b6c4bc69e2b06c98dc0a8632b461e | text/plain | tracked | 2025-12-17T16:14:24.721371Z |
-| tests/test_pnp_and_switch_integration.py | 725b9c0e3bd9732baaab6da2ffdee7c13872a276c7d7d9ef2076305bc49e88ec | text/plain | tracked | 2025-12-17T16:14:24.724770Z |
-| tests/test_reina_logic_v7.py | 1accd807b83e55c62b1e7a5ac41fff11048d42f6dee76d3747b20dacd798c70d | text/plain | tracked | 2025-12-17T16:14:24.728229Z |
-| tests/test_routingresult_compat.py | 3a650d704bd68ef25e706b3f333d18b1c9e066a503aa5f943024ed77dd2161b2 | text/x-script.python | tracked | 2025-12-17T16:14:24.734003Z |
-| tests/test_shub_api.py | 5ebe69ff0025ffd90c65a4ea236de98ce7e503f35127510d57dd08ce998c294c | text/plain | tracked | 2025-12-17T16:14:24.737513Z |
-| tests/test_shub_autonomy_e2e.py | ab15306650611ae438f30bc79ccdd53f2e2dbf4449d16017360e2a1422c50669 | text/plain | tracked | 2025-12-17T16:14:24.741083Z |
-| tests/test_shub_core.py | 8eb04d08cbfd96d675867790f9f61c13f7a534ad9d6481fa03ff08ae848741f3 | text/plain | tracked | 2025-12-17T16:14:24.744822Z |
-| tests/test_shub_dsp.py | 6eb3c038e4e1ad28140a1cca883a3abe22faa2b4b7a9cd5f310d219c89942eed | text/plain | tracked | 2025-12-17T16:14:24.748225Z |
-| tests/test_shub_mode_c.py | 8bc7963fee4c3f17455bb58950c1d0771294e857b4e450aa7c2d4c5635639255 | text/x-script.python | tracked | 2025-12-17T16:14:24.754756Z |
-| tests/test_shub_modes.py | 848ff52feae2bda31564b8ed60081bd945251de8c16ab98a0e991f2721037938 | text/x-script.python | tracked | 2025-12-17T16:14:24.761719Z |
-| tests/test_shub_pro.py | 14f44d1bbcf94f90f4f6bd969f3ee736ac1aecfa030e79255e05d09e0725f7e6 | text/plain | tracked | 2025-12-17T16:14:24.765440Z |
-| tests/test_shub_pro_api.py | 3a6e81fb675ef9e4b86e7d35cc41902f5a236d84b6d7a5f3c475ccd140a34bb5 | text/x-script.python | tracked | 2025-12-17T16:14:24.770687Z |
-| tests/test_shub_pro_io.py | 4875d96f8b288e96d35bdbceca688684ccef29cac4cb41605a442cb3f15c47ec | text/x-script.python | tracked | 2025-12-17T16:14:24.775910Z |
-| tests/test_shub_pro_simple.py | 81741077c702b79d2be7c64d27bf723b93ef79e3b4d3b2091ba741b3a8027f3a | text/plain | tracked | 2025-12-17T16:14:24.780647Z |
-| tests/test_shubniggurath_complete_suite.py | c665c5eb413db31702addebfff71fbc5e95042fd804f151e2e7a816a1361085e | text/plain | tracked | 2025-12-17T16:14:24.784940Z |
-| tests/test_shubniggurath_phase1.py | 8fb169edded217e99ddb7dd01a1eeb0f658f1ec32d9e93e348fb700519198249 | text/plain | tracked | 2025-12-17T16:14:24.788207Z |
-| tests/test_shubniggurath_phase2.py | 6b30326a49be6e9d0cd28761eb16dfe0f106d315880acb14cd3817a7c7170290 | text/plain | tracked | 2025-12-17T16:14:24.791014Z |
-| tests/test_shubniggurath_phase3.py | 7fc9a0f4d13155d9042ec0915ba1fd03a2b92edf7c4df0a00f2437a70bd2699b | text/plain | tracked | 2025-12-17T16:14:24.795884Z |
-| tests/test_shubniggurath_phase5.py | ed39b7bdda22109ad4f0316552c7c81c03c72cc417dfd897b4be74fdad86e81e | text/plain | tracked | 2025-12-17T16:14:24.800273Z |
-| tests/test_shubniggurath_phase6.py | 0f1d6fcfb57565a91e7163bd9af93a8033f4f1494407c59505283d404ab43469 | text/plain | tracked | 2025-12-17T16:14:24.803198Z |
-| tests/test_shubniggurath_phase7.py | d365222bd657875b5597ab4c55970dee69035134b0300e92ad2aaee276d3a206 | text/plain | tracked | 2025-12-17T16:14:24.805803Z |
-| tests/test_shubniggurath_phase8.py | 4e9d17287789bd71b481c3f901ecdd43a834710dafacf63c1a61f6588040c7ba | text/plain | tracked | 2025-12-17T16:14:24.808483Z |
-| tests/test_spawner_endpoints.py | 9588d8b6bab7e22f683db12379f5676fceb72ff9d619d41cd8f6c4e265ef3dc1 | text/plain | tracked | 2025-12-17T16:14:24.813443Z |
-| tests/test_switch_auto.py | e27ccbe7cb99b468252f0541a3da134e928e50582d9f0d17e09e383d4e73381a | text/x-script.python | tracked | 2025-12-17T16:14:24.820998Z |
-| tests/test_switch_chat_and_breaker.py | 32889c4573e7ce2112236468e720fd6844bf96dcbfaf10ad2b9bf01e0c71ae4b | text/x-script.python | tracked | 2025-12-17T16:14:24.827810Z |
-| tests/test_switch_deepseek.py | 07e84ca77da9d8b8da95999af34876b15c6464fbeb17b4924f8575664023337b | text/x-script.python | tracked | 2025-12-17T16:14:24.834676Z |
-| tests/test_switch_deepseek_staging.py | 4547215064260725f9d5ba30ef8ec0636ad635a07ef1e2394bb4582c60c428bd | text/x-script.python | tracked | 2025-12-17T16:14:24.839664Z |
-| tests/test_switch_hermes_flow.py | a78a35a86708bd585ef928c0f2997124e06277c09e9ea1b21fbac0e5fc640937 | text/x-script.python | tracked | 2025-12-17T16:14:24.843023Z |
-| tests/test_switch_hermes_shub_pipeline.py | a6482cefa2ed31a6beba3178723e12900e2aae2d0c6e1f7a6967bf85d2a3df79 | text/x-script.python | tracked | 2025-12-17T16:14:24.848779Z |
-| tests/test_switch_hermes_v7.py | 134cd54bddb3fd19aff151aa2341a56cb51cb45d363079597a0814d80817febb | text/plain | tracked | 2025-12-17T16:14:24.854232Z |
-| tests/test_switch_integration_v7.py | c186eb10003aeb6ec9d5bdc5d901714acd26d624120721434493ab1e6ad966b1 | text/plain | tracked | 2025-12-17T16:14:24.857965Z |
-| tests/test_switch_local.py | 993625c702ee19a2a08fa85414f24f25e8630b3236b70af09b72c30a6d3a1fa4 | text/x-script.python | tracked | 2025-12-17T16:14:24.867237Z |
-| tests/test_switch_multiauto.py | dc435ae53b2224440f81dc20f054dd00bfca0cf354850178f479923ae9eadeec | text/x-script.python | tracked | 2025-12-17T16:14:24.872476Z |
-| tests/test_switch_providers.py | dc51bb5c5b32365b968ef878332bc37bb06ae706c798caa6488e94421ccb4817 | text/x-script.python | tracked | 2025-12-17T16:14:24.879691Z |
-| tests/test_switch_queue_consumer.py | cb676515f05c0e8920e8bae8ca0288167c115db869a2c4cbe36f3e624acee345 | text/x-script.python | tracked | 2025-12-17T16:14:24.886776Z |
-| tests/test_switch_registry_enqueue.py | cc496ff77628f7c5774681515ebfaca7270faa279dceb4ce953bb60629e3f3a6 | text/x-script.python | tracked | 2025-12-17T16:14:24.891743Z |
-| tests/test_switch_scoring_breaker.py | 6598ca3f33924085a624da28a4c2f1099fbdc26b7d8f59860e13aaf36c6d6a08 | text/x-script.python | tracked | 2025-12-17T16:14:24.896251Z |
-| tests/test_tentaculo_link.py | 0e4c9ad0d1f96939c7372c3035b5542e687c21ed6dea17447c46f337065edfa2 | text/x-script.python | tracked | 2025-12-17T16:14:24.899921Z |
-| tests/test_v2_advanced.py | 648f4e8b06e979930fff11bfb439290cb922988fa6047f7aa1c2a482a4c3bc8d | text/plain | tracked | 2025-12-17T16:14:24.903176Z |
-| tokens.env.sample | 4ef995659a7275923e3110abee205e4446eb15fc87e5b8bbe6b63961eb690c6d | text/plain | tracked | 2025-12-17T16:14:24.910724Z |
-| tools/apply_patch.sh | 42d018bcca50402b2b585b8fd63f0c999a3dd9134e6589a6083b71a9748ce5b2 | text/x-shellscript | tracked | 2025-12-17T16:14:24.914134Z |
-| tools/create_remote_and_push.sh | f1934812a2912105685265f506e46e7dc9a36ddcf8989fcb583a270a8d04abd8 | text/x-shellscript | tracked | 2025-12-17T16:14:24.918009Z |
-| tools/diagnostics.py | db63eb21a51f991de3dac80f9faf9b27177b2c84eec1cf704c2a7d7ccf3680e7 | text/plain | tracked | 2025-12-17T16:14:24.921102Z |
-| tools/manifestator_extension/vx11_manifestator_extension/README.md | b618f87f806e72539766f988ccf2a30ec103fc6e83e55e7e43406cd8fe75fd56 | text/plain | tracked | 2025-12-17T16:14:24.926781Z |
-| tools/manifestator_extension/vx11_manifestator_extension/package.json | 530d31b942b50b32280c6302013048f77915760a37108d5c54efb68951c51a96 | application/json | tracked | 2025-12-17T16:14:24.928505Z |
-| tools/manifestator_extension/vx11_manifestator_extension/src/extension.js | d40e93f599f3ec43569d236662f95def0e47f07196bef04278aada38077c929f | text/plain | tracked | 2025-12-17T16:14:24.934917Z |
-| tools/operator/OPERATOR_MODE_AUDIT.py | 2f56383f1ce1dc8bf669b9d4612bf080e631a548874f097b9c01dfa4f4c361fb | text/plain | tracked | 2025-12-17T16:14:24.938857Z |
-| tools/vx11_operator.py | 8215b4535869ae7f51a443d15ed8dfefa2007ff0390d594a488e2aed9f4a0973 | text/x-script.python | tracked | 2025-12-17T16:14:24.941610Z |
-| vx11.code-workspace | a5d84c743eb8de385aef2c32a7de1e1b235fc5ff9d87769c282ab5b682301000 | application/json | tracked | 2025-12-17T16:14:24.943428Z |
-| vx11_control.http | 185d74920b146faca6e27e099509bda2d7865738cecfe060c9b76d0536e78831 | text/plain | tracked | 2025-12-17T16:14:24.949824Z |
+Generated at: 2025-12-17T21:14:52.517099Z
+
+Database file: data/runtime/vx11.db
+
+## Tables
+
+### audit_logs — EMPTY (READY)
+
+- Rows: 0
+- Columns:
+  - id (INTEGER) PK NOT NULL
+  - component (VARCHAR(64)) NOT NULL
+  - level (VARCHAR(16))
+  - message (TEXT) NOT NULL
+  - created_at (DATETIME)
+
+### chat_providers_stats — EMPTY (READY)
+
+- Rows: 0
+- Columns:
+  - provider (TEXT) PK
+  - success_count (INTEGER)
+  - fail_count (INTEGER)
+  - avg_latency_ms (REAL)
+
+### cli_onboarding_state — EMPTY (READY)
+
+- Module: hermes
+- Rows: 0
+- Columns:
+  - id (INTEGER) PK NOT NULL
+  - provider_id (VARCHAR(128)) NOT NULL
+  - state (VARCHAR(50))
+  - notes (TEXT)
+  - last_checked_at (DATETIME)
+  - created_at (DATETIME)
+
+### cli_providers — ACTIVE
+
+- Module: hermes
+- Rows: 1
+- Columns:
+  - id (INTEGER) PK NOT NULL
+  - name (VARCHAR(100)) NOT NULL
+  - base_url (VARCHAR(500))
+  - api_key_env (VARCHAR(100)) NOT NULL
+  - task_types (VARCHAR(255))
+  - daily_limit_tokens (INTEGER)
+  - monthly_limit_tokens (INTEGER)
+  - tokens_used_today (INTEGER)
+  - tokens_used_month (INTEGER)
+  - reset_hour_utc (INTEGER)
+  - enabled (BOOLEAN)
+  - last_reset_at (DATETIME)
+  - created_at (DATETIME)
+  - updated_at (DATETIME)
+
+### cli_registry — EMPTY (READY)
+
+- Module: hermes
+- Rows: 0
+- Columns:
+  - id (INTEGER) PK NOT NULL
+  - name (VARCHAR(100)) NOT NULL
+  - bin_path (VARCHAR(500))
+  - available (BOOLEAN)
+  - last_checked (DATETIME)
+  - cli_type (VARCHAR(50)) NOT NULL
+  - token_config_key (VARCHAR(100))
+  - rate_limit_daily (INTEGER)
+  - used_today (INTEGER)
+  - notes (TEXT)
+  - updated_at (DATETIME)
+
+### cli_usage_stats — ACTIVE
+
+- Module: hermes
+- Rows: 123
+- Columns:
+  - id (INTEGER) PK NOT NULL
+  - provider_id (VARCHAR(128)) NOT NULL
+  - timestamp (DATETIME)
+  - success (BOOLEAN)
+  - latency_ms (INTEGER)
+  - cost_estimated (FLOAT)
+  - tokens_estimated (INTEGER)
+  - error_class (VARCHAR(100))
+
+### context — ACTIVE
+
+- Rows: 6
+- Columns:
+  - id (INTEGER) PK NOT NULL
+  - task_id (VARCHAR(36)) NOT NULL
+  - key (VARCHAR(255)) NOT NULL
+  - value (TEXT) NOT NULL
+  - scope (VARCHAR(50))
+  - created_at (DATETIME)
+- Foreign keys:
+  - task_id -> tasks.uuid (on_update=NO ACTION, on_delete=NO ACTION)
+
+### copilot_actions_log — EMPTY (READY)
+
+- Rows: 0
+- Columns:
+  - id (INTEGER) PK
+  - session_id (TEXT)
+  - timestamp (TIMESTAMP)
+  - action (TEXT)
+  - mode (TEXT)
+  - files_touched (INTEGER)
+  - git_commit (TEXT)
+  - status (TEXT)
+  - notes (TEXT)
+
+### copilot_repo_map — ACTIVE
+
+- Rows: 983
+- Columns:
+  - id (INTEGER) PK
+  - path (TEXT)
+  - file_hash (TEXT)
+  - file_type (TEXT)
+  - status (TEXT)
+  - created_at (TIMESTAMP)
+  - updated_at (TIMESTAMP)
+  - content (TEXT)
+  - meta_json (TEXT)
+
+### copilot_runtime_services — ACTIVE
+
+- Rows: 12
+- Columns:
+  - id (INTEGER) PK
+  - service_name (TEXT)
+  - host (TEXT)
+  - port (INTEGER)
+  - health_url (TEXT)
+  - status (TEXT)
+  - last_check (TIMESTAMP)
+  - created_at (TIMESTAMP)
+  - http_code (INTEGER)
+  - latency_ms (INTEGER)
+  - endpoint_ok (TEXT)
+  - snippet (TEXT)
+  - checked_at (TIMESTAMP)
+
+### copilot_workflows_catalog — EMPTY (READY)
+
+- Rows: 0
+- Columns:
+  - id (INTEGER) PK
+  - workflow_file (TEXT)
+  - workflow_name (TEXT)
+  - triggers (TEXT)
+  - jobs (TEXT)
+  - created_at (TIMESTAMP)
+
+### daughter_attempts — ACTIVE
+
+- Rows: 127
+- Columns:
+  - id (INTEGER) PK NOT NULL
+  - daughter_id (INTEGER) NOT NULL
+  - attempt_number (INTEGER)
+  - started_at (DATETIME)
+  - finished_at (DATETIME)
+  - status (VARCHAR(32))
+  - error_message (VARCHAR(500))
+  - tokens_used_cli (INTEGER)
+  - tokens_used_local (INTEGER)
+  - switch_model_used (VARCHAR(128))
+  - cli_provider_used (VARCHAR(128))
+  - created_at (DATETIME)
+- Foreign keys:
+  - daughter_id -> daughters.id (on_update=NO ACTION, on_delete=NO ACTION)
+
+### daughter_tasks — ACTIVE
+
+- Rows: 83
+- Columns:
+  - id (INTEGER) PK NOT NULL
+  - intent_id (VARCHAR(36))
+  - source (VARCHAR(64)) NOT NULL
+  - priority (INTEGER)
+  - status (VARCHAR(32))
+  - task_type (VARCHAR(50)) NOT NULL
+  - description (TEXT)
+  - created_at (DATETIME)
+  - updated_at (DATETIME)
+  - finished_at (DATETIME)
+  - max_retries (INTEGER)
+  - current_retry (INTEGER)
+  - metadata_json (TEXT)
+  - plan_json (TEXT)
+
+### daughters — ACTIVE
+
+- Rows: 127
+- Columns:
+  - id (INTEGER) PK NOT NULL
+  - task_id (INTEGER) NOT NULL
+  - name (VARCHAR(128)) NOT NULL
+  - purpose (TEXT)
+  - tools_json (TEXT)
+  - ttl_seconds (INTEGER)
+  - started_at (DATETIME)
+  - last_heartbeat_at (DATETIME)
+  - ended_at (DATETIME)
+  - status (VARCHAR(32))
+  - mutation_level (INTEGER)
+  - error_last (TEXT)
+- Foreign keys:
+  - task_id -> daughter_tasks.id (on_update=NO ACTION, on_delete=NO ACTION)
+
+### drift_reports — EMPTY (READY)
+
+- Rows: 0
+- Columns:
+  - id (INTEGER) PK NOT NULL
+  - module (VARCHAR(64)) NOT NULL
+  - details (TEXT) NOT NULL
+  - severity (VARCHAR(32))
+  - timestamp (DATETIME)
+  - resolved (BOOLEAN)
+
+### engines — EMPTY (READY)
+
+- Rows: 0
+- Columns:
+  - id (INTEGER) PK NOT NULL
+  - name (VARCHAR(128)) NOT NULL
+  - engine_type (VARCHAR(32)) NOT NULL
+  - domain (VARCHAR(64)) NOT NULL
+  - endpoint (VARCHAR(256)) NOT NULL
+  - version (VARCHAR(32))
+  - quota_tokens_per_day (INTEGER)
+  - quota_used_today (INTEGER)
+  - quota_reset_at (DATETIME)
+  - latency_ms (FLOAT)
+  - cost_per_call (FLOAT)
+  - enabled (BOOLEAN)
+  - last_used (DATETIME)
+  - created_at (DATETIME)
+  - updated_at (DATETIME)
+
+### events — EMPTY (READY)
+
+- Rows: 0
+- Columns:
+  - id (INTEGER) PK NOT NULL
+  - source (VARCHAR(64)) NOT NULL
+  - event_type (VARCHAR(64)) NOT NULL
+  - payload (TEXT)
+  - created_at (DATETIME)
+
+### feromona_events — EMPTY (READY)
+
+- Rows: 0
+- Columns:
+  - id (INTEGER) PK NOT NULL
+  - type (VARCHAR(64)) NOT NULL
+  - intensity (INTEGER)
+  - module (VARCHAR(64)) NOT NULL
+  - payload (TEXT)
+  - timestamp (DATETIME)
+
+### fluzo_signals — EMPTY (READY)
+
+- Rows: 0
+- Columns:
+  - id (INTEGER) PK NOT NULL
+  - timestamp (DATETIME)
+  - cpu_load_1m (FLOAT)
+  - mem_pct (FLOAT)
+  - on_ac (BOOLEAN)
+  - battery_pct (INTEGER)
+  - profile (VARCHAR(32))
+
+### forensic_ledger — EMPTY (READY)
+
+- Rows: 0
+- Columns:
+  - id (INTEGER) PK NOT NULL
+  - event (VARCHAR(255)) NOT NULL
+  - payload (TEXT)
+  - hash (VARCHAR(64)) NOT NULL
+  - created_at (DATETIME)
+
+### hermes_ingest — EMPTY (READY)
+
+- Module: hermes
+- Rows: 0
+- Columns:
+  - id (INTEGER) PK NOT NULL
+  - path (VARCHAR(512)) NOT NULL
+  - size_bytes (INTEGER)
+  - duration_sec (FLOAT)
+  - status (VARCHAR(32))
+  - created_at (DATETIME)
+
+### hijas_runtime — ACTIVE
+
+- Module: hormiguero
+- Rows: 12
+- Columns:
+  - id (INTEGER) PK NOT NULL
+  - name (VARCHAR(128)) NOT NULL
+  - state (VARCHAR(32))
+  - pid (INTEGER)
+  - last_heartbeat (DATETIME)
+  - meta_json (TEXT)
+  - birth_context (TEXT)
+  - death_context (TEXT)
+  - intent_type (VARCHAR(64))
+  - ttl (INTEGER)
+  - killed_by (VARCHAR(128))
+  - purpose (VARCHAR(256))
+  - module_creator (VARCHAR(64))
+  - born_at (DATETIME)
+  - died_at (DATETIME)
+
+### hijas_state — EMPTY (READY)
+
+- Module: hormiguero
+- Rows: 0
+- Columns:
+  - id (INTEGER) PK NOT NULL
+  - hija_id (VARCHAR(64)) NOT NULL
+  - module (VARCHAR(64)) NOT NULL
+  - status (VARCHAR(32))
+  - cpu_usage (FLOAT)
+  - ram_usage (FLOAT)
+  - pid (INTEGER)
+  - created_at (DATETIME)
+  - updated_at (DATETIME)
+
+### hormiga_state — ACTIVE
+
+- Rows: 8
+- Columns:
+  - id (INTEGER) PK NOT NULL
+  - ant_id (VARCHAR(64)) NOT NULL
+  - role (VARCHAR(32)) NOT NULL
+  - status (VARCHAR(20))
+  - last_scan_at (DATETIME)
+  - mutation_level (INTEGER)
+  - cpu_percent (FLOAT)
+  - ram_percent (FLOAT)
+  - created_at (DATETIME)
+  - updated_at (DATETIME)
+
+### ia_decisions — ACTIVE
+
+- Module: switch
+- Rows: 10216
+- Columns:
+  - id (INTEGER) PK NOT NULL
+  - prompt_hash (VARCHAR(64)) NOT NULL
+  - provider (VARCHAR(50)) NOT NULL
+  - task_type (VARCHAR(50))
+  - prompt (TEXT) NOT NULL
+  - response (TEXT)
+  - latency_ms (INTEGER)
+  - success (BOOLEAN)
+  - confidence (FLOAT)
+  - meta_json (TEXT)
+  - created_at (DATETIME)
+
+### incidents — ACTIVE
+
+- Rows: 983554
+- Columns:
+  - id (INTEGER) PK NOT NULL
+  - ant_id (VARCHAR(64)) NOT NULL
+  - incident_type (VARCHAR(64)) NOT NULL
+  - severity (VARCHAR(20))
+  - location (VARCHAR(255))
+  - details (TEXT)
+  - status (VARCHAR(20))
+  - detected_at (DATETIME)
+  - resolved_at (DATETIME)
+  - queen_decision (VARCHAR(255))
+
+### intents_log — ACTIVE
+
+- Rows: 83
+- Columns:
+  - id (INTEGER) PK NOT NULL
+  - source (VARCHAR(64)) NOT NULL
+  - payload_json (TEXT) NOT NULL
+  - created_at (DATETIME)
+  - processed_by_madre_at (DATETIME)
+  - result_status (VARCHAR(32))
+  - notes (TEXT)
+
+### local_models_v2 — EMPTY (READY)
+
+- Module: hermes
+- Rows: 0
+- Columns:
+  - id (INTEGER) PK NOT NULL
+  - name (VARCHAR(255)) NOT NULL
+  - engine (VARCHAR(50)) NOT NULL
+  - path (VARCHAR(512)) NOT NULL
+  - size_bytes (INTEGER) NOT NULL
+  - task_type (VARCHAR(50)) NOT NULL
+  - max_context (INTEGER)
+  - enabled (BOOLEAN)
+  - last_used_at (DATETIME)
+  - usage_count (INTEGER)
+  - compatibility (VARCHAR(64))
+  - meta_info (TEXT)
+  - created_at (DATETIME)
+  - updated_at (DATETIME)
+
+### madre_actions — ACTIVE
+
+- Module: madre
+- Rows: 49
+- Columns:
+  - id (INTEGER) PK NOT NULL
+  - module (VARCHAR(64)) NOT NULL
+  - action (VARCHAR(64)) NOT NULL
+  - reason (VARCHAR(255))
+  - created_at (DATETIME)
+
+### madre_policies — ACTIVE
+
+- Module: madre
+- Rows: 10
+- Columns:
+  - id (INTEGER) PK NOT NULL
+  - module (VARCHAR(64)) NOT NULL
+  - error_threshold (INTEGER)
+  - idle_seconds (INTEGER)
+  - enable_autosuspend (BOOLEAN)
+  - created_at (DATETIME)
+  - updated_at (DATETIME)
+
+### model_registry — EMPTY (READY)
+
+- Module: hermes
+- Rows: 0
+- Columns:
+  - id (INTEGER) PK NOT NULL
+  - name (VARCHAR(255)) NOT NULL
+  - path (VARCHAR(500)) NOT NULL
+  - provider (VARCHAR(50)) NOT NULL
+  - type (VARCHAR(50)) NOT NULL
+  - size_bytes (INTEGER) NOT NULL
+  - tags (TEXT)
+  - last_used (DATETIME)
+  - score (FLOAT)
+  - available (BOOLEAN)
+  - meta_json (TEXT)
+  - created_at (DATETIME)
+  - updated_at (DATETIME)
+
+### model_usage_stats — ACTIVE
+
+- Module: hermes
+- Rows: 10216
+- Columns:
+  - id (INTEGER) PK NOT NULL
+  - model_or_cli_name (VARCHAR(255)) NOT NULL
+  - kind (VARCHAR(20)) NOT NULL
+  - task_type (VARCHAR(50)) NOT NULL
+  - tokens_used (INTEGER)
+  - latency_ms (INTEGER)
+  - success (BOOLEAN)
+  - error_message (VARCHAR(500))
+  - user_id (VARCHAR(100))
+  - created_at (DATETIME)
+
+### models_local — ACTIVE
+
+- Module: hermes
+- Rows: 30
+- Columns:
+  - id (INTEGER) PK NOT NULL
+  - name (VARCHAR(255)) NOT NULL
+  - path (VARCHAR(512)) NOT NULL
+  - size_mb (INTEGER)
+  - hash (VARCHAR(128))
+  - category (VARCHAR(64))
+  - status (VARCHAR(32))
+  - compatibility (VARCHAR(64))
+  - downloaded_at (DATETIME)
+  - updated_at (DATETIME)
+
+### models_remote_cli — EMPTY (READY)
+
+- Module: hermes
+- Rows: 0
+- Columns:
+  - id (INTEGER) PK NOT NULL
+  - provider (VARCHAR(128)) NOT NULL
+  - token (VARCHAR(256)) NOT NULL
+  - limit_daily (INTEGER)
+  - limit_weekly (INTEGER)
+  - renew_at (DATETIME)
+  - task_type (VARCHAR(64))
+  - status (VARCHAR(32))
+  - created_at (DATETIME)
+  - updated_at (DATETIME)
+
+### module_health — ACTIVE
+
+- Rows: 1
+- Columns:
+  - id (INTEGER) PK NOT NULL
+  - module (VARCHAR(50)) NOT NULL
+  - status (VARCHAR(20))
+  - last_ping (DATETIME)
+  - error_count (INTEGER)
+  - uptime_seconds (FLOAT)
+  - updated_at (DATETIME)
+
+### operator_browser_task — ACTIVE
+
+- Module: operator
+- Rows: 17
+- Columns:
+  - id (INTEGER) PK NOT NULL
+  - session_id (VARCHAR(64)) NOT NULL
+  - url (VARCHAR(500)) NOT NULL
+  - status (VARCHAR(50))
+  - snapshot_path (VARCHAR(255))
+  - result (TEXT)
+  - error (TEXT)
+  - created_at (DATETIME)
+  - executed_at (DATETIME)
+- Foreign keys:
+  - session_id -> operator_session.session_id (on_update=NO ACTION, on_delete=NO ACTION)
+
+### operator_jobs — EMPTY (READY)
+
+- Module: operator
+- Rows: 0
+- Columns:
+  - id (INTEGER) PK NOT NULL
+  - job_id (VARCHAR(64)) NOT NULL
+  - intent (VARCHAR(64)) NOT NULL
+  - status (VARCHAR(32))
+  - payload (TEXT)
+  - result (TEXT)
+  - created_at (DATETIME)
+  - updated_at (DATETIME)
+
+### operator_message — ACTIVE
+
+- Module: operator
+- Rows: 68
+- Columns:
+  - id (INTEGER) PK NOT NULL
+  - session_id (VARCHAR(64)) NOT NULL
+  - role (VARCHAR(50)) NOT NULL
+  - content (TEXT) NOT NULL
+  - message_metadata (TEXT)
+  - created_at (DATETIME)
+- Foreign keys:
+  - session_id -> operator_session.session_id (on_update=NO ACTION, on_delete=NO ACTION)
+
+### operator_session — ACTIVE
+
+- Module: operator
+- Rows: 103
+- Columns:
+  - id (INTEGER) PK NOT NULL
+  - session_id (VARCHAR(64)) NOT NULL
+  - user_id (VARCHAR(64)) NOT NULL
+  - source (VARCHAR(50)) NOT NULL
+  - created_at (DATETIME)
+  - updated_at (DATETIME)
+
+### operator_switch_adjustment — ACTIVE
+
+- Module: operator
+- Rows: 17
+- Columns:
+  - id (INTEGER) PK NOT NULL
+  - session_id (VARCHAR(64)) NOT NULL
+  - message_id (INTEGER)
+  - before_config (TEXT) NOT NULL
+  - after_config (TEXT) NOT NULL
+  - reason (TEXT) NOT NULL
+  - applied (BOOLEAN)
+  - created_at (DATETIME)
+  - applied_at (DATETIME)
+- Foreign keys:
+  - message_id -> operator_message.id (on_update=NO ACTION, on_delete=NO ACTION)
+  - session_id -> operator_session.session_id (on_update=NO ACTION, on_delete=NO ACTION)
+
+### operator_tool_call — ACTIVE
+
+- Module: operator
+- Rows: 17
+- Columns:
+  - id (INTEGER) PK NOT NULL
+  - message_id (INTEGER) NOT NULL
+  - tool_name (VARCHAR(100)) NOT NULL
+  - status (VARCHAR(50))
+  - duration_ms (INTEGER)
+  - result (TEXT)
+  - error (TEXT)
+  - created_at (DATETIME)
+- Foreign keys:
+  - message_id -> operator_message.id (on_update=NO ACTION, on_delete=NO ACTION)
+
+### pheromone_log — ACTIVE
+
+- Rows: 982644
+- Columns:
+  - id (INTEGER) PK NOT NULL
+  - pheromone_type (VARCHAR(64)) NOT NULL
+  - intensity (INTEGER)
+  - source_incident_ids (TEXT)
+  - madre_intent_id (VARCHAR(64))
+  - switch_consultation_id (VARCHAR(64))
+  - payload (TEXT)
+  - created_at (DATETIME)
+  - executed_at (DATETIME)
+
+### power_events — EMPTY (READY)
+
+- Rows: 0
+- Columns:
+  - id (INTEGER) PK NOT NULL
+  - module (VARCHAR(64)) NOT NULL
+  - action (VARCHAR(32)) NOT NULL
+  - reason (VARCHAR(255))
+  - cpu_usage (FLOAT)
+  - ram_usage (FLOAT)
+  - activity_score (FLOAT)
+  - timestamp (DATETIME)
+
+### reports — EMPTY (READY)
+
+- Rows: 0
+- Columns:
+  - id (INTEGER) PK NOT NULL
+  - task_id (VARCHAR(36)) NOT NULL
+  - report_type (VARCHAR(50)) NOT NULL
+  - summary (TEXT)
+  - details (TEXT)
+  - metrics (TEXT)
+  - created_at (DATETIME)
+- Foreign keys:
+  - task_id -> tasks.uuid (on_update=NO ACTION, on_delete=NO ACTION)
+
+### routing_events — ACTIVE
+
+- Rows: 33
+- Columns:
+  - id (INTEGER) PK NOT NULL
+  - timestamp (DATETIME)
+  - trace_id (VARCHAR(36)) NOT NULL
+  - route_type (VARCHAR(50)) NOT NULL
+  - provider_id (VARCHAR(128)) NOT NULL
+  - score (FLOAT)
+  - reasoning_short (VARCHAR(255))
+
+### sandbox_exec — EMPTY (READY)
+
+- Rows: 0
+- Columns:
+  - id (INTEGER) PK NOT NULL
+  - action (VARCHAR(128)) NOT NULL
+  - status (VARCHAR(32))
+  - duration_ms (FLOAT)
+  - error (TEXT)
+  - created_at (DATETIME)
+
+### scheduler_history — ACTIVE
+
+- Rows: 5225
+- Columns:
+  - id (INTEGER) PK NOT NULL
+  - timestamp (DATETIME)
+  - action (VARCHAR(64)) NOT NULL
+  - reason (TEXT)
+  - metrics (TEXT)
+
+### shub_analysis — EMPTY (READY)
+
+- Module: shubniggurath
+- Rows: 0
+- Columns:
+  - id (INTEGER) PK NOT NULL
+  - track_id (INTEGER) NOT NULL
+  - rms (FLOAT)
+  - peak (FLOAT)
+  - lufs (FLOAT)
+  - noise_floor (FLOAT)
+  - dynamic_range (FLOAT)
+  - clipping (INTEGER)
+  - notes (TEXT)
+  - created_at (DATETIME)
+- Foreign keys:
+  - track_id -> shub_tracks.id (on_update=NO ACTION, on_delete=NO ACTION)
+
+### shub_fx_chains — EMPTY (READY)
+
+- Module: shubniggurath
+- Rows: 0
+- Columns:
+  - id (INTEGER) PK NOT NULL
+  - track_id (INTEGER) NOT NULL
+  - chain_name (VARCHAR(255)) NOT NULL
+  - steps_json (TEXT) NOT NULL
+  - created_at (DATETIME)
+- Foreign keys:
+  - track_id -> shub_tracks.id (on_update=NO ACTION, on_delete=NO ACTION)
+
+### shub_presets — EMPTY (READY)
+
+- Module: shubniggurath
+- Rows: 0
+- Columns:
+  - id (INTEGER) PK NOT NULL
+  - fx_chain_id (INTEGER) NOT NULL
+  - rpp_snippet (TEXT)
+  - version (VARCHAR(32))
+  - created_at (DATETIME)
+- Foreign keys:
+  - fx_chain_id -> shub_fx_chains.id (on_update=NO ACTION, on_delete=NO ACTION)
+
+### shub_projects — EMPTY (READY)
+
+- Module: shubniggurath
+- Rows: 0
+- Columns:
+  - id (INTEGER) PK NOT NULL
+  - project_id (VARCHAR(64)) NOT NULL
+  - name (VARCHAR(255)) NOT NULL
+  - sample_rate (INTEGER)
+  - created_at (DATETIME)
+  - updated_at (DATETIME)
+
+### shub_tracks — EMPTY (READY)
+
+- Module: shubniggurath
+- Rows: 0
+- Columns:
+  - id (INTEGER) PK NOT NULL
+  - project_id (VARCHAR(64)) NOT NULL
+  - name (VARCHAR(255)) NOT NULL
+  - role (VARCHAR(64))
+  - file_path (VARCHAR(512))
+  - duration_sec (FLOAT)
+  - created_at (DATETIME)
+- Foreign keys:
+  - project_id -> shub_projects.project_id (on_update=NO ACTION, on_delete=NO ACTION)
+
+### spawns — ACTIVE
+
+- Rows: 19
+- Columns:
+  - id (INTEGER) PK NOT NULL
+  - uuid (VARCHAR(36)) NOT NULL
+  - name (VARCHAR(255)) NOT NULL
+  - cmd (VARCHAR(500)) NOT NULL
+  - pid (INTEGER)
+  - status (VARCHAR(20))
+  - started_at (DATETIME)
+  - ended_at (DATETIME)
+  - exit_code (INTEGER)
+  - stdout (TEXT)
+  - stderr (TEXT)
+  - parent_task_id (VARCHAR(36))
+  - created_at (DATETIME)
+- Foreign keys:
+  - parent_task_id -> tasks.uuid (on_update=NO ACTION, on_delete=NO ACTION)
+
+### switch_queue_v2 — ACTIVE
+
+- Module: switch
+- Rows: 10216
+- Columns:
+  - id (INTEGER) PK NOT NULL
+  - source (VARCHAR(64)) NOT NULL
+  - priority (INTEGER)
+  - task_type (VARCHAR(50)) NOT NULL
+  - payload_hash (VARCHAR(64)) NOT NULL
+  - status (VARCHAR(32))
+  - created_at (DATETIME)
+  - started_at (DATETIME)
+  - finished_at (DATETIME)
+  - result_size (INTEGER)
+  - error_message (VARCHAR(500))
+
+### system_events — ACTIVE
+
+- Rows: 12
+- Columns:
+  - id (INTEGER) PK NOT NULL
+  - timestamp (DATETIME)
+  - source (VARCHAR(64)) NOT NULL
+  - event_type (VARCHAR(64)) NOT NULL
+  - payload (TEXT)
+  - severity (VARCHAR(16))
+
+### system_state — ACTIVE
+
+- Rows: 2
+- Columns:
+  - id (INTEGER) PK NOT NULL
+  - key (VARCHAR(128)) NOT NULL
+  - value (TEXT)
+  - updated_at (DATETIME)
+  - memory_pressure (FLOAT)
+  - cpu_pressure (FLOAT)
+  - switch_queue_level (FLOAT)
+  - hermes_update_required (BOOLEAN)
+  - shub_pipeline_state (VARCHAR(64))
+  - operator_active (BOOLEAN)
+  - system_load_score (FLOAT)
+  - model_rotation_state (VARCHAR(128))
+  - audio_pipeline_state (VARCHAR(128))
+  - pending_tasks (INTEGER)
+  - active_children (INTEGER)
+  - last_operator_activity (DATETIME)
+  - power_mode (VARCHAR(32))
+
+### task_queue — ACTIVE
+
+- Rows: 6
+- Columns:
+  - id (INTEGER) PK NOT NULL
+  - source (VARCHAR(64)) NOT NULL
+  - priority (INTEGER)
+  - payload (TEXT) NOT NULL
+  - status (VARCHAR(32))
+  - enqueued_at (DATETIME)
+  - dequeued_at (DATETIME)
+
+### tasks — ACTIVE
+
+- Rows: 20
+- Columns:
+  - id (INTEGER) PK NOT NULL
+  - uuid (VARCHAR(36)) NOT NULL
+  - name (VARCHAR(255)) NOT NULL
+  - module (VARCHAR(50)) NOT NULL
+  - action (VARCHAR(100)) NOT NULL
+  - status (VARCHAR(20))
+  - created_at (DATETIME)
+  - updated_at (DATETIME)
+  - result (TEXT)
+  - error (TEXT)
+
+### tokens_usage — EMPTY (READY)
+
+- Rows: 0
+- Columns:
+  - id (INTEGER) PK NOT NULL
+  - token_id (VARCHAR(256)) NOT NULL
+  - used_at (DATETIME)
+  - used_count (INTEGER)
+  - source (VARCHAR(64))
+

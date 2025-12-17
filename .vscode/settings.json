@@ -1,0 +1,44 @@
+{
+  "chat.agent.enabled": true,
+  "chat.agent.maxRequests": 250,
+  "chat.useAgentsMdFile": true,
+
+  "chat.tools.global.autoApprove": false,
+  "chat.tools.terminal.autoApprove": {
+    "/^pwd\\b/": true,
+    "/^ls\\b/": true,
+    "/^realpath\\b/": true,
+    "/^find\\b/": true,
+    "/^tree\\b/": true,
+    "/^cat\\b/": true,
+    "/^rg\\b/": true,
+    "/^grep\\b/": true,
+
+    "/^git\\s+status\\b/": true,
+    "/^git\\s+diff\\b/": true,
+    "/^git\\s+log\\b/": true,
+    "/^git\\s+show\\b/": true,
+    "/^git\\s+grep\\b/": true,
+    "/^git\\s+ls-files\\b/": true,
+
+    "/^python\\b/": true,
+    "/^python3\\b/": true,
+    "/^pytest\\b/": true,
+
+    "/^docker\\s+ps\\b/": true,
+    "/^docker\\s+compose\\s+config\\b/": true,
+
+    "/^rm\\b/": false,
+    "/^rmdir\\b/": false,
+    "/^mv\\b/": false,
+    "/^cp\\b/": false,
+    "/^chmod\\b/": false,
+    "/^chown\\b/": false,
+    "/^sudo\\b/": false,
+    "/^git\\s+reset\\b/": false,
+    "/^git\\s+clean\\b/": false,
+    "/^git\\s+push\\b/": false,
+    "/^docker\\s+compose\\s+up\\b/": false,
+    "/^docker\\s+compose\\s+down\\b/": false
+  }
+}
