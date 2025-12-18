@@ -1,0 +1,6 @@
+727 /home/elkakas314/vx11/.venv/bin/python3 /home/elkakas314/vx11/.venv/bin/uvicorn hormiguero.main:app --host 0.0.0.0 --port 52114
+729 /home/elkakas314/vx11/.venv/bin/python3 /home/elkakas314/vx11/.venv/bin/uvicorn madre.main:app --host 0.0.0.0 --port 52112
+730 /home/elkakas314/vx11/.venv/bin/python3 /home/elkakas314/vx11/.venv/bin/uvicorn manifestator.main:app --host 0.0.0.0 --port 52115
+731 /home/elkakas314/vx11/.venv/bin/python3 /home/elkakas314/vx11/.venv/bin/uvicorn mcp.main:app --host 0.0.0.0 --port 52116
+733 /home/elkakas314/vx11/.venv/bin/python3 /home/elkakas314/vx11/.venv/bin/uvicorn shubniggurath.main:app --host 0.0.0.0 --port 52117
+803404 /home/elkakas314/vx11/.venv/bin/python /home/elkakas314/.vscode/extensions/ms-python.black-formatter-2025.2.0/bundled/tool/lsp_server.py --stdio

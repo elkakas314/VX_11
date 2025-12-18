@@ -1,6 +1,6 @@
 # VX11 Database Map (generated)
 
-Generated at: 2025-12-18T00:30:24.730110Z
+Generated at: 2025-12-18T01:45:38.322534Z
 
 Database file: data/runtime/vx11.db
 
@@ -371,7 +371,7 @@ Database file: data/runtime/vx11.db
 
 ### incidents — ACTIVE
 
-- Rows: 1068036
+- Rows: 1103083
 - Columns:
   - id (INTEGER) PK NOT NULL
   - ant_id (VARCHAR(64)) NOT NULL
@@ -612,7 +612,7 @@ Database file: data/runtime/vx11.db
 
 ### pheromone_log — ACTIVE
 
-- Rows: 1067361
+- Rows: 1102523
 - Columns:
   - id (INTEGER) PK NOT NULL
   - pheromone_type (VARCHAR(64)) NOT NULL
@@ -861,31 +861,4 @@ Database file: data/runtime/vx11.db
   - used_at (DATETIME)
   - used_count (INTEGER)
   - source (VARCHAR(64))
-
-
----
-
-## Datos técnicos útiles
-
-- **Puertos por servicio** (referencia rápida):
-  - `tentaculo_link`: 8000
-  - `madre`: 8001
-  - `switch`: 8002
-  - `hermes`: 8003
-  - `hormiguero`: 8004
-  - `manifestator`: 8005
-  - `mcp`: 8006
-  - `shubniggurath` / `shub`: 8007
-  - `spawner`: 8008
-  - `operator_backend`: 8011
-
-- **Endpoint principal de salud:** `/health` (varía por módulo, p. ej. `/madre/health`, `/switch/health`, `/shub/health`).
-- **Rutas CORE (NO MOVER):** consulte `docs/audit/CLEANUP_EXCLUDES_CORE.txt`.
-- **Tests de integración:** los tests marcados `integration` se omiten por defecto; para ejecutarlos exportar `VX11_INTEGRATION=1` antes de `pytest`.
-
-- **Evidencia generada en estas operaciones:**
-  - Escaneo de referencias (puertos, `/health`, `VX11_INTEGRATION`, `CLEANUP_EXCLUDES_CORE`): [docs/audit/hardening_finalize_auto_20251218T000236Z/03_sources_rg.txt](docs/audit/hardening_finalize_auto_20251218T000236Z/03_sources_rg.txt#L1)
-  - Logs y artefactos de esta ejecución (DB map regen, compilación, pruebas unitarias): [docs/audit/hardening_finalize_run_20251218T002911Z](docs/audit/hardening_finalize_run_20251218T002911Z)
-
-Para regenerar manualmente el mapa de BD ejecutar: `PYTHONPATH=. python3 scripts/generate_db_map_from_db.py`.
 

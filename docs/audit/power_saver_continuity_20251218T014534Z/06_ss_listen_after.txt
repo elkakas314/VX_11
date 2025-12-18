@@ -1,0 +1,20 @@
+State  Recv-Q Send-Q Local Address:Port  Peer Address:PortProcess                                
+LISTEN 0      511        127.0.0.1:5804       0.0.0.0:*    users:(("code",pid=803465,fd=40))     
+LISTEN 0      2048         0.0.0.0:52117      0.0.0.0:*    users:(("uvicorn",pid=733,fd=16))     
+LISTEN 0      2048         0.0.0.0:52116      0.0.0.0:*    users:(("uvicorn",pid=731,fd=16))     
+LISTEN 0      2048         0.0.0.0:52112      0.0.0.0:*    users:(("uvicorn",pid=729,fd=16))     
+LISTEN 0      2048         0.0.0.0:52115      0.0.0.0:*    users:(("uvicorn",pid=730,fd=13))     
+LISTEN 0      2048         0.0.0.0:52114      0.0.0.0:*    users:(("uvicorn",pid=727,fd=16))     
+LISTEN 0      4096       127.0.0.1:33959      0.0.0.0:*                                          
+LISTEN 0      128        127.0.0.1:631        0.0.0.0:*                                          
+LISTEN 0      4096         0.0.0.0:8000       0.0.0.0:*                                          
+LISTEN 0      4096         0.0.0.0:8003       0.0.0.0:*                                          
+LISTEN 0      4096         0.0.0.0:8002       0.0.0.0:*                                          
+LISTEN 0      511        127.0.0.1:41095      0.0.0.0:*    users:(("code",pid=802648,fd=89))     
+LISTEN 0      4096   127.0.0.53%lo:53         0.0.0.0:*                                          
+LISTEN 0      4096               *:443              *:*                                          
+LISTEN 0      50                 *:1716             *:*    users:(("kdeconnectd",pid=3576,fd=12))
+LISTEN 0      4096            [::]:8000          [::]:*                                          
+LISTEN 0      4096            [::]:8003          [::]:*                                          
+LISTEN 0      4096            [::]:8002          [::]:*                                          
+LISTEN 0      128            [::1]:631           [::]:*                                          

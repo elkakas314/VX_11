@@ -1,0 +1,6 @@
+1:727 /home/elkakas314/vx11/.venv/bin/python3 /home/elkakas314/vx11/.venv/bin/uvicorn hormiguero.main:app --host 0.0.0.0 --port 52114
+2:729 /home/elkakas314/vx11/.venv/bin/python3 /home/elkakas314/vx11/.venv/bin/uvicorn madre.main:app --host 0.0.0.0 --port 52112
+3:730 /home/elkakas314/vx11/.venv/bin/python3 /home/elkakas314/vx11/.venv/bin/uvicorn manifestator.main:app --host 0.0.0.0 --port 52115
+4:731 /home/elkakas314/vx11/.venv/bin/python3 /home/elkakas314/vx11/.venv/bin/uvicorn mcp.main:app --host 0.0.0.0 --port 52116
+5:733 /home/elkakas314/vx11/.venv/bin/python3 /home/elkakas314/vx11/.venv/bin/uvicorn shubniggurath.main:app --host 0.0.0.0 --port 52117
+9:924699 /home/elkakas314/vx11/.venv/bin/python3 /home/elkakas314/vx11/.venv/bin/uvicorn switch.main:app --host 0.0.0.0 --port 52113
