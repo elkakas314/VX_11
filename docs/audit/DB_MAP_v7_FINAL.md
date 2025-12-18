@@ -1,6 +1,6 @@
 # VX11 Database Map (generated)
 
-Generated at: 2025-12-17T22:12:05.438492Z
+Generated at: 2025-12-18T00:30:24.730110Z
 
 Database file: data/runtime/vx11.db
 
@@ -77,7 +77,7 @@ Database file: data/runtime/vx11.db
 ### cli_usage_stats — ACTIVE
 
 - Module: hermes
-- Rows: 138
+- Rows: 146
 - Columns:
   - id (INTEGER) PK NOT NULL
   - provider_id (VARCHAR(128)) NOT NULL
@@ -371,7 +371,7 @@ Database file: data/runtime/vx11.db
 
 ### incidents — ACTIVE
 
-- Rows: 1008827
+- Rows: 1068036
 - Columns:
   - id (INTEGER) PK NOT NULL
   - ant_id (VARCHAR(64)) NOT NULL
@@ -522,7 +522,7 @@ Database file: data/runtime/vx11.db
 ### operator_browser_task — ACTIVE
 
 - Module: operator
-- Rows: 19
+- Rows: 20
 - Columns:
   - id (INTEGER) PK NOT NULL
   - session_id (VARCHAR(64)) NOT NULL
@@ -553,7 +553,7 @@ Database file: data/runtime/vx11.db
 ### operator_message — ACTIVE
 
 - Module: operator
-- Rows: 72
+- Rows: 74
 - Columns:
   - id (INTEGER) PK NOT NULL
   - session_id (VARCHAR(64)) NOT NULL
@@ -567,7 +567,7 @@ Database file: data/runtime/vx11.db
 ### operator_session — ACTIVE
 
 - Module: operator
-- Rows: 113
+- Rows: 118
 - Columns:
   - id (INTEGER) PK NOT NULL
   - session_id (VARCHAR(64)) NOT NULL
@@ -579,7 +579,7 @@ Database file: data/runtime/vx11.db
 ### operator_switch_adjustment — ACTIVE
 
 - Module: operator
-- Rows: 19
+- Rows: 20
 - Columns:
   - id (INTEGER) PK NOT NULL
   - session_id (VARCHAR(64)) NOT NULL
@@ -597,7 +597,7 @@ Database file: data/runtime/vx11.db
 ### operator_tool_call — ACTIVE
 
 - Module: operator
-- Rows: 19
+- Rows: 20
 - Columns:
   - id (INTEGER) PK NOT NULL
   - message_id (INTEGER) NOT NULL
@@ -612,7 +612,7 @@ Database file: data/runtime/vx11.db
 
 ### pheromone_log — ACTIVE
 
-- Rows: 1007663
+- Rows: 1067361
 - Columns:
   - id (INTEGER) PK NOT NULL
   - pheromone_type (VARCHAR(64)) NOT NULL
@@ -653,7 +653,7 @@ Database file: data/runtime/vx11.db
 
 ### routing_events — ACTIVE
 
-- Rows: 38
+- Rows: 41
 - Columns:
   - id (INTEGER) PK NOT NULL
   - timestamp (DATETIME)
@@ -827,7 +827,7 @@ Database file: data/runtime/vx11.db
 
 ### task_queue — ACTIVE
 
-- Rows: 15
+- Rows: 21
 - Columns:
   - id (INTEGER) PK NOT NULL
   - source (VARCHAR(64)) NOT NULL
@@ -862,22 +862,30 @@ Database file: data/runtime/vx11.db
   - used_count (INTEGER)
   - source (VARCHAR(64))
 
+
 ---
 
 ## Datos técnicos útiles
 
-- **Puertos por servicio** (referencia rápida, usada en tests/health):
+- **Puertos por servicio** (referencia rápida):
   - `tentaculo_link`: 8000
   - `madre`: 8001
   - `switch`: 8002
   - `hermes`: 8003
   - `hormiguero`: 8004
+  - `manifestator`: 8005
   - `mcp`: 8006
+  - `shubniggurath` / `shub`: 8007
   - `spawner`: 8008
   - `operator_backend`: 8011
 
-- **Endpoints clave:** `/health` (salud por módulo), `/switch/route`, `/switch/chat`, `/operator/*`
-- **Rutas CORE (NO MOVER):** consulte `docs/audit/CLEANUP_EXCLUDES_CORE.txt`
-- **Regla de tests:** tests marcados `integration` se saltan por defecto; para ejecutarlos exportar `VX11_INTEGRATION=1` antes de `pytest`.
+- **Endpoint principal de salud:** `/health` (varía por módulo, p. ej. `/madre/health`, `/switch/health`, `/shub/health`).
+- **Rutas CORE (NO MOVER):** consulte `docs/audit/CLEANUP_EXCLUDES_CORE.txt`.
+- **Tests de integración:** los tests marcados `integration` se omiten por defecto; para ejecutarlos exportar `VX11_INTEGRATION=1` antes de `pytest`.
 
+- **Evidencia generada en estas operaciones:**
+  - Escaneo de referencias (puertos, `/health`, `VX11_INTEGRATION`, `CLEANUP_EXCLUDES_CORE`): [docs/audit/hardening_finalize_auto_20251218T000236Z/03_sources_rg.txt](docs/audit/hardening_finalize_auto_20251218T000236Z/03_sources_rg.txt#L1)
+  - Logs y artefactos de esta ejecución (DB map regen, compilación, pruebas unitarias): [docs/audit/hardening_finalize_run_20251218T002911Z](docs/audit/hardening_finalize_run_20251218T002911Z)
+
+Para regenerar manualmente el mapa de BD ejecutar: `PYTHONPATH=. python3 scripts/generate_db_map_from_db.py`.
 

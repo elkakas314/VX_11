@@ -38,11 +38,9 @@ def is_core_path(p: str) -> bool:
 
 def safe_move_py(src: str, dst: str):
     """Python wrapper for moving files with CORE-path protection."""
-from scripts.cleanup_guard import safe_move_py, safe_rm_py
-
     if is_core_path(src) or is_core_path(dst):
         raise RuntimeError(f"ABORT: move would touch CORE path. src={src} dst={dst}")
-    safe_move_py(src, dst)
+    shutil.move(src, dst)
 
 
 def safe_rm_py(target: str):
@@ -51,7 +49,7 @@ def safe_rm_py(target: str):
         raise RuntimeError(f"ABORT: rm would touch CORE path: {target}")
     p = Path(target)
     if p.is_dir():
-        safe_rm_py(p)
+        shutil.rmtree(p)
     elif p.exists():
         p.unlink()
     # if doesn't exist, nothing to do
