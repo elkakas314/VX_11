@@ -1,5 +1,5 @@
 {
-  "generated_at": "2025-12-17T22:12:04.675137Z",
+  "generated_at": "2025-12-18T00:30:23.817076Z",
   "database": "data/runtime/vx11.db",
   "tables": [
     {
@@ -436,7 +436,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 138,
+      "rows": 146,
       "status": "ACTIVE",
       "module": "hermes"
     },
@@ -2137,7 +2137,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 1008827,
+      "rows": 1068036,
       "status": "ACTIVE",
       "module": ""
     },
@@ -2974,7 +2974,7 @@
           "match": "NONE"
         }
       ],
-      "rows": 19,
+      "rows": 20,
       "status": "ACTIVE",
       "module": "operator"
     },
@@ -3115,7 +3115,7 @@
           "match": "NONE"
         }
       ],
-      "rows": 72,
+      "rows": 74,
       "status": "ACTIVE",
       "module": "operator"
     },
@@ -3172,7 +3172,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 113,
+      "rows": 118,
       "status": "ACTIVE",
       "module": "operator"
     },
@@ -3274,7 +3274,7 @@
           "match": "NONE"
         }
       ],
-      "rows": 19,
+      "rows": 20,
       "status": "ACTIVE",
       "module": "operator"
     },
@@ -3358,7 +3358,7 @@
           "match": "NONE"
         }
       ],
-      "rows": 19,
+      "rows": 20,
       "status": "ACTIVE",
       "module": "operator"
     },
@@ -3439,7 +3439,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 1007663,
+      "rows": 1067361,
       "status": "ACTIVE",
       "module": ""
     },
@@ -3653,7 +3653,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 38,
+      "rows": 41,
       "status": "ACTIVE",
       "module": ""
     },
@@ -4600,7 +4600,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 15,
+      "rows": 21,
       "status": "ACTIVE",
       "module": ""
     },
