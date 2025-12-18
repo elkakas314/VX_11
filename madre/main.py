@@ -6,6 +6,9 @@ import uuid
 import logging
 from typing import Optional, Dict, Any
 from datetime import datetime
+import asyncio
+
+from . import power_saver as power_saver_module
 
 from config.settings import settings
 from config.tokens import get_token
@@ -345,6 +348,94 @@ async def confirm_plan(plan_id: str, confirm_token: str):
     )
 
     return {"status": "confirmed", "plan_id": plan_id}
+
+
+# ====== POWER SAVER ENDPOINTS ======
+from pydantic import BaseModel
+
+
+class IdleMinRequest(BaseModel):
+    apply: bool = False
+
+
+class RitualRequest(BaseModel):
+    apply: bool = False
+
+
+@app.get("/power/status")
+async def power_status():
+    out_dir = power_saver_module.make_out_dir(prefix="madre_power_saver_status")
+    # snapshot and zombies
+    await asyncio.to_thread(power_saver_module.snapshot, out_dir)
+    z = await asyncio.to_thread(power_saver_module.list_zombies)
+    # processes in repo
+    proc_list = []
+    try:
+        p = subprocess = __import__("subprocess")
+        res = p.run(
+            "ps axo pid,ppid,stat,cmd | grep /home/elkakas314/vx11 || true",
+            shell=True,
+            capture_output=True,
+            text=True,
+        )
+        proc_list = [l for l in res.stdout.splitlines() if l.strip()]
+    except Exception:
+        proc_list = []
+    # build response
+    return {
+        "timestamp": datetime.utcnow().isoformat(),
+        "out_dir": out_dir,
+        "zombies_count": len(z),
+        "repo_processes": proc_list,
+    }
+
+
+@app.post("/power/idle_min")
+async def power_idle_min(req: IdleMinRequest):
+    out_dir = power_saver_module.make_out_dir(prefix="madre_power_saver_idle_min")
+    # run plan; idle_min is safe by default (apply default False)
+    res = await asyncio.to_thread(power_saver_module.idle_min, out_dir, req.apply)
+    report = await asyncio.to_thread(power_saver_module.final_report, out_dir)
+    return {
+        "status": "ok",
+        "out_dir": out_dir,
+        "applied": req.apply,
+        "report": report,
+        "result": res,
+    }
+
+
+@app.post("/power/regen_dbmap")
+async def power_regen_dbmap():
+    out_dir = power_saver_module.make_out_dir(prefix="madre_power_saver_regen")
+    res = await asyncio.to_thread(power_saver_module.regen_dbmap, out_dir)
+    report = await asyncio.to_thread(power_saver_module.final_report, out_dir)
+    return {"status": "ok", "out_dir": out_dir, "result": res, "report": report}
+
+
+@app.post("/power/ritual")
+async def power_ritual(req: RitualRequest):
+    out_dir = power_saver_module.make_out_dir(prefix="madre_power_saver_ritual")
+    # snapshot
+    await asyncio.to_thread(power_saver_module.snapshot, out_dir)
+    # zombies write
+    await asyncio.to_thread(power_saver_module.write_zombies, out_dir)
+    # idle_min (plan or apply)
+    idle_res = await asyncio.to_thread(power_saver_module.idle_min, out_dir, req.apply)
+    # postcheck snapshot
+    await asyncio.to_thread(power_saver_module.snapshot, out_dir)
+    # regen dbmap
+    regen_res = await asyncio.to_thread(power_saver_module.regen_dbmap, out_dir)
+    # final report
+    report = await asyncio.to_thread(power_saver_module.final_report, out_dir)
+    return {
+        "status": "ok",
+        "out_dir": out_dir,
+        "applied": req.apply,
+        "idle_res": idle_res,
+        "regen_res": regen_res,
+        "report": report,
+    }
 
 
 if __name__ == "__main__":
