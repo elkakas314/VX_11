@@ -1,0 +1,10 @@
+Terminating uvicorn/gunicorn PID 1:727
+bash: kill: 1:727: arguments must be process or job IDs
+Terminating uvicorn/gunicorn PID 2:729
+bash: kill: 2:729: arguments must be process or job IDs
+Terminating uvicorn/gunicorn PID 3:730
+bash: kill: 3:730: arguments must be process or job IDs
+Terminating uvicorn/gunicorn PID 4:731
+bash: kill: 4:731: arguments must be process or job IDs
+Terminating uvicorn/gunicorn PID 5:733
+bash: kill: 5:733: arguments must be process or job IDs

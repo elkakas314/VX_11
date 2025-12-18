@@ -1,0 +1,12 @@
+hermes|localhost|8003|/hermes/health|down|2025-12-16 19:37:45.974937
+hormiguero|localhost|8004|/hormiguero/health|down|2025-12-16 19:37:45.974957
+madre|localhost|8001|/madre/health|down|2025-12-16 19:37:45.974883
+manifestator|localhost|8005|/manifestator/health|down|2025-12-16 19:37:45.974975
+mcp|localhost|8006|/mcp/health|down|2025-12-16 19:37:45.974993
+operator|localhost|8011||OK|
+operator_backend|localhost|8011|/health|down|2025-12-16 19:37:45.975042
+shub|localhost|8007|/shub/health|down|2025-12-16 19:37:45.975010
+shubniggurath|localhost|8007||BROKEN|
+spawner|localhost|8008|/spawner/health|down|2025-12-16 19:37:45.975026
+switch|localhost|8002|/switch/health|down|2025-12-16 19:37:45.974915
+tentaculo_link|localhost|8000|/health|down|2025-12-16 19:37:45.974680
