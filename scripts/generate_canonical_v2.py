@@ -183,7 +183,7 @@ def collect_big_table_stats(conn, name, cnt, cols):
 
 def build_distilled_db(table_catalog, big_stats, flows, autonomy_scores):
     if os.path.exists(DISTILLED_DB_NEW):
-        os.remove(DISTILLED_DB_NEW)
+        safe_rm_py(DISTILLED_DB_NEW)
     out = sqlite3.connect(DISTILLED_DB_NEW)
     oc = out.cursor()
     oc.execute("CREATE TABLE meta(key TEXT PRIMARY KEY, value TEXT)")
@@ -354,9 +354,9 @@ def main():
                 print(f"ABORT: existing path marked CORE: {p}", file=sys.stderr)
                 sys.exit(2)
             bak = p + f".bak_{timestamp}"
-            os.rename(p, bak)
-    os.rename(DISTILLED_DB_NEW, final_db)
-    os.rename(STATE_JSON_NEW, final_json)
+            safe_move_py(p, bak)
+    safe_move_py(DISTILLED_DB_NEW, final_db)
+    safe_move_py(STATE_JSON_NEW, final_json)
     print("FINAL_DB=", final_db)
     print("FINAL_JSON=", final_json)
     print("CATALOG=", catalog_path)

@@ -7,6 +7,8 @@ Produces:
 
 Safe: only reads runtime DB. No schema changes.
 """
+from scripts.cleanup_guard import safe_move_py, safe_rm_py
+
 import sqlite3
 import json
 import os
@@ -130,7 +132,7 @@ if 'incidents' in table_stats:
 
 # 10. Build distilled DB
 if os.path.exists(DISTILLED_DB):
-    os.remove(DISTILLED_DB)
+    safe_rm_py(DISTILLED_DB)
 db_out = sqlite3.connect(DISTILLED_DB)
 oc = db_out.cursor()
 # Create summary tables
