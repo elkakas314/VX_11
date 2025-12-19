@@ -1,4 +1,0 @@
-total 144
--rw-rw-r-- 1 elkakas314 elkakas314     0 dic 17 22:46 00_scan_listing.txt
--rw-rw-r-- 1 elkakas314 elkakas314 82672 dic 17 22:46 rg_files_all.txt
--rw-rw-r-- 1 elkakas314 elkakas314 60616 dic 17 22:46 tree_L3.txt

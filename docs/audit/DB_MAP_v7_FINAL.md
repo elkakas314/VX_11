@@ -1,6 +1,6 @@
 # VX11 Database Map (generated)
 
-Generated at: 2025-12-19T02:28:58.308884Z
+Generated at: 2025-12-19T22:57:18.760434Z
 
 Database file: data/runtime/vx11.db
 
@@ -8,6 +8,7 @@ Database file: data/runtime/vx11.db
 
 ### audit_logs — EMPTY (READY)
 
+- Module: madre
 - Rows: 0
 - Columns:
   - id (INTEGER) PK NOT NULL
@@ -18,6 +19,7 @@ Database file: data/runtime/vx11.db
 
 ### chat_providers_stats — EMPTY (READY)
 
+- Module: switch
 - Rows: 0
 - Columns:
   - provider (TEXT) PK
@@ -77,7 +79,7 @@ Database file: data/runtime/vx11.db
 ### cli_usage_stats — ACTIVE
 
 - Module: hermes
-- Rows: 230
+- Rows: 272
 - Columns:
   - id (INTEGER) PK NOT NULL
   - provider_id (VARCHAR(128)) NOT NULL
@@ -90,6 +92,7 @@ Database file: data/runtime/vx11.db
 
 ### context — ACTIVE
 
+- Module: madre
 - Rows: 10
 - Columns:
   - id (INTEGER) PK NOT NULL
@@ -98,44 +101,12 @@ Database file: data/runtime/vx11.db
   - value (TEXT) NOT NULL
   - scope (VARCHAR(50))
   - created_at (DATETIME)
-
-## Madre Power Manager (v7)
-
-Endpoints (plan/apply, allowlist enforced):
-- `GET /madre/power/services`
-- `GET /madre/power/token`
-- `POST /madre/power/service/{name}/start`
-- `POST /madre/power/service/{name}/stop`
-- `POST /madre/power/service/{name}/restart`
-- `POST /madre/power/mode/idle_min`
-- `POST /madre/power/mode/hard_off`
-
-Triple lock for `apply=true`:
-- Header `X-VX11-POWER-KEY` must match `VX11_POWER_KEY`
-- Header `X-VX11-POWER-TOKEN` from `GET /madre/power/token` (TTL 60s)
-- Body confirm string: `"confirm": "I_UNDERSTAND_THIS_STOPS_SERVICES"`
-
-Playbook (no secrets, apply=false by default):
-```bash
-# plan-only (safe)
-curl -fsS http://localhost:8001/madre/power/services
-curl -fsS http://localhost:8001/madre/power/service/switch/stop \
-  -H "Content-Type: application/json" \
-  -d '{"apply": false}'
-
-# apply=true (requires triple lock)
-TOKEN=$(curl -fsS http://localhost:8001/madre/power/token | jq -r .token)
-curl -fsS http://localhost:8001/madre/power/service/switch/stop \
-  -H "Content-Type: application/json" \
-  -H "X-VX11-POWER-KEY: <set VX11_POWER_KEY>" \
-  -H "X-VX11-POWER-TOKEN: $TOKEN" \
-  -d '{"apply": true, "confirm": "I_UNDERSTAND_THIS_STOPS_SERVICES"}'
-```
 - Foreign keys:
   - task_id -> tasks.uuid (on_update=NO ACTION, on_delete=NO ACTION)
 
 ### copilot_actions_log — EMPTY (READY)
 
+- Module: mcp
 - Rows: 0
 - Columns:
   - id (INTEGER) PK
@@ -150,6 +121,7 @@ curl -fsS http://localhost:8001/madre/power/service/switch/stop \
 
 ### copilot_repo_map — ACTIVE
 
+- Module: mcp
 - Rows: 983
 - Columns:
   - id (INTEGER) PK
@@ -164,6 +136,7 @@ curl -fsS http://localhost:8001/madre/power/service/switch/stop \
 
 ### copilot_runtime_services — ACTIVE
 
+- Module: madre
 - Rows: 12
 - Columns:
   - id (INTEGER) PK
@@ -182,6 +155,7 @@ curl -fsS http://localhost:8001/madre/power/service/switch/stop \
 
 ### copilot_workflows_catalog — EMPTY (READY)
 
+- Module: mcp
 - Rows: 0
 - Columns:
   - id (INTEGER) PK
@@ -193,7 +167,8 @@ curl -fsS http://localhost:8001/madre/power/service/switch/stop \
 
 ### daughter_attempts — ACTIVE
 
-- Rows: 130
+- Module: spawner
+- Rows: 135
 - Columns:
   - id (INTEGER) PK NOT NULL
   - daughter_id (INTEGER) NOT NULL
@@ -212,7 +187,8 @@ curl -fsS http://localhost:8001/madre/power/service/switch/stop \
 
 ### daughter_tasks — ACTIVE
 
-- Rows: 83
+- Module: spawner
+- Rows: 86
 - Columns:
   - id (INTEGER) PK NOT NULL
   - intent_id (VARCHAR(36))
@@ -231,7 +207,8 @@ curl -fsS http://localhost:8001/madre/power/service/switch/stop \
 
 ### daughters — ACTIVE
 
-- Rows: 130
+- Module: spawner
+- Rows: 135
 - Columns:
   - id (INTEGER) PK NOT NULL
   - task_id (INTEGER) NOT NULL
@@ -250,6 +227,7 @@ curl -fsS http://localhost:8001/madre/power/service/switch/stop \
 
 ### drift_reports — EMPTY (READY)
 
+- Module: manifestator
 - Rows: 0
 - Columns:
   - id (INTEGER) PK NOT NULL
@@ -261,6 +239,7 @@ curl -fsS http://localhost:8001/madre/power/service/switch/stop \
 
 ### engines — EMPTY (READY)
 
+- Module: switch
 - Rows: 0
 - Columns:
   - id (INTEGER) PK NOT NULL
@@ -281,6 +260,7 @@ curl -fsS http://localhost:8001/madre/power/service/switch/stop \
 
 ### events — EMPTY (READY)
 
+- Module: tentaculo_link
 - Rows: 0
 - Columns:
   - id (INTEGER) PK NOT NULL
@@ -291,6 +271,7 @@ curl -fsS http://localhost:8001/madre/power/service/switch/stop \
 
 ### feromona_events — EMPTY (READY)
 
+- Module: hormiguero
 - Rows: 0
 - Columns:
   - id (INTEGER) PK NOT NULL
@@ -299,9 +280,15 @@ curl -fsS http://localhost:8001/madre/power/service/switch/stop \
   - module (VARCHAR(64)) NOT NULL
   - payload (TEXT)
   - timestamp (DATETIME)
+  - kind (TEXT)
+  - scope (TEXT)
+  - payload_json (TEXT)
+  - source (TEXT)
+  - created_at (DATETIME)
 
 ### fluzo_signals — EMPTY (READY)
 
+- Module: switch
 - Rows: 0
 - Columns:
   - id (INTEGER) PK NOT NULL
@@ -314,6 +301,7 @@ curl -fsS http://localhost:8001/madre/power/service/switch/stop \
 
 ### forensic_ledger — EMPTY (READY)
 
+- Module: mcp
 - Rows: 0
 - Columns:
   - id (INTEGER) PK NOT NULL
@@ -372,6 +360,7 @@ curl -fsS http://localhost:8001/madre/power/service/switch/stop \
 
 ### hormiga_state — ACTIVE
 
+- Module: hormiguero
 - Rows: 8
 - Columns:
   - id (INTEGER) PK NOT NULL
@@ -384,11 +373,20 @@ curl -fsS http://localhost:8001/madre/power/service/switch/stop \
   - ram_percent (FLOAT)
   - created_at (DATETIME)
   - updated_at (DATETIME)
+  - hormiga_id (TEXT)
+  - name (TEXT)
+  - enabled (INTEGER)
+  - aggression_level (INTEGER)
+  - scan_interval_sec (INTEGER)
+  - last_ok_at (DATETIME)
+  - last_error_at (DATETIME)
+  - last_error (TEXT)
+  - stats_json (TEXT)
 
 ### ia_decisions — ACTIVE
 
 - Module: switch
-- Rows: 10216
+- Rows: 10217
 - Columns:
   - id (INTEGER) PK NOT NULL
   - prompt_hash (VARCHAR(64)) NOT NULL
@@ -404,6 +402,7 @@ curl -fsS http://localhost:8001/madre/power/service/switch/stop \
 
 ### incidents — ACTIVE
 
+- Module: hormiguero
 - Rows: 1126455
 - Columns:
   - id (INTEGER) PK NOT NULL
@@ -416,10 +415,25 @@ curl -fsS http://localhost:8001/madre/power/service/switch/stop \
   - detected_at (DATETIME)
   - resolved_at (DATETIME)
   - queen_decision (VARCHAR(255))
+  - incident_id (TEXT)
+  - kind (TEXT)
+  - title (TEXT)
+  - description (TEXT)
+  - evidence_json (TEXT)
+  - source (TEXT)
+  - first_seen_at (DATETIME)
+  - last_seen_at (DATETIME)
+  - correlation_id (TEXT)
+  - tags (TEXT)
+  - suggested_actions_json (TEXT)
+  - execution_plan_json (TEXT)
+  - created_at (DATETIME)
+  - updated_at (DATETIME)
 
 ### intents_log — ACTIVE
 
-- Rows: 83
+- Module: madre
+- Rows: 86
 - Columns:
   - id (INTEGER) PK NOT NULL
   - source (VARCHAR(64)) NOT NULL
@@ -452,7 +466,7 @@ curl -fsS http://localhost:8001/madre/power/service/switch/stop \
 ### madre_actions — ACTIVE
 
 - Module: madre
-- Rows: 49
+- Rows: 51
 - Columns:
   - id (INTEGER) PK NOT NULL
   - module (VARCHAR(64)) NOT NULL
@@ -495,7 +509,7 @@ curl -fsS http://localhost:8001/madre/power/service/switch/stop \
 ### model_usage_stats — ACTIVE
 
 - Module: hermes
-- Rows: 10216
+- Rows: 10217
 - Columns:
   - id (INTEGER) PK NOT NULL
   - model_or_cli_name (VARCHAR(255)) NOT NULL
@@ -542,6 +556,7 @@ curl -fsS http://localhost:8001/madre/power/service/switch/stop \
 
 ### module_health — ACTIVE
 
+- Module: madre
 - Rows: 1
 - Columns:
   - id (INTEGER) PK NOT NULL
@@ -554,6 +569,7 @@ curl -fsS http://localhost:8001/madre/power/service/switch/stop \
 
 ### module_status — ACTIVE
 
+- Module: madre
 - Rows: 11
 - Columns:
   - module_name (TEXT) PK
@@ -568,7 +584,7 @@ curl -fsS http://localhost:8001/madre/power/service/switch/stop \
 ### operator_browser_task — ACTIVE
 
 - Module: operator
-- Rows: 33
+- Rows: 41
 - Columns:
   - id (INTEGER) PK NOT NULL
   - session_id (VARCHAR(64)) NOT NULL
@@ -599,7 +615,7 @@ curl -fsS http://localhost:8001/madre/power/service/switch/stop \
 ### operator_message — ACTIVE
 
 - Module: operator
-- Rows: 100
+- Rows: 116
 - Columns:
   - id (INTEGER) PK NOT NULL
   - session_id (VARCHAR(64)) NOT NULL
@@ -613,7 +629,7 @@ curl -fsS http://localhost:8001/madre/power/service/switch/stop \
 ### operator_session — ACTIVE
 
 - Module: operator
-- Rows: 73
+- Rows: 113
 - Columns:
   - id (INTEGER) PK NOT NULL
   - session_id (VARCHAR(64)) NOT NULL
@@ -625,7 +641,7 @@ curl -fsS http://localhost:8001/madre/power/service/switch/stop \
 ### operator_switch_adjustment — ACTIVE
 
 - Module: operator
-- Rows: 33
+- Rows: 41
 - Columns:
   - id (INTEGER) PK NOT NULL
   - session_id (VARCHAR(64)) NOT NULL
@@ -643,7 +659,7 @@ curl -fsS http://localhost:8001/madre/power/service/switch/stop \
 ### operator_tool_call — ACTIVE
 
 - Module: operator
-- Rows: 33
+- Rows: 41
 - Columns:
   - id (INTEGER) PK NOT NULL
   - message_id (INTEGER) NOT NULL
@@ -658,6 +674,7 @@ curl -fsS http://localhost:8001/madre/power/service/switch/stop \
 
 ### pheromone_log — ACTIVE
 
+- Module: hormiguero
 - Rows: 1125692
 - Columns:
   - id (INTEGER) PK NOT NULL
@@ -669,9 +686,19 @@ curl -fsS http://localhost:8001/madre/power/service/switch/stop \
   - payload (TEXT)
   - created_at (DATETIME)
   - executed_at (DATETIME)
+  - pheromone_id (TEXT)
+  - incident_id (TEXT)
+  - action_kind (TEXT)
+  - action_payload_json (TEXT)
+  - requested_by (TEXT)
+  - approved_by (TEXT)
+  - status (TEXT)
+  - result_json (TEXT)
+  - updated_at (DATETIME)
 
 ### power_events — EMPTY (READY)
 
+- Module: madre
 - Rows: 0
 - Columns:
   - id (INTEGER) PK NOT NULL
@@ -685,6 +712,7 @@ curl -fsS http://localhost:8001/madre/power/service/switch/stop \
 
 ### reports — EMPTY (READY)
 
+- Module: madre
 - Rows: 0
 - Columns:
   - id (INTEGER) PK NOT NULL
@@ -699,7 +727,8 @@ curl -fsS http://localhost:8001/madre/power/service/switch/stop \
 
 ### routing_events — ACTIVE
 
-- Rows: 55
+- Module: switch
+- Rows: 62
 - Columns:
   - id (INTEGER) PK NOT NULL
   - timestamp (DATETIME)
@@ -711,6 +740,7 @@ curl -fsS http://localhost:8001/madre/power/service/switch/stop \
 
 ### sandbox_exec — EMPTY (READY)
 
+- Module: mcp
 - Rows: 0
 - Columns:
   - id (INTEGER) PK NOT NULL
@@ -722,7 +752,8 @@ curl -fsS http://localhost:8001/madre/power/service/switch/stop \
 
 ### scheduler_history — ACTIVE
 
-- Rows: 14989
+- Module: madre
+- Rows: 31168
 - Columns:
   - id (INTEGER) PK NOT NULL
   - timestamp (DATETIME)
@@ -803,7 +834,8 @@ curl -fsS http://localhost:8001/madre/power/service/switch/stop \
 
 ### spawns — ACTIVE
 
-- Rows: 21
+- Module: spawner
+- Rows: 24
 - Columns:
   - id (INTEGER) PK NOT NULL
   - uuid (VARCHAR(36)) NOT NULL
@@ -824,7 +856,7 @@ curl -fsS http://localhost:8001/madre/power/service/switch/stop \
 ### switch_queue_v2 — ACTIVE
 
 - Module: switch
-- Rows: 10216
+- Rows: 10217
 - Columns:
   - id (INTEGER) PK NOT NULL
   - source (VARCHAR(64)) NOT NULL
@@ -840,6 +872,7 @@ curl -fsS http://localhost:8001/madre/power/service/switch/stop \
 
 ### system_events — ACTIVE
 
+- Module: madre
 - Rows: 12
 - Columns:
   - id (INTEGER) PK NOT NULL
@@ -851,6 +884,7 @@ curl -fsS http://localhost:8001/madre/power/service/switch/stop \
 
 ### system_state — ACTIVE
 
+- Module: madre
 - Rows: 6
 - Columns:
   - id (INTEGER) PK NOT NULL
@@ -873,6 +907,7 @@ curl -fsS http://localhost:8001/madre/power/service/switch/stop \
 
 ### task_queue — ACTIVE
 
+- Module: madre
 - Rows: 25
 - Columns:
   - id (INTEGER) PK NOT NULL
@@ -885,6 +920,7 @@ curl -fsS http://localhost:8001/madre/power/service/switch/stop \
 
 ### tasks — ACTIVE
 
+- Module: madre
 - Rows: 22
 - Columns:
   - id (INTEGER) PK NOT NULL
@@ -900,6 +936,7 @@ curl -fsS http://localhost:8001/madre/power/service/switch/stop \
 
 ### tokens_usage — EMPTY (READY)
 
+- Module: switch
 - Rows: 0
 - Columns:
   - id (INTEGER) PK NOT NULL
@@ -907,3 +944,4 @@ curl -fsS http://localhost:8001/madre/power/service/switch/stop \
   - used_at (DATETIME)
   - used_count (INTEGER)
   - source (VARCHAR(64))
+

@@ -1,4 +1,0 @@
-NAMES                 STATUS                  PORTS                                         IMAGE
-vx11-switch           Up 26 hours (healthy)   0.0.0.0:8002->8002/tcp, [::]:8002->8002/tcp   vx11-switch:v6.7
-vx11-hermes           Up 26 hours (healthy)   0.0.0.0:8003->8003/tcp, [::]:8003->8003/tcp   vx11-hermes:v6.7
-vx11-tentaculo-link   Up 26 hours (healthy)   0.0.0.0:8000->8000/tcp, [::]:8000->8000/tcp   vx11-tentaculo-link:v6.7

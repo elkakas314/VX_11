@@ -1,1 +1,0 @@
-sed failed: 02_tentaculo_entrypoints_content.txt missing; likely no FastAPI markers found

@@ -1,1 +1,0 @@
-docker or docker compose not available or failed

@@ -1,6 +1,7 @@
 """Madre v7: Production Orchestrator (Simplified & Modular)."""
 
 from fastapi import FastAPI, Depends, HTTPException
+from pydantic import BaseModel
 from contextlib import asynccontextmanager
 import uuid
 import logging
@@ -294,6 +295,84 @@ async def madre_control(req: ControlRequest):
     )
 
 
+# ============ INTENT ENDPOINT ============
+
+
+class MadreIntentRequest(BaseModel):
+    type: str
+    payload: Dict[str, Any]
+    correlation_id: Optional[str] = None
+    source: str = "hormiguero"
+
+
+@app.post("/madre/intent")
+async def madre_intent(req: MadreIntentRequest):
+    intent_id = req.correlation_id or str(uuid.uuid4())
+    intent_log_id = MadreDB.create_intent_log(
+        source=req.source,
+        payload={
+            "type": req.type,
+            "payload": req.payload,
+            "correlation_id": intent_id,
+        },
+        result_status="planned",
+    )
+    task_id = str(uuid.uuid4())
+    MadreDB.create_task(
+        task_id=task_id,
+        name="madre_intent",
+        module="madre",
+        action=req.type,
+        status="pending",
+    )
+    MadreDB.set_context(task_id, "madre:intent_id", intent_id)
+    MadreDB.set_context(task_id, "madre:intent_payload", req.payload)
+    MadreDB.record_action(module="madre", action="intent_received", reason=req.type)
+    return {
+        "status": "accepted",
+        "intent_id": intent_id,
+        "task_id": task_id,
+        "intent_log_id": intent_log_id,
+    }
+
+
+# ============ ORCHESTRATION COMPAT ============ 
+
+
+class OrchestrateRequest(BaseModel):
+    action: str
+    target: str
+    payload: Dict[str, Any] = {}
+
+
+@app.post("/orchestrate")
+async def orchestrate(req: OrchestrateRequest):
+    session_id = str(uuid.uuid4())
+    _SESSIONS[session_id] = {
+        "mode": "orchestrate",
+        "last_activity": datetime.utcnow().isoformat(),
+        "action": req.action,
+        "target": req.target,
+    }
+    return {
+        "session_id": session_id,
+        "status": "accepted",
+        "action": req.action,
+        "target": req.target,
+    }
+
+
+@app.get("/status")
+async def status():
+    deps = await _delegator.check_dependencies()
+    return {"madre": "ok", "delegated_services": deps}
+
+
+@app.get("/sessions")
+async def sessions():
+    return {"sessions": [{"session_id": sid, **meta} for sid, meta in _SESSIONS.items()]}
+
+
 # ============ PLAN ENDPOINTS ============
 
 
@@ -352,8 +431,37 @@ async def confirm_plan(plan_id: str, confirm_token: str):
     return {"status": "confirmed", "plan_id": plan_id}
 
 
+class MadreTaskAliasRequest(BaseModel):
+    message: Optional[str] = None
+    payload: Optional[Dict[str, Any]] = None
+    intent_type: Optional[str] = None
+    session_id: Optional[str] = None
+    metadata: Optional[Dict[str, Any]] = None
+
+
+async def _madre_task_alias(req: MadreTaskAliasRequest):
+    """
+    Alias compatible para /madre/task.
+    Si viene mensaje, reusa /madre/chat; si no, devuelve aceptación degradada.
+    """
+    if req.message:
+        return await madre_chat(
+            ChatRequest(
+                message=req.message,
+                session_id=req.session_id,
+                context=req.metadata or {},
+            )
+        )
+    return {
+        "status": "accepted",
+        "note": "madre_task_alias",
+        "intent_type": req.intent_type,
+        "payload": req.payload or {},
+        "session_id": req.session_id,
+    }
+
+
 # ====== POWER SAVER ENDPOINTS ======
-from pydantic import BaseModel
 
 
 class IdleMinRequest(BaseModel):
@@ -453,13 +561,20 @@ from typing import Optional, Dict, Any
 from pydantic import BaseModel
 import os
 
-try:
-    # If legacy app exists, prefer its routes for full compatibility in tests
-    # Mark import-safe for tests to avoid legacy module running background tasks or seeding DB
-    os.environ.setdefault("VX11_TEST_IMPORT_SAFE", "1")
-    from madre.main_legacy import app as _legacy_app  # type: ignore
+USE_LEGACY = os.environ.get("VX11_USE_LEGACY_APP", "").lower() in ("1", "true", "yes")
 
-    app = _legacy_app
+if USE_LEGACY:
+    try:
+        # Mark import-safe for tests to avoid legacy module running background tasks or seeding DB
+        os.environ.setdefault("VX11_TEST_IMPORT_SAFE", "1")
+        from madre.main_legacy import app as _legacy_app  # type: ignore
+
+        app = _legacy_app
+    except Exception:
+        pass
+
+try:
+    app.add_api_route("/madre/task", _madre_task_alias, methods=["POST"])
 except Exception:
     pass
 

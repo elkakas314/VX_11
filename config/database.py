@@ -1,7 +1,6 @@
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker, declarative_base
 import os
-from sqlalchemy import event
 
 # Ensure data dir
 os.makedirs("./data/runtime", exist_ok=True)
@@ -18,6 +17,8 @@ engine = create_engine(
 def set_sqlite_pragma(dbapi_connection, connection_record):
     try:
         cursor = dbapi_connection.cursor()
+        cursor.execute("PRAGMA busy_timeout=5000;")
+        cursor.execute("PRAGMA foreign_keys=ON;")
         cursor.execute("PRAGMA journal_mode=WAL;")
         cursor.execute("PRAGMA synchronous=NORMAL;")
         cursor.close()

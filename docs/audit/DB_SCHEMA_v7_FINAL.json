@@ -1,5 +1,5 @@
 {
-  "generated_at": "2025-12-19T02:28:57.970900Z",
+  "generated_at": "2025-12-19T22:57:18.510078Z",
   "database": "data/runtime/vx11.db",
   "tables": [
     {
@@ -49,7 +49,7 @@
       "foreign_keys": [],
       "rows": 0,
       "status": "EMPTY (READY)",
-      "module": ""
+      "module": "madre"
     },
     {
       "table": "chat_providers_stats",
@@ -90,7 +90,7 @@
       "foreign_keys": [],
       "rows": 0,
       "status": "EMPTY (READY)",
-      "module": ""
+      "module": "switch"
     },
     {
       "table": "cli_onboarding_state",
@@ -436,7 +436,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 230,
+      "rows": 272,
       "status": "ACTIVE",
       "module": "hermes"
     },
@@ -506,7 +506,7 @@
       ],
       "rows": 10,
       "status": "ACTIVE",
-      "module": ""
+      "module": "madre"
     },
     {
       "table": "copilot_actions_log",
@@ -587,7 +587,7 @@
       "foreign_keys": [],
       "rows": 0,
       "status": "EMPTY (READY)",
-      "module": ""
+      "module": "mcp"
     },
     {
       "table": "copilot_repo_map",
@@ -668,7 +668,7 @@
       "foreign_keys": [],
       "rows": 983,
       "status": "ACTIVE",
-      "module": ""
+      "module": "mcp"
     },
     {
       "table": "copilot_runtime_services",
@@ -781,7 +781,7 @@
       "foreign_keys": [],
       "rows": 12,
       "status": "ACTIVE",
-      "module": ""
+      "module": "madre"
     },
     {
       "table": "copilot_workflows_catalog",
@@ -838,7 +838,7 @@
       "foreign_keys": [],
       "rows": 0,
       "status": "EMPTY (READY)",
-      "module": ""
+      "module": "mcp"
     },
     {
       "table": "daughter_attempts",
@@ -952,9 +952,9 @@
           "match": "NONE"
         }
       ],
-      "rows": 130,
+      "rows": 135,
       "status": "ACTIVE",
-      "module": ""
+      "module": "spawner"
     },
     {
       "table": "daughter_tasks",
@@ -1073,9 +1073,9 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 83,
+      "rows": 86,
       "status": "ACTIVE",
-      "module": ""
+      "module": "spawner"
     },
     {
       "table": "daughters",
@@ -1189,9 +1189,9 @@
           "match": "NONE"
         }
       ],
-      "rows": 130,
+      "rows": 135,
       "status": "ACTIVE",
-      "module": ""
+      "module": "spawner"
     },
     {
       "table": "drift_reports",
@@ -1248,7 +1248,7 @@
       "foreign_keys": [],
       "rows": 0,
       "status": "EMPTY (READY)",
-      "module": ""
+      "module": "manifestator"
     },
     {
       "table": "engines",
@@ -1377,7 +1377,7 @@
       "foreign_keys": [],
       "rows": 0,
       "status": "EMPTY (READY)",
-      "module": ""
+      "module": "switch"
     },
     {
       "table": "events",
@@ -1426,7 +1426,7 @@
       "foreign_keys": [],
       "rows": 0,
       "status": "EMPTY (READY)",
-      "module": ""
+      "module": "tentaculo_link"
     },
     {
       "table": "feromona_events",
@@ -1478,12 +1478,52 @@
           "notnull": false,
           "dflt_value": null,
           "pk": false
+        },
+        {
+          "cid": 6,
+          "name": "kind",
+          "type": "TEXT",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 7,
+          "name": "scope",
+          "type": "TEXT",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 8,
+          "name": "payload_json",
+          "type": "TEXT",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 9,
+          "name": "source",
+          "type": "TEXT",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 10,
+          "name": "created_at",
+          "type": "DATETIME",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         }
       ],
       "foreign_keys": [],
       "rows": 0,
       "status": "EMPTY (READY)",
-      "module": ""
+      "module": "hormiguero"
     },
     {
       "table": "fluzo_signals",
@@ -1548,7 +1588,7 @@
       "foreign_keys": [],
       "rows": 0,
       "status": "EMPTY (READY)",
-      "module": ""
+      "module": "switch"
     },
     {
       "table": "forensic_ledger",
@@ -1597,7 +1637,7 @@
       "foreign_keys": [],
       "rows": 0,
       "status": "EMPTY (READY)",
-      "module": ""
+      "module": "mcp"
     },
     {
       "table": "hermes_ingest",
@@ -1948,12 +1988,84 @@
           "notnull": false,
           "dflt_value": null,
           "pk": false
+        },
+        {
+          "cid": 10,
+          "name": "hormiga_id",
+          "type": "TEXT",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 11,
+          "name": "name",
+          "type": "TEXT",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 12,
+          "name": "enabled",
+          "type": "INTEGER",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 13,
+          "name": "aggression_level",
+          "type": "INTEGER",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 14,
+          "name": "scan_interval_sec",
+          "type": "INTEGER",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 15,
+          "name": "last_ok_at",
+          "type": "DATETIME",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 16,
+          "name": "last_error_at",
+          "type": "DATETIME",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 17,
+          "name": "last_error",
+          "type": "TEXT",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 18,
+          "name": "stats_json",
+          "type": "TEXT",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         }
       ],
       "foreign_keys": [],
       "rows": 8,
       "status": "ACTIVE",
-      "module": ""
+      "module": "hormiguero"
     },
     {
       "table": "ia_decisions",
@@ -2048,7 +2160,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 10216,
+      "rows": 10217,
       "status": "ACTIVE",
       "module": "switch"
     },
@@ -2134,12 +2246,124 @@
           "notnull": false,
           "dflt_value": null,
           "pk": false
+        },
+        {
+          "cid": 10,
+          "name": "incident_id",
+          "type": "TEXT",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 11,
+          "name": "kind",
+          "type": "TEXT",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 12,
+          "name": "title",
+          "type": "TEXT",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 13,
+          "name": "description",
+          "type": "TEXT",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 14,
+          "name": "evidence_json",
+          "type": "TEXT",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 15,
+          "name": "source",
+          "type": "TEXT",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 16,
+          "name": "first_seen_at",
+          "type": "DATETIME",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 17,
+          "name": "last_seen_at",
+          "type": "DATETIME",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 18,
+          "name": "correlation_id",
+          "type": "TEXT",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 19,
+          "name": "tags",
+          "type": "TEXT",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 20,
+          "name": "suggested_actions_json",
+          "type": "TEXT",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 21,
+          "name": "execution_plan_json",
+          "type": "TEXT",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 22,
+          "name": "created_at",
+          "type": "DATETIME",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 23,
+          "name": "updated_at",
+          "type": "DATETIME",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         }
       ],
       "foreign_keys": [],
       "rows": 1126455,
       "status": "ACTIVE",
-      "module": ""
+      "module": "hormiguero"
     },
     {
       "table": "intents_log",
@@ -2202,9 +2426,9 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 83,
+      "rows": 86,
       "status": "ACTIVE",
-      "module": ""
+      "module": "madre"
     },
     {
       "table": "local_models_v2",
@@ -2372,7 +2596,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 49,
+      "rows": 51,
       "status": "ACTIVE",
       "module": "madre"
     },
@@ -2639,7 +2863,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 10216,
+      "rows": 10217,
       "status": "ACTIVE",
       "module": "hermes"
     },
@@ -2884,7 +3108,7 @@
       "foreign_keys": [],
       "rows": 1,
       "status": "ACTIVE",
-      "module": ""
+      "module": "madre"
     },
     {
       "table": "module_status",
@@ -2957,7 +3181,7 @@
       "foreign_keys": [],
       "rows": 11,
       "status": "ACTIVE",
-      "module": ""
+      "module": "madre"
     },
     {
       "table": "operator_browser_task",
@@ -3047,7 +3271,7 @@
           "match": "NONE"
         }
       ],
-      "rows": 33,
+      "rows": 41,
       "status": "ACTIVE",
       "module": "operator"
     },
@@ -3188,7 +3412,7 @@
           "match": "NONE"
         }
       ],
-      "rows": 100,
+      "rows": 116,
       "status": "ACTIVE",
       "module": "operator"
     },
@@ -3245,7 +3469,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 73,
+      "rows": 113,
       "status": "ACTIVE",
       "module": "operator"
     },
@@ -3347,7 +3571,7 @@
           "match": "NONE"
         }
       ],
-      "rows": 33,
+      "rows": 41,
       "status": "ACTIVE",
       "module": "operator"
     },
@@ -3431,7 +3655,7 @@
           "match": "NONE"
         }
       ],
-      "rows": 33,
+      "rows": 41,
       "status": "ACTIVE",
       "module": "operator"
     },
@@ -3509,12 +3733,84 @@
           "notnull": false,
           "dflt_value": null,
           "pk": false
+        },
+        {
+          "cid": 9,
+          "name": "pheromone_id",
+          "type": "TEXT",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 10,
+          "name": "incident_id",
+          "type": "TEXT",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 11,
+          "name": "action_kind",
+          "type": "TEXT",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 12,
+          "name": "action_payload_json",
+          "type": "TEXT",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 13,
+          "name": "requested_by",
+          "type": "TEXT",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 14,
+          "name": "approved_by",
+          "type": "TEXT",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 15,
+          "name": "status",
+          "type": "TEXT",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 16,
+          "name": "result_json",
+          "type": "TEXT",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 17,
+          "name": "updated_at",
+          "type": "DATETIME",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         }
       ],
       "foreign_keys": [],
       "rows": 1125692,
       "status": "ACTIVE",
-      "module": ""
+      "module": "hormiguero"
     },
     {
       "table": "power_events",
@@ -3587,7 +3883,7 @@
       "foreign_keys": [],
       "rows": 0,
       "status": "EMPTY (READY)",
-      "module": ""
+      "module": "madre"
     },
     {
       "table": "reports",
@@ -3663,7 +3959,7 @@
       ],
       "rows": 0,
       "status": "EMPTY (READY)",
-      "module": ""
+      "module": "madre"
     },
     {
       "table": "routing_events",
@@ -3726,9 +4022,9 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 55,
+      "rows": 62,
       "status": "ACTIVE",
-      "module": ""
+      "module": "switch"
     },
     {
       "table": "sandbox_exec",
@@ -3785,7 +4081,7 @@
       "foreign_keys": [],
       "rows": 0,
       "status": "EMPTY (READY)",
-      "module": ""
+      "module": "mcp"
     },
     {
       "table": "scheduler_history",
@@ -3832,9 +4128,9 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 14989,
+      "rows": 31168,
       "status": "ACTIVE",
-      "module": ""
+      "module": "madre"
     },
     {
       "table": "shub_analysis",
@@ -4309,9 +4605,9 @@
           "match": "NONE"
         }
       ],
-      "rows": 21,
+      "rows": 24,
       "status": "ACTIVE",
-      "module": ""
+      "module": "spawner"
     },
     {
       "table": "switch_queue_v2",
@@ -4406,7 +4702,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 10216,
+      "rows": 10217,
       "status": "ACTIVE",
       "module": "switch"
     },
@@ -4465,7 +4761,7 @@
       "foreign_keys": [],
       "rows": 12,
       "status": "ACTIVE",
-      "module": ""
+      "module": "madre"
     },
     {
       "table": "system_state",
@@ -4610,7 +4906,7 @@
       "foreign_keys": [],
       "rows": 6,
       "status": "ACTIVE",
-      "module": ""
+      "module": "madre"
     },
     {
       "table": "task_queue",
@@ -4675,7 +4971,7 @@
       "foreign_keys": [],
       "rows": 25,
       "status": "ACTIVE",
-      "module": ""
+      "module": "madre"
     },
     {
       "table": "tasks",
@@ -4764,7 +5060,7 @@
       "foreign_keys": [],
       "rows": 22,
       "status": "ACTIVE",
-      "module": ""
+      "module": "madre"
     },
     {
       "table": "tokens_usage",
@@ -4813,7 +5109,7 @@
       "foreign_keys": [],
       "rows": 0,
       "status": "EMPTY (READY)",
-      "module": ""
+      "module": "switch"
     }
   ]
 }

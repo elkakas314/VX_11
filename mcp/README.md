@@ -2,6 +2,12 @@
 
 Sandbox reforzado para puente MCP.
 
+## Docker (compose)
+
+- **Servicio:** `mcp`
+- **Puerto:** 8006
+- **Health:** `GET /health`
+
 ## Endpoints
 - `GET /health`
 - `POST /mcp/copilot-bridge` (recursos permitidos: `/mcp/tools`, `/mcp/chat`)
@@ -18,4 +24,10 @@ Sandbox reforzado para puente MCP.
 ```
 docker build -f mcp/Dockerfile -t vx11-mcp:latest .
 docker run -p 8006:8006 vx11-mcp:latest
+```
+
+## Arranque rápido (stack local)
+```
+docker compose up -d tentaculo_link mcp
+curl -fsS http://localhost:8006/health
 ```

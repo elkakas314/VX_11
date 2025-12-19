@@ -1,0 +1,37 @@
+import React from "react";
+
+type Props = {
+  status: any;
+};
+
+export function MiniStatusPanel({ status }: Props) {
+  const modules = status?.modules || {};
+  const feromonas = status?.hormiguero?.types || modules?.hormiguero?.status?.feromonas || [];
+  const mutationInterval = modules?.hormiguero?.status?.mutation_interval;
+  const score = status?.modules?.switch?.status?.scoring;
+  const error = status?.error;
+  const powerMode = status?.power_manager?.mode || "balanced";
+  const queueSize = status?.switch?.queue_depth ?? status?.switch?.size ?? 0;
+  const incidents = status?.hormiguero?.count ?? 0;
+
+  return (
+    <div className="card">
+      <div className="card-header">
+        <div>
+          <div style={{ fontSize: "13px", color: "#9fb4cc" }}>Estado VX11</div>
+          <h3 style={{ margin: 0 }}>Heartbeat tentacular</h3>
+        </div>
+        <div style={{ fontSize: "12px", color: "#9fb4cc" }}>Modo energía: {powerMode}</div>
+      </div>
+      <div className="card-body">
+        {error && <div style={{ color: "red" }}>Sistema no disponible</div>}
+        <div>Versión: {status?.modules?.operator?.version || status?.version || status?.module || "N/A"}</div>
+        <div>Feromonas: {Array.isArray(feromonas) ? feromonas.join(", ") || "—" : JSON.stringify(feromonas)}</div>
+        <div>Mutation interval: {mutationInterval ?? "N/A"}s</div>
+        <div>Switch queue: {queueSize}</div>
+        <div>Incidentes activos: {incidents}</div>
+        <div>Chat score: {score ? JSON.stringify(score) : "N/A"}</div>
+      </div>
+    </div>
+  );
+}

@@ -471,6 +471,18 @@ class OperatorChatResponse(BaseModel):
     metadata: Optional[Dict[str, Any]] = None
 
 
+class OperatorTaskRequest(BaseModel):
+    """TASK/ANALYSIS request routed via Switch."""
+
+    task_type: str
+    payload: Dict[str, Any]
+    intent_type: Optional[str] = "task"
+    session_id: Optional[str] = None
+    user_id: Optional[str] = "local"
+    metadata: Optional[Dict[str, Any]] = None
+    provider_hint: Optional[str] = None
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Startup/shutdown lifecycle."""
@@ -593,16 +605,14 @@ async def operator_chat(
     context7.add_message(session_id, "user", req.message, req.metadata)
     context_hint = context7.get_hint_for_llm(session_id)
 
-    # Route to Operator backend
+    # Route to Switch (canonical pipeline)
     clients = get_clients()
-    payload = {
-        "session_id": session_id,
-        "user_id": user_id,
-        "message": req.message,
-        "context_summary": context_hint,
-        "metadata": req.metadata or {},
-    }
-    result = await clients.route_to_operator("/operator/chat", payload)
+    metadata = dict(req.metadata or {})
+    if context_hint:
+        metadata["context_summary"] = context_hint
+    result = await clients.route_to_switch(
+        prompt=req.message, session_id=session_id, metadata=metadata
+    )
 
     # Track response in CONTEXT-7
     assistant_msg = (
@@ -611,6 +621,36 @@ async def operator_chat(
     context7.add_message(session_id, "assistant", str(assistant_msg))
 
     write_log("tentaculo_link", f"operator_chat:{session_id}")
+    return result
+
+
+@app.post("/operator/task")
+async def operator_task(
+    req: OperatorTaskRequest,
+    _: bool = Depends(token_guard),
+):
+    """Route TASK/ANALYSIS to Switch (canonical pipeline)."""
+    session_id = req.session_id or str(uuid.uuid4())
+    user_id = req.user_id or "local"
+
+    payload = dict(req.payload or {})
+    payload.setdefault("session_id", session_id)
+    payload.setdefault("user_id", user_id)
+    if req.intent_type:
+        payload.setdefault("intent_type", req.intent_type)
+    if req.metadata:
+        payload.setdefault("metadata", req.metadata)
+
+    clients = get_clients()
+    result = await clients.route_to_switch_task(
+        task_type=req.task_type,
+        payload=payload,
+        metadata=req.metadata,
+        provider_hint=req.provider_hint,
+        source="operator",
+    )
+
+    write_log("tentaculo_link", f"operator_task:{req.task_type}:{session_id}")
     return result
 
 

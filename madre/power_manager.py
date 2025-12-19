@@ -16,6 +16,10 @@ try:
     from madre.core.db import MadreDB  # type: ignore
 except Exception:  # pragma: no cover - optional
     MadreDB = None  # type: ignore
+try:
+    from madre import power_saver as power_saver_module  # type: ignore
+except Exception:  # pragma: no cover - optional
+    power_saver_module = None  # type: ignore
 
 REPO_ROOT = os.environ.get("VX11_REPO_ROOT") or "/home/elkakas314/vx11"
 if not os.path.isdir(REPO_ROOT):
@@ -52,6 +56,11 @@ router = APIRouter()
 class PowerRequest(BaseModel):
     apply: bool = False
     confirm: Optional[str] = None
+
+
+class PostTaskRequest(BaseModel):
+    apply: Optional[bool] = None
+    reason: Optional[str] = None
 
 
 def _now_ts() -> str:
@@ -97,6 +106,35 @@ def _run(args: List[str], timeout: int = 20, cwd: Optional[str] = None) -> Dict[
     }
 
 
+def _count_backups(backups_dir: str) -> Dict[str, int]:
+    if not os.path.isdir(backups_dir):
+        return {"backup_db_count": 0, "backups_archived_count": 0}
+    backup_files = [
+        name
+        for name in os.listdir(backups_dir)
+        if os.path.isfile(os.path.join(backups_dir, name))
+    ]
+    archived_dir = os.path.join(backups_dir, "archived")
+    archived_files = []
+    if os.path.isdir(archived_dir):
+        archived_files = [
+            name
+            for name in os.listdir(archived_dir)
+            if os.path.isfile(os.path.join(archived_dir, name))
+        ]
+    return {
+        "backup_db_count": len(backup_files),
+        "backups_archived_count": len(archived_files),
+    }
+
+
+def _parse_sqlite_result(res: Dict[str, Any]) -> str:
+    stdout = (res.get("stdout") or "").strip()
+    if not stdout:
+        return "error"
+    return stdout.splitlines()[0].strip()
+
+
 def _write_snapshot(out_dir: str, prefix: str) -> None:
     ss = _run(["ss", "-ltnp"], timeout=10)
     ps = _run(["ps", "aux"], timeout=10)
@@ -118,9 +156,27 @@ def _write_snapshot(out_dir: str, prefix: str) -> None:
 
     with open(os.path.join(out_dir, f"{prefix}_free.txt"), "w", encoding="utf-8") as f:
         f.write(free.get("stdout", ""))
-        if free.get("stderr"):
-            f.write("\n# STDERR\n")
-            f.write(free.get("stderr", ""))
+
+
+def _run_sqlite_check(
+    db_path: str, out_dir: str, label: str, pragma: str, foreign_keys: bool = False
+) -> Dict[str, Any]:
+    cmd = [
+        "sqlite3",
+        db_path,
+        "-cmd",
+        "PRAGMA busy_timeout=5000;"
+        + (" PRAGMA foreign_keys=ON;" if foreign_keys else ""),
+        f"PRAGMA {pragma};",
+    ]
+    res = _run(cmd, timeout=60)
+    path = os.path.join(out_dir, f"sqlite_{label}.txt")
+    with open(path, "w", encoding="utf-8") as fh:
+        fh.write(res.get("stdout", ""))
+        if res.get("stderr"):
+            fh.write("\n# STDERR:\n")
+            fh.write(res.get("stderr"))
+    return res
 
 
 def _compose_files() -> List[str]:
@@ -355,6 +411,122 @@ async def power_token(request: Request) -> Dict[str, Any]:
     ua = request.headers.get("user-agent", "")
     issued = _issue_token(ip, ua)
     return {"status": "ok", **issued}
+
+
+@router.post("/madre/power/maintenance/post_task")
+async def maintenance_post_task(req: PostTaskRequest) -> Dict[str, Any]:
+    out_dir = _make_out_dir("maintenance_post_task", "post_task")
+    db_path = None
+    if power_saver_module and hasattr(power_saver_module, "_resolve_db_path"):
+        try:
+            db_path = power_saver_module._resolve_db_path()
+        except Exception:
+            db_path = None
+    db_path = db_path or os.path.join(REPO_ROOT, "data", "runtime", "vx11.db")
+
+    size_mb = None
+    try:
+        size_mb = round(os.path.getsize(db_path) / (1024 * 1024), 2)
+    except Exception:
+        size_mb = None
+
+    apply_retention = req.apply
+    if apply_retention is None:
+        apply_retention = bool(size_mb and size_mb >= 500.0)
+
+    sqlite_results = {
+        "quick_check": _run_sqlite_check(db_path, out_dir, "quick_check", "quick_check"),
+        "integrity_check": _run_sqlite_check(
+            db_path, out_dir, "integrity_check", "integrity_check"
+        ),
+        "foreign_key_check": _run_sqlite_check(
+            db_path, out_dir, "foreign_key_check", "foreign_key_check", foreign_keys=True
+        ),
+    }
+
+    retention_result = None
+    rotation_result = None
+    regen_result = None
+    counts_result = None
+    scorecard = None
+    if power_saver_module:
+        try:
+            retention_result = power_saver_module.db_retention_cleanup(
+                out_dir, apply=bool(apply_retention), db_path=db_path
+            )
+        except Exception as exc:
+            retention_result = {"status": "error", "error": str(exc)}
+
+        try:
+            rotation_result = power_saver_module.rotate_backups(
+                out_dir, keep=2, apply=True
+            )
+        except Exception as exc:
+            rotation_result = {"status": "error", "error": str(exc)}
+
+        try:
+            regen_result = power_saver_module.regen_dbmap(out_dir)
+        except Exception as exc:
+            regen_result = {"status": "error", "error": str(exc)}
+
+    counts_path = os.path.join(out_dir, "counts.json")
+    try:
+        counts_res = _run(
+            ["python3", "scripts/audit_counts.py", db_path], timeout=60, cwd=REPO_ROOT
+        )
+        if counts_res.get("stdout"):
+            with open(counts_path, "w", encoding="utf-8") as fh:
+                fh.write(counts_res.get("stdout"))
+        counts_result = counts_res
+    except Exception as exc:
+        counts_result = {"status": "error", "error": str(exc)}
+
+    try:
+        counts_payload = {}
+        if os.path.exists(counts_path):
+            with open(counts_path, "r", encoding="utf-8") as fh:
+                counts_payload = json.load(fh)
+        db_size_bytes = None
+        try:
+            db_size_bytes = os.path.getsize(db_path)
+        except Exception:
+            db_size_bytes = None
+        backup_counts = _count_backups(os.path.join(REPO_ROOT, "data", "backups"))
+        integrity_value = _parse_sqlite_result(sqlite_results.get("integrity_check", {}))
+        scorecard = {
+            "generated_ts": _now_ts(),
+            "integrity": integrity_value,
+            "total_tables": counts_payload.get("total_tables"),
+            "total_rows": counts_payload.get("total_rows"),
+            "db_size_bytes": db_size_bytes,
+            "backup_db_count": backup_counts.get("backup_db_count"),
+            "backups_archived_count": backup_counts.get("backups_archived_count"),
+        }
+        _write_json(os.path.join(out_dir, "SCORECARD.json"), scorecard)
+        _write_json(
+            os.path.join(REPO_ROOT, "docs", "audit", "SCORECARD.json"), scorecard
+        )
+    except Exception as exc:
+        scorecard = {"status": "error", "error": str(exc)}
+
+    return {
+        "status": "ok",
+        "out_dir": out_dir,
+        "db_path": db_path,
+        "db_size_mb": size_mb,
+        "apply_retention": bool(apply_retention),
+        "reason": req.reason,
+        "sqlite": {
+            "quick_check": sqlite_results["quick_check"].get("rc"),
+            "integrity_check": sqlite_results["integrity_check"].get("rc"),
+            "foreign_key_check": sqlite_results["foreign_key_check"].get("rc"),
+        },
+        "retention": retention_result,
+        "backup_rotation": rotation_result,
+        "regen_dbmap": regen_result,
+        "counts": counts_result,
+        "scorecard": scorecard,
+    }
 
 
 @router.post("/madre/power/service/{name}/start")

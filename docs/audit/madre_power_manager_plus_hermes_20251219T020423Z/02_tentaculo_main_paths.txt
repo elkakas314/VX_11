@@ -1,2 +1,0 @@
-tentaculo_link/main.py
-tentaculo_link/main_v7.py

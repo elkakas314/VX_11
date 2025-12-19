@@ -1,4 +1,0 @@
-FOUND
--rw-rw-r-- 1 elkakas314 elkakas314 19330 dic 18 02:45 docs/audit/DB_MAP_v7_FINAL.md
-FOUND
--rw-rw-r-- 1 elkakas314 elkakas314 105470 dic 18 02:45 docs/audit/DB_SCHEMA_v7_FINAL.json

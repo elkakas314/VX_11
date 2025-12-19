@@ -1,7 +1,0 @@
-commit 8da225dc70f5af39e25deefc8500c0b78708a94a
-Author:     VX11 Deep Surgeon <vx11@deep-surgeon.dev>
-AuthorDate: Thu Dec 18 02:45:40 2025 +0100
-Commit:     VX11 Deep Surgeon <vx11@deep-surgeon.dev>
-CommitDate: Thu Dec 18 02:45:40 2025 +0100
-
-    docs(audit): power saver continuity run (IDLE_MIN)

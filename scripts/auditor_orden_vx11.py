@@ -5,9 +5,9 @@ VX11 v6.4 order auditor (scan-only).
 Uses hormiguero.auto_organizer.OrderAuditor to compare current layout
 against docs/VX11_v6.4_CANONICAL.json and prints a JSON report.
 """
-from scripts.cleanup_guard import safe_move_py, safe_rm_py
-
 from __future__ import annotations
+
+from scripts.cleanup_guard import safe_move_py, safe_rm_py
 
 import json
 from pathlib import Path

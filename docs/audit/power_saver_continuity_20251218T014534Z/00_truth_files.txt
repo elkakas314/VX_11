@@ -1,4 +1,0 @@
-FOUND: docs/audit/DB_MAP_v7_FINAL.md
--rw-rw-r-- 1 elkakas314 elkakas314 20594 dic 18 01:31 docs/audit/DB_MAP_v7_FINAL.md
-FOUND: docs/audit/DB_SCHEMA_v7_FINAL.json
--rw-rw-r-- 1 elkakas314 elkakas314 105470 dic 18 01:30 docs/audit/DB_SCHEMA_v7_FINAL.json

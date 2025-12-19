@@ -1,2 +1,0 @@
-DeepSeek R1 not available on PATH
-\n--- PROMPT SENT ---\n

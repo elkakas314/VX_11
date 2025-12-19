@@ -1,1 +1,0 @@
-madre/core/db.py:20:class MadreDB:

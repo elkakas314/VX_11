@@ -1,4 +1,0 @@
-./forensic/hermes
-./docs/archive/hermes
-./switch/hermes
-./models/hermes

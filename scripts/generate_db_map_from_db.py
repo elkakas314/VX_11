@@ -2,9 +2,10 @@
 from scripts.cleanup_guard import safe_move_py, safe_rm_py
 
 import sqlite3, json, os
+import sys
 from datetime import datetime
 
-DB = "data/runtime/vx11.db"
+DB = os.environ.get("VX11_DB_PATH") or (sys.argv[1] if len(sys.argv) > 1 else "data/runtime/vx11.db")
 if not os.path.exists(DB):
     raise SystemExit("DB not found: " + DB)
 conn = sqlite3.connect(DB)
@@ -73,25 +74,68 @@ for t in tables:
     if any(x in lower for x in ("legacy", "old", "deprecated")):
         status = "LEGACY - preserved"
     info["status"] = status
-    # module heuristic
-    module = ""
-    mod_map = [
-        ("madre", "madre"),
-        ("hermes", "hermes"),
-        ("hija", "hormiguero"),
-        ("hijas", "hormiguero"),
-        ("operator", "operator"),
-        ("switch", "switch"),
-        ("shub", "shubniggurath"),
-        ("spawner", "spawner"),
-        ("cli", "hermes"),
-        ("model", "hermes"),
-        ("ia_decision", "switch"),
-    ]
-    for k, m in mod_map:
-        if k in lower:
-            module = m
-            break
+    # module mapping (canonical first, then heuristic)
+    table_module_map = {
+        # spawner
+        "daughter_tasks": "spawner",
+        "daughters": "spawner",
+        "daughter_attempts": "spawner",
+        "spawns": "spawner",
+        # switch
+        "routing_events": "switch",
+        "chat_providers_stats": "switch",
+        "engines": "switch",
+        "fluzo_signals": "switch",
+        "tokens_usage": "switch",
+        # madre
+        "tasks": "madre",
+        "task_queue": "madre",
+        "reports": "madre",
+        "system_state": "madre",
+        "system_events": "madre",
+        "module_health": "madre",
+        "module_status": "madre",
+        "power_events": "madre",
+        "intents_log": "madre",
+        "context": "madre",
+        "audit_logs": "madre",
+        "scheduler_history": "madre",
+        "copilot_runtime_services": "madre",
+        # hormiguero
+        "incidents": "hormiguero",
+        "pheromone_log": "hormiguero",
+        "feromona_events": "hormiguero",
+        "hormiga_state": "hormiguero",
+        # manifestator
+        "drift_reports": "manifestator",
+        # tentaculo_link
+        "events": "tentaculo_link",
+        # mcp
+        "copilot_repo_map": "mcp",
+        "copilot_actions_log": "mcp",
+        "copilot_workflows_catalog": "mcp",
+        "forensic_ledger": "mcp",
+        "sandbox_exec": "mcp",
+    }
+    module = table_module_map.get(t, "")
+    if not module:
+        mod_map = [
+            ("madre", "madre"),
+            ("hermes", "hermes"),
+            ("hija", "hormiguero"),
+            ("hijas", "hormiguero"),
+            ("operator", "operator"),
+            ("switch", "switch"),
+            ("shub", "shubniggurath"),
+            ("spawner", "spawner"),
+            ("cli", "hermes"),
+            ("model", "hermes"),
+            ("ia_decision", "switch"),
+        ]
+        for k, m in mod_map:
+            if k in lower:
+                module = m
+                break
     info["module"] = module
     json_schema["tables"].append(info)
 

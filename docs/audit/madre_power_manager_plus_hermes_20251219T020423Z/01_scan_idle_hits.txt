@@ -1,8 +1,0 @@
-tentaculo_link	tentaculo_link/main_v7.py
-madre	madre/core/db.py
-madre	madre/daughters.py
-madre	madre/daughters_paso5.py
-madre	madre/main.py
-madre	madre/main_legacy.py
-madre	madre/power_saver.py
-switch	switch/hermes/hf_scanner.py

@@ -2,6 +2,12 @@
 
 Router de modelos con cola priorizada y rotación de modelos locales.
 
+## Docker (compose)
+
+- **Servicio:** `switch`
+- **Puerto:** 8002
+- **Health:** `GET /health`
+
 ## Endpoints
 - `GET /health`
 - `POST /switch/route-v5`
@@ -21,4 +27,10 @@ Router de modelos con cola priorizada y rotación de modelos locales.
 ```
 docker build -f switch/Dockerfile -t vx11-switch:latest .
 docker run -p 8002:8002 vx11-switch:latest
+```
+
+## Arranque rápido (stack local)
+```
+docker compose up -d tentaculo_link switch
+curl -fsS http://localhost:8002/health
 ```

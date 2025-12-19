@@ -41,7 +41,9 @@
             "ms-python.black-formatter",
             "eamodio.gitlens",
             "ms-azuretools.vscode-docker",
-            "humao.rest-client"
+            "humao.rest-client",
+            "ms-edgedevtools.vscode-edge-devtools",
+            "antfu.browse-lite"
         ]
     }
 }

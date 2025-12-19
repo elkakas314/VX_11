@@ -1,4 +1,0 @@
-docker_sock_exists=True
-docker_sock_mode=0o140660
-user_groups=
-PLAN_ONLY_DOCKER_PERMS=false

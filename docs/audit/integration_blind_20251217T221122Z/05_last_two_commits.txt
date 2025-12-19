@@ -1,2 +1,0 @@
-9fbae0d docs(cleanup): blindar exclusiones CORE y reforzar contrato anti-attic; añadir CLEANUP_EXCLUDES_CORE.txt
-9f29502 docs(audit): add repo scan outputs (tree + rg) to pytest evidence

@@ -224,6 +224,31 @@ class VX11Clients:
         write_log("tentaculo_link", "route_switch")
         return await client.post("/switch/route-v5", payload)
 
+    async def route_to_switch_task(
+        self,
+        task_type: str,
+        payload: Dict[str, Any],
+        metadata: Optional[Dict[str, Any]] = None,
+        provider_hint: Optional[str] = None,
+        source: str = "operator",
+    ) -> Dict[str, Any]:
+        """Route TASK/ANALYSIS to Switch (canonical /switch/task)."""
+        client = self.get_client("switch")
+        if not client:
+            return {"error": "switch_client_unavailable"}
+        merged_payload = dict(payload or {})
+        if metadata:
+            merged_payload.setdefault("metadata", metadata)
+        body = {
+            "task_type": task_type,
+            "payload": merged_payload,
+            "source": source,
+        }
+        if provider_hint:
+            body["provider_hint"] = provider_hint
+        write_log("tentaculo_link", "route_switch_task")
+        return await client.post("/switch/task", body)
+
     async def route_to_operator(self, endpoint: str, payload: Dict[str, Any]) -> Dict[str, Any]:
         """Route to Operator backend."""
         client = self.get_client("operator-backend")

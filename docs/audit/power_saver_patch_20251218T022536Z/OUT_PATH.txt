@@ -1,1 +1,0 @@
-docs/audit/power_saver_patch_20251218T022536Z

@@ -1,2 +1,0 @@
-switch	switch/hermes/main.py
-switch	switch/hermes_shub_registration.py

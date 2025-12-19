@@ -1,0 +1,189 @@
+import * as React from "react";
+const { useEffect, useState } = React;
+import { fetchJSON, fetchCliProviders, testCliProvider, wsConnect } from "../services/api";
+
+// Ensure JSX intrinsic elements exist in environments missing React typings
+declare global {
+    namespace JSX {
+        interface IntrinsicElements {
+            [elemName: string]: any;
+        }
+    }
+}
+
+export function HermesPanel() {
+    const [models, setModels] = useState<any[]>([]);
+    const [cli, setCli] = useState<any[]>([]);
+    const [providers, setProviders] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [testResults, setTestResults] = useState<Record<string, any>>({});
+    const [cliEvents, setCliEvents] = useState<any[]>([]);
+    const [lastDebug, setLastDebug] = useState<{ reply?: string; engine?: string; error?: string }>({});
+
+    useEffect(() => {
+        const fetch = async () => {
+            try {
+                const [modelsData, cliData, providersData] = await Promise.all([
+                    fetchJSON("/operator/hermes/models"),
+                    fetchJSON("/operator/hermes/cli"),
+                    fetchCliProviders(),
+                ]);
+                setModels(modelsData.models || modelsData || []);
+                setCli(cliData.cli || cliData || []);
+                setProviders(providersData.providers || []);
+            } catch (e) {
+                console.error("Error fetching hermes data:", e);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetch();
+    }, []);
+
+    // Consume últimos eventos cli_call desde operador
+    useEffect(() => {
+        const socket = wsConnect(
+            (ev: MessageEvent) => {
+                try {
+                    const data = JSON.parse(ev.data);
+                    if (data?.type === "cli_call") {
+                        setCliEvents((prev) => [data, ...prev].slice(0, 5));
+                    }
+                } catch (err) {
+                    // ignore parse errors
+                }
+            },
+            undefined,
+            undefined
+        );
+        return () => socket && socket.close();
+    }, []);
+
+    const handleTest = async (id: string) => {
+        try {
+            const res = await testCliProvider(id);
+            setTestResults((prev) => ({ ...prev, [id]: res }));
+            setLastDebug({ reply: res.reply, engine: id, error: res.error });
+        } catch (e) {
+            setTestResults((prev) => ({ ...prev, [id]: { ok: false, error: "test_failed" } }));
+            setLastDebug({ reply: undefined, engine: id, error: "test_failed" });
+        }
+    };
+
+    if (loading) return <div className="card"><h3>Hermes (Modelos)</h3><p>Cargando...</p></div>;
+
+    return (
+        <div className="card">
+            <h3>Hermes - Modelos y CLI</h3>
+            <div style={{ marginBottom: "15px" }}>
+                <h4 style={{ fontSize: "12px" }}>Modelos Locales ({models.length}):</h4>
+                {models.length > 0 ? (
+                    <table style={{ width: "100%", fontSize: "11px" }}>
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Tamaño</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {models.slice(0, 8).map((m) => (
+                                <tr key={m.name || m.id}>
+                                    <td>{m.name || m.id}</td>
+                                    <td>{m.size_gb || m.size_mb || "?"}GB</td>
+                                    <td>{m.status || "available"}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                ) : (
+                    <p style={{ fontSize: "11px" }}>Sin modelos locales</p>
+                )}
+            </div>
+            <div>
+                <h4 style={{ fontSize: "12px" }}>CLI Registrados ({cli.length}):</h4>
+                {cli.length > 0 ? (
+                    <ul style={{ fontSize: "11px", margin: "5px 0", paddingLeft: "20px" }}>
+                        {cli.slice(0, 8).map((c) => (
+                            <li key={c.name || c.id}>
+                                {c.name} ({c.cli_type || "?"}) - {c.available ? "✓" : "✗"}
+                            </li>
+                        ))}
+                    </ul>
+                ) : (
+                    <p style={{ fontSize: "11px" }}>Sin CLI registrados</p>
+                )}
+            </div>
+            <div style={{ marginTop: "12px" }}>
+                <h4 style={{ fontSize: "12px" }}>CLI Hub (providers)</h4>
+                {providers.length === 0 && <p style={{ fontSize: "11px" }}>Sin proveedores configurados</p>}
+                {providers.length > 0 && (
+                    <table style={{ width: "100%", fontSize: "11px", borderSpacing: "0 6px" }}>
+                        <thead>
+                            <tr>
+                                <th style={{ textAlign: "left" }}>ID</th>
+                                <th>Tipo</th>
+                                <th>Activo</th>
+                                <th>Notas</th>
+                                <th>Test</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {providers.map((p) => {
+                                const result = testResults[p.id];
+                                return (
+                                    <tr key={p.id}>
+                                <td>{p.id}</td>
+                                <td>{p.type}</td>
+                                <td style={{ color: p.enabled ? "#22c55e" : "#ef4444" }} title={p.enabled ? "Credenciales detectadas" : "Faltan credenciales"}>
+                                    {p.enabled ? "✓" : "✗"}
+                                </td>
+                                <td>{p.notes || "—"}</td>
+                                <td>
+                                            <button
+                                                className="chip"
+                                                onClick={() => handleTest(p.id)}
+                                                style={{ padding: "4px 8px" }}
+                                                disabled={!p.enabled}
+                                                title={p.enabled ? "Ejecutar prueba" : "Configura el token en el backend"}
+                                            >
+                                                Test
+                                            </button>
+                                            {result && (
+                                                <span style={{ marginLeft: "6px", color: result.ok ? "#22c55e" : "#ef4444" }}>
+                                                    {result.ok ? `ok (${result.latency_ms || "-"}ms)` : result.error || "error"}
+                                                </span>
+                                            )}
+                                        </td>
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                    </table>
+                )}
+            </div>
+            {cliEvents.length > 0 && (
+                <div style={{ marginTop: "12px", fontSize: "11px" }}>
+                    <h4 style={{ fontSize: "12px" }}>Últimos eventos CLI</h4>
+                    <ul style={{ paddingLeft: "16px", margin: 0 }}>
+                        {cliEvents.map((evt, idx) => (
+                            <li key={idx} style={{ color: evt?.data?.ok ? "#22c55e" : "#ef4444" }}>
+                                {evt?.data?.provider_id || "?"} · {evt?.data?.latency_ms ?? "-"}ms · {evt?.data?.error || (evt?.data?.ok ? "ok" : "error")}
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            )}
+            <div style={{ marginTop: "12px" }}>
+                <details>
+                    <summary style={{ fontSize: "12px", cursor: "pointer" }}>Debug CLI</summary>
+                    <div style={{ fontSize: "11px", marginTop: "6px" }}>
+                        <div>Último engine: {lastDebug.engine || "—"}</div>
+                        <div>Último reply: {lastDebug.reply || "—"}</div>
+                        <div>Último error: {lastDebug.error || "—"}</div>
+                    </div>
+                </details>
+            </div>
+        </div>
+    );
+}

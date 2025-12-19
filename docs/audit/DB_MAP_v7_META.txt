@@ -1,5 +1,2 @@
 integrity:ok
-size_bytes:583426048
-madre_power_endpoints:/madre/power/* (plan/apply, allowlist)
-madre_power_triple_lock:X-VX11-POWER-KEY + X-VX11-POWER-TOKEN + confirm
-madre_power_playbook:see DB_MAP_v7_FINAL.md
+size_bytes:611745792

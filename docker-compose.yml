@@ -20,6 +20,7 @@ services:
     volumes:
       - ./build/artifacts/logs:/app/logs
       - ./data/runtime:/app/data/runtime
+      - ./data/backups:/app/data/backups
       - ./build/artifacts/sandbox:/app/sandbox
       - ./models:/app/models
     environment:

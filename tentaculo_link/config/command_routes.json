@@ -10,28 +10,28 @@
         "method": "POST"
     },
     "audio": {
-        "module": "hermes",
-        "endpoint": "/hermes/analyze-audio",
+        "module": "switch",
+        "endpoint": "/switch/task",
         "method": "POST"
     },
     "analysis": {
-        "module": "madre",
-        "endpoint": "/madre/task",
+        "module": "switch",
+        "endpoint": "/switch/task",
         "method": "POST"
     },
     "task": {
-        "module": "madre",
-        "endpoint": "/madre/task",
+        "module": "switch",
+        "endpoint": "/switch/task",
         "method": "POST"
     },
     "spawn": {
-        "module": "spawner",
-        "endpoint": "/spawner/spawn",
+        "module": "switch",
+        "endpoint": "/switch/task",
         "method": "POST"
     },
     "stream": {
-        "module": "shub",
-        "endpoint": "/shub/stream",
+        "module": "switch",
+        "endpoint": "/switch/task",
         "method": "POST"
     }
 }

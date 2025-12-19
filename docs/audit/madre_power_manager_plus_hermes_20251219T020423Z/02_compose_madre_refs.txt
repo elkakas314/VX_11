@@ -1,4 +1,0 @@
-docker-compose.yml:43:  madre:
-docker-compose.yml:46:      dockerfile: madre/Dockerfile
-docker-compose.yml:47:    image: vx11-madre:v6.7
-docker-compose.yml:48:    container_name: vx11-madre

@@ -1,7 +1,0 @@
-[
-tests/test_all_healthchecks.py::test_health_all
-tests/test_health_endpoints.py::test_health_endpoints
-tests/test_switch_auto.py::test_switch_auto_returns_engine
-tests/test_switch_chat_and_breaker.py::test_switch_chat_endpoint
-tests/test_switch_deepseek_staging.py::test_switch_deepseek_fallback_when_no_key
-tests/test_switch_local.py::test_switch_local_route

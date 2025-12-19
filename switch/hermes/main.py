@@ -183,23 +183,44 @@ def _load_catalog() -> List[Dict[str, Any]]:
     return []
 
 
-@app.get("/hermes/available")
-async def hermes_available(_=Depends(_token_guard)):
+def _collect_binaries() -> Dict[str, bool]:
     import shutil
 
+    return {
+        "docker": bool(shutil.which("docker")),
+        "kubectl": bool(shutil.which("kubectl")),
+        "gh": bool(shutil.which("gh")),
+        "playwright": bool(shutil.which("playwright")),
+    }
+
+
+@app.get("/hermes/available")
+async def hermes_available(_=Depends(_token_guard)):
     session = get_session("vx11")
     try:
         rows = (
             session.query(ModelsLocal).filter(ModelsLocal.status != "deprecated").all()
         )
         names = [r.name for r in rows]
-        bins = {
-            "docker": bool(shutil.which("docker")),
-            "kubectl": bool(shutil.which("kubectl")),
-            "gh": bool(shutil.which("gh")),
-            "playwright": bool(shutil.which("playwright")),
+        return {"status": "ok", "binaries": _collect_binaries(), "models": names}
+    finally:
+        session.close()
+
+
+@app.get("/hermes/resources")
+async def hermes_resources(_=Depends(_token_guard)):
+    session = get_session("vx11")
+    try:
+        rows = (
+            session.query(ModelsLocal).filter(ModelsLocal.status != "deprecated").all()
+        )
+        local_models = [r.name for r in rows]
+        return {
+            "status": "ok",
+            "local_models": local_models,
+            "catalog": _load_catalog(),
+            "cli": _collect_binaries(),
         }
-        return {"status": "ok", "binaries": bins, "models": names}
     finally:
         session.close()
 

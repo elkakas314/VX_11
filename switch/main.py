@@ -122,6 +122,11 @@ class RouteRequest(BaseModel):
     source: Optional[str] = "operator"
 
 
+class AdviceRequest(BaseModel):
+    incident_summary: Dict[str, Any]
+    context: Optional[Dict[str, Any]] = None
+
+
 class ModelSpec(BaseModel):
     name: str
     category: str = "general"
@@ -476,15 +481,26 @@ throttle_window_seconds = 5
 throttle_limits = {"shub-audio": 5, "hermes": 10, "local": 10}
 throttle_state: Dict[str, List[float]] = {}
 scoring_state: Dict[str, Dict[str, Any]] = {}
-CHAT_DB_PATH = (
-    settings.database_url.replace("sqlite:///", "")
-    if "sqlite" in settings.database_url
-    else "/app/data/runtime/vx11.db"
-)
+def _resolve_chat_db_path() -> str:
+    env_path = os.environ.get("VX11_DB_PATH")
+    if env_path:
+        return env_path
+    if "sqlite" in settings.database_url:
+        candidate = settings.database_url.replace("sqlite:///", "")
+        if os.path.exists(candidate):
+            return candidate
+    repo_root = os.environ.get("VX11_REPO_ROOT") or os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "..")
+    )
+    return os.path.join(repo_root, "data", "runtime", "vx11.db")
+
+
+CHAT_DB_PATH = _resolve_chat_db_path()
 LATENCY_EMA: Dict[str, float] = {}
 
 
 def _ensure_chat_stats_table():
+    conn = None
     try:
         conn = sqlite3.connect(CHAT_DB_PATH)
         conn.execute(
@@ -498,8 +514,11 @@ def _ensure_chat_stats_table():
             """
         )
         conn.commit()
+    except Exception as exc:
+        write_log("switch", f"chat_stats_init_error:{exc}", level="WARNING")
     finally:
-        conn.close()
+        if conn is not None:
+            conn.close()
 
 
 def _update_chat_stats(provider: str, success: bool, latency_ms: float):
@@ -714,6 +733,22 @@ async def switch_context_get():
         "warm_model": models.warm,
         "queue_size": len(queue.snapshot()),
         "token_required": settings.enable_auth,
+    }
+
+
+@app.post("/switch/advice")
+async def switch_advice(req: AdviceRequest):
+    """Minimal advice endpoint for incident summaries (backwards compatible)."""
+    summary = req.incident_summary or {}
+    severity = summary.get("severity") or summary.get("status") or "unknown"
+    recommendations = []
+    if severity in ("critical", "high"):
+        recommendations.append("escalate_to_madre")
+    elif severity in ("warning", "info"):
+        recommendations.append("observe")
+    return {
+        "recommendations": recommendations,
+        "scoring": {"score": 0, "severity": severity},
     }
 
 
@@ -1601,12 +1636,16 @@ async def _execute_madre_task_chat(
     start = time.monotonic()
     try:
         async with httpx.AsyncClient(timeout=30.0, headers=AUTH_HEADERS) as client:
+            payload = {
+                "message": prompt,
+                "context": metadata or {},
+            }
+            session_id = (metadata or {}).get("session_id")
+            if session_id:
+                payload["session_id"] = session_id
             resp = await client.post(
-                f"{settings.madre_url.rstrip('/')}/madre/route-system",
-                json={
-                    "messages": [{"role": "user", "content": prompt}],
-                    "metadata": metadata,
-                },
+                f"{settings.madre_url.rstrip('/')}/madre/chat",
+                json=payload,
                 headers=AUTH_HEADERS,
             )
             if resp.status_code == 200:
@@ -1686,6 +1725,299 @@ async def _execute_hermes_task_chat(
     return {"content": "Error en Hermes"}, int((time.monotonic() - start) * 1000), False
 
 
+SPECIAL_INTENT_TARGETS = {
+    "audio": {
+        "service": "shubniggurath",
+        "endpoint": "/shub/stream",
+        "timeout": 60.0,
+    },
+    "stream": {
+        "service": "shubniggurath",
+        "endpoint": "/shub/stream",
+        "timeout": 120.0,
+    },
+    "spawn": {
+        "service": "spawner",
+        "endpoint": "/spawn",
+        "timeout": 30.0,
+    },
+}
+
+SERVICE_URLS = {
+    "shubniggurath": settings.shub_url,
+    "spawner": settings.spawner_url,
+    "hermes": settings.hermes_url,
+}
+
+
+def _normalize_intent_value(value: Any) -> str:
+    if value is None:
+        return ""
+    return str(value).strip().lower()
+
+
+def _detect_special_intent(task_type: str, payload: Any) -> Optional[str]:
+    candidates = [task_type]
+    if isinstance(payload, dict):
+        candidates.extend(
+            [
+                payload.get("intent_type"),
+                payload.get("task_type"),
+                payload.get("intent"),
+                payload.get("kind"),
+            ]
+        )
+        metadata = payload.get("metadata") or {}
+        if isinstance(metadata, dict):
+            candidates.extend(
+                [
+                    metadata.get("intent_type"),
+                    metadata.get("task_type"),
+                    metadata.get("intent"),
+                ]
+            )
+
+    for raw in candidates:
+        val = _normalize_intent_value(raw)
+        if not val:
+            continue
+        if val.startswith("spawn"):
+            return "spawn"
+        if val.startswith("stream"):
+            return "stream"
+        if val.startswith("audio"):
+            return "audio"
+    return None
+
+
+def _build_spawn_payload(payload: Any, queue_id: int) -> Dict[str, Any]:
+    if isinstance(payload, dict):
+        name = (
+            payload.get("name")
+            or payload.get("task_name")
+            or payload.get("spawn_name")
+            or f"spawn-{queue_id}"
+        )
+        cmd = payload.get("cmd") or payload.get("command")
+        metadata = payload.get("metadata") if isinstance(payload.get("metadata"), dict) else {}
+        return {
+            "name": name,
+            "cmd": cmd,
+            "task_id": payload.get("task_id"),
+            "parent_task_id": payload.get("parent_task_id") or str(queue_id),
+            "intent": payload.get("intent")
+            or payload.get("intent_type")
+            or metadata.get("intent")
+            or "spawn",
+            "ttl_seconds": payload.get("ttl_seconds") or payload.get("ttl") or 300,
+            "mutation_level": payload.get("mutation_level") or 0,
+            "tool_allowlist": payload.get("tool_allowlist")
+            or payload.get("tools")
+            or metadata.get("tool_allowlist"),
+            "context_ref": payload.get("context_ref")
+            or metadata.get("context_ref"),
+            "trace_id": payload.get("trace_id") or metadata.get("trace_id"),
+            "source": payload.get("source") or "switch",
+        }
+    return {
+        "name": f"spawn-{queue_id}",
+        "cmd": None,
+        "parent_task_id": str(queue_id),
+        "intent": "spawn",
+        "ttl_seconds": 300,
+        "mutation_level": 0,
+        "tool_allowlist": None,
+        "context_ref": None,
+        "trace_id": str(queue_id),
+        "source": "switch",
+    }
+
+
+def _build_forward_payload(payload: Any) -> Dict[str, Any]:
+    if isinstance(payload, dict):
+        return payload
+    return {"payload": payload}
+
+
+async def _check_service_health(service_url: str) -> bool:
+    try:
+        async with httpx.AsyncClient(timeout=3.0, headers=AUTH_HEADERS) as client:
+            resp = await client.get(f"{service_url.rstrip('/')}/health")
+            return resp.status_code == 200
+    except Exception:
+        return False
+
+
+async def _request_power_start(service_name: str, reason: str) -> Dict[str, Any]:
+    power_key = os.environ.get("VX11_POWER_KEY")
+    headers = dict(AUTH_HEADERS)
+    token = None
+    resp_payload: Dict[str, Any] = {"requested": False, "apply_attempted": False}
+
+    try:
+        async with httpx.AsyncClient(timeout=10.0, headers=AUTH_HEADERS) as client:
+            if power_key:
+                token_resp = await client.get(
+                    f"{settings.madre_url.rstrip('/')}/madre/power/token"
+                )
+                if token_resp.status_code == 200:
+                    token = (token_resp.json() or {}).get("token")
+
+            apply_flag = bool(power_key and token)
+            body = {
+                "apply": apply_flag,
+                "confirm": "I_UNDERSTAND_THIS_STOPS_SERVICES",
+            }
+            if power_key:
+                headers["X-VX11-Power-Key"] = power_key
+            if token:
+                headers["X-VX11-Power-Token"] = token
+
+            resp = await client.post(
+                f"{settings.madre_url.rstrip('/')}/madre/power/service/{service_name}/start",
+                json=body,
+                headers=headers,
+            )
+            resp_payload = {
+                "requested": True,
+                "apply_attempted": apply_flag,
+                "status_code": resp.status_code,
+                "reason": reason,
+                "response": resp.json()
+                if resp.headers.get("content-type", "").startswith("application/json")
+                else {"raw": resp.text},
+            }
+    except Exception as exc:
+        resp_payload = {
+            "requested": False,
+            "apply_attempted": False,
+            "reason": reason,
+            "error": str(exc),
+        }
+
+    return resp_payload
+
+
+async def _call_service_endpoint(
+    service_url: str,
+    endpoint: str,
+    payload: Dict[str, Any],
+    timeout: float,
+) -> Tuple[Dict[str, Any], int, bool]:
+    start = time.monotonic()
+    try:
+        async with httpx.AsyncClient(timeout=timeout, headers=AUTH_HEADERS) as client:
+            resp = await client.post(
+                f"{service_url.rstrip('/')}{endpoint}", json=payload
+            )
+            latency_ms = int((time.monotonic() - start) * 1000)
+            if resp.status_code == 200:
+                return resp.json(), latency_ms, True
+            return (
+                {"status": "error", "code": resp.status_code, "detail": resp.text},
+                latency_ms,
+                False,
+            )
+    except Exception as exc:
+        return (
+            {"status": "error", "error": str(exc)},
+            int((time.monotonic() - start) * 1000),
+            False,
+        )
+
+
+async def _handle_special_intent(
+    intent: str,
+    payload: Any,
+    queue_id: int,
+) -> Dict[str, Any]:
+    target = SPECIAL_INTENT_TARGETS.get(intent)
+    if not target:
+        return {
+            "status": "error",
+            "intent": intent,
+            "queue_id": queue_id,
+            "error": "intent_no_soportado",
+        }
+
+    service = target["service"]
+    service_url = SERVICE_URLS.get(service)
+    if not service_url:
+        return {
+            "status": "degraded",
+            "state": "pending",
+            "intent": intent,
+            "queue_id": queue_id,
+            "service": service,
+            "plan": {"action": "start_service", "service": service},
+            "message": "servicio_no_configurado",
+        }
+
+    health_ok = await _check_service_health(service_url)
+    power_response = None
+    if not health_ok:
+        power_response = await _request_power_start(
+            service, f"intent:{intent}:queue:{queue_id}"
+        )
+        if power_response.get("apply_attempted"):
+            await asyncio.sleep(2.0)
+        health_ok = await _check_service_health(service_url)
+
+    if not health_ok:
+        plan = {
+            "intent": intent,
+            "queue_id": queue_id,
+            "service": service,
+            "action": "start_service",
+            "power": power_response,
+        }
+        return {
+            "status": "degraded",
+            "state": "pending",
+            "intent": intent,
+            "queue_id": queue_id,
+            "service": service,
+            "plan": plan,
+            "message": "servicio_no_disponible",
+        }
+
+    if intent == "spawn":
+        forward_payload = _build_spawn_payload(payload, queue_id)
+    else:
+        forward_payload = _build_forward_payload(payload)
+
+    result, latency_ms, success = await _call_service_endpoint(
+        service_url,
+        target["endpoint"],
+        forward_payload,
+        target["timeout"],
+    )
+
+    return {
+        "status": "ok" if success else "error",
+        "intent": intent,
+        "queue_id": queue_id,
+        "service": service,
+        "result": result,
+        "latency_ms": latency_ms,
+        "power": power_response,
+    }
+
+
+async def _notify_post_task(queue_id: int, task_type: str) -> None:
+    if settings.testing_mode or os.environ.get("VX11_TESTING") in ("1", "true", "yes"):
+        return
+    try:
+        async with httpx.AsyncClient(timeout=15.0, headers=AUTH_HEADERS) as client:
+            await client.post(
+                f"{settings.madre_url.rstrip('/')}/madre/power/maintenance/post_task",
+                json={"source": "switch", "queue_id": queue_id, "task_type": task_type},
+                headers=AUTH_HEADERS,
+            )
+    except Exception as exc:
+        write_log("switch", f"post_task_hook_error:{queue_id}:{exc}", level="WARNING")
+
+
 class TaskRequest(BaseModel):
     task_type: str  # "audio-engineer", "summarization", "code-analysis", "audio-analysis", etc.
     payload: Dict[str, Any]  # Datos específicos de la tarea
@@ -1708,6 +2040,7 @@ async def switch_task(req: TaskRequest):
     task_type = req.task_type.strip().lower()
     source = req.source.strip().lower() if req.source else "unknown"
     priority = PRIORITY_MAP.get(source, PRIORITY_MAP["default"])
+    queue_id = None
 
     # Generar payload_hash para dedup
     payload_hash = hashlib.sha256(
@@ -1730,6 +2063,34 @@ async def switch_task(req: TaskRequest):
         queue_id = queue_entry.id
     finally:
         session.close()
+
+        special_intent = _detect_special_intent(task_type, req.payload)
+        if special_intent and queue_id is not None:
+            special_resp = await _handle_special_intent(
+                special_intent, req.payload, queue_id
+            )
+            session = get_session("vx11")
+            try:
+                entry = session.query(SwitchQueueV2).filter_by(id=queue_id).first()
+                if entry:
+                    if special_resp.get("status") == "ok":
+                        entry.status = "done"
+                        entry.finished_at = datetime.utcnow()
+                        asyncio.create_task(_notify_post_task(queue_id, task_type))
+                    else:
+                        entry.status = "pending"
+                        entry.error_message = special_resp.get("message", "pending")
+                        entry.finished_at = datetime.utcnow()
+                    session.add(entry)
+                    session.commit()
+            finally:
+                session.close()
+
+            write_log(
+                "switch",
+                f"special_intent:{special_intent}:queue:{queue_id}:status:{special_resp.get('status')}",
+            )
+            return special_resp
 
         # PHASE4: Consultar CLI Concentrator antes de SIL si hay hint/force
         try:
@@ -2056,6 +2417,8 @@ async def switch_task(req: TaskRequest):
                 session.commit()
         finally:
             session.close()
+
+        asyncio.create_task(_notify_post_task(queue_id, task_type))
 
         return {
             "status": "ok",

@@ -1,0 +1,193 @@
+import * as React from "react";
+import { fetchJSON, requestPlan, executePlan } from "../services/api";
+
+export function MadrePanel() {
+    const [plans, setPlans] = React.useState<any[]>([]);
+    const [loading, setLoading] = React.useState(true);
+    const [expandedId, setExpandedId] = React.useState<string | null>(null);
+    const [actionLoading, setActionLoading] = React.useState(false);
+    const [intentInput, setIntentInput] = React.useState("");
+    const [actionResult, setActionResult] = React.useState<any>(null);
+
+    React.useEffect(() => {
+        const fetch = async () => {
+            try {
+                const data = await fetchJSON("/operator/madre/plans");
+                setPlans(data.plans || data || []);
+            } catch (e) {
+                console.error("Error fetching plans:", e);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetch();
+        const interval = setInterval(fetch, 5000);
+        return () => clearInterval(interval);
+    }, []);
+
+    const handleRefresh = async () => {
+        setActionLoading(true);
+        try {
+            const data = await fetchJSON("/operator/madre/plans");
+            setPlans(data.plans || data || []);
+            setActionResult({ ok: true, summary: "Plans refreshed" });
+        } catch (e) {
+            setActionResult({ ok: false, error: String(e) });
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
+    const handleCreatePlan = async () => {
+        if (!intentInput.trim()) {
+            setActionResult({ ok: false, summary: "Intent cannot be empty" });
+            return;
+        }
+        setActionLoading(true);
+        try {
+            const result = await requestPlan(intentInput.trim());
+            setActionResult(result);
+            setIntentInput("");
+            // Refresh plans after creating
+            const data = await fetchJSON("/operator/madre/plans");
+            setPlans(data.plans || data || []);
+        } catch (e) {
+            setActionResult({ ok: false, error: String(e) });
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
+    const handleExecutePlan = async (planId: string) => {
+        setActionLoading(true);
+        try {
+            const result = await executePlan(planId);
+            setActionResult(result);
+            // Refresh plans after execution
+            const data = await fetchJSON("/operator/madre/plans");
+            setPlans(data.plans || data || []);
+        } catch (e) {
+            setActionResult({ ok: false, error: String(e) });
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
+    if (loading) return <div className="card"><h3>Planes (Madre)</h3><p>Cargando...</p></div>;
+
+    return (
+        <div className="card">
+            <h3>Planes (Madre Orchestration)</h3>
+
+            <div style={{ fontSize: "11px", marginBottom: "10px" }}>
+                <strong>Crear Plan:</strong>
+                <div style={{ display: "flex", gap: "4px", marginTop: "4px" }}>
+                    <textarea
+                        value={intentInput}
+                        onChange={(e) => setIntentInput(e.target.value)}
+                        placeholder="Ej: diagnostic_resource_issue, cleanup, audit..."
+                        style={{
+                            flex: 1,
+                            height: "40px",
+                            fontSize: "10px",
+                            fontFamily: "monospace",
+                            padding: "4px",
+                            borderRadius: "3px",
+                            border: "1px solid #1f2d3d",
+                            backgroundColor: "#0d1117",
+                            color: "#c9d1d9",
+                        }}
+                    />
+                    <button
+                        onClick={handleCreatePlan}
+                        disabled={actionLoading || !intentInput.trim()}
+                        style={{
+                            fontSize: "11px",
+                            padding: "4px 8px",
+                            cursor: actionLoading || !intentInput.trim() ? "not-allowed" : "pointer",
+                            opacity: actionLoading || !intentInput.trim() ? 0.5 : 1,
+                            whiteSpace: "nowrap",
+                        }}
+                    >
+                        {actionLoading ? "Creating..." : "Crear Plan"}
+                    </button>
+                </div>
+            </div>
+
+            {actionResult && (
+                <div style={{ fontSize: "11px", marginBottom: "10px", padding: "6px", backgroundColor: actionResult.ok ? "#1f3a3a" : "#3a1f1f", borderRadius: "3px" }}>
+                    <div style={{ color: actionResult.ok ? "#6fd983" : "#d96f6f" }}>
+                        {actionResult.ok ? "✓ Success" : "✗ Error"}
+                    </div>
+                    {actionResult.summary && <div style={{ color: "#b7c7dd" }}>{actionResult.summary}</div>}
+                    {actionResult.errors && actionResult.errors.length > 0 && (
+                        <div style={{ color: "#d96f6f" }}>Errors: {actionResult.errors.join(", ")}</div>
+                    )}
+                </div>
+            )}
+
+            <div style={{ marginBottom: "10px", display: "flex", gap: "6px" }}>
+                <button
+                    onClick={handleRefresh}
+                    disabled={actionLoading}
+                    style={{
+                        fontSize: "11px",
+                        padding: "4px 8px",
+                        cursor: actionLoading ? "not-allowed" : "pointer",
+                        opacity: actionLoading ? 0.5 : 1,
+                    }}
+                >
+                    {actionLoading ? "Refreshing..." : "Refrescar"}
+                </button>
+            </div>
+
+            {plans.length === 0 ? (
+                <p>Sin planes activos</p>
+            ) : (
+                <table style={{ width: "100%", fontSize: "12px" }}>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Estado</th>
+                            <th>Modelo</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {plans.slice(0, 10).map((plan) => (
+                            <tr key={plan.plan_id || plan.id}>
+                                <td>{(plan.plan_id || plan.id || "?").slice(0, 6)}...</td>
+                                <td>{plan.status || plan.state || "?"}</td>
+                                <td>{plan.feedback?.model || plan.model || "—"}</td>
+                                <td>
+                                    <div style={{ display: "flex", gap: "4px" }}>
+                                        <button
+                                            onClick={() => setExpandedId(expandedId === plan.plan_id ? null : plan.plan_id)}
+                                            style={{ fontSize: "10px", padding: "2px 5px" }}
+                                        >
+                                            {expandedId === plan.plan_id ? "Colapsar" : "Ver"}
+                                        </button>
+                                        <button
+                                            onClick={() => handleExecutePlan(plan.plan_id || plan.id)}
+                                            disabled={actionLoading}
+                                            style={{ fontSize: "10px", padding: "2px 5px", cursor: actionLoading ? "not-allowed" : "pointer", opacity: actionLoading ? 0.5 : 1 }}
+                                        >
+                                            Ejecutar
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            )}
+            {expandedId && (
+                <div style={{ marginTop: "10px", padding: "5px", background: "#f0f0f0", borderRadius: "3px" }}>
+                    <pre style={{ fontSize: "10px", overflow: "auto", maxHeight: "200px" }}>
+                        {JSON.stringify(plans.find(p => p.plan_id === expandedId), null, 2)}
+                    </pre>
+                </div>
+            )}
+        </div>
+    );
+}

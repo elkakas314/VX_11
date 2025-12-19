@@ -1,0 +1,131 @@
+import * as React from "react";
+import { scanHormiguero, cleanHormiguero } from "../services/api";
+
+const { useMemo, useState } = React;
+
+type Props = {
+    status?: any;
+    events?: any[];
+};
+
+export function HormigueroPanel({ status, events = [] }: Props) {
+    const incidents = useMemo(() => status?.hormiguero?.incidents || [], [status]);
+    const count = status?.hormiguero?.count ?? incidents.length ?? 0;
+    const types = status?.hormiguero?.types || [];
+    const liveEvents = useMemo(
+        () => events.filter((e) => e.type === "incident" || e.type === "module_state").slice(0, 10),
+        [events]
+    );
+    const [loading, setLoading] = useState(false);
+    const [scanResult, setScanResult] = useState<any>(null);
+
+    const handleScan = async () => {
+        setLoading(true);
+        try {
+            const result = await scanHormiguero();
+            setScanResult(result);
+        } catch (e) {
+            setScanResult({ ok: false, error: String(e) });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleClean = async () => {
+        setLoading(true);
+        try {
+            const result = await cleanHormiguero();
+            setScanResult(result);
+        } catch (e) {
+            setScanResult({ ok: false, error: String(e) });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div className="card">
+            <h3>Hormiguero - Incidentes</h3>
+            <div style={{ fontSize: "12px", marginBottom: "10px" }}>
+                <div>Total: {count}</div>
+                <div>Tipos: {types.length ? types.join(", ") : "—"}</div>
+            </div>
+            <div style={{ marginBottom: "10px", display: "flex", gap: "6px" }}>
+                <button
+                    onClick={handleScan}
+                    disabled={loading}
+                    style={{
+                        fontSize: "11px",
+                        padding: "4px 8px",
+                        cursor: loading ? "not-allowed" : "pointer",
+                        opacity: loading ? 0.5 : 1,
+                    }}
+                >
+                    {loading ? "Scanning..." : "Scan"}
+                </button>
+                <button
+                    onClick={handleClean}
+                    disabled={loading}
+                    style={{
+                        fontSize: "11px",
+                        padding: "4px 8px",
+                        cursor: loading ? "not-allowed" : "pointer",
+                        opacity: loading ? 0.5 : 1,
+                    }}
+                >
+                    {loading ? "Cleaning..." : "Clean"}
+                </button>
+            </div>
+            {scanResult && (
+                <div style={{ fontSize: "11px", marginBottom: "10px", padding: "6px", backgroundColor: scanResult.ok ? "#1f3a3a" : "#3a1f1f", borderRadius: "3px" }}>
+                    <div style={{ color: scanResult.ok ? "#6fd983" : "#d96f6f" }}>
+                        {scanResult.ok ? "✓ Success" : "✗ Error"}
+                    </div>
+                    {scanResult.summary && <div style={{ color: "#b7c7dd" }}>{scanResult.summary}</div>}
+                    {scanResult.errors && scanResult.errors.length > 0 && (
+                        <div style={{ color: "#d96f6f" }}>Errors: {scanResult.errors.join(", ")}</div>
+                    )}
+                </div>
+            )}
+            <div style={{ marginBottom: "10px" }}>
+                <h4 style={{ fontSize: "12px" }}>Incidentes recientes ({incidents.length}):</h4>
+                {incidents.length > 0 ? (
+                    <table style={{ width: "100%", fontSize: "11px" }}>
+                        <thead>
+                            <tr>
+                                <th>Tipo</th>
+                                <th>Severidad</th>
+                                <th>Detectado</th>
+                                <th>Detalle</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {incidents.slice(0, 6).map((inc: any, idx: number) => (
+                                <tr key={idx}>
+                                    <td>{inc.type || "?"}</td>
+                                    <td>{inc.severity || "?"}</td>
+                                    <td>{inc.detected_at || "—"}</td>
+                                    <td>{(inc.detail || inc.message || "").toString().slice(0, 60)}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                ) : (
+                    <p style={{ fontSize: "11px" }}>Sin incidentes recientes.</p>
+                )}
+            </div>
+            <div>
+                <h4 style={{ fontSize: "12px" }}>Eventos en vivo</h4>
+                <div style={{ maxHeight: "120px", overflow: "auto", fontSize: "11px" }}>
+                    {liveEvents.length === 0 && <div style={{ color: "#8aa0ba" }}>Sin eventos</div>}
+                    {liveEvents.map((ev, idx) => (
+                        <div key={idx} style={{ borderBottom: "1px solid #1f2d3d", padding: "4px 0" }}>
+                            <div>{ev.type} · {ev.data?.module || ev.module}</div>
+                            <div style={{ color: "#9fb4cc" }}>{ev.timestamp}</div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+}
