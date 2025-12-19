@@ -1,0 +1,8 @@
+tentaculo_link	tentaculo_link/main_v7.py
+tentaculo_link	tentaculo_link/tests/test_compose_ports_smoke.py
+switch	switch/adapters.py
+switch	switch/hermes/main.py
+switch	switch/hermes/model_scanner.py
+switch	switch/hermes/registry_manager.py
+switch	switch/hermes/scanner_v2.py
+switch	switch/router_v5.py

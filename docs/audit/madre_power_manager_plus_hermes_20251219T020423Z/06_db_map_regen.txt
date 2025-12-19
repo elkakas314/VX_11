@@ -1,0 +1,2 @@
+Wrote docs/audit/DB_SCHEMA_v7_FINAL.json and docs/audit/DB_MAP_v7_FINAL.md
+integrity: ok size_bytes 583426048

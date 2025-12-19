@@ -1,0 +1,121 @@
+        return result
+
+    except Exception as exc:
+        write_log("hermes", f"shub_registration_error:{exc}", level="ERROR")
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.get("/hermes/shub/health")
+async def shub_health_check():
+    """
+    FASE 6: Health check de Shub desde Hermes.
+
+    Response:
+    {
+        "status": "ok",
+        "health": "ok|degraded|offline",
+        "modules": {...}
+    }
+    """
+    try:
+        registrar = get_hermes_shub_registrar()
+        health = await registrar.report_shub_health()
+
+        return health
+
+    except Exception as exc:
+        write_log("hermes", f"shub_health_error:{exc}", level="ERROR")
+        return {
+            "status": "error",
+            "health": "offline",
+            "error": str(exc),
+        }
+        return {
+            "status": "ok",
+            "message": f"Model '{name}' registered",
+            "model": name,
+            "size_bytes": model.size_bytes,
+        }
+    except Exception as e:
+        session.rollback()
+        write_log("hermes", f"local_model_register_error:{e}", level="ERROR")
+        raise HTTPException(status_code=400, detail=str(e))
+    finally:
+        session.close()
+
+
+@app.post("/hermes/discover")
+async def discover():
+    """
+    Dispara descubrimiento de modelos/CLI (stub avanzado).
+    Implementa búsqueda en HuggingFace y OpenRouter si hay tokens.
+    """
+    session: Session = get_session("vx11")
+    try:
+        results = {
+            "discovered_models": [],
+            "discovered_cli": [],
+        }
+
+        # Buscar en HF
+        hf_results = await _search_hf_models(
+            "gguf-model", max_size=2 * 1024 * 1024 * 1024
+        )
+        results["discovered_models"].extend(hf_results[:3])
+
+        # Buscar en OpenRouter
+        or_results = await _search_openrouter_models(
+            "gpt", max_size=2 * 1024 * 1024 * 1024
+        )
+        results["discovered_models"].extend(or_results[:3])
+
+        # Registrar descubrimientos
+        for model in results["discovered_models"][:2]:
+            try:
+                name = model.get("name", "")
+                if name:
+                    existing = session.query(ModelRegistry).filter_by(name=name).first()
+                    if not existing:
+                        registry_entry = ModelRegistry(
+                            name=name,
+                            provider=model.get("source", "unknown"),
+                            type=model.get("model_type", "general"),
+                            size_bytes=model.get("size_bytes", 0),
+                        )
+                        session.add(registry_entry)
+            except Exception as e:
+                write_log("hermes", f"discovery_register_error:{e}", level="WARNING")
+
+        session.commit()
+        write_log(
+            "hermes",
+            f"discover_completed:found {len(results['discovered_models'])} models",
+        )
+
+        return {
+            "status": "ok",
+            "discovered_count": len(results["discovered_models"]),
+            "results": results,
+        }
+    except Exception as e:
+        session.rollback()
+        write_log("hermes", f"discover_error:{e}", level="ERROR")
+        return {
+            "status": "error",
+            "error": str(e),
+            "discovered_count": 0,
+        }
+    finally:
+        session.close()
+
+
+# ========== BACKGROUND WORKERS ==========
+
+
+async def _hermes_background_tasks():
+    """
+    Worker en background para reseteo de límites y salud de CLI.
+    Se ejecuta cada 3600s (1 hora).
+    """
+    from config.db_schema import CLIProvider
+    import time

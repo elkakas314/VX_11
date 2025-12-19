@@ -1,0 +1,21 @@
+version: "3.9"
+
+# Canonical override: make docker-compose plug-and-play without editing docker-compose.yml.
+# Adds build instructions for services that were image-only.
+
+services:
+  hermes:
+    build:
+      context: .
+      dockerfile: switch/hermes/Dockerfile
+
+  hormiguero:
+    build:
+      context: .
+      dockerfile: hormiguero/Dockerfile
+
+  shubniggurath:
+    build:
+      context: .
+      dockerfile: shubniggurath/Dockerfile
+

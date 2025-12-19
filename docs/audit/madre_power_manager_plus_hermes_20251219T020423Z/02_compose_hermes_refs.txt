@@ -1,0 +1,5 @@
+docker-compose.override.yml:7:  hermes:
+docker-compose.override.yml:10:      dockerfile: switch/hermes/Dockerfile
+docker-compose.yml:108:  hermes:
+docker-compose.yml:109:    image: vx11-hermes:v6.7
+docker-compose.yml:110:    container_name: vx11-hermes

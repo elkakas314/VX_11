@@ -1,6 +1,6 @@
 # VX11 Database Map (generated)
 
-Generated at: 2025-12-19T02:28:58.308884Z
+Generated at: 2025-12-19T00:03:12.122767Z
 
 Database file: data/runtime/vx11.db
 
@@ -77,7 +77,7 @@ Database file: data/runtime/vx11.db
 ### cli_usage_stats — ACTIVE
 
 - Module: hermes
-- Rows: 230
+- Rows: 218
 - Columns:
   - id (INTEGER) PK NOT NULL
   - provider_id (VARCHAR(128)) NOT NULL
@@ -98,39 +98,6 @@ Database file: data/runtime/vx11.db
   - value (TEXT) NOT NULL
   - scope (VARCHAR(50))
   - created_at (DATETIME)
-
-## Madre Power Manager (v7)
-
-Endpoints (plan/apply, allowlist enforced):
-- `GET /madre/power/services`
-- `GET /madre/power/token`
-- `POST /madre/power/service/{name}/start`
-- `POST /madre/power/service/{name}/stop`
-- `POST /madre/power/service/{name}/restart`
-- `POST /madre/power/mode/idle_min`
-- `POST /madre/power/mode/hard_off`
-
-Triple lock for `apply=true`:
-- Header `X-VX11-POWER-KEY` must match `VX11_POWER_KEY`
-- Header `X-VX11-POWER-TOKEN` from `GET /madre/power/token` (TTL 60s)
-- Body confirm string: `"confirm": "I_UNDERSTAND_THIS_STOPS_SERVICES"`
-
-Playbook (no secrets, apply=false by default):
-```bash
-# plan-only (safe)
-curl -fsS http://localhost:8001/madre/power/services
-curl -fsS http://localhost:8001/madre/power/service/switch/stop \
-  -H "Content-Type: application/json" \
-  -d '{"apply": false}'
-
-# apply=true (requires triple lock)
-TOKEN=$(curl -fsS http://localhost:8001/madre/power/token | jq -r .token)
-curl -fsS http://localhost:8001/madre/power/service/switch/stop \
-  -H "Content-Type: application/json" \
-  -H "X-VX11-POWER-KEY: <set VX11_POWER_KEY>" \
-  -H "X-VX11-POWER-TOKEN: $TOKEN" \
-  -d '{"apply": true, "confirm": "I_UNDERSTAND_THIS_STOPS_SERVICES"}'
-```
 - Foreign keys:
   - task_id -> tasks.uuid (on_update=NO ACTION, on_delete=NO ACTION)
 
@@ -568,7 +535,7 @@ curl -fsS http://localhost:8001/madre/power/service/switch/stop \
 ### operator_browser_task — ACTIVE
 
 - Module: operator
-- Rows: 33
+- Rows: 31
 - Columns:
   - id (INTEGER) PK NOT NULL
   - session_id (VARCHAR(64)) NOT NULL
@@ -599,7 +566,7 @@ curl -fsS http://localhost:8001/madre/power/service/switch/stop \
 ### operator_message — ACTIVE
 
 - Module: operator
-- Rows: 100
+- Rows: 96
 - Columns:
   - id (INTEGER) PK NOT NULL
   - session_id (VARCHAR(64)) NOT NULL
@@ -613,7 +580,7 @@ curl -fsS http://localhost:8001/madre/power/service/switch/stop \
 ### operator_session — ACTIVE
 
 - Module: operator
-- Rows: 73
+- Rows: 63
 - Columns:
   - id (INTEGER) PK NOT NULL
   - session_id (VARCHAR(64)) NOT NULL
@@ -625,7 +592,7 @@ curl -fsS http://localhost:8001/madre/power/service/switch/stop \
 ### operator_switch_adjustment — ACTIVE
 
 - Module: operator
-- Rows: 33
+- Rows: 31
 - Columns:
   - id (INTEGER) PK NOT NULL
   - session_id (VARCHAR(64)) NOT NULL
@@ -643,7 +610,7 @@ curl -fsS http://localhost:8001/madre/power/service/switch/stop \
 ### operator_tool_call — ACTIVE
 
 - Module: operator
-- Rows: 33
+- Rows: 31
 - Columns:
   - id (INTEGER) PK NOT NULL
   - message_id (INTEGER) NOT NULL
@@ -699,7 +666,7 @@ curl -fsS http://localhost:8001/madre/power/service/switch/stop \
 
 ### routing_events — ACTIVE
 
-- Rows: 55
+- Rows: 53
 - Columns:
   - id (INTEGER) PK NOT NULL
   - timestamp (DATETIME)
@@ -907,3 +874,4 @@ curl -fsS http://localhost:8001/madre/power/service/switch/stop \
   - used_at (DATETIME)
   - used_count (INTEGER)
   - source (VARCHAR(64))
+

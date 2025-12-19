@@ -4,13 +4,11 @@ from fastapi import FastAPI, Depends, HTTPException
 from contextlib import asynccontextmanager
 import uuid
 import logging
-import subprocess
 from typing import Optional, Dict, Any
 from datetime import datetime
 import asyncio
 
 from . import power_saver as power_saver_module
-from . import power_manager as power_manager_module
 
 from config.settings import settings
 from config.tokens import get_token
@@ -373,16 +371,14 @@ async def power_status():
     # processes in repo
     proc_list = []
     try:
-        res = subprocess.run(
-            ["ps", "axo", "pid,ppid,stat,cmd"],
+        p = subprocess = __import__("subprocess")
+        res = p.run(
+            "ps axo pid,ppid,stat,cmd | grep /home/elkakas314/vx11 || true",
+            shell=True,
             capture_output=True,
             text=True,
-            check=False,
         )
-        proc_list = [
-            l for l in res.stdout.splitlines()
-            if "/home/elkakas314/vx11" in l
-        ]
+        proc_list = [l for l in res.stdout.splitlines() if l.strip()]
     except Exception:
         proc_list = []
     # build response
@@ -460,11 +456,6 @@ try:
     from madre.main_legacy import app as _legacy_app  # type: ignore
 
     app = _legacy_app
-except Exception:
-    pass
-
-try:
-    power_manager_module.register_power_routes(app)
 except Exception:
     pass
 

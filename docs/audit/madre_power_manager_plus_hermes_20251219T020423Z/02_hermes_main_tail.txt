@@ -1,0 +1,80 @@
+                            name=name,
+                            provider=model.get("source", "unknown"),
+                            type=model.get("model_type", "general"),
+                            size_bytes=model.get("size_bytes", 0),
+                        )
+                        session.add(registry_entry)
+            except Exception as e:
+                write_log("hermes", f"discovery_register_error:{e}", level="WARNING")
+
+        session.commit()
+        write_log(
+            "hermes",
+            f"discover_completed:found {len(results['discovered_models'])} models",
+        )
+
+        return {
+            "status": "ok",
+            "discovered_count": len(results["discovered_models"]),
+            "results": results,
+        }
+    except Exception as e:
+        session.rollback()
+        write_log("hermes", f"discover_error:{e}", level="ERROR")
+        return {
+            "status": "error",
+            "error": str(e),
+            "discovered_count": 0,
+        }
+    finally:
+        session.close()
+
+
+# ========== BACKGROUND WORKERS ==========
+
+
+async def _hermes_background_tasks():
+    """
+    Worker en background para reseteo de límites y salud de CLI.
+    Se ejecuta cada 3600s (1 hora).
+    """
+    from config.db_schema import CLIProvider
+    import time
+
+    write_log("hermes", "background_worker_started")
+
+    while True:
+        try:
+            await asyncio.sleep(3600)  # Ejecutar cada hora
+
+            session: Session = get_session("vx11")
+            try:
+                now = datetime.utcnow()
+                hour = now.hour
+
+                # Resetear contadores diarios si es la hora indicada
+                for provider in session.query(CLIProvider).all():
+                    if (
+                        provider.reset_hour_utc == hour
+                        and (now - provider.last_reset_at).seconds > 3600
+                    ):
+                        provider.tokens_used_today = 0
+                        provider.last_reset_at = now
+                        session.add(provider)
+
+                session.commit()
+                write_log("hermes", f"background_reset_completed:hour={hour}")
+            finally:
+                session.close()
+        except Exception as e:
+            write_log("hermes", f"background_worker_error:{e}", level="ERROR")
+            await asyncio.sleep(60)  # Reintentar en 60s
+
+
+@app.on_event("startup")
+async def startup_event():
+    """Iniciar workers en background al startup."""
+    global _hermes_core
+    _hermes_core = get_hermes_core()
+    await initialize_hermes()
+    asyncio.create_task(_hermes_background_tasks())

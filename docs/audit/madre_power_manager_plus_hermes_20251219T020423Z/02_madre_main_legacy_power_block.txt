@@ -1,0 +1,101 @@
+                # Persistir en BD (como Context entries)
+                ctx = Context(
+                    task_id=self.task_id,
+                    key=f"message_{len(self.messages)}",
+                    value=json.dumps(
+                        {
+                            "role": "assistant",
+                            "content": response_text,
+                            "provider": provider,
+                        }
+                    ),
+                    scope="chat",
+                )
+                self.db_session.add(ctx)
+                self.db_session.commit()
+
+                write_log("madre", f"chat_response:{self.task_id}:{provider}")
+                return response_text
+
+        except Exception as e:
+            error_msg = f"Chat error: {str(e)}"
+            self.add_message("system", error_msg)
+            write_log("madre", f"chat_error:{self.task_id}:{str(e)}", level="ERROR")
+            return error_msg
+
+
+# =========== POWER MANAGER ENDPOINTS ===========
+
+class DBRetentionRequest(BaseModel):
+    apply: bool = False
+
+
+@app.post("/madre/power/on/{module}")
+async def power_on_endpoint(module: str):
+    """Enciende un módulo."""
+    return await _power_manager.power_on(module)
+
+
+@app.post("/madre/power/off/{module}")
+async def power_off_endpoint(module: str):
+    """Apaga un módulo."""
+    return await _power_manager.power_off(module)
+
+
+@app.get("/madre/power/status")
+async def power_status_endpoint():
+    """Estado de todos los módulos."""
+    return await _power_manager.get_status()
+
+
+@app.post("/madre/power/auto-decide")
+async def power_auto_decide():
+    """Decisión automática basada en carga."""
+    return await _power_manager.decide_auto()
+
+
+@app.post("/madre/power/db_retention")
+async def db_retention(req: DBRetentionRequest):
+    """
+    Plan (apply=false) or apply (apply=true) DB retention deletes + wal_checkpoint(TRUNCATE).
+
+    Evidence is written under:
+    - $VX11_AUDIT_DIR if set, else /app/logs/audit (docker-compose mounts ./build/artifacts/logs -> /app/logs).
+    """
+    base = os.environ.get("VX11_AUDIT_DIR") or "/app/logs/audit"
+    out_dir = power_saver_module.make_out_dir(base=base, prefix="madre_db_retention")
+    res = await asyncio.to_thread(
+        power_saver_module.db_retention_cleanup,
+        out_dir,
+        req.apply,
+    )
+    return {"status": "ok", "out_dir": out_dir, "applied": req.apply, "result": res}
+
+
+# =========== AUDIO TASKS (SHUB INTEGRATION) ===========
+
+
+@app.post("/madre/audio/analyze")
+async def audio_analyze_task(req: ShubTaskRequest, background_tasks: BackgroundTasks):
+    """Tarea de análisis de audio vía Spawner."""
+    try:
+        task_id = str(uuid.uuid4())
+        payload = {
+            "task_id": task_id,
+            "task_kind": "analyze",
+            "input_path": req.input_path,
+            "output_path": req.output_path,
+            "params": req.params,
+            "priority": req.priority or 2,
+            "ttl": req.ttl or 120,
+        }
+
+        # Delegar a Spawner
+        spawner_result = await _delegate_spawner(task_id, payload)
+
+        # Registrar en BD
+        db = get_session("madre")
+        task = Task(
+            id=task_id,
+            type="audio_analyze",
+            status="spawned",

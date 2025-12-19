@@ -1,0 +1,5 @@
+commit 0de9f3743094ec83a884edb7bd289450c72c9c8e
+Author: VX11 Deep Surgeon <vx11@deep-surgeon.dev>
+Date:   Thu Dec 18 03:30:15 2025 +0100
+
+    feat(madre): power saver ritual endpoints + audit evidence

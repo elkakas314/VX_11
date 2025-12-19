@@ -1,0 +1,9 @@
+madre	madre/bridge_handler.py
+madre	madre/dsl_compiler.py
+madre	madre/dsl_parser.py
+madre	madre/fluzo_integration.py
+madre	madre/main.py
+madre	madre/main_legacy.py
+madre	madre/power_saver.py
+switch	switch/cli_concentrator/scoring.py
+switch	switch/shub_router.py

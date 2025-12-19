@@ -1,0 +1,10 @@
+tentaculo_link
+hormiguero
+mcp
+spawner
+switch
+hermes
+madre
+operator-backend
+operator-frontend
+shubniggurath

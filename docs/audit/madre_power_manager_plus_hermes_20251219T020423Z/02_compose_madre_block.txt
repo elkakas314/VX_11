@@ -1,0 +1,46 @@
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # ========== MADRE (PORT 8001) ==========
+  madre:
+    build:
+      context: .
+      dockerfile: madre/Dockerfile
+    image: vx11-madre:v6.7
+    container_name: vx11-madre
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./build/artifacts/logs:/app/logs
+      - ./data/runtime:/app/data/runtime
+      - ./build/artifacts/sandbox:/app/sandbox
+      - ./models:/app/models
+    environment:
+      - ULTRA_LOW_MEMORY=true
+      - LOG_LEVEL=INFO
+      - PYTHONUNBUFFERED=1
+      - API_TOKEN=vx11-local-token
+      - VX11_GATEWAY_TOKEN=vx11-local-token
+      - VX11_TENTACULO_LINK_TOKEN=vx11-local-token
+      - VX11_OPERATOR_TOKEN=vx11-local-token
+      - VX11_LOCAL_TOKEN=vx11-local-token
+    mem_limit: 512m
+    depends_on:
+      - tentaculo_link
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # ========== SWITCH (PORT 8002) ==========
+  switch:
+    build:
+      context: .
+      dockerfile: switch/Dockerfile
+    image: vx11-switch:v6.7

@@ -1,0 +1,80 @@
+"""
+Hermes - minimal, clean implementation kept intentionally small for tests.
+Provides endpoints:
+- GET /hermes/available
+- POST /hermes/register_model
+- POST /hermes/execute
+
+This file is a focused, well-formed replacement that avoids heavy features
+and removes prior corrupted/duplicated fragments.
+"""
+
+from datetime import datetime
+from pathlib import Path
+from typing import Optional, List, Dict, Any
+import httpx
+
+from fastapi import FastAPI, HTTPException, Depends, Header
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+import asyncio
+import hashlib
+from sqlalchemy.orm import Session
+
+from config.settings import settings
+from config.tokens import get_token, load_tokens
+from config.forensics import write_log
+from config.db_schema import ModelsLocal, get_session
+
+load_tokens()
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+preferred = Path(settings.MODELS_PATH or (REPO_ROOT / "models"))
+try:
+    # Try to create preferred path (may be /app in container). Fallback on permission error.
+    preferred.mkdir(parents=True, exist_ok=True)
+    MODELS_DIR = preferred
+except PermissionError:
+    MODELS_DIR = REPO_ROOT / "models"
+    MODELS_DIR.mkdir(parents=True, exist_ok=True)
+
+app = FastAPI(title="VX11 Hermes - Minimal")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.allowed_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+def _token_guard(x_vx11_token: str = Header(None)) -> bool:
+    if settings.enable_auth:
+        expected = (
+            get_token("VX11_TENTACULO_LINK_TOKEN")
+            or get_token("VX11_GATEWAY_TOKEN")
+            or settings.api_token
+        )
+        if not x_vx11_token or x_vx11_token != expected:
+            raise HTTPException(status_code=401, detail="auth_required")
+    return True
+
+
+# Expose a module-level VX11_TOKEN for tests and integrations that import it
+VX11_TOKEN = (
+    get_token("VX11_TENTACULO_LINK_TOKEN")
+    or get_token("VX11_GATEWAY_TOKEN")
+    or settings.api_token
+)
+
+
+# Simple in-memory job store for hermes exec jobs (minimal test-friendly)
+from uuid import uuid4
+
+JOBS: Dict[str, Dict[str, Any]] = {}
+
+
+@app.post("/hermes/exec")
+async def hermes_exec(req: dict, _: bool = Depends(_token_guard)):
+    """Alias endpoint expected by tests: create a job and return job_id."""
+    job_id = str(uuid4())

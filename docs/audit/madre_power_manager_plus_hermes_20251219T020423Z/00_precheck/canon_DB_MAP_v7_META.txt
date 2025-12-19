@@ -1,0 +1,5 @@
+integrity:ok
+size_bytes:583426048
+sha256:d89f4d508961d0a8bd998dbf476c9a25b49a969847a36e7aa02a59e49c637d32
+journal_mode:wal
+generated_at_utc:20251218T235453Z

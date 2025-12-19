@@ -1,0 +1,11 @@
+tentaculo_link	tentaculo_link/clients.py
+tentaculo_link	tentaculo_link/main_v7.py
+madre	madre/main_legacy.py
+switch	switch/cli_concentrator/__init__.py
+switch	switch/cli_concentrator/breaker.py
+switch	switch/cli_concentrator/schemas.py
+switch	switch/cli_concentrator/scoring.py
+switch	switch/hermes/cli_registry.py
+switch	switch/hermes/leonidas.py
+switch	switch/hermes/model_scanner.py
+switch	switch/main.py

@@ -1,0 +1,9 @@
+audit_logs
+hermes_ingest
+local_models_v2
+model_registry
+model_usage_stats
+models_local
+models_remote_cli
+module_status
+system_events

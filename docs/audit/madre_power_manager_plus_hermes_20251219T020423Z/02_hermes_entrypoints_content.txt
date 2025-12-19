@@ -1,3 +1,4 @@
+### ./switch/hermes/main.py
 """
 Hermes - minimal, clean implementation kept intentionally small for tests.
 Provides endpoints:
@@ -10,8 +11,6 @@ and removes prior corrupted/duplicated fragments.
 """
 
 from datetime import datetime
-import json
-import os
 from pathlib import Path
 from typing import Optional, List, Dict, Any
 import httpx
@@ -119,70 +118,6 @@ class ExecuteRequest(BaseModel):
     metadata: Optional[dict] = None
 
 
-class DiscoverRequest(BaseModel):
-    apply: bool = False
-    allow_web: bool = False
-
-
-def _audit_base() -> str:
-    if os.environ.get("VX11_AUDIT_DIR"):
-        return os.environ["VX11_AUDIT_DIR"]
-    repo_audit = REPO_ROOT / "docs" / "audit"
-    if repo_audit.is_dir():
-        return str(repo_audit)
-    if Path("/app/logs/audit").is_dir():
-        return "/app/logs/audit"
-    return str(REPO_ROOT / "logs" / "audit")
-
-
-def _make_audit_dir(prefix: str) -> str:
-    ts = datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
-    base = _audit_base()
-    out_dir = Path(base) / f"{prefix}_{ts}"
-    out_dir.mkdir(parents=True, exist_ok=True)
-    return str(out_dir)
-
-
-def _write_json(path: str, payload: Dict[str, Any]) -> None:
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(payload, f, indent=2)
-
-
-def _scan_local_models() -> List[Dict[str, Any]]:
-    results: List[Dict[str, Any]] = []
-    for p in MODELS_DIR.rglob("*"):
-        if not p.is_file():
-            continue
-        if p.suffix.lower() not in {".bin", ".gguf", ".pt", ".pth", ".onnx"}:
-            continue
-        size_bytes = p.stat().st_size
-        results.append(
-            {
-                "name": p.stem,
-                "path": str(p),
-                "size_bytes": size_bytes,
-                "valid": size_bytes > 0,
-                "source": "local",
-            }
-        )
-    return results
-
-
-def _load_catalog() -> List[Dict[str, Any]]:
-    catalog_path = Path(__file__).with_name("models_catalog.json")
-    if not catalog_path.is_file():
-        return []
-    try:
-        data = json.loads(catalog_path.read_text(encoding="utf-8"))
-    except Exception:
-        return []
-    if isinstance(data, list):
-        return data
-    if isinstance(data, dict):
-        return data.get("models", [])
-    return []
-
-
 @app.get("/hermes/available")
 async def hermes_available(_=Depends(_token_guard)):
     import shutil
@@ -200,27 +135,6 @@ async def hermes_available(_=Depends(_token_guard)):
             "playwright": bool(shutil.which("playwright")),
         }
         return {"status": "ok", "binaries": bins, "models": names}
-    finally:
-        session.close()
-
-
-@app.get("/hermes/status")
-async def hermes_status(_=Depends(_token_guard)):
-    """Estado de intendencia Hermes (sin routing)."""
-    session = get_session("vx11")
-    try:
-        from config.db_schema import ModelRegistry
-
-        local_count = session.query(ModelsLocal).count()
-        registry_count = session.query(ModelRegistry).count()
-        return {
-            "status": "ok",
-            "role": "intendencia",
-            "models_local": local_count,
-            "model_registry": registry_count,
-            "models_path": str(MODELS_DIR),
-            "routing": "disabled",
-        }
     finally:
         session.close()
 
@@ -831,121 +745,65 @@ async def shub_health_check():
 
 
 @app.post("/hermes/discover")
-async def discover(req: DiscoverRequest, _: bool = Depends(_token_guard)):
+async def discover():
     """
-    Descubrimiento 3-tier (plan/apply):
-    - Tier 1: local (filesystem)
-    - Tier 2: catalogos locales (models_catalog.json)
-    - Tier 3: web (disabled by default; allow_web=True)
+    Dispara descubrimiento de modelos/CLI (stub avanzado).
+    Implementa búsqueda en HuggingFace y OpenRouter si hay tokens.
     """
-    out_dir = _make_audit_dir("hermes_discover")
-    local_models = _scan_local_models()
-    catalog_models = _load_catalog()
-
-    plan = {
-        "apply": req.apply,
-        "allow_web": req.allow_web,
-        "tiers": {
-            "local": {"enabled": True, "count": len(local_models)},
-            "catalog": {"enabled": True, "count": len(catalog_models)},
-            "web": {"enabled": bool(req.allow_web), "count": 0},
-        },
-    }
-    _write_json(os.path.join(out_dir, "plan.json"), plan)
-
-    if not req.apply:
-        return {
-            "status": "plan",
-            "apply": False,
-            "out_dir": out_dir,
-            "plan": plan,
-            "db_write": "skipped",
-        }
-
     session: Session = get_session("vx11")
-    db_write = "ok"
     try:
-        from config.db_schema import ModelRegistry
-
         results = {
-            "tier1_local": local_models,
-            "tier2_catalog": catalog_models,
-            "tier3_web": [],
-            "web_skipped": not req.allow_web,
+            "discovered_models": [],
+            "discovered_cli": [],
         }
 
-        # Tier 1: upsert ModelsLocal
-        for m in local_models:
-            try:
-                name = m.get("name")
-                if not name:
-                    continue
-                existing = session.query(ModelsLocal).filter_by(name=name).first()
-                if existing:
-                    existing.path = m.get("path", existing.path)
-                    existing.size_mb = int((m.get("size_bytes", 0) or 0) / (1024 * 1024))
-                    existing.status = "available"
-                else:
-                    session.add(
-                        ModelsLocal(
-                            name=name,
-                            path=m.get("path", ""),
-                            size_mb=int((m.get("size_bytes", 0) or 0) / (1024 * 1024)),
-                            category="local",
-                            status="available",
-                        )
-                    )
-            except Exception as exc:
-                write_log("hermes", f"discover_local_upsert_error:{exc}", level="WARNING")
+        # Buscar en HF
+        hf_results = await _search_hf_models(
+            "gguf-model", max_size=2 * 1024 * 1024 * 1024
+        )
+        results["discovered_models"].extend(hf_results[:3])
 
-        # Tier 2: catalog -> ModelRegistry
-        for m in catalog_models:
-            try:
-                name = m.get("name") or m.get("model")
-                if not name:
-                    continue
-                existing = session.query(ModelRegistry).filter_by(name=name).first()
-                if not existing:
-                    session.add(
-                        ModelRegistry(
-                            name=name,
-                            path=m.get("path", f"catalog:{name}"),
-                            provider=m.get("provider", "catalog"),
-                            type=m.get("model_type", "general"),
-                            size_bytes=int(m.get("size_bytes", 0) or 0),
-                            meta_json=json.dumps(m),
-                        )
-                    )
-            except Exception as exc:
-                write_log("hermes", f"discover_catalog_upsert_error:{exc}", level="WARNING")
+        # Buscar en OpenRouter
+        or_results = await _search_openrouter_models(
+            "gpt", max_size=2 * 1024 * 1024 * 1024
+        )
+        results["discovered_models"].extend(or_results[:3])
 
-        # Tier 3: web (explicit)
-        if req.allow_web:
-            results["tier3_web"] = []
+        # Registrar descubrimientos
+        for model in results["discovered_models"][:2]:
+            try:
+                name = model.get("name", "")
+                if name:
+                    existing = session.query(ModelRegistry).filter_by(name=name).first()
+                    if not existing:
+                        registry_entry = ModelRegistry(
+                            name=name,
+                            provider=model.get("source", "unknown"),
+                            type=model.get("model_type", "general"),
+                            size_bytes=model.get("size_bytes", 0),
+                        )
+                        session.add(registry_entry)
+            except Exception as e:
+                write_log("hermes", f"discovery_register_error:{e}", level="WARNING")
 
         session.commit()
-        _write_json(os.path.join(out_dir, "result.json"), results)
-        write_log("hermes", f"discover_completed:local={len(local_models)} catalog={len(catalog_models)}")
+        write_log(
+            "hermes",
+            f"discover_completed:found {len(results['discovered_models'])} models",
+        )
 
         return {
             "status": "ok",
-            "apply": True,
-            "out_dir": out_dir,
-            "plan": plan,
+            "discovered_count": len(results["discovered_models"]),
             "results": results,
-            "db_write": db_write,
         }
     except Exception as e:
         session.rollback()
-        db_write = "error"
         write_log("hermes", f"discover_error:{e}", level="ERROR")
         return {
             "status": "error",
-            "apply": True,
-            "out_dir": out_dir,
-            "plan": plan,
             "error": str(e),
-            "db_write": db_write,
+            "discovered_count": 0,
         }
     finally:
         session.close()
@@ -999,3 +857,4 @@ async def startup_event():
     _hermes_core = get_hermes_core()
     await initialize_hermes()
     asyncio.create_task(_hermes_background_tasks())
+

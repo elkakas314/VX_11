@@ -1,0 +1,10 @@
+madre	madre/core/models.py
+madre	madre/core/planner.py
+madre	madre/core/runner.py
+madre	madre/dsl_compiler.py
+madre	madre/main.py
+madre	madre/main_legacy.py
+madre	madre/main_v7_production.py
+madre	madre/power_saver.py
+switch	switch/hermes/cli_selector.py
+switch	switch/main.py

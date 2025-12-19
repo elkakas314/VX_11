@@ -1,0 +1,67 @@
+madre/fluzo_integration.py:24:            "profile": "balanced" | "low_power" | "performance",
+madre/fluzo_integration.py:80:        "low_power": {
+madre/main.py:11:from . import power_saver as power_saver_module
+madre/main.py:365:@app.get("/power/status")
+madre/main.py:366:async def power_status():
+madre/main.py:367:    out_dir = power_saver_module.make_out_dir(prefix="madre_power_saver_status")
+madre/main.py:369:    await asyncio.to_thread(power_saver_module.snapshot, out_dir)
+madre/main.py:370:    z = await asyncio.to_thread(power_saver_module.list_zombies)
+madre/main.py:393:@app.post("/power/idle_min")
+madre/main.py:394:async def power_idle_min(req: IdleMinRequest):
+madre/main.py:395:    out_dir = power_saver_module.make_out_dir(prefix="madre_power_saver_idle_min")
+madre/main.py:397:    res = await asyncio.to_thread(power_saver_module.idle_min, out_dir, req.apply)
+madre/main.py:398:    report = await asyncio.to_thread(power_saver_module.final_report, out_dir)
+madre/main.py:408:@app.post("/power/regen_dbmap")
+madre/main.py:409:async def power_regen_dbmap():
+madre/main.py:410:    out_dir = power_saver_module.make_out_dir(prefix="madre_power_saver_regen")
+madre/main.py:411:    res = await asyncio.to_thread(power_saver_module.regen_dbmap, out_dir)
+madre/main.py:412:    report = await asyncio.to_thread(power_saver_module.final_report, out_dir)
+madre/main.py:416:@app.post("/power/ritual")
+madre/main.py:417:async def power_ritual(req: RitualRequest):
+madre/main.py:418:    out_dir = power_saver_module.make_out_dir(prefix="madre_power_saver_ritual")
+madre/main.py:420:    await asyncio.to_thread(power_saver_module.snapshot, out_dir)
+madre/main.py:422:    await asyncio.to_thread(power_saver_module.write_zombies, out_dir)
+madre/main.py:424:    idle_res = await asyncio.to_thread(power_saver_module.idle_min, out_dir, req.apply)
+madre/main.py:426:    await asyncio.to_thread(power_saver_module.snapshot, out_dir)
+madre/main.py:428:    regen_res = await asyncio.to_thread(power_saver_module.regen_dbmap, out_dir)
+madre/main.py:430:    report = await asyncio.to_thread(power_saver_module.final_report, out_dir)
+madre/main_legacy.py:49:from madre import power_saver as power_saver_module
+madre/main_legacy.py:299:        state.power_mode = data.get("power_mode", "balanced")
+madre/main_legacy.py:323:    async def power_on(self, module: str) -> Dict[str, Any]:
+madre/main_legacy.py:338:            write_log("madre", f"power_on:{module}")
+madre/main_legacy.py:341:            write_log("madre", f"power_on_error:{module}:{e}", level="ERROR")
+madre/main_legacy.py:344:    async def power_off(self, module: str) -> Dict[str, Any]:
+madre/main_legacy.py:359:            write_log("madre", f"power_off:{module}")
+madre/main_legacy.py:362:            write_log("madre", f"power_off_error:{module}:{e}", level="ERROR")
+madre/main_legacy.py:403:                result = await self.power_off(mod)
+madre/main_legacy.py:410:            result = await self.power_off("manifestator")
+madre/main_legacy.py:422:_power_manager = PowerManager()
+madre/main_legacy.py:692:@app.post("/madre/power/on/{module}")
+madre/main_legacy.py:693:async def power_on_endpoint(module: str):
+madre/main_legacy.py:695:    return await _power_manager.power_on(module)
+madre/main_legacy.py:698:@app.post("/madre/power/off/{module}")
+madre/main_legacy.py:699:async def power_off_endpoint(module: str):
+madre/main_legacy.py:701:    return await _power_manager.power_off(module)
+madre/main_legacy.py:704:@app.get("/madre/power/status")
+madre/main_legacy.py:705:async def power_status_endpoint():
+madre/main_legacy.py:707:    return await _power_manager.get_status()
+madre/main_legacy.py:710:@app.post("/madre/power/auto-decide")
+madre/main_legacy.py:711:async def power_auto_decide():
+madre/main_legacy.py:713:    return await _power_manager.decide_auto()
+madre/main_legacy.py:716:@app.post("/madre/power/db_retention")
+madre/main_legacy.py:717:async def db_retention(req: DBRetentionRequest):
+madre/main_legacy.py:725:    out_dir = power_saver_module.make_out_dir(base=base, prefix="madre_db_retention")
+madre/main_legacy.py:727:        power_saver_module.db_retention_cleanup,
+madre/main_legacy.py:1989:        "power_mode": settings.environment,
+madre/power_saver.py:30:def make_out_dir(base: str = None, prefix: str = "madre_power_saver") -> str:
+madre/power_saver.py:182:def db_retention_cleanup(
+madre/power_saver.py:191:    - db_retention_plan.json
+madre/power_saver.py:192:    - db_retention_result.json (only when apply=True)
+madre/power_saver.py:214:            return "low_power"
+madre/power_saver.py:219:    low_power_log_days = _env_int("VX11_RETENTION_LOG_DAYS_LOW_POWER", 7)
+madre/power_saver.py:225:        if kind == "log" and profile in ("low_power", "ultra_low_memory"):
+madre/power_saver.py:226:            return low_power_log_days
+madre/power_saver.py:254:            "log_days_low_power": low_power_log_days,
+madre/power_saver.py:262:    plan_path = os.path.join(out_dir, "db_retention_plan.json")
+madre/power_saver.py:365:        result_path = os.path.join(out_dir, "db_retention_result.json")
+madre/power_saver.py:377:        _record_error(f"db_retention_cleanup_failed: {e}")

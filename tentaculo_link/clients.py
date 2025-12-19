@@ -97,7 +97,11 @@ class ModuleClient:
         """GET request with circuit breaker."""
         if not self.circuit_breaker.should_attempt_request():
             write_log("tentaculo_link", f"cb_open:{self.module_name}:{path}")
-            return {"status": "circuit_open", "module": self.module_name}
+            return {
+                "status": "service_offline",
+                "module": self.module_name,
+                "reason": "circuit_open",
+            }
         
         try:
             if not self.client:
@@ -113,13 +117,21 @@ class ModuleClient:
         except Exception as exc:
             self.circuit_breaker.record_failure()
             write_log("tentaculo_link", f"client_get_error:{self.module_name}:{exc}", level="WARNING")
-            return {"status": "error", "module": self.module_name, "error": str(exc)}
+            return {
+                "status": "service_offline",
+                "module": self.module_name,
+                "error": str(exc),
+            }
 
     async def post(self, path: str, payload: Dict[str, Any], timeout: Optional[float] = None) -> Dict[str, Any]:
         """POST request with circuit breaker."""
         if not self.circuit_breaker.should_attempt_request():
             write_log("tentaculo_link", f"cb_open:{self.module_name}:{path}")
-            return {"status": "circuit_open", "module": self.module_name}
+            return {
+                "status": "service_offline",
+                "module": self.module_name,
+                "reason": "circuit_open",
+            }
         
         try:
             if not self.client:
@@ -135,7 +147,11 @@ class ModuleClient:
         except Exception as exc:
             self.circuit_breaker.record_failure()
             write_log("tentaculo_link", f"client_post_error:{self.module_name}:{exc}", level="WARNING")
-            return {"status": "error", "module": self.module_name, "error": str(exc)}
+            return {
+                "status": "service_offline",
+                "module": self.module_name,
+                "error": str(exc),
+            }
 
 
 class VX11Clients:

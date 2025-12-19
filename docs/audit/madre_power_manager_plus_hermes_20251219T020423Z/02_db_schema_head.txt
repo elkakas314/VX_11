@@ -1,0 +1,200 @@
+"""
+DB Schema para VX11: define tablas para tasks, context, reports, spawns.
+Compatible con SQLAlchemy 2.0 (uses declarative_base desde orm).
+"""
+
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    Text,
+    DateTime,
+    Float,
+    Boolean,
+    ForeignKey,
+    create_engine,
+    text,
+    event,
+)
+from sqlalchemy.orm import declarative_base, sessionmaker
+from datetime import datetime
+import os
+import hashlib
+
+# Usar declarative_base desde sqlalchemy.orm (SQLAlchemy 2.0 compatible)
+Base = declarative_base()
+
+
+class Task(Base):
+    """Tareas orquestadas por madre."""
+
+    __tablename__ = "tasks"
+
+    id = Column(Integer, primary_key=True)
+    uuid = Column(String(36), unique=True, nullable=False)
+    name = Column(String(255), nullable=False)
+    module = Column(String(50), nullable=False)  # madre, spawner, hermes, etc.
+    action = Column(String(100), nullable=False)  # start, stop, exec, etc.
+    status = Column(
+        String(20), default="pending"
+    )  # pending, running, completed, failed
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    result = Column(Text, nullable=True)
+    error = Column(Text, nullable=True)
+
+
+class Context(Base):
+    """Contexto global y específico de la ejecución."""
+
+    __tablename__ = "context"
+
+    id = Column(Integer, primary_key=True)
+    task_id = Column(String(36), ForeignKey("tasks.uuid"), nullable=False)
+    key = Column(String(255), nullable=False)
+    value = Column(Text, nullable=False)
+    scope = Column(String(50), default="global")  # global, module, spawn
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class Report(Base):
+    """Reportes de ejecución (métricas, logs, forensics)."""
+
+    __tablename__ = "reports"
+
+    id = Column(Integer, primary_key=True)
+    task_id = Column(String(36), ForeignKey("tasks.uuid"), nullable=False)
+    report_type = Column(String(50), nullable=False)  # metrics, forensics, health
+    summary = Column(Text)
+    details = Column(Text)
+    metrics = Column(Text)  # JSON serializado
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class Spawn(Base):
+    """Procesos efímeros spawneados."""
+
+    __tablename__ = "spawns"
+
+    id = Column(Integer, primary_key=True)
+    uuid = Column(String(36), unique=True, nullable=False)
+    name = Column(String(255), nullable=False)
+    cmd = Column(String(500), nullable=False)
+    pid = Column(Integer, nullable=True)
+    status = Column(
+        String(20), default="pending"
+    )  # pending, running, completed, failed
+    started_at = Column(DateTime, nullable=True)
+    ended_at = Column(DateTime, nullable=True)
+    exit_code = Column(Integer, nullable=True)
+    stdout = Column(Text, nullable=True)
+    stderr = Column(Text, nullable=True)
+    parent_task_id = Column(String(36), ForeignKey("tasks.uuid"), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class IADecision(Base):
+    """Decisiones y rutas IA (persistence para learner)."""
+
+    __tablename__ = "ia_decisions"
+
+    id = Column(Integer, primary_key=True)
+    prompt_hash = Column(String(64), nullable=False)
+    provider = Column(String(50), nullable=False)  # deepseek, local, hermes, etc.
+    task_type = Column(
+        String(50), nullable=True
+    )  # chat, code, reasoning, cli, embedding
+    prompt = Column(Text, nullable=False)
+    response = Column(Text)
+    latency_ms = Column(Integer, nullable=True)  # Track provider latency for scoring
+    success = Column(Boolean, default=False)  # Track provider success rate
+    confidence = Column(Float, default=0.5)
+    meta_json = Column(
+        Text, nullable=True
+    )  # JSON metadata (renamed from metadata to avoid SQLAlchemy reserved word)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class ModuleHealth(Base):
+    """Estado de salud de módulos."""
+
+    __tablename__ = "module_health"
+
+    id = Column(Integer, primary_key=True)
+    module = Column(String(50), nullable=False)
+    status = Column(String(20), default="unknown")
+    last_ping = Column(DateTime, default=datetime.utcnow)
+    error_count = Column(Integer, default=0)
+    uptime_seconds = Column(Float, default=0.0)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class ModelRegistry(Base):
+    """Registro centralizado de modelos locales (HF, GGUF, llama.cpp, etc)."""
+
+    __tablename__ = "model_registry"
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(255), unique=True, nullable=False)
+    path = Column(String(500), nullable=False)
+    provider = Column(String(50), nullable=False)  # huggingface, gguf, ollama, llamacpp
+    type = Column(String(50), nullable=False)  # chat, instruct, code, embedding
+    size_bytes = Column(Integer, nullable=False)
+    tags = Column(Text, nullable=True)  # JSON: ["multilang", "fast"]
+    last_used = Column(DateTime, default=datetime.utcnow)
+    score = Column(Float, default=0.5)  # Learner score (0-1)
+    available = Column(Boolean, default=True)
+    meta_json = Column(
+        Text, nullable=True
+    )  # JSON (renamed from metadata to avoid SQLAlchemy reserved word)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class CLIRegistry(Base):
+    """Registro centralizado de CLIs disponibles."""
+
+    __tablename__ = "cli_registry"
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(100), unique=True, nullable=False)
+    bin_path = Column(String(500), nullable=True)
+    available = Column(Boolean, default=True)
+    last_checked = Column(DateTime, default=datetime.utcnow)
+    cli_type = Column(String(50), nullable=False)  # devops, vcs, search, infra, cloud
+    token_config_key = Column(String(100), nullable=True)  # GH_TOKEN, DOCKER_TOKEN, etc
+    rate_limit_daily = Column(Integer, nullable=True)
+    used_today = Column(Integer, default=0)
+    notes = Column(Text, nullable=True)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+# ========== UNIFIED VX11 TABLES (v6.3) ==========
+
+
+class ModelsLocal(Base):
+    __tablename__ = "models_local"
+    id = Column(Integer, primary_key=True)
+    name = Column(String(255), unique=True, nullable=False)
+    path = Column(String(512), nullable=False)
+    size_mb = Column(Integer, default=0)
+    hash = Column(String(128), nullable=True)
+    category = Column(String(64), default="general")
+    status = Column(String(32), default="available")  # available|active|warm|deprecated
+    compatibility = Column(String(64), default="cpu")
+    downloaded_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class ModelsRemoteCLI(Base):
+    __tablename__ = "models_remote_cli"
+    id = Column(Integer, primary_key=True)
+    provider = Column(String(128), nullable=False)
+    token = Column(String(256), unique=True, nullable=False)
+    limit_daily = Column(Integer, default=0)
+    limit_weekly = Column(Integer, default=0)
+    renew_at = Column(DateTime, nullable=True)
+    task_type = Column(String(64), default="general")
+    status = Column(String(32), default="active")
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
