@@ -1,5 +1,5 @@
 {
-  "generated_at": "2025-12-19T22:57:18.510078Z",
+  "generated_at": "2025-12-19T23:27:43.187312Z",
   "database": "data/runtime/vx11.db",
   "tables": [
     {
@@ -952,7 +952,7 @@
           "match": "NONE"
         }
       ],
-      "rows": 135,
+      "rows": 136,
       "status": "ACTIVE",
       "module": "spawner"
     },
@@ -1073,7 +1073,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 86,
+      "rows": 87,
       "status": "ACTIVE",
       "module": "spawner"
     },
@@ -1189,7 +1189,7 @@
           "match": "NONE"
         }
       ],
-      "rows": 135,
+      "rows": 136,
       "status": "ACTIVE",
       "module": "spawner"
     },
@@ -2426,7 +2426,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 86,
+      "rows": 87,
       "status": "ACTIVE",
       "module": "madre"
     },
@@ -4128,7 +4128,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 31168,
+      "rows": 31508,
       "status": "ACTIVE",
       "module": "madre"
     },
@@ -4605,7 +4605,7 @@
           "match": "NONE"
         }
       ],
-      "rows": 24,
+      "rows": 25,
       "status": "ACTIVE",
       "module": "spawner"
     },
