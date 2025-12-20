@@ -1,6 +1,6 @@
 {
   "version": "vx11_fs_target_v1",
-  "generated_at_utc": "2025-12-20T18:07:51Z",
+  "generated_at_utc": "2025-12-20T18:37:50Z",
   "source_inputs": [
     "docs/CANONICAL_CORE.md",
     "docs/MODULES_INDEX.md",
@@ -37,6 +37,12 @@
     "tools"
   ],
   "ignore_globs": [
+    ".backups/**",
+    ".copilot-audit/**",
+    ".devcontainer/**",
+    ".tmp/**",
+    ".tmp_copilot/**",
+    ".vscode/**",
     "docs/audit/**",
     "data/runtime/**",
     ".venv/**",
