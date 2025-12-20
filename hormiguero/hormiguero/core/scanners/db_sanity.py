@@ -2,8 +2,12 @@
 
 from typing import Dict, List
 
-from hormiguero.core.db.sqlite import get_connection
-from hormiguero.core.db import repo
+try:
+    from hormiguero.core.db.sqlite import get_connection
+    from hormiguero.core.db import repo
+except ModuleNotFoundError:
+    from core.db.sqlite import get_connection
+    from core.db import repo
 
 
 def scan_db_sanity() -> Dict[str, object]:

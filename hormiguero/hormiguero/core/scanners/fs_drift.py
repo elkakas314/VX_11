@@ -4,7 +4,10 @@ import json
 import os
 from typing import Dict, List, Optional, Set
 
-from hormiguero.config import settings
+try:
+    from hormiguero.config import settings
+except ModuleNotFoundError:
+    from config import settings
 
 
 def _should_ignore(path: str) -> bool:

@@ -4,9 +4,14 @@ import os
 import shutil
 from typing import Dict, List, Optional
 
-from hormiguero.config import settings
-from hormiguero.core.actions.allowlist import validate_action
-from hormiguero.core.db import repo
+try:
+    from hormiguero.config import settings
+    from hormiguero.core.actions.allowlist import validate_action
+    from hormiguero.core.db import repo
+except ModuleNotFoundError:
+    from config import settings
+    from core.actions.allowlist import validate_action
+    from core.db import repo
 
 
 def preview_actions(actions: List[Dict[str, str]]) -> List[Dict[str, str]]:

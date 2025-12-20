@@ -4,7 +4,10 @@ import sqlite3
 from contextlib import contextmanager
 from typing import Dict, List
 
-from hormiguero.config import settings
+try:
+    from hormiguero.config import settings
+except ModuleNotFoundError:
+    from config import settings
 
 
 def _dict_factory(cursor, row):
@@ -45,6 +48,7 @@ def _ensure_columns(conn: sqlite3.Connection, table: str, columns: Dict[str, str
 def ensure_schema() -> None:
     schema = {
         "hormiga_state": {
+            "ant_id": "TEXT",
             "hormiga_id": "TEXT",
             "name": "TEXT",
             "role": "TEXT",
@@ -60,10 +64,14 @@ def ensure_schema() -> None:
             "updated_at": "DATETIME",
         },
         "incidents": {
+            "ant_id": "TEXT",
+            "incident_type": "TEXT",
             "incident_id": "TEXT",
             "kind": "TEXT",
             "severity": "TEXT",
             "status": "TEXT",
+            "location": "TEXT",
+            "details": "TEXT",
             "title": "TEXT",
             "description": "TEXT",
             "evidence_json": "TEXT",

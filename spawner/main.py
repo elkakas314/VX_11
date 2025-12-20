@@ -14,6 +14,8 @@ from config.db_schema import (
     Daughter,
     DaughterAttempt,
     DaughterTask,
+    HijasRuntime,
+    HijasState,
     IntentLog,
     Spawn,
     get_session,
@@ -174,6 +176,85 @@ def _create_attempt(session, daughter_id: int, attempt_number: int) -> DaughterA
     return attempt
 
 
+def _init_hijas_records(
+    session,
+    req: SpawnRequest,
+    task: DaughterTask,
+    daughter: Daughter,
+    spawn_uuid: str,
+    attempt_id: int,
+) -> None:
+    name = f"hija-{daughter.id}"
+    existing_runtime = session.query(HijasRuntime).filter_by(name=name).first()
+    if not existing_runtime:
+        meta = {
+            "spawn_uuid": spawn_uuid,
+            "task_id": task.id,
+            "daughter_id": daughter.id,
+            "attempt_id": attempt_id,
+            "trace_id": req.trace_id,
+            "source": req.source,
+        }
+        birth_context = {
+            "intent": req.intent,
+            "task_type": req.task_type,
+            "parent_task_id": req.parent_task_id,
+            "task_id": req.task_id,
+        }
+        runtime = HijasRuntime(
+            name=name,
+            state="running",
+            pid=None,
+            last_heartbeat=_now(),
+            meta_json=_serialize(meta),
+            birth_context=_serialize(birth_context),
+            intent_type=req.intent,
+            ttl=req.ttl_seconds,
+            purpose=req.description or req.intent,
+            module_creator=req.source or "spawner",
+            born_at=_now(),
+        )
+        session.add(runtime)
+
+    existing_state = session.query(HijasState).filter_by(hija_id=str(daughter.id)).first()
+    if not existing_state:
+        state = HijasState(
+            hija_id=str(daughter.id),
+            module="spawner",
+            status="running",
+            cpu_usage=0.0,
+            ram_usage=0.0,
+            pid=None,
+            created_at=_now(),
+            updated_at=_now(),
+        )
+        session.add(state)
+
+
+def _update_hijas_records(
+    session,
+    daughter_id: int,
+    status: str,
+    death_context: Optional[Dict[str, Any]] = None,
+) -> None:
+    now = _now()
+    name = f"hija-{daughter_id}"
+    runtime = session.query(HijasRuntime).filter_by(name=name).first()
+    if runtime:
+        runtime.state = status
+        if status in ("completed", "failed", "expired", "cancelled"):
+            runtime.died_at = now
+            if death_context is not None:
+                runtime.death_context = _serialize(death_context)
+        session.add(runtime)
+
+    state = session.query(HijasState).filter_by(hija_id=str(daughter_id)).first()
+    if state:
+        state.status = status
+        state.updated_at = now
+        session.add(state)
+
+
 def _update_status(session, task_id: int, daughter_id: int, status: str) -> None:
     task = session.query(DaughterTask).filter_by(id=task_id).first()
     if task:
@@ -188,6 +269,7 @@ def _update_status(session, task_id: int, daughter_id: int, status: str) -> None
         if status in ("finished", "failed", "expired", "killed"):
             daughter.ended_at = _now()
         session.add(daughter)
+    _update_hijas_records(session, daughter_id, status)
 
 
 def _notify_madre(daughter_id: int, status: str, payload: Dict[str, Any]) -> None:
@@ -249,9 +331,11 @@ def _spawn_subtasks(req: SpawnRequest, parent_task_id: int) -> int:
             )
             _register_intent(session, sub_req)
             task, daughter = _create_task_and_daughter(session, sub_req)
-            _create_spawn(session, sub_req, str(uuid.uuid4()))
-            _create_attempt(session, daughter.id, 1)
+            spawn_uuid = str(uuid.uuid4())
+            _create_spawn(session, sub_req, spawn_uuid)
+            attempt = _create_attempt(session, daughter.id, 1)
             _update_status(session, task.id, daughter.id, "running")
+            _init_hijas_records(session, sub_req, task, daughter, spawn_uuid, attempt.id)
             created += 1
         session.commit()
     except Exception:
@@ -315,6 +399,12 @@ async def _run_spawn_lifecycle(
 
             if status == "success":
                 _update_status(session, task_id, daughter_id, "completed")
+                _update_hijas_records(
+                    session,
+                    daughter_id,
+                    "completed",
+                    {"exit_code": exit_code, "stdout": stdout[:500], "stderr": stderr[:500]},
+                )
                 session.commit()
                 _notify_madre(
                     daughter_id,
@@ -326,6 +416,12 @@ async def _run_spawn_lifecycle(
             if not auto_retry or attempt_number >= max_retries:
                 final_state = "expired" if status == "timeout" else "failed"
                 _update_status(session, task_id, daughter_id, final_state)
+                _update_hijas_records(
+                    session,
+                    daughter_id,
+                    final_state,
+                    {"exit_code": exit_code, "stdout": stdout[:500], "stderr": stderr[:500]},
+                )
                 session.commit()
                 _notify_madre(
                     daughter_id,
@@ -386,6 +482,7 @@ async def spawn(req: SpawnRequest, background_tasks: BackgroundTasks):
         _create_spawn(session, req, spawn_uuid)
         attempt = _create_attempt(session, daughter.id, 1)
         _update_status(session, task.id, daughter.id, "running")
+        _init_hijas_records(session, req, task, daughter, spawn_uuid, attempt.id)
         session.commit()
         task_id = task.id
         daughter_id = daughter.id

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2025-12-19T23:27:43.187312Z",
+  "generated_at": "2025-12-20T00:06:12.438134Z",
   "database": "data/runtime/vx11.db",
   "tables": [
     {
@@ -952,7 +952,7 @@
           "match": "NONE"
         }
       ],
-      "rows": 136,
+      "rows": 137,
       "status": "ACTIVE",
       "module": "spawner"
     },
@@ -1073,7 +1073,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 87,
+      "rows": 88,
       "status": "ACTIVE",
       "module": "spawner"
     },
@@ -1189,7 +1189,7 @@
           "match": "NONE"
         }
       ],
-      "rows": 136,
+      "rows": 137,
       "status": "ACTIVE",
       "module": "spawner"
     },
@@ -1821,7 +1821,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 12,
+      "rows": 13,
       "status": "ACTIVE",
       "module": "hormiguero"
     },
@@ -1902,8 +1902,8 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 0,
-      "status": "EMPTY (READY)",
+      "rows": 1,
+      "status": "ACTIVE",
       "module": "hormiguero"
     },
     {
@@ -2063,7 +2063,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 8,
+      "rows": 11,
       "status": "ACTIVE",
       "module": "hormiguero"
     },
@@ -2361,7 +2361,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 1126455,
+      "rows": 1126461,
       "status": "ACTIVE",
       "module": "hormiguero"
     },
@@ -2426,7 +2426,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 87,
+      "rows": 88,
       "status": "ACTIVE",
       "module": "madre"
     },
@@ -4128,7 +4128,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 31508,
+      "rows": 31942,
       "status": "ACTIVE",
       "module": "madre"
     },
@@ -4605,7 +4605,7 @@
           "match": "NONE"
         }
       ],
-      "rows": 25,
+      "rows": 26,
       "status": "ACTIVE",
       "module": "spawner"
     },

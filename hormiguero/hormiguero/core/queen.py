@@ -7,12 +7,20 @@ from typing import Dict, List, Optional
 
 import requests
 
-from hormiguero.config import settings
-from hormiguero.core.ants import Ant
-from hormiguero.core.db import repo
-from hormiguero.core.scanners.db_sanity import scan_db_sanity
-from hormiguero.core.scanners.fs_drift import scan_fs_drift
-from hormiguero.core.scanners.health import scan_health
+try:
+    from hormiguero.config import settings
+    from hormiguero.core.ants import Ant
+    from hormiguero.core.db import repo
+    from hormiguero.core.scanners.db_sanity import scan_db_sanity
+    from hormiguero.core.scanners.fs_drift import scan_fs_drift
+    from hormiguero.core.scanners.health import scan_health
+except ModuleNotFoundError:
+    from config import settings
+    from core.ants import Ant
+    from core.db import repo
+    from core.scanners.db_sanity import scan_db_sanity
+    from core.scanners.fs_drift import scan_fs_drift
+    from core.scanners.health import scan_health
 
 
 class Queen:

@@ -5,7 +5,10 @@ import json
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from hormiguero.core.db.sqlite import get_connection
+try:
+    from hormiguero.core.db.sqlite import get_connection
+except ModuleNotFoundError:
+    from core.db.sqlite import get_connection
 
 
 def _now() -> str:
@@ -35,10 +38,11 @@ def upsert_hormiga_state(
         conn.execute(
             """
             INSERT INTO hormiga_state (
-                hormiga_id, name, role, enabled, aggression_level, scan_interval_sec,
+                ant_id, hormiga_id, name, role, enabled, aggression_level, scan_interval_sec,
                 last_scan_at, last_ok_at, last_error_at, last_error, stats_json, created_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(hormiga_id) DO UPDATE SET
+                ant_id=excluded.ant_id,
                 name=excluded.name,
                 role=excluded.role,
                 enabled=excluded.enabled,
@@ -52,6 +56,7 @@ def upsert_hormiga_state(
                 updated_at=excluded.updated_at;
             """,
             (
+                hormiga_id,
                 hormiga_id,
                 name,
                 role,
@@ -98,11 +103,13 @@ def upsert_incident(
             conn.execute(
                 """
                 UPDATE incidents
-                SET severity=?, status=?, title=?, description=?, evidence_json=?, source=?,
+                SET ant_id=?, incident_type=?, severity=?, status=?, title=?, description=?, evidence_json=?, source=?,
                     last_seen_at=?, updated_at=?
                 WHERE incident_id=?;
                 """,
                 (
+                    source,
+                    kind,
                     severity,
                     status,
                     title,
@@ -118,12 +125,14 @@ def upsert_incident(
             conn.execute(
                 """
                 INSERT INTO incidents (
-                    incident_id, kind, severity, status, title, description,
+                    ant_id, incident_type, incident_id, kind, severity, status, title, description,
                     evidence_json, source, detected_at, first_seen_at, last_seen_at,
                     correlation_id, tags, created_at, updated_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
                 """,
                 (
+                    source,
+                    kind,
                     incident_id,
                     kind,
                     severity,

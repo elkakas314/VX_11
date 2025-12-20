@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from contextlib import asynccontextmanager
 from typing import Any, Dict, List, Optional
+import uuid
 import asyncio
 import os
 import sys
@@ -10,11 +11,11 @@ PACKAGE_ROOT = os.path.join(os.path.dirname(__file__), "hormiguero")
 if PACKAGE_ROOT not in sys.path:
     sys.path.insert(0, PACKAGE_ROOT)
 
-from hormiguero.config import settings
-from hormiguero.core.db.sqlite import ensure_schema
-from hormiguero.core.db import repo
-from hormiguero.core.queen import Queen
-from hormiguero.core.actions import executor
+from config import settings
+from core.db.sqlite import ensure_schema
+from core.db import repo
+from core.queen import Queen
+from core.actions import executor
 
 ROOT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
@@ -32,6 +33,7 @@ class ActionsRequest(BaseModel):
 
 class ScanResponse(BaseModel):
     status: str
+    correlation_id: str
     results: Dict[str, Any]
 
 
@@ -70,8 +72,9 @@ async def hormiguero_status():
 
 @app.post("/hormiguero/scan/once", response_model=ScanResponse)
 async def scan_once():
+    correlation_id = str(uuid.uuid4())
     result = queen.scan_once(all_checks=True)
-    return {"status": "ok", "results": result}
+    return {"status": "ok", "correlation_id": correlation_id, "results": result}
 
 
 @app.get("/hormiguero/incidents")

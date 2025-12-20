@@ -3,15 +3,18 @@
 from typing import Dict
 import requests
 
-from hormiguero.config import settings
+try:
+    from hormiguero.config import settings
+except ModuleNotFoundError:
+    from config import settings
 
 
 def scan_health() -> Dict[str, Dict[str, object]]:
     targets = {
-        "tentaculo_link": "http://127.0.0.1:8000/health",
+        "tentaculo_link": f"{settings.tentaculo_url.rstrip('/')}/health",
         "madre": f"{settings.madre_url.rstrip('/')}/health",
         "switch": f"{settings.switch_url.rstrip('/')}/health",
-        "spawner": "http://127.0.0.1:8003/health",
+        "spawner": f"{settings.spawner_url.rstrip('/')}/health",
         "manifestator": f"{settings.manifestator_url.rstrip('/')}/health",
     }
     results: Dict[str, Dict[str, object]] = {}

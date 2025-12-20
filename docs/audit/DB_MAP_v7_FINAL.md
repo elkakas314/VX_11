@@ -1,6 +1,6 @@
 # VX11 Database Map (generated)
 
-Generated at: 2025-12-19T23:27:43.302430Z
+Generated at: 2025-12-20T00:06:12.594207Z
 
 Database file: data/runtime/vx11.db
 
@@ -168,7 +168,7 @@ Database file: data/runtime/vx11.db
 ### daughter_attempts — ACTIVE
 
 - Module: spawner
-- Rows: 136
+- Rows: 137
 - Columns:
   - id (INTEGER) PK NOT NULL
   - daughter_id (INTEGER) NOT NULL
@@ -188,7 +188,7 @@ Database file: data/runtime/vx11.db
 ### daughter_tasks — ACTIVE
 
 - Module: spawner
-- Rows: 87
+- Rows: 88
 - Columns:
   - id (INTEGER) PK NOT NULL
   - intent_id (VARCHAR(36))
@@ -208,7 +208,7 @@ Database file: data/runtime/vx11.db
 ### daughters — ACTIVE
 
 - Module: spawner
-- Rows: 136
+- Rows: 137
 - Columns:
   - id (INTEGER) PK NOT NULL
   - task_id (INTEGER) NOT NULL
@@ -325,7 +325,7 @@ Database file: data/runtime/vx11.db
 ### hijas_runtime — ACTIVE
 
 - Module: hormiguero
-- Rows: 12
+- Rows: 13
 - Columns:
   - id (INTEGER) PK NOT NULL
   - name (VARCHAR(128)) NOT NULL
@@ -343,10 +343,10 @@ Database file: data/runtime/vx11.db
   - born_at (DATETIME)
   - died_at (DATETIME)
 
-### hijas_state — EMPTY (READY)
+### hijas_state — ACTIVE
 
 - Module: hormiguero
-- Rows: 0
+- Rows: 1
 - Columns:
   - id (INTEGER) PK NOT NULL
   - hija_id (VARCHAR(64)) NOT NULL
@@ -361,7 +361,7 @@ Database file: data/runtime/vx11.db
 ### hormiga_state — ACTIVE
 
 - Module: hormiguero
-- Rows: 8
+- Rows: 11
 - Columns:
   - id (INTEGER) PK NOT NULL
   - ant_id (VARCHAR(64)) NOT NULL
@@ -403,7 +403,7 @@ Database file: data/runtime/vx11.db
 ### incidents — ACTIVE
 
 - Module: hormiguero
-- Rows: 1126455
+- Rows: 1126461
 - Columns:
   - id (INTEGER) PK NOT NULL
   - ant_id (VARCHAR(64)) NOT NULL
@@ -433,7 +433,7 @@ Database file: data/runtime/vx11.db
 ### intents_log — ACTIVE
 
 - Module: madre
-- Rows: 87
+- Rows: 88
 - Columns:
   - id (INTEGER) PK NOT NULL
   - source (VARCHAR(64)) NOT NULL
@@ -753,7 +753,7 @@ Database file: data/runtime/vx11.db
 ### scheduler_history — ACTIVE
 
 - Module: madre
-- Rows: 31508
+- Rows: 31942
 - Columns:
   - id (INTEGER) PK NOT NULL
   - timestamp (DATETIME)
@@ -835,7 +835,7 @@ Database file: data/runtime/vx11.db
 ### spawns — ACTIVE
 
 - Module: spawner
-- Rows: 25
+- Rows: 26
 - Columns:
   - id (INTEGER) PK NOT NULL
   - uuid (VARCHAR(36)) NOT NULL
