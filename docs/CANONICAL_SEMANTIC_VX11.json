@@ -1,0 +1,127 @@
+{
+  "version": "vx11_semantic_v1",
+  "generated_at_utc": "2025-12-20T18:07:51Z",
+  "roles": [
+    {
+      "role": "core",
+      "description": "Always-on operational modules",
+      "modules": [
+        "madre",
+        "switch",
+        "switch/hermes",
+        "tentaculo_link",
+        "mcp",
+        "data/runtime"
+      ]
+    },
+    {
+      "role": "support",
+      "description": "Operational support services and tooling",
+      "modules": [
+        "hormiguero",
+        "spawner"
+      ]
+    },
+    {
+      "role": "full_profile",
+      "description": "Profile full or disabled by default",
+      "modules": [
+        "manifestator",
+        "shubniggurath",
+        "operator",
+        "operator_backend"
+      ]
+    }
+  ],
+  "modules": [
+    {
+      "name": "madre",
+      "responsibilities": [
+        "coordination",
+        "context registry",
+        "core orchestration"
+      ],
+      "status": "core"
+    },
+    {
+      "name": "switch",
+      "responsibilities": [
+        "routing",
+        "provider switching",
+        "hermes integration"
+      ],
+      "status": "core"
+    },
+    {
+      "name": "switch/hermes",
+      "responsibilities": [
+        "provider adapters",
+        "cli providers"
+      ],
+      "status": "core"
+    },
+    {
+      "name": "tentaculo_link",
+      "responsibilities": [
+        "health aggregation",
+        "core entrypoint"
+      ],
+      "status": "core"
+    },
+    {
+      "name": "mcp",
+      "responsibilities": [
+        "tooling bridge",
+        "copilot integration"
+      ],
+      "status": "core"
+    },
+    {
+      "name": "hormiguero",
+      "responsibilities": [
+        "scanning",
+        "fs drift",
+        "audit support"
+      ],
+      "status": "support"
+    },
+    {
+      "name": "spawner",
+      "responsibilities": [
+        "process spawning",
+        "genealogy"
+      ],
+      "status": "support"
+    },
+    {
+      "name": "manifestator",
+      "responsibilities": [
+        "profile full only",
+        "disabled by default"
+      ],
+      "status": "full_profile"
+    },
+    {
+      "name": "shubniggurath",
+      "responsibilities": [
+        "profile full only",
+        "disabled by default"
+      ],
+      "status": "full_profile"
+    },
+    {
+      "name": "operator",
+      "responsibilities": [
+        "archived UI/operator logic"
+      ],
+      "status": "full_profile"
+    },
+    {
+      "name": "operator_backend",
+      "responsibilities": [
+        "archived backend/frontend"
+      ],
+      "status": "full_profile"
+    }
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "version": "vx11_flows_v1",
+  "generated_at_utc": "2025-12-20T18:07:51Z",
+  "flows": [
+    {
+      "id": "CORE_HEALTH",
+      "description": "Core services health endpoint reachable",
+      "verification_steps": [
+        "Confirm core services are running (docker compose ps)",
+        "Request /health from core entrypoint",
+        "Record status codes and timestamps"
+      ],
+      "expected_evidence": "docs/audit/vx11_canon_master_<TS>/flow_CORE_HEALTH.txt"
+    },
+    {
+      "id": "SPAWN_GENEALOGY_MIN",
+      "description": "Spawner creates minimal genealogy with madre coordination",
+      "verification_steps": [
+        "Run spawner minimal workflow",
+        "Verify madre registry updated",
+        "Capture logs showing genealogy chain"
+      ],
+      "expected_evidence": "docs/audit/vx11_canon_master_<TS>/flow_SPAWN_GENEALOGY_MIN.txt"
+    },
+    {
+      "id": "CONTRACTS_17of17",
+      "description": "All canonical contracts pass (17 of 17)",
+      "verification_steps": [
+        "Execute contracts validation suite",
+        "Ensure 17/17 pass",
+        "Capture contract report output"
+      ],
+      "expected_evidence": "docs/audit/vx11_canon_master_<TS>/flow_CONTRACTS_17of17.txt"
+    },
+    {
+      "id": "P0_8of8",
+      "description": "P0 test suite passes (8 of 8)",
+      "verification_steps": [
+        "Run P0 test suite",
+        "Ensure 8/8 pass",
+        "Capture test report output"
+      ],
+      "expected_evidence": "docs/audit/vx11_canon_master_<TS>/flow_P0_8of8.txt"
+    },
+    {
+      "id": "SOLO_MADRE_FINAL_STATE",
+      "description": "Final state enforces solo madre arriba",
+      "verification_steps": [
+        "Inspect docker ps for running services",
+        "Ensure only madre (and allowed temporal window if active)",
+        "Capture docker ps output"
+      ],
+      "expected_evidence": "docs/audit/vx11_canon_master_<TS>/docker_ps_final.txt"
+    }
+  ]
+}

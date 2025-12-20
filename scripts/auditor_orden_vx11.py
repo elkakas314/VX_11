@@ -19,6 +19,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 CANONICAL_CANDIDATES = [
+    REPO_ROOT / "docs" / "CANONICAL_TARGET_FS_VX11.json",
     REPO_ROOT / "docs" / "CANONICAL_FS_VX11.json",
     REPO_ROOT / "docs" / "VX11_v6.4_CANONICAL.json",
     REPO_ROOT / "docs" / "VX11_v6.5_CANONICAL.json",

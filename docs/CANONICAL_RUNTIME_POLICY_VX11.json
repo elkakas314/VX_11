@@ -1,0 +1,25 @@
+{
+  "version": "vx11_runtime_policy_v1",
+  "generated_at_utc": "2025-12-20T18:07:51Z",
+  "default_mode": "solo_madre",
+  "allowed_temporal_window_core": [
+    "madre",
+    "tentaculo_link",
+    "switch",
+    "spawner",
+    "hormiguero"
+  ],
+  "final_enforcement": {
+    "actions": [
+      "stop",
+      "disable",
+      "mask"
+    ],
+    "requires_sudo": true,
+    "status_if_unverified": "NV"
+  },
+  "constraints": [
+    "Manifestator and shubniggurath remain OFF by default",
+    "No token or secret exposure in evidence"
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "version": "vx11_canonical_master_v1",
+  "generated_at_utc": "2025-12-20T18:07:51Z",
+  "fs_snapshot": "docs/CANONICAL_FS_VX11.json",
+  "fs_target": "docs/CANONICAL_TARGET_FS_VX11.json",
+  "flows": "docs/CANONICAL_FLOWS_VX11.json",
+  "semantic": "docs/CANONICAL_SEMANTIC_VX11.json",
+  "runtime_policy": "docs/CANONICAL_RUNTIME_POLICY_VX11.json"
+}
