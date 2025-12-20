@@ -19,6 +19,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 CANONICAL_CANDIDATES = [
+    REPO_ROOT / "docs" / "CANONICAL_FS_VX11.json",
     REPO_ROOT / "docs" / "VX11_v6.4_CANONICAL.json",
     REPO_ROOT / "docs" / "VX11_v6.5_CANONICAL.json",
     REPO_ROOT / "docs" / "VX11_v6.6_CANONICAL.json",
@@ -28,10 +29,12 @@ CANONICAL_CANDIDATES = [
 def _load_auditor():
     try:
         from hormiguero.auto_organizer import OrderAuditor  # type: ignore
+
         return OrderAuditor
     except Exception:
         try:
             from attic.hormiguero.auto_organizer import OrderAuditor  # type: ignore
+
             return OrderAuditor
         except Exception:
             return None
@@ -55,7 +58,11 @@ def _write_fs_snapshot(outdir: Path) -> Path | None:
 
 def main():
     canonical_path = next((p for p in CANONICAL_CANDIDATES if p.exists()), None)
-    outdir_env = Path(os.environ.get("VX11_AUDIT_OUTDIR", "")) if os.environ.get("VX11_AUDIT_OUTDIR") else None
+    outdir_env = (
+        Path(os.environ.get("VX11_AUDIT_OUTDIR", ""))
+        if os.environ.get("VX11_AUDIT_OUTDIR")
+        else None
+    )
     if not canonical_path:
         snapshot_path = _write_fs_snapshot(outdir_env) if outdir_env else None
         report = {

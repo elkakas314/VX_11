@@ -48,7 +48,6 @@ def _ensure_columns(conn: sqlite3.Connection, table: str, columns: Dict[str, str
 def ensure_schema() -> None:
     schema = {
         "hormiga_state": {
-            "ant_id": "TEXT",
             "hormiga_id": "TEXT",
             "name": "TEXT",
             "role": "TEXT",
@@ -64,14 +63,10 @@ def ensure_schema() -> None:
             "updated_at": "DATETIME",
         },
         "incidents": {
-            "ant_id": "TEXT",
-            "incident_type": "TEXT",
             "incident_id": "TEXT",
             "kind": "TEXT",
             "severity": "TEXT",
             "status": "TEXT",
-            "location": "TEXT",
-            "details": "TEXT",
             "title": "TEXT",
             "description": "TEXT",
             "evidence_json": "TEXT",

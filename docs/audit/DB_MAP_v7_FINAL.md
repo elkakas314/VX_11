@@ -1,6 +1,6 @@
 # VX11 Database Map (generated)
 
-Generated at: 2025-12-20T00:32:13.682629Z
+Generated at: 2025-12-20T11:57:55.991441Z
 
 Database file: data/runtime/vx11.db
 
@@ -93,7 +93,7 @@ Database file: data/runtime/vx11.db
 ### context — ACTIVE
 
 - Module: madre
-- Rows: 10
+- Rows: 12
 - Columns:
   - id (INTEGER) PK NOT NULL
   - task_id (VARCHAR(36)) NOT NULL
@@ -168,7 +168,7 @@ Database file: data/runtime/vx11.db
 ### daughter_attempts — ACTIVE
 
 - Module: spawner
-- Rows: 138
+- Rows: 139
 - Columns:
   - id (INTEGER) PK NOT NULL
   - daughter_id (INTEGER) NOT NULL
@@ -188,7 +188,7 @@ Database file: data/runtime/vx11.db
 ### daughter_tasks — ACTIVE
 
 - Module: spawner
-- Rows: 89
+- Rows: 90
 - Columns:
   - id (INTEGER) PK NOT NULL
   - intent_id (VARCHAR(36))
@@ -208,7 +208,7 @@ Database file: data/runtime/vx11.db
 ### daughters — ACTIVE
 
 - Module: spawner
-- Rows: 138
+- Rows: 139
 - Columns:
   - id (INTEGER) PK NOT NULL
   - task_id (INTEGER) NOT NULL
@@ -325,7 +325,7 @@ Database file: data/runtime/vx11.db
 ### hijas_runtime — ACTIVE
 
 - Module: hormiguero
-- Rows: 14
+- Rows: 15
 - Columns:
   - id (INTEGER) PK NOT NULL
   - name (VARCHAR(128)) NOT NULL
@@ -346,7 +346,7 @@ Database file: data/runtime/vx11.db
 ### hijas_state — ACTIVE
 
 - Module: hormiguero
-- Rows: 2
+- Rows: 3
 - Columns:
   - id (INTEGER) PK NOT NULL
   - hija_id (VARCHAR(64)) NOT NULL
@@ -433,7 +433,7 @@ Database file: data/runtime/vx11.db
 ### intents_log — ACTIVE
 
 - Module: madre
-- Rows: 89
+- Rows: 91
 - Columns:
   - id (INTEGER) PK NOT NULL
   - source (VARCHAR(64)) NOT NULL
@@ -466,7 +466,7 @@ Database file: data/runtime/vx11.db
 ### madre_actions — ACTIVE
 
 - Module: madre
-- Rows: 51
+- Rows: 52
 - Columns:
   - id (INTEGER) PK NOT NULL
   - module (VARCHAR(64)) NOT NULL
@@ -753,7 +753,7 @@ Database file: data/runtime/vx11.db
 ### scheduler_history — ACTIVE
 
 - Module: madre
-- Rows: 32237
+- Rows: 40037
 - Columns:
   - id (INTEGER) PK NOT NULL
   - timestamp (DATETIME)
@@ -835,7 +835,7 @@ Database file: data/runtime/vx11.db
 ### spawns — ACTIVE
 
 - Module: spawner
-- Rows: 27
+- Rows: 28
 - Columns:
   - id (INTEGER) PK NOT NULL
   - uuid (VARCHAR(36)) NOT NULL
@@ -921,7 +921,7 @@ Database file: data/runtime/vx11.db
 ### tasks — ACTIVE
 
 - Module: madre
-- Rows: 22
+- Rows: 23
 - Columns:
   - id (INTEGER) PK NOT NULL
   - uuid (VARCHAR(36)) NOT NULL

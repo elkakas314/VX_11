@@ -1,5 +1,5 @@
 {
-  "generated_at": "2025-12-20T00:32:13.450994Z",
+  "generated_at": "2025-12-20T11:57:55.733393Z",
   "database": "data/runtime/vx11.db",
   "tables": [
     {
@@ -504,7 +504,7 @@
           "match": "NONE"
         }
       ],
-      "rows": 10,
+      "rows": 12,
       "status": "ACTIVE",
       "module": "madre"
     },
@@ -952,7 +952,7 @@
           "match": "NONE"
         }
       ],
-      "rows": 138,
+      "rows": 139,
       "status": "ACTIVE",
       "module": "spawner"
     },
@@ -1073,7 +1073,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 89,
+      "rows": 90,
       "status": "ACTIVE",
       "module": "spawner"
     },
@@ -1189,7 +1189,7 @@
           "match": "NONE"
         }
       ],
-      "rows": 138,
+      "rows": 139,
       "status": "ACTIVE",
       "module": "spawner"
     },
@@ -1821,7 +1821,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 14,
+      "rows": 15,
       "status": "ACTIVE",
       "module": "hormiguero"
     },
@@ -1902,7 +1902,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 2,
+      "rows": 3,
       "status": "ACTIVE",
       "module": "hormiguero"
     },
@@ -2426,7 +2426,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 89,
+      "rows": 91,
       "status": "ACTIVE",
       "module": "madre"
     },
@@ -2596,7 +2596,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 51,
+      "rows": 52,
       "status": "ACTIVE",
       "module": "madre"
     },
@@ -4128,7 +4128,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 32237,
+      "rows": 40037,
       "status": "ACTIVE",
       "module": "madre"
     },
@@ -4605,7 +4605,7 @@
           "match": "NONE"
         }
       ],
-      "rows": 27,
+      "rows": 28,
       "status": "ACTIVE",
       "module": "spawner"
     },
@@ -5058,7 +5058,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 22,
+      "rows": 23,
       "status": "ACTIVE",
       "module": "madre"
     },
