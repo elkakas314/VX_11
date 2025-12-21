@@ -57,10 +57,10 @@ class SwitchClient:
         
         except httpx.HTTPError as exc:
             write_log("operator_backend", f"switch_chat_error:{exc}", level="ERROR")
-            return {"error": str(exc), "response": None}
+            return {"status": "service_offline", "error": str(exc), "response": None}
         except Exception as exc:
             write_log("operator_backend", f"switch_chat_unexpected:{exc}", level="ERROR")
-            return {"error": str(exc), "response": None}
+            return {"status": "service_offline", "error": str(exc), "response": None}
     
     async def query_task(
         self,
@@ -88,10 +88,10 @@ class SwitchClient:
         
         except httpx.HTTPError as exc:
             write_log("operator_backend", f"switch_task_error:{exc}", level="ERROR")
-            return {"error": str(exc), "result": None}
+            return {"status": "service_offline", "error": str(exc), "result": None}
         except Exception as exc:
             write_log("operator_backend", f"switch_task_unexpected:{exc}", level="ERROR")
-            return {"error": str(exc), "result": None}
+            return {"status": "service_offline", "error": str(exc), "result": None}
     
     async def submit_feedback(
         self,
@@ -122,10 +122,10 @@ class SwitchClient:
         
         except httpx.HTTPError as exc:
             write_log("operator_backend", f"switch_feedback_error:{exc}", level="ERROR")
-            return {"error": str(exc)}
+            return {"status": "service_offline", "error": str(exc)}
         except Exception as exc:
             write_log("operator_backend", f"switch_feedback_unexpected:{exc}", level="ERROR")
-            return {"error": str(exc)}
+            return {"status": "service_offline", "error": str(exc)}
     
     async def get_queue_status(self) -> Dict[str, Any]:
         """Get Switch queue status."""
@@ -142,12 +142,90 @@ class SwitchClient:
         
         except httpx.HTTPError as exc:
             write_log("operator_backend", f"switch_queue_status_error:{exc}", level="WARNING")
-            return {"error": str(exc), "queue_size": 0}
+            return {"status": "service_offline", "error": str(exc), "queue_size": 0}
         except Exception as exc:
             write_log("operator_backend", f"switch_queue_status_unexpected:{exc}", level="ERROR")
-            return {"error": str(exc), "queue_size": 0}
+            return {"status": "service_offline", "error": str(exc), "queue_size": 0}
 
 
 async def get_switch_client(switch_url: Optional[str] = None) -> SwitchClient:
     """Factory for SwitchClient (can be mocked in tests)."""
     return SwitchClient(switch_url)
+
+
+class TentaculoLinkClient:
+    """Client for Tentáculo Link integration (canonical operator entry)."""
+
+    def __init__(self, tentaculo_url: Optional[str] = None, timeout: float = 30.0):
+        self.tentaculo_url = (
+            tentaculo_url
+            or settings.tentaculo_link_url
+            or f"http://tentaculo_link:{settings.gateway_port}"
+        )
+        self.timeout = timeout
+
+    async def query_chat(
+        self,
+        message: str,
+        session_id: Optional[str] = None,
+        user_id: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        payload = {
+            "message": message,
+            "session_id": session_id,
+            "user_id": user_id or "local",
+            "metadata": metadata or {},
+        }
+        try:
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                resp = await client.post(
+                    f"{self.tentaculo_url}/operator/chat",
+                    json=payload,
+                    headers=AUTH_HEADERS,
+                )
+                resp.raise_for_status()
+                result = resp.json()
+                write_log("operator_backend", "tentaculo_chat:ok")
+                return result
+        except httpx.HTTPError as exc:
+            write_log("operator_backend", f"tentaculo_chat_error:{exc}", level="ERROR")
+            return {"status": "service_offline", "error": str(exc), "response": None}
+        except Exception as exc:
+            write_log("operator_backend", f"tentaculo_chat_unexpected:{exc}", level="ERROR")
+            return {"status": "service_offline", "error": str(exc), "response": None}
+
+    async def query_task(
+        self,
+        task_type: str,
+        payload: Dict[str, Any],
+        session_id: Optional[str] = None,
+        user_id: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+        intent_type: Optional[str] = "task",
+    ) -> Dict[str, Any]:
+        body = {
+            "task_type": task_type,
+            "payload": payload,
+            "intent_type": intent_type,
+            "session_id": session_id,
+            "user_id": user_id or "local",
+            "metadata": metadata or {},
+        }
+        try:
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                resp = await client.post(
+                    f"{self.tentaculo_url}/operator/task",
+                    json=body,
+                    headers=AUTH_HEADERS,
+                )
+                resp.raise_for_status()
+                result = resp.json()
+                write_log("operator_backend", f"tentaculo_task:ok:{task_type}")
+                return result
+        except httpx.HTTPError as exc:
+            write_log("operator_backend", f"tentaculo_task_error:{exc}", level="ERROR")
+            return {"status": "service_offline", "error": str(exc), "result": None}
+        except Exception as exc:
+            write_log("operator_backend", f"tentaculo_task_unexpected:{exc}", level="ERROR")
+            return {"status": "service_offline", "error": str(exc), "result": None}

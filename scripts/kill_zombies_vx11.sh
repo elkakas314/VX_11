@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+source "$(dirname "${BASH_SOURCE[0]}")/cleanup_protect.sh"
 # Manual helper to inspect and clean VX11-related zombie processes and containers.
 set -euo pipefail
 

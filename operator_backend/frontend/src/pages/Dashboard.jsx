@@ -25,6 +25,9 @@ export const Dashboard = () => {
 
     if (loading) return <div className="loading">Loading...</div>;
     if (error) return <div className="error">Error: {error}</div>;
+    if (overview?.status === 'service_offline') {
+        return <div className="error">Backend offline</div>;
+    }
 
     return (
         <div className="dashboard">

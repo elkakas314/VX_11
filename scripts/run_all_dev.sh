@@ -1,4 +1,5 @@
 #!/bin/bash
+source "$(dirname "${BASH_SOURCE[0]}")/cleanup_protect.sh"
 #
 # VX11 Development Startup Script (v6.0)
 # Arranca todos los servicios en orden correcto con health checks

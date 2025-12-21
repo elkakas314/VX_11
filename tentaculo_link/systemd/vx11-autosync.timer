@@ -1,0 +1,14 @@
+[Unit]
+Description=VX11 Autosync Timer (Every 5 minutes)
+Documentation=file:///home/elkakas314/vx11/tentaculo_link/tools/autosync.sh
+Requires=vx11-autosync.service
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=5min
+RandomizedDelaySec=30s
+Unit=vx11-autosync.service
+Persistent=true
+
+[Install]
+WantedBy=timers.target

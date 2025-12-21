@@ -1,0 +1,7 @@
+Moved files:
+.github/agents/vx11_builder.agent.md
+.github/instructions/vx11_workflows.instructions.md
+.github/prompts/vx11_cleanup.prompt.md
+scripts/vx11_bootstrap.sh
+sitecustomize.py.bak.20251217T144725Z
+sitecustomize.py.bak.20251217T155859Z

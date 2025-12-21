@@ -1,1 +1,2 @@
-# VX11 manifestator module
+"""VX11 Manifestator (legacy/disabled by default)."""
+

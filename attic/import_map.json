@@ -1,0 +1,675 @@
+{
+  "notes": "imports captured as module strings; empty strings mean relative/from . forms",
+  "repo": "/home/elkakas314/vx11",
+  "targets": {
+    "madre": {
+      "madre/__init__.py": [],
+      "madre/bridge_handler.py": [
+        "asyncio",
+        "dataclasses",
+        "datetime",
+        "httpx",
+        "logging",
+        "manifestator.auto_patcher",
+        "pathlib",
+        "spawner.ephemeral_v2",
+        "subprocess",
+        "typing",
+        "uuid"
+      ],
+      "madre/core/__init__.py": [
+        "db",
+        "delegation",
+        "models",
+        "parser",
+        "planner",
+        "policy",
+        "runner"
+      ],
+      "madre/core/db.py": [
+        "config.db_schema",
+        "datetime",
+        "json",
+        "logging",
+        "typing"
+      ],
+      "madre/core/delegation.py": [
+        "config.settings",
+        "db",
+        "httpx",
+        "logging",
+        "typing"
+      ],
+      "madre/core/models.py": [
+        "datetime",
+        "enum",
+        "pydantic",
+        "typing",
+        "uuid"
+      ],
+      "madre/core/parser.py": [
+        "logging",
+        "models",
+        "re"
+      ],
+      "madre/core/planner.py": [
+        "logging",
+        "models",
+        "typing"
+      ],
+      "madre/core/policy.py": [
+        "logging",
+        "models",
+        "secrets",
+        "typing"
+      ],
+      "madre/core/runner.py": [
+        "config.db_schema",
+        "config.settings",
+        "db",
+        "httpx",
+        "json",
+        "logging",
+        "models",
+        "sqlalchemy",
+        "sqlalchemy.orm",
+        "typing",
+        "uuid"
+      ],
+      "madre/daughters.py": [
+        "asyncio",
+        "config.db_schema",
+        "config.forensics",
+        "config.settings",
+        "config.tokens",
+        "datetime",
+        "httpx",
+        "json",
+        "logging",
+        "time",
+        "typing",
+        "uuid"
+      ],
+      "madre/daughters_paso5.py": [
+        "asyncio",
+        "dataclasses",
+        "datetime",
+        "logging",
+        "typing",
+        "uuid"
+      ],
+      "madre/dsl_compiler.py": [
+        "dataclasses",
+        "datetime",
+        "enum",
+        "json",
+        "logging",
+        "madre.dsl_parser",
+        "typing"
+      ],
+      "madre/dsl_parser.py": [
+        "datetime",
+        "enum",
+        "logging",
+        "re",
+        "typing"
+      ],
+      "madre/fluzo_integration.py": [
+        "config.forensics",
+        "config.settings",
+        "config.tokens",
+        "httpx",
+        "logging",
+        "typing"
+      ],
+      "madre/madre_shub_orchestrator.py": [
+        "asyncio",
+        "datetime",
+        "httpx",
+        "logging",
+        "typing",
+        "uuid"
+      ],
+      "madre/main.py": [
+        "config.container_state",
+        "config.db_schema",
+        "config.forensics",
+        "config.settings",
+        "config.tokens",
+        "contextlib",
+        "core",
+        "datetime",
+        "fastapi",
+        "httpx",
+        "logging",
+        "madre.main_legacy",
+        "os",
+        "pydantic",
+        "switch.main",
+        "typing",
+        "uuid",
+        "uvicorn"
+      ],
+      "madre/main_legacy.py": [
+        "asyncio",
+        "config.container_state",
+        "config.context7",
+        "config.db_schema",
+        "config.forensics",
+        "config.metrics",
+        "config.settings",
+        "config.tokens",
+        "contextlib",
+        "datetime",
+        "docker",
+        "fastapi",
+        "httpx",
+        "json",
+        "logging",
+        "madre.daughters",
+        "madre.dsl_compiler",
+        "math",
+        "psutil",
+        "pydantic",
+        "subprocess",
+        "time",
+        "typing",
+        "uuid"
+      ],
+      "madre/main_v7_production.py": [
+        "config.forensics",
+        "config.settings",
+        "config.tokens",
+        "contextlib",
+        "core",
+        "datetime",
+        "fastapi",
+        "logging",
+        "typing",
+        "uuid",
+        "uvicorn"
+      ]
+    },
+    "mcp": {
+      "mcp/__init__.py": [],
+      "mcp/conversational_v2.py": [
+        "asyncio",
+        "config.db_schema",
+        "config.deepseek",
+        "config.settings",
+        "datetime",
+        "fastapi",
+        "httpx",
+        "json",
+        "logging",
+        "pydantic",
+        "requests",
+        "typing",
+        "uuid",
+        "uvicorn"
+      ],
+      "mcp/main.py": [
+        "asyncio",
+        "asyncio.subprocess",
+        "config.db_schema",
+        "config.forensics",
+        "config.settings",
+        "config.tokens",
+        "fastapi",
+        "fastapi.middleware.cors",
+        "fastapi.responses",
+        "json",
+        "pydantic",
+        "sqlalchemy.orm",
+        "typing"
+      ],
+      "mcp/mcp_shub_bridge.py": [
+        "httpx",
+        "logging",
+        "typing"
+      ],
+      "mcp/tools_wrapper.py": [
+        "asyncio",
+        "config.settings",
+        "logging",
+        "typing"
+      ]
+    },
+    "switch": {
+      "switch/__init__.py": [],
+      "switch/adapters.py": [
+        "asyncio",
+        "config",
+        "config.forensics",
+        "config.settings",
+        "httpx",
+        "logging",
+        "shlex",
+        "shutil",
+        "subprocess",
+        "time",
+        "typing"
+      ],
+      "switch/cli_concentrator/__init__.py": [
+        "breaker",
+        "executor",
+        "registry",
+        "schemas",
+        "scoring"
+      ],
+      "switch/cli_concentrator/breaker.py": [
+        "datetime",
+        "enum",
+        "typing"
+      ],
+      "switch/cli_concentrator/executor.py": [
+        "datetime",
+        "schemas",
+        "subprocess",
+        "time",
+        "typing"
+      ],
+      "switch/cli_concentrator/providers/__init__.py": [
+        "copilot_cli",
+        "generic_shell_cli"
+      ],
+      "switch/cli_concentrator/providers/copilot_cli.py": [
+        "dataclasses",
+        "typing"
+      ],
+      "switch/cli_concentrator/providers/generic_shell_cli.py": [
+        "schemas",
+        "typing"
+      ],
+      "switch/cli_concentrator/registry.py": [
+        "config.db_schema",
+        "datetime",
+        "os",
+        "pathlib",
+        "schemas",
+        "subprocess",
+        "typing"
+      ],
+      "switch/cli_concentrator/schemas.py": [
+        "datetime",
+        "pydantic",
+        "typing"
+      ],
+      "switch/cli_concentrator/scoring.py": [
+        "breaker",
+        "datetime",
+        "os",
+        "registry",
+        "schemas",
+        "typing"
+      ],
+      "switch/deepseek_r1_provider.py": [
+        "httpx",
+        "logging",
+        "typing"
+      ],
+      "switch/fluzo/__init__.py": [
+        "client",
+        "profile",
+        "signals"
+      ],
+      "switch/fluzo/client.py": [
+        "config.db_schema",
+        "datetime",
+        "os",
+        "profile",
+        "signals",
+        "typing"
+      ],
+      "switch/fluzo/profile.py": [
+        "signals",
+        "typing"
+      ],
+      "switch/fluzo/signals.py": [
+        "datetime",
+        "os",
+        "psutil",
+        "typing"
+      ],
+      "switch/ga_optimizer.py": [
+        "dataclasses",
+        "datetime",
+        "json",
+        "logging",
+        "pathlib",
+        "random",
+        "typing"
+      ],
+      "switch/ga_router.py": [
+        "config.forensics",
+        "datetime",
+        "logging",
+        "switch.ga_optimizer",
+        "switch.hermes",
+        "typing"
+      ],
+      "switch/hermes/__init__.py": [
+        "cli_metrics",
+        "cli_registry",
+        "cli_selector",
+        "hermes_core",
+        "hf_scanner",
+        "local_scanner"
+      ],
+      "switch/hermes/cli_metrics.py": [
+        "collections",
+        "datetime",
+        "logging",
+        "typing"
+      ],
+      "switch/hermes/cli_registry.py": [
+        "config.tokens",
+        "dataclasses",
+        "enum",
+        "httpx",
+        "logging",
+        "time",
+        "typing"
+      ],
+      "switch/hermes/cli_selector.py": [
+        "cli_metrics",
+        "cli_registry",
+        "dataclasses",
+        "enum",
+        "hf_scanner",
+        "local_scanner",
+        "logging",
+        "typing"
+      ],
+      "switch/hermes/hermes_core.py": [
+        "cli_metrics",
+        "cli_registry",
+        "cli_selector",
+        "datetime",
+        "hf_scanner",
+        "local_scanner",
+        "logging",
+        "typing"
+      ],
+      "switch/hermes/hf_scanner.py": [
+        "config.tokens",
+        "dataclasses",
+        "datetime",
+        "httpx",
+        "json",
+        "logging",
+        "pathlib",
+        "typing"
+      ],
+      "switch/hermes/leonidas.py": [
+        "collections",
+        "config.forensics",
+        "logging",
+        "shlex",
+        "time",
+        "typing"
+      ],
+      "switch/hermes/local_scanner.py": [
+        "dataclasses",
+        "datetime",
+        "hashlib",
+        "json",
+        "logging",
+        "pathlib",
+        "typing"
+      ],
+      "switch/hermes/main.py": [
+        "asyncio",
+        "config.db_schema",
+        "config.forensics",
+        "config.settings",
+        "config.tokens",
+        "datetime",
+        "fastapi",
+        "fastapi.middleware.cors",
+        "hashlib",
+        "httpx",
+        "pathlib",
+        "pydantic",
+        "shutil",
+        "sqlalchemy.orm",
+        "time",
+        "typing",
+        "uuid"
+      ],
+      "switch/hermes/model_scanner.py": [
+        "asyncio",
+        "config",
+        "config.db_schema",
+        "config.forensics",
+        "config.settings",
+        "datetime",
+        "logging",
+        "os",
+        "pathlib",
+        "shutil",
+        "typing"
+      ],
+      "switch/hermes/registry_manager.py": [
+        "config.db_schema",
+        "datetime",
+        "logging",
+        "os",
+        "typing"
+      ],
+      "switch/hermes/scanner_v2.py": [
+        "asyncio",
+        "config.db_schema",
+        "config.deepseek",
+        "config.forensics",
+        "config.settings",
+        "datetime",
+        "json",
+        "logging",
+        "shutil",
+        "subprocess",
+        "typing"
+      ],
+      "switch/hermes_shub_registration.py": [
+        "config.dns_resolver",
+        "config.settings",
+        "config.tokens",
+        "dataclasses",
+        "httpx",
+        "json",
+        "logging",
+        "typing"
+      ],
+      "switch/intelligence_layer.py": [
+        "config.forensics",
+        "config.settings",
+        "config.tokens",
+        "dataclasses",
+        "enum",
+        "httpx",
+        "logging",
+        "switch.hermes",
+        "time",
+        "typing"
+      ],
+      "switch/main.py": [
+        "asyncio",
+        "config.db_schema",
+        "config.forensics",
+        "config.settings",
+        "config.tokens",
+        "dataclasses",
+        "datetime",
+        "fastapi",
+        "fastapi.middleware.cors",
+        "hashlib",
+        "heapq",
+        "httpx",
+        "json",
+        "logging",
+        "os",
+        "pydantic",
+        "sqlalchemy.orm",
+        "sqlite3",
+        "switch.cli_concentrator.breaker",
+        "switch.cli_concentrator.registry",
+        "switch.cli_concentrator.schemas",
+        "switch.cli_concentrator.scoring",
+        "switch.fluzo.client",
+        "switch.ga_optimizer",
+        "switch.ga_router",
+        "switch.hermes",
+        "switch.intelligence_layer",
+        "switch.shub_forwarder",
+        "switch.shub_router",
+        "switch.warm_up",
+        "time",
+        "traceback",
+        "typing"
+      ],
+      "switch/pheromone_engine.py": [
+        "datetime",
+        "json",
+        "os",
+        "pathlib",
+        "typing"
+      ],
+      "switch/router_v5.py": [
+        "asyncio",
+        "config.settings",
+        "datetime",
+        "httpx",
+        "logging",
+        "typing"
+      ],
+      "switch/scoring_engine.py": [
+        "json",
+        "os",
+        "pathlib",
+        "typing"
+      ],
+      "switch/shub_forwarder.py": [
+        "config.dns_resolver",
+        "config.settings",
+        "config.tokens",
+        "enum",
+        "httpx",
+        "logging",
+        "typing"
+      ],
+      "switch/shub_router.py": [
+        "enum",
+        "logging",
+        "re",
+        "typing"
+      ],
+      "switch/switch_audio_router.py": [
+        "datetime",
+        "httpx",
+        "logging",
+        "typing"
+      ],
+      "switch/warm_up.py": [
+        "asyncio",
+        "config.settings",
+        "datetime",
+        "httpx",
+        "json",
+        "logging",
+        "os",
+        "pathlib",
+        "typing"
+      ],
+      "switch/workers/queue_consumer.py": [
+        "config.db_schema",
+        "config.settings",
+        "datetime",
+        "http.client",
+        "json",
+        "os",
+        "sqlalchemy",
+        "sqlalchemy.orm",
+        "time",
+        "typing",
+        "urllib.parse"
+      ]
+    },
+    "tentaculo_link": {
+      "tentaculo_link/__init__.py": [
+        "main_v7"
+      ],
+      "tentaculo_link/adapters/telegram_adapter.py": [
+        "os",
+        "typing"
+      ],
+      "tentaculo_link/api/v1_gateway.py": [
+        "fastapi",
+        "tentaculo_link"
+      ],
+      "tentaculo_link/clients.py": [
+        "asyncio",
+        "config.forensics",
+        "config.settings",
+        "config.tokens",
+        "enum",
+        "httpx",
+        "time",
+        "typing"
+      ],
+      "tentaculo_link/context7_middleware.py": [
+        "config.db_schema",
+        "config.forensics",
+        "datetime",
+        "json",
+        "typing"
+      ],
+      "tentaculo_link/core/routing.py": [
+        "tentaculo_link.routes",
+        "typing"
+      ],
+      "tentaculo_link/db/sqlite.py": [
+        "config.db_schema"
+      ],
+      "tentaculo_link/main.py": [
+        "main_v7",
+        "tentaculo_link.main_v7"
+      ],
+      "tentaculo_link/main_v7.py": [
+        "asyncio",
+        "config.forensics",
+        "config.settings",
+        "config.tokens",
+        "contextlib",
+        "datetime",
+        "fastapi",
+        "fastapi.middleware.cors",
+        "fastapi.responses",
+        "json",
+        "pathlib",
+        "pydantic",
+        "tentaculo_link.clients",
+        "tentaculo_link.context7_middleware",
+        "time",
+        "typing",
+        "uuid",
+        "uvicorn"
+      ],
+      "tentaculo_link/routes.py": [
+        "enum",
+        "typing"
+      ],
+      "tentaculo_link/tentaculo_shub_gateway.py": [
+        "httpx",
+        "logging",
+        "typing"
+      ],
+      "tentaculo_link/tests/test_compose_ports_smoke.py": [
+        "config.settings"
+      ],
+      "tentaculo_link/tests/test_gateway_status.py": [
+        "asyncio",
+        "tentaculo_link"
+      ]
+    }
+  }
+}

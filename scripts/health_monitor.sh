@@ -1,4 +1,5 @@
 #!/bin/bash
+source "$(dirname "${BASH_SOURCE[0]}")/cleanup_protect.sh"
 # VX11 Continuous Health Monitor
 # Ejecutar con: ./scripts/health_monitor.sh (cron job cada 5 minutos)
 

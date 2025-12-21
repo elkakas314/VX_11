@@ -1,0 +1,121 @@
+  tests/test_madre.py:58:        """ControlResponse pending_confirmation debe tener token."""
+  tests/test_madre.py:60:            status="pending_confirmation",
+  tests/test_madre.py:61:            confirm_token="test-token-123",
+  tests/test_madre.py:64:        assert resp.status == "pending_confirmation"
+  tests/test_madre.py:65:        assert resp.confirm_token == "test-token-123"
+  tests/test_madre.py:67:        assert "pending_confirmation" in json_str
+  tests/test_madre.py:130:    def test_confirmation_required_low(self):
+  tests/test_madre.py:132:        assert not self.engine.requires_confirmation(RiskLevel.LOW)
+  tests/test_madre.py:134:    def test_confirmation_required_med_high(self):
+  tests/test_madre.py:136:        assert self.engine.requires_confirmation(RiskLevel.MED)
+  tests/test_madre.py:137:        assert self.engine.requires_confirmation(RiskLevel.HIGH)
+  tests/test_madre.py:139:    def test_confirm_token_generation(self):
+  tests/test_madre.py:141:        token = self.engine.generate_confirm_token()
+  tests/test_madre.py:145:    def test_confirm_token_validation(self):
+  tests/test_madre.py:147:        token = self.engine.generate_confirm_token()
+  tests/test_madre.py:150:        assert self.engine.validate_confirm_token(token, token)
+  tests/test_madre.py:152:    def test_confirm_token_invalid(self):
+  tests/test_madre.py:154:        token1 = self.engine.generate_confirm_token()
+  tests/test_madre.py:155:        token2 = self.engine.generate_confirm_token()
+  tests/test_madre.py:156:        assert not self.engine.validate_confirm_token(token1, token2)
+  tests/test_madre.py:242:        assert hasattr(StatusEnum, "WAITING")
+  tests/test_madre.py:266:            requires_confirmation=False,
+  tests/test_madre.py:310:    def test_delete_requires_confirmation(self):
+  tests/test_madre.py:311:        """HIGH risk debe requerir confirmation."""
+  tests/test_madre.py:314:        assert policy.requires_confirmation(risk) is True
+  madre/core/models.py:30:    WAITING = "WAITING"
+  madre/core/models.py:66:    requires_confirmation: bool = False
+  madre/core/models.py:126:    confirm_token: Optional[str] = None
+  madre/core/models.py:132:    status: str  # "accepted" | "pending_confirmation" | "denied"
+  madre/core/models.py:134:    confirm_token: Optional[str] = None
+  madre/core/parser.py:13:    # Destructive verbs (HIGH risk, require confirmation)
+  madre/core/policy.py:1:"""Policy Engine: risk classification + confirmation."""
+  madre/core/policy.py:12:    """Risk classification and confirmation token management."""
+  madre/core/policy.py:14:    # Allowlist: safe targets/actions (no confirmation needed)
+  madre/core/policy.py:28:    # High-risk actions (ALWAYS require confirmation)
+  madre/core/policy.py:41:    # Med-risk actions (conditional confirmation)
+  madre/core/policy.py:87:    def requires_confirmation(risk: RiskLevel, policy_override: bool = False) -> bool:
+  madre/core/policy.py:88:        """Check if confirmation is required."""
+  madre/core/policy.py:94:    def generate_confirm_token() -> str:
+  madre/core/policy.py:95:        """Generate secure confirmation token."""
+  madre/core/policy.py:99:    def validate_confirm_token(provided: str, stored: str) -> bool:
+  madre/core/policy.py:100:        """Validate confirmation token (timing-safe)."""
+  madre/core/planner.py:63:        # If requires confirmation, add a blocking NOOP step
+  madre/core/planner.py:64:        if intent.requires_confirmation:
+  madre/core/planner.py:68:                    payload={"reason": "awaiting_confirmation"},
+  madre/core/planner.py:70:                    status=StatusEnum.WAITING,
+  madre/core/planner.py:93:        # If requires spawner (e.g., long-running task) -> WAITING
+  madre/core/planner.py:103:                        status=StatusEnum.WAITING,
+  madre/core/planner.py:113:        # If requires confirmation, add blocking step
+  madre/core/planner.py:114:        if intent.requires_confirmation:
+  madre/core/planner.py:118:                    payload={"reason": "awaiting_confirmation"},
+  madre/core/planner.py:120:                    status=StatusEnum.WAITING,
+  madre/core/runner.py:31:            if step.blocking and step.status == StatusEnum.WAITING:
+  madre/core/runner.py:33:                plan.status = StatusEnum.WAITING
+  madre/core/runner.py:34:                MadreDB.update_task(plan_id, status="WAITING")
+  madre/core/runner.py:75:            # Insert into daughter_tasks and mark task WAITING (no hijas launched here)
+  madre/main_v7_production.py:146:        requires_confirmation = _policy.requires_confirmation(risk)
+  madre/main_v7_production.py:155:            requires_confirmation=requires_confirmation,
+  madre/main_v7_production.py:169:            status="pending" if not requires_confirmation else "waiting",
+  madre/main_v7_production.py:175:        # Step 7: If confirmation required, generate token + return
+  madre/main_v7_production.py:176:        if requires_confirmation:
+  madre/main_v7_production.py:177:            confirm_token = _policy.generate_confirm_token()
+  madre/main_v7_production.py:178:            MadreDB.set_context(plan_id, "madre:confirm_token", confirm_token)
+  madre/main_v7_production.py:181:                action=f"confirmation_required:{risk.value}",
+  madre/main_v7_production.py:186:                response="Action requires confirmation. Provide plan_id and confirm_token to /madre/plans/{id}/confirm",
+  madre/main_v7_production.py:190:                status="WAITING",
+  madre/main_v7_production.py:197:                        "action": "awaiting_confirmation",
+  madre/main_v7_production.py:205:                notes=f"Confirmation required. Token: {confirm_token}",
+  madre/main_v7_production.py:256:    Returns pending_confirmation if MED/HIGH risk.
+  madre/main_v7_production.py:260:    requires_confirmation = _policy.requires_confirmation(risk)
+  madre/main_v7_production.py:262:    if requires_confirmation:
+  madre/main_v7_production.py:263:        if not req.confirm_token:
+  madre/main_v7_production.py:265:            confirm_token = _policy.generate_confirm_token()
+  madre/main_v7_production.py:269:                reason=f"confirmation_required:{risk.value}",
+  madre/main_v7_production.py:272:                status="pending_confirmation",
+  madre/main_v7_production.py:273:                confirm_token=confirm_token,
+  madre/main_v7_production.py:329:async def confirm_plan(plan_id: str, confirm_token: str):
+  madre/main_v7_production.py:330:    """Confirm and resume a WAITING plan."""
+  madre/main_v7_production.py:331:    stored_token = MadreDB.get_context(plan_id, "madre:confirm_token")
+  madre/main_v7_production.py:335:            status_code=400, detail="No confirmation pending for this plan"
+  madre/main_v7_production.py:338:    if not _policy.validate_confirm_token(confirm_token, stored_token):
+  madre/README.md:14:6. **Monitorizar ESTADO** (PENDING → RUNNING → WAITING → DONE/ERROR)
+  madre/README.md:47:| /madre/plans/{id}/confirm | POST | {confirm_token} → Confirmed | ✅ |
+  madre/README.md:72:**Control action (HIGH RISK - requires confirmation):**
+  madre/README.md:84:- `madre_actions` — INSERT audit trail (cada decision, action, confirmation)
+  madre/README.md:115:PolicyEngine: risk=HIGH, requires_confirmation=True
+  madre/README.md:117:Genera confirm_token (secrets.token_urlsafe)
+  madre/README.md:119:ControlResponse(status=pending_confirmation, token=...)
+  madre/README.md:178:Risk classification + confirmation tokens:
+  madre/README.md:180:- `requires_confirmation(risk)` → bool
+  madre/README.md:181:- `generate_confirm_token()` → token seguro
+  madre/README.md:182:- `validate_confirm_token(provided, stored)` → timing-safe check
+  madre/README.md:188:- Marks blocking steps con status=WAITING
+  madre/README.md:194:- Stops si blocking step en WAITING
+  madre/README.md:224:| Plan stuck en WAITING | Hijo esperando confirmación o Spawner execution | Ver daughter_tasks, verificar Spawner |
+  madre/README.md:226:| confirm_token inválido | Token expirado o typo | Generar nuevo con POST /madre/control |
+  madre/main.py:144:        requires_confirmation = _policy.requires_confirmation(risk)
+  madre/main.py:153:            requires_confirmation=requires_confirmation,
+  madre/main.py:167:            status="pending" if not requires_confirmation else "waiting",
+  madre/main.py:173:        # Step 7: If confirmation required, generate token + return
+  madre/main.py:174:        if requires_confirmation:
+  madre/main.py:175:            confirm_token = _policy.generate_confirm_token()
+  madre/main.py:176:            MadreDB.set_context(plan_id, "madre:confirm_token", confirm_token)
+  madre/main.py:179:                action=f"confirmation_required:{risk.value}",
+  madre/main.py:184:                response="Action requires confirmation. Provide plan_id and confirm_token to /madre/plans/{id}/confirm",
+  madre/main.py:188:                status="WAITING",
+  madre/main.py:195:                        "action": "awaiting_confirmation",
+  madre/main.py:203:                notes=f"Confirmation required. Token: {confirm_token}",
+  madre/main.py:254:    Returns pending_confirmation if MED/HIGH risk.
+  madre/main.py:258:    requires_confirmation = _policy.requires_confirmation(risk)
+  madre/main.py:260:    if requires_confirmation:
+  madre/main.py:261:        if not req.confirm_token:
+  madre/main.py:263:            confirm_token = _policy.generate_confirm_token()
+  madre/main.py:267:                reason=f"confirmation_required:{risk.value}",
+  madre/main.py:270:                status="pending_confirmation",
+  madre/main.py:271:                confirm_token=confirm_token,
+  madre/main.py:327:async def confirm_plan(plan_id: str, confirm_token: str):
+  madre/main.py:328:    """Confirm and resume a WAITING plan."""
+  madre/main.py:329:    stored_token = MadreDB.get_context(plan_id, "madre:confirm_token")
+  madre/main.py:333:            status_code=400, detail="No confirmation pending for this plan"
+  madre/main.py:336:    if not _policy.validate_confirm_token(confirm_token, stored_token):

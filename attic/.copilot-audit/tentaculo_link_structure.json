@@ -1,0 +1,204 @@
+{
+    "module": "tentaculo_link",
+    "version": "7.0",
+    "port": 8000,
+    "role": "Gateway / Proxy / Auth",
+    "files": {
+        "main_v7.py": "FastAPI app, endpoints, token guard, rate limiter, context-7 middleware integration",
+        "clients.py": "Async HTTP clients for all VX11 modules (madre, switch, hermes, hormiguero, mcp, shub, spawner, operator)",
+        "context7_middleware.py": "Session context tracking for operator conversations (no IA, just DB + logic)",
+        "tentaculo_shub_gateway.py": "Shub-specific routing",
+        "requirements.txt": "Dependencies",
+        "Dockerfile": "Container image"
+    },
+    "http_endpoints": {
+        "/health": {
+            "method": "GET",
+            "auth": false,
+            "purpose": "Simple health check",
+            "response": {
+                "status": "ok",
+                "module": "tentaculo_link",
+                "version": "7.0"
+            }
+        },
+        "/vx11/status": {
+            "method": "GET",
+            "auth": true,
+            "purpose": "Aggregate health check for all modules (parallel async)",
+            "response": "Detailed status of tentaculo_link, madre, switch, hermes, hormiguero, manifestator, mcp, shub, spawner"
+        },
+        "/vx11/dsl": {
+            "method": "POST",
+            "auth": true,
+            "purpose": "Proxy DSL (natural language) to Madre",
+            "request": {
+                "text": "User query or DSL"
+            },
+            "routes_to": "madre:8001 /madre/dsl"
+        },
+        "/vx11/intent": {
+            "method": "POST",
+            "auth": true,
+            "purpose": "Route structured intents to Madre",
+            "request": {
+                "intent_type": "VX11::TASK | VX11::QUERY | VX11::DIAGNOSTIC | VX11::CLEANUP",
+                "payload": {}
+            },
+            "routes_to": "madre:8001 /madre/intent"
+        },
+        "/vx11/operator/chat": {
+            "method": "POST",
+            "auth": true,
+            "purpose": "Unified chat interface with CONTEXT-7 tracking",
+            "request": {
+                "message": "string",
+                "session_id": "optional uuid",
+                "user_id": "optional string (default: local)",
+                "metadata": "optional object"
+            },
+            "routes_to": "madre:8001 /madre/chat",
+            "context7_tracking": true
+        },
+        "/operator/chat": {
+            "method": "POST",
+            "auth": true,
+            "purpose": "Legacy redirect to /vx11/operator/chat"
+        },
+        "/operator/session/{session_id}": {
+            "method": "GET",
+            "auth": true,
+            "purpose": "Retrieve CONTEXT-7 session history",
+            "response": "Session object with message history"
+        },
+        "/vx11/overview": {
+            "method": "GET",
+            "auth": true,
+            "purpose": "Aggregated overview of all VX11 modules"
+        },
+        "/shub/dashboard": {
+            "method": "GET",
+            "auth": true,
+            "purpose": "Get Shub (audio) dashboard info",
+            "routes_to": "shubniggurath:8007 /shub/dashboard"
+        },
+        "/resources": {
+            "method": "GET",
+            "auth": true,
+            "purpose": "Get available resources (CLI tools + models from Hermes)",
+            "routes_to": "hermes:8003 /hermes/resources"
+        },
+        "/hormiguero/queen/status": {
+            "method": "GET",
+            "auth": true,
+            "purpose": "Get Hormiguero Queen status",
+            "routes_to": "hormiguero:8004 /queen/status"
+        },
+        "/hormiguero/report": {
+            "method": "GET",
+            "auth": true,
+            "purpose": "Get recent Hormiguero incidents",
+            "query": "limit (default 50)",
+            "routes_to": "hormiguero:8004 /report"
+        }
+    },
+    "websocket_endpoints": {
+        "/ws": {
+            "purpose": "Real-time updates (stub for heartbeat + echo)",
+            "note": "Official WS consumed by Operator is operator_backend (/ws)",
+            "client_id": "query param (default: anonymous)",
+            "emits": [
+                {
+                    "type": "heartbeat",
+                    "ts": "timestamp",
+                    "echo": "data"
+                }
+            ]
+        }
+    },
+    "authentication": {
+        "header": "X-VX11-Token",
+        "guard": "TokenGuard class",
+        "enabled_by": "settings.enable_auth",
+        "token_resolution": [
+            "get_token('VX11_TENTACULO_LINK_TOKEN')",
+            "get_token('VX11_GATEWAY_TOKEN')",
+            "settings.api_token"
+        ]
+    },
+    "rate_limiting": {
+        "class": "RateLimiter",
+        "default_max_rpm": 60,
+        "per_key": "IP or user_id"
+    },
+    "modules_clients": {
+        "madre": "http://madre:8001",
+        "switch": "http://switch:8002",
+        "hermes": "http://hermes:8003",
+        "hormiguero": "http://hormiguero:8004",
+        "mcp": "http://mcp:8006",
+        "shub": "http://shubniggurath:8007",
+        "spawner": "http://spawner:8008",
+        "operator": "http://operator_backend:8011"
+    },
+    "context7_middleware": {
+        "purpose": "Session context tracking without IA",
+        "features": [
+            "Track conversation history per session_id",
+            "Max 50 messages per session",
+            "Summary extraction for LLM hints",
+            "Topic clustering (simple keyword-based)"
+        ],
+        "db_integration": "Persists to SQLite (config.db_schema)"
+    },
+    "frontend_integration": {
+        "frontend_location": "operator_backend/frontend/src",
+        "api_client_location": "operator_backend/frontend/src/services/api.ts",
+        "config_location": "operator_backend/frontend/src/config.ts",
+        "constants": {
+            "OPERATOR_BASE_URL": "http://operator_backend:8011 (proxies to /operator/* endpoints)",
+            "LINK_BASE_URL": "http://tentaculo_link:8000",
+            "WS_BASE_URL": "ws://operator_backend:8011/ws OR explicit VITE_WS_URL"
+        },
+        "endpoints_used": [
+            "/vx11/status -> tentaculo_link aggregates health",
+            "/operator/chat -> operator_backend backend, not tentaculo",
+            "/operator/system/status -> operator_backend",
+            "/ui/events -> operator_backend",
+            "ws://operator:8011/ws -> operator_backend (NOT tentaculo /ws)"
+        ]
+    },
+    "docker_compose": {
+        "service_name": "tentaculo_link",
+        "container_name": "vx11-tentaculo-link",
+        "hostname": "tentaculo-link",
+        "aliases": [
+            "tentaculo_link"
+        ],
+        "port_mapping": "8000:8000",
+        "image": "vx11-tentaculo-link:v6.7",
+        "mem_limit": "512m",
+        "volumes": [
+            "logs:/app/logs",
+            "data/runtime:/app/data/runtime",
+            "sandbox:/app/sandbox",
+            "models:/app/models"
+        ],
+        "healthcheck": "curl -f http://localhost:8000/health (30s interval)"
+    },
+    "critical_patterns": {
+        "no_hardcoded_localhost": "✓ Uses settings.* for config URLs",
+        "token_management": "✓ Loads tokens from config.tokens, falls back to env",
+        "db_session_pattern": "Uses get_session(), closes in finally block",
+        "forensics_logging": "write_log() for all major operations",
+        "cors": "Enabled via CORSMiddleware (allow_origins from settings.allowed_origins)",
+        "rate_limiting": "In-memory RateLimiter, max 60 req/min per key"
+    },
+    "notes": [
+        "WS endpoint (/ws) is a stub; actual operator WS is at operator_backend:8011/ws",
+        "CONTEXT-7 is lightweight session tracking without IA—does NOT call LLM directly",
+        "All module routing uses async HTTP clients with proper error handling",
+        "Single-writer pattern for DB (SQLite)",
+        "No nginx proxy visible in current docker-compose; direct port exposure"
+    ]
+}

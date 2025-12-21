@@ -1,0 +1,3 @@
+total 8
+drwxrwxr-x 2 elkakas314 elkakas314 4096 dic 17 20:05 .
+drwxrwxr-x 3 elkakas314 elkakas314 4096 dic 17 20:05 ..

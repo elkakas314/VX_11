@@ -21,6 +21,9 @@ export const Resources = () => {
     }, []);
 
     if (loading) return <div>Loading...</div>;
+    if (resources?.status === 'service_offline') {
+        return <div className="error">Backend offline</div>;
+    }
 
     return (
         <div className="resources">

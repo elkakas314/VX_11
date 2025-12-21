@@ -1,4 +1,5 @@
 #!/bin/bash
+source "$(dirname "${BASH_SOURCE[0]}")/cleanup_protect.sh"
 #
 # Validation script for Adaptive Optimization Phase 1
 # Verifies all metrics endpoints and mode control functionality

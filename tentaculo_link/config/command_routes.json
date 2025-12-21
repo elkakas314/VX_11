@@ -1,0 +1,37 @@
+{
+    "chat": {
+        "module": "switch",
+        "endpoint": "/switch/route-v5",
+        "method": "POST"
+    },
+    "code": {
+        "module": "switch",
+        "endpoint": "/switch/route-v5",
+        "method": "POST"
+    },
+    "audio": {
+        "module": "switch",
+        "endpoint": "/switch/task",
+        "method": "POST"
+    },
+    "analysis": {
+        "module": "switch",
+        "endpoint": "/switch/task",
+        "method": "POST"
+    },
+    "task": {
+        "module": "switch",
+        "endpoint": "/switch/task",
+        "method": "POST"
+    },
+    "spawn": {
+        "module": "switch",
+        "endpoint": "/switch/task",
+        "method": "POST"
+    },
+    "stream": {
+        "module": "switch",
+        "endpoint": "/switch/task",
+        "method": "POST"
+    }
+}

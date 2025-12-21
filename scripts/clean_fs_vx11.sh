@@ -12,7 +12,7 @@ prune_expr=(
 )
 
 echo "Removing __pycache__ directories..."
-find "${REPO_ROOT}" \( "${prune_expr[@]}" \) -prune -o -type d -name "__pycache__" -print -exec rm -rf {} +
+find "${REPO_ROOT}" \( "${prune_expr[@]}" \) -prune -o -type d -name "__pycache__" -print -exec safe_rm {} +
 
 echo "Removing Python bytecode (*.pyc/*.pyo)..."
 find "${REPO_ROOT}" \( "${prune_expr[@]}" \) -prune -o -type f \( -name "*.pyc" -o -name "*.pyo" \) -print -delete
@@ -21,6 +21,8 @@ echo "Removing .DS_Store..."
 find "${REPO_ROOT}" \( "${prune_expr[@]}" \) -prune -o -type f -name ".DS_Store" -print -delete
 
 echo "Archiving logs older than 14 days into ${ARCHIVE_LOGS}..."
-find "${REPO_ROOT}/build/artifacts/logs" -maxdepth 1 -type f -mtime +14 -print -exec mv {} "${ARCHIVE_LOGS}"/ \;
-
+source "$(dirname "${BASH_SOURCE[0]}")/cleanup_protect.sh" || exit 1
+while IFS= read -r f; do
+  safe_mv "$f" "${ARCHIVE_LOGS}/$(basename "$f")"
+done < <(find "${REPO_ROOT}/build/artifacts/logs" -maxdepth 1 -type f -mtime +14 -print)
 echo "Clean-up completed."

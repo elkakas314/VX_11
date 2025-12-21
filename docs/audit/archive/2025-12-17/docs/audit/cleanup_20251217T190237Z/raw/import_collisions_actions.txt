@@ -1,0 +1,4 @@
+=== check operator package ===
+operator directory exists
+operator __init__ not found
+=== check playwright local dir ===

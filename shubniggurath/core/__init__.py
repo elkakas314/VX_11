@@ -1,1 +1,0 @@
-"""Shub-Niggurath core package."""

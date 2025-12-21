@@ -1,0 +1,101 @@
+Auto packing the repository in background for optimum performance.
+See "git help gc" for manual housekeeping.
+warning: The last gc run reported the following. Please correct the root cause
+and remove .git/gc.log
+Automatic cleanup will not be performed until the file is removed.
+
+warning: There are too many unreachable loose objects; run 'git prune' to remove them.
+
+[cleanup/core-no-operator-20251217 6340cab] chore(cleanup): archive operator and related to attic/ to avoid stdlib shadowing
+ 91 files changed, 67 insertions(+)
+ rename {operator_backend => attic/operator_backend}/Dockerfile (100%)
+ rename {operator_backend => attic/operator_backend}/README.md (100%)
+ rename {operator_backend => attic/operator_backend}/__init__.py (100%)
+ rename {operator_backend => attic/operator_backend}/backend/Dockerfile (100%)
+ rename {operator_backend => attic/operator_backend}/backend/__init__.py (100%)
+ rename {operator_backend => attic/operator_backend}/backend/browser.py (100%)
+ rename {operator_backend => attic/operator_backend}/backend/feedback_loop.py (100%)
+ rename {operator_backend => attic/operator_backend}/backend/main.py (100%)
+ rename {operator_backend => attic/operator_backend}/backend/main_v7.py (100%)
+ rename {operator_backend => attic/operator_backend}/backend/operator_shub_prompts.py (100%)
+ rename {operator_backend => attic/operator_backend}/backend/requirements.txt (100%)
+ rename {operator_backend => attic/operator_backend}/backend/services/__init__.py (100%)
+ rename {operator_backend => attic/operator_backend}/backend/services/clients.py (100%)
+ rename {operator_backend => attic/operator_backend}/backend/services/health_aggregator.py (100%)
+ rename {operator_backend => attic/operator_backend}/backend/services/intent_parser.py (100%)
+ rename {operator_backend => attic/operator_backend}/backend/services/job_queue.py (100%)
+ rename {operator_backend => attic/operator_backend}/backend/services/model_rotator.py (100%)
+ rename {operator_backend => attic/operator_backend}/backend/services/operator_brain.py (100%)
+ rename {operator_backend => attic/operator_backend}/backend/shub_api.py (100%)
+ rename {operator_backend => attic/operator_backend}/backend/switch_integration.py (100%)
+ rename {operator_backend => attic/operator_backend}/disabled/__init__.py (100%)
+ rename {operator_backend => attic/operator_backend}/frontend/.env.example (100%)
+ rename {operator_backend => attic/operator_backend}/frontend/Dockerfile (100%)
+ rename {operator_backend => attic/operator_backend}/frontend/README_OPERATOR_UI_v7.md (100%)
+ rename {operator_backend => attic/operator_backend}/frontend/build.sh (100%)
+ rename {operator_backend => attic/operator_backend}/frontend/components/ShubDashboard.vue (100%)
+ rename {operator_backend => attic/operator_backend}/frontend/index.html (100%)
+ rename {operator_backend => attic/operator_backend}/frontend/nginx.conf (100%)
+ rename {operator_backend => attic/operator_backend}/frontend/package.json (100%)
+ rename {operator_backend => attic/operator_backend}/frontend/postcss.config.js (100%)
+ rename {operator_backend => attic/operator_backend}/frontend/src/App.tsx (100%)
+ rename {operator_backend => attic/operator_backend}/frontend/src/api/operatorClient.js (100%)
+ rename {operator_backend => attic/operator_backend}/frontend/src/components/BridgePanel.tsx (100%)
+ rename {operator_backend => attic/operator_backend}/frontend/src/components/ChatPanel.tsx (100%)
+ rename {operator_backend => attic/operator_backend}/frontend/src/components/Dashboard.tsx (100%)
+ rename {operator_backend => attic/operator_backend}/frontend/src/components/HermesPanel.tsx (100%)
+ rename {operator_backend => attic/operator_backend}/frontend/src/components/HormigueroMapPanel.tsx (100%)
+ rename {operator_backend => attic/operator_backend}/frontend/src/components/HormigueroPanel.tsx (100%)
+ rename {operator_backend => attic/operator_backend}/frontend/src/components/Layout.css (100%)
+ rename {operator_backend => attic/operator_backend}/frontend/src/components/Layout.jsx (100%)
+ rename {operator_backend => attic/operator_backend}/frontend/src/components/LogsPanel.tsx (100%)
+ rename {operator_backend => attic/operator_backend}/frontend/src/components/MCPPanel.tsx (100%)
+ rename {operator_backend => attic/operator_backend}/frontend/src/components/MadrePanel.tsx (100%)
+ rename {operator_backend => attic/operator_backend}/frontend/src/components/ManifestatorPanel.tsx (100%)
+ rename {operator_backend => attic/operator_backend}/frontend/src/components/MiniMapPanel.tsx (100%)
+ rename {operator_backend => attic/operator_backend}/frontend/src/components/MiniStatusPanel.tsx (100%)
+ rename {operator_backend => attic/operator_backend}/frontend/src/components/ShubPanel.tsx (100%)
+ rename {operator_backend => attic/operator_backend}/frontend/src/components/SpawnerPanel.tsx (100%)
+ rename {operator_backend => attic/operator_backend}/frontend/src/components/StatusBar.tsx (100%)
+ rename {operator_backend => attic/operator_backend}/frontend/src/components/SwitchQueuePanel.tsx (100%)
+ rename {operator_backend => attic/operator_backend}/frontend/src/components/hormiguero/D3Overlay.tsx (100%)
+ rename {operator_backend => attic/operator_backend}/frontend/src/components/hormiguero/FlowCanvas.tsx (100%)
+ rename {operator_backend => attic/operator_backend}/frontend/src/components/hormiguero/NodeDrawer.tsx (100%)
+ rename {operator_backend => attic/operator_backend}/frontend/src/components/hormiguero/helpers.ts (100%)
+ rename {operator_backend => attic/operator_backend}/frontend/src/components/manifestator/ManifestEditor.tsx (100%)
+ rename {operator_backend => attic/operator_backend}/frontend/src/config.ts (100%)
+ rename {operator_backend => attic/operator_backend}/frontend/src/context/OperatorContext.jsx (100%)
+ rename {operator_backend => attic/operator_backend}/frontend/src/hooks/useOperatorStreams.ts (100%)
+ rename {operator_backend => attic/operator_backend}/frontend/src/hooks/useWebSocket.tsx (100%)
+ rename {operator_backend => attic/operator_backend}/frontend/src/main.tsx (100%)
+ rename {operator_backend => attic/operator_backend}/frontend/src/pages/Chat.css (100%)
+ rename {operator_backend => attic/operator_backend}/frontend/src/pages/Chat.jsx (100%)
+ rename {operator_backend => attic/operator_backend}/frontend/src/pages/Dashboard.css (100%)
+ rename {operator_backend => attic/operator_backend}/frontend/src/pages/Dashboard.jsx (100%)
+ rename {operator_backend => attic/operator_backend}/frontend/src/pages/Resources.css (100%)
+ rename {operator_backend => attic/operator_backend}/frontend/src/pages/Resources.jsx (100%)
+ rename {operator_backend => attic/operator_backend}/frontend/src/query/client.ts (100%)
+ rename {operator_backend => attic/operator_backend}/frontend/src/services/api-improved.ts (100%)
+ rename {operator_backend => attic/operator_backend}/frontend/src/services/api.ts (100%)
+ rename {operator_backend => attic/operator_backend}/frontend/src/services/websocket.ts (100%)
+ rename {operator_backend => attic/operator_backend}/frontend/src/store/operatorStore.ts (100%)
+ rename {operator_backend => attic/operator_backend}/frontend/src/styles.css (100%)
+ rename {operator_backend => attic/operator_backend}/frontend/src/types/api.ts (100%)
+ rename {operator_backend => attic/operator_backend}/frontend/tailwind.config.js (100%)
+ rename {operator_backend => attic/operator_backend}/frontend/tsconfig.json (100%)
+ rename {operator_backend => attic/operator_backend}/frontend/tsconfig.node.json (100%)
+ rename {operator_backend => attic/operator_backend}/frontend/vite.config.ts (100%)
+ rename {operator_local => attic/operator_local}/__init__.py (100%)
+ rename {operator_local => attic/operator_local}/backend/__init__.py (100%)
+ rename {operator_local => attic/operator_local}/backend/main.py (100%)
+ create mode 100644 docs/audit/cleanup_20251217T190237Z/raw/import_collisions_actions.txt
+ create mode 100644 docs/audit/cleanup_20251217T190657Z/operator_ls.txt
+ create mode 100644 docs/audit/cleanup_20251217T190657Z/playwright_ls.txt
+ create mode 100644 docs/audit/cleanup_20251217T190902Z/archive_noncanonical_ls.txt
+ create mode 100644 docs/audit/cleanup_20251217T190902Z/git_commit_playwright.txt
+ create mode 100644 docs/audit/cleanup_20251217T190902Z/git_status_after_playwright_mv.txt
+ create mode 100644 docs/audit/cleanup_20251217T190902Z/playwright_git_mv.txt
+ create mode 100644 docs/audit/cleanup_20251217T190943Z/archive_playwright_after_mv.txt
+ create mode 100644 docs/audit/cleanup_20251217T190943Z/playwright_fs_mv.txt
+ create mode 100644 docs/audit/cleanup_20251217T190943Z/playwright_move_record.txt
+ create mode 100644 docs/audit/cleanup_20251217T191923Z/00_snapshot.md

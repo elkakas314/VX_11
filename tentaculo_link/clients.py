@@ -1,11 +1,13 @@
 """
 Tentáculo Link - Async HTTP clients for VX11 modules
-Pattern: single-client per module, lazy initialization, centralized URL config
+Pattern: single-client per module, lazy initialization, circuit breaker, centralized URL config
 """
 
 import asyncio
 import httpx
-from typing import Dict, Any, Optional
+import time
+from enum import Enum
+from typing import Dict, Any, Optional, Literal
 from config.settings import settings
 from config.tokens import get_token
 from config.forensics import write_log
@@ -19,14 +21,66 @@ VX11_TOKEN = (
 AUTH_HEADERS = {settings.token_header: VX11_TOKEN}
 
 
+class CircuitState(str, Enum):
+    """Circuit breaker states."""
+    CLOSED = "closed"
+    OPEN = "open"
+    HALF_OPEN = "half_open"
+
+
+class CircuitBreaker:
+    """Simple circuit breaker for module clients."""
+    
+    def __init__(self, failure_threshold: int = 3, recovery_timeout: float = 60.0):
+        self.failure_threshold = failure_threshold
+        self.recovery_timeout = recovery_timeout
+        self.failure_count = 0
+        self.last_failure_time: Optional[float] = None
+        self.state = CircuitState.CLOSED
+    
+    def record_success(self) -> None:
+        """Record successful request; reset failure count."""
+        self.failure_count = 0
+        self.state = CircuitState.CLOSED
+    
+    def record_failure(self) -> None:
+        """Record failed request; increment failure count."""
+        self.failure_count += 1
+        self.last_failure_time = time.time()
+        if self.failure_count >= self.failure_threshold:
+            self.state = CircuitState.OPEN
+    
+    def should_attempt_request(self) -> bool:
+        """Determine if request should be attempted."""
+        if self.state == CircuitState.CLOSED:
+            return True
+        if self.state == CircuitState.HALF_OPEN:
+            return True
+        if self.state == CircuitState.OPEN:
+            if self.last_failure_time and (time.time() - self.last_failure_time) > self.recovery_timeout:
+                self.state = CircuitState.HALF_OPEN
+                return True
+            return False
+        return False
+    
+    def get_status(self) -> Dict[str, Any]:
+        """Get circuit breaker status."""
+        return {
+            "state": self.state.value,
+            "failure_count": self.failure_count,
+            "last_failure": self.last_failure_time,
+        }
+
+
 class ModuleClient:
-    """Base async HTTP client for a single module."""
+    """Base async HTTP client for a single module with circuit breaker."""
 
     def __init__(self, module_name: str, base_url: str, timeout: float = 15.0):
         self.module_name = module_name
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
         self.client: Optional[httpx.AsyncClient] = None
+        self.circuit_breaker = CircuitBreaker(failure_threshold=3, recovery_timeout=60.0)
 
     async def startup(self):
         """Initialize HTTP client."""
@@ -40,28 +94,64 @@ class ModuleClient:
             self.client = None
 
     async def get(self, path: str, timeout: Optional[float] = None) -> Dict[str, Any]:
-        """GET request with error handling."""
+        """GET request with circuit breaker."""
+        if not self.circuit_breaker.should_attempt_request():
+            write_log("tentaculo_link", f"cb_open:{self.module_name}:{path}")
+            return {
+                "status": "service_offline",
+                "module": self.module_name,
+                "reason": "circuit_open",
+            }
+        
         try:
             if not self.client:
                 await self.startup()
             url = f"{self.base_url}{path}"
             resp = await self.client.get(url, timeout=timeout or self.timeout)
-            return resp.json() if resp.status_code < 300 else {"status": "error", "code": resp.status_code}
+            if resp.status_code < 300:
+                self.circuit_breaker.record_success()
+                return resp.json()
+            else:
+                self.circuit_breaker.record_failure()
+                return {"status": "error", "code": resp.status_code}
         except Exception as exc:
+            self.circuit_breaker.record_failure()
             write_log("tentaculo_link", f"client_get_error:{self.module_name}:{exc}", level="WARNING")
-            return {"status": "error", "module": self.module_name, "error": str(exc)}
+            return {
+                "status": "service_offline",
+                "module": self.module_name,
+                "error": str(exc),
+            }
 
     async def post(self, path: str, payload: Dict[str, Any], timeout: Optional[float] = None) -> Dict[str, Any]:
-        """POST request with error handling."""
+        """POST request with circuit breaker."""
+        if not self.circuit_breaker.should_attempt_request():
+            write_log("tentaculo_link", f"cb_open:{self.module_name}:{path}")
+            return {
+                "status": "service_offline",
+                "module": self.module_name,
+                "reason": "circuit_open",
+            }
+        
         try:
             if not self.client:
                 await self.startup()
             url = f"{self.base_url}{path}"
             resp = await self.client.post(url, json=payload, timeout=timeout or self.timeout)
-            return resp.json() if resp.status_code < 300 else {"status": "error", "code": resp.status_code}
+            if resp.status_code < 300:
+                self.circuit_breaker.record_success()
+                return resp.json()
+            else:
+                self.circuit_breaker.record_failure()
+                return {"status": "error", "code": resp.status_code}
         except Exception as exc:
+            self.circuit_breaker.record_failure()
             write_log("tentaculo_link", f"client_post_error:{self.module_name}:{exc}", level="WARNING")
-            return {"status": "error", "module": self.module_name, "error": str(exc)}
+            return {
+                "status": "service_offline",
+                "module": self.module_name,
+                "error": str(exc),
+            }
 
 
 class VX11Clients:
@@ -133,6 +223,31 @@ class VX11Clients:
         }
         write_log("tentaculo_link", "route_switch")
         return await client.post("/switch/route-v5", payload)
+
+    async def route_to_switch_task(
+        self,
+        task_type: str,
+        payload: Dict[str, Any],
+        metadata: Optional[Dict[str, Any]] = None,
+        provider_hint: Optional[str] = None,
+        source: str = "operator",
+    ) -> Dict[str, Any]:
+        """Route TASK/ANALYSIS to Switch (canonical /switch/task)."""
+        client = self.get_client("switch")
+        if not client:
+            return {"error": "switch_client_unavailable"}
+        merged_payload = dict(payload or {})
+        if metadata:
+            merged_payload.setdefault("metadata", metadata)
+        body = {
+            "task_type": task_type,
+            "payload": merged_payload,
+            "source": source,
+        }
+        if provider_hint:
+            body["provider_hint"] = provider_hint
+        write_log("tentaculo_link", "route_switch_task")
+        return await client.post("/switch/task", body)
 
     async def route_to_operator(self, endpoint: str, payload: Dict[str, Any]) -> Dict[str, Any]:
         """Route to Operator backend."""

@@ -17,7 +17,9 @@ def _resolve_docker_url(module_name: str, port: int) -> str:
 
 
 class VX11Settings(BaseSettings):
-    model_config = ConfigDict(env_file=".env", case_sensitive=False, protected_namespaces=())
+    model_config = ConfigDict(
+        env_file=".env", case_sensitive=False, protected_namespaces=()
+    )
 
     # ========== CONFIGURACIÓN BASE ==========
     app_name: str = "VX11 System"
@@ -55,17 +57,31 @@ class VX11Settings(BaseSettings):
     cache_ttl_seconds: int = 300
 
     # ========== URLs BASE (Docker networking con fallback a localhost) ==========
-    tentaculo_link_url: str = Field(default_factory=lambda: _resolve_docker_url("tentaculo_link", 8000))
-    gateway_url: str = Field(default_factory=lambda: _resolve_docker_url("tentaculo_link", 8000))
+    tentaculo_link_url: str = Field(
+        default_factory=lambda: _resolve_docker_url("tentaculo_link", 8000)
+    )
+    gateway_url: str = Field(
+        default_factory=lambda: _resolve_docker_url("tentaculo_link", 8000)
+    )
     madre_url: str = Field(default_factory=lambda: _resolve_docker_url("madre", 8001))
     switch_url: str = Field(default_factory=lambda: _resolve_docker_url("switch", 8002))
     hermes_url: str = Field(default_factory=lambda: _resolve_docker_url("hermes", 8003))
-    hormiguero_url: str = Field(default_factory=lambda: _resolve_docker_url("hormiguero", 8004))
-    manifestator_url: str = Field(default_factory=lambda: _resolve_docker_url("manifestator", 8005))
+    hormiguero_url: str = Field(
+        default_factory=lambda: _resolve_docker_url("hormiguero", 8004)
+    )
+    manifestator_url: str = Field(
+        default_factory=lambda: _resolve_docker_url("manifestator", 8005)
+    )
     mcp_url: str = Field(default_factory=lambda: _resolve_docker_url("mcp", 8006))
-    shub_url: str = Field(default_factory=lambda: _resolve_docker_url("shubniggurath", 8007))
-    spawner_url: str = Field(default_factory=lambda: _resolve_docker_url("spawner", 8008))
-    operator_url: str = Field(default_factory=lambda: _resolve_docker_url("operator-backend", 8011))
+    shub_url: str = Field(
+        default_factory=lambda: _resolve_docker_url("shubniggurath", 8007)
+    )
+    spawner_url: str = Field(
+        default_factory=lambda: _resolve_docker_url("spawner", 8008)
+    )
+    operator_url: str = Field(
+        default_factory=lambda: _resolve_docker_url("operator-backend", 8011)
+    )
 
     # ========== SEGURIDAD ==========
     api_token: str = Field(default="vx11-token-production")
@@ -108,7 +124,12 @@ class VX11Settings(BaseSettings):
 
     # ========== CLI REGISTRY ==========
     cli_registry_check_interval_seconds: int = 600
-    
+
+    # ========== PHASE 4: FLUZO INTEGRATION ==========
+    enable_madre_fluzo: bool = (
+        False  # Enable Madre FLUZO integration (default OFF for safety)
+    )
+
     # ========== DEEPSEEK R1 CONFIGURATION (v7.0) ==========
     deepseek_base_url: str = "https://api.deepseek.com/v1"
     deepseek_daily_limit_tokens: int = 100000

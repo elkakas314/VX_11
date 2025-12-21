@@ -26,6 +26,13 @@ export const Chat = () => {
     const fetchSessionMessages = async () => {
         try {
             const res = await operatorApi.getSession(sessionId);
+            if (res.data.status === 'service_offline') {
+                setSessionMessages((prev) => [
+                    ...prev,
+                    { role: 'assistant', content: 'service_offline', timestamp: new Date().toISOString() },
+                ]);
+                return;
+            }
             setSessionMessages(res.data.messages || []);
         } catch (err) {
             console.error('Failed to fetch session:', err);
@@ -46,6 +53,15 @@ export const Chat = () => {
 
             // Send message
             const res = await operatorApi.postChat(sid, input);
+            if (res.data.status === 'service_offline') {
+                setSessionMessages((prev) => [
+                    ...prev,
+                    { role: 'user', content: input, timestamp: new Date().toISOString() },
+                    { role: 'assistant', content: 'service_offline', timestamp: new Date().toISOString() },
+                ]);
+                setInput('');
+                return;
+            }
 
             // Update session ID if new
             if (res.data.session_id) {

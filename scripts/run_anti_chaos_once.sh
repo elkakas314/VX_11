@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+source "$(dirname "${BASH_SOURCE[0]}")/cleanup_protect.sh"
 # Run a single anti-caos scan and emit organize intent (uses hormiguero auto-organizer CLI).
 set -euo pipefail
 

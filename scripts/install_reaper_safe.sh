@@ -19,6 +19,9 @@
 
 set -o pipefail
 
+# Load cleanup protection helpers to avoid touching CORE paths
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/cleanup_protect.sh" || exit 1
+
 ################################################################################
 # GLOBAL CONFIGURATION
 ################################################################################
@@ -243,7 +246,7 @@ phase_uninstall_previous() {
             
             # Remove
             log_info "Removing: $target"
-            rm -rf "$target" || {
+            safe_rm "$target" || {
                 log_error "Cannot remove: $target"
                 return 1
             }
@@ -273,7 +276,7 @@ phase_extract_reaper() {
         log_error "Cannot create REAPER install directory: ${REAPER_INSTALL_DIR}"
         return 1
     }
-    add_rollback_step "rm -rf '${REAPER_INSTALL_DIR}'"
+    add_rollback_step "safe_rm '${REAPER_INSTALL_DIR}'"
     
     # Check if source is a directory or tarball
     if [ -d "$reaper_source" ]; then
@@ -306,32 +309,32 @@ phase_extract_reaper() {
         local temp_extract_dir=$(mktemp -d)
         tar ${tar_opts}f "$reaper_source" -C "$temp_extract_dir" || {
             log_error "Failed to extract REAPER tarball"
-            rm -rf "$temp_extract_dir"
+            safe_rm "$temp_extract_dir"
             return 1
         }
         
         # Verify no path traversal
         if find "$temp_extract_dir" -name "*/..*" 2>/dev/null | grep -q .; then
             log_error "Tarball contains suspicious paths (path traversal attempt?)"
-            rm -rf "$temp_extract_dir"
+            safe_rm "$temp_extract_dir"
             return 1
         fi
         
         # Move extracted files (usually from REAPER_*/bin subdirectory)
         if [ -d "$temp_extract_dir/REAPER" ]; then
-            mv "$temp_extract_dir/REAPER"/* "${REAPER_INSTALL_DIR}/"
+            safe_mv "$temp_extract_dir/REAPER"/* "${REAPER_INSTALL_DIR}/"
         elif [ -d "$temp_extract_dir/reaper" ]; then
-            mv "$temp_extract_dir/reaper"/* "${REAPER_INSTALL_DIR}/"
+            safe_mv "$temp_extract_dir/reaper"/* "${REAPER_INSTALL_DIR}/"
         else
             # Try moving whatever is in temp
             find "$temp_extract_dir" -maxdepth 1 -type f | head -1 | while read -r file; do
                 if [ -f "$file" ]; then
-                    mv "$temp_extract_dir"/* "${REAPER_INSTALL_DIR}/"
+                    safe_mv "$temp_extract_dir"/* "${REAPER_INSTALL_DIR}/"
                 fi
             done
         fi
         
-        rm -rf "$temp_extract_dir"
+        safe_rm "$temp_extract_dir"
     else
         log_error "REAPER source not found: $reaper_source"
         return 1
@@ -406,7 +409,7 @@ phase_install_plugins() {
         log_error "Cannot create plugins directory: ${REAPER_PLUGINS_DIR}"
         return 1
     }
-    add_rollback_step "rm -rf '${REAPER_PLUGINS_DIR}'"
+    add_rollback_step "safe_rm '${REAPER_PLUGINS_DIR}'"
     
     local plugin_count=0
     find "${DOWNLOADS_DIR}" -maxdepth 1 -name "*.so" -type f 2>/dev/null | while read -r plugin; do
@@ -648,7 +651,7 @@ TROUBLESHOOTING
 
 ROLLBACK INFORMATION
   If issues occur, this script can be reverted:
-  - Manual rollback: rm -rf ${REAPER_INSTALL_DIR}
+  - Manual rollback: safe_rm ${REAPER_INSTALL_DIR}
   - Restore backup: cp -r ${BACKUP_DIR}/* ~/
   - Remove wrapper: rm ${TENTACULO_ROOT}/bin/reaper
 

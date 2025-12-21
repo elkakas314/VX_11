@@ -1,0 +1,101 @@
+{
+  "version": "vx11_fs_target_v1",
+  "generated_at_utc": "2025-12-20T18:37:50Z",
+  "source_inputs": [
+    "docs/CANONICAL_CORE.md",
+    "docs/MODULES_INDEX.md",
+    "docs/archive/VX11_v6.3_CANONICAL.json",
+    "attic/docs/VX11_v6.6_CANONICAL.json",
+    "docs/audit/DB_MAP_v7_FINAL.md",
+    "docs/audit/DB_SCHEMA_v7_FINAL.json"
+  ],
+  "allowed_roots": [
+    ".github",
+    "archive",
+    "attic",
+    "build",
+    "config",
+    "data",
+    "docs",
+    "forensic",
+    "gateway.deprecated",
+    "hormiguero",
+    "madre",
+    "manifestator",
+    "mcp",
+    "models",
+    "operator",
+    "operator_backend",
+    "prompts",
+    "scripts",
+    "shubniggurath",
+    "spawner",
+    "switch",
+    "tentaculo_link",
+    "tests",
+    "tests_legacy",
+    "tools"
+  ],
+  "ignore_globs": [
+    ".backups/**",
+    ".copilot-audit/**",
+    ".devcontainer/**",
+    ".tmp/**",
+    ".tmp_copilot/**",
+    ".vscode/**",
+    "docs/audit/**",
+    "data/runtime/**",
+    ".venv/**",
+    "node_modules/**",
+    "**/__pycache__/**",
+    "**/.pytest_cache/**",
+    "**/*.bak",
+    "**/*.tmp",
+    "**/*.log",
+    "**/*.zip",
+    "**/*.tar.gz"
+  ],
+  "invariants": [
+    {
+      "id": "core_modules_present",
+      "status": "verified",
+      "evidence": [
+        "docs/CANONICAL_CORE.md"
+      ],
+      "rule": "Core modules live at switch/, tentaculo_link/, madre/, mcp/, data/runtime/"
+    },
+    {
+      "id": "hermes_under_switch",
+      "status": "verified",
+      "evidence": [
+        "docs/CANONICAL_CORE.md",
+        "docs/MODULES_INDEX.md"
+      ],
+      "rule": "Hermes canonical lives under switch/hermes/"
+    },
+    {
+      "id": "db_path_runtime",
+      "status": "verified",
+      "evidence": [
+        "docs/audit/DB_MAP_v7_FINAL.md",
+        "docs/audit/DB_SCHEMA_v7_FINAL.json"
+      ],
+      "rule": "Runtime DB path is data/runtime/vx11.db"
+    },
+    {
+      "id": "operator_archived",
+      "status": "proposed",
+      "evidence": [
+        "docs/CANONICAL_CORE.md"
+      ],
+      "rule": "operator* code may be archived to attic/ to avoid stdlib collisions"
+    },
+    {
+      "id": "avoid_root_hermes_duplicate",
+      "status": "proposed",
+      "evidence": [],
+      "rule": "No duplicate hermes module at repo root outside switch/hermes/"
+    }
+  ],
+  "notes": "Target is structural; file snapshot remains in docs/CANONICAL_FS_VX11.json"
+}

@@ -1,24 +1,15 @@
-# Spawner v6.3
+# Spawner v6.7
 
-Hijas efímeras con autoconsciencia y control P&P.
+Ejecutor de procesos efímeros (hijas) solicitado por Madre/Hormiguero.
 
-## Endpoints
-- `POST /spawn` crea hija con TTL, prioridad y contexto.
-- `POST /spawn/kill/{id}` mata hija.
-- `GET /spawn/status/{id}` estado.
-- `GET /spawn/list` lista hijas activas.
-- `POST /spawn/cleanup` limpia finalizadas.
-- `GET /health` healthcheck.
+## Docker (compose)
 
-## Características
-- Persistencia en BD (`hijas_runtime`) con nacimiento/muerte, TTL, propósito y módulo creador.
-- Watchdog de TTL y heartbeat cada 5s.
-- Límite de hijas activas (`SPAWNER_MAX_ACTIVE`, por defecto 5).
-- Sandbox: cwd por defecto `/app/sandbox`, comandos permitidos listados en `ALLOWED_COMMANDS`.
-- Eventos a Tentáculo Link vía `/events/ingest`.
+- **Puerto:** 8008
+- **Health:** `GET /health`
+- **Volúmenes:** `./build/artifacts/sandbox` → `/app/sandbox`, `./data/runtime` → `/app/data/runtime`
 
-## Docker
-```
-docker build -f spawner/Dockerfile -t vx11-spawner:latest .
-docker run -p 8008:8008 vx11-spawner:latest
-```
+## Rol
+
+- Recibe solicitudes de spawn (por HTTP) y ejecuta comandos/plantillas controladas.
+- Mantiene el runtime lo más liviano posible (modo ULTRA_LOW_MEMORY).
+

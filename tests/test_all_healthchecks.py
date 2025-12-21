@@ -1,4 +1,8 @@
 import requests
+import pytest
+
+
+pytestmark = pytest.mark.integration
 
 MODULES = {
     "tentaculo_link": 8000,
@@ -20,5 +24,4 @@ def test_health_all():
             raise AssertionError(f"{name} no respondió: {e}")
 
         assert r.status_code == 200, f"{name} devolvió {r.status_code}"
-        assert r.json().get("status") == "ok", \
-               f"{name} respondió {r.text}"
+        assert r.json().get("status") == "ok", f"{name} respondió {r.text}"

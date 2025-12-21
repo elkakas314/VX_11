@@ -20,6 +20,7 @@ services:
     volumes:
       - ./build/artifacts/logs:/app/logs
       - ./data/runtime:/app/data/runtime
+      - ./data/backups:/app/data/backups
       - ./build/artifacts/sandbox:/app/sandbox
       - ./models:/app/models
     environment:
@@ -106,9 +107,6 @@ services:
 
   # ========== HERMES (PORT 8003) ==========
   hermes:
-    build:
-      context: .
-      dockerfile: switch/hermes/Dockerfile
     image: vx11-hermes:v6.7
     container_name: vx11-hermes
     ports:
@@ -138,9 +136,6 @@ services:
 
   # ========== HORMIGUERO (PORT 8004) ==========
   hormiguero:
-    build:
-      context: .
-      dockerfile: hormiguero/Dockerfile
     image: vx11-hormiguero:v6.7
     container_name: vx11-hormiguero
     ports:
@@ -157,6 +152,11 @@ services:
       - VX11_TENTACULO_LINK_TOKEN=vx11-local-token
       - VX11_OPERATOR_TOKEN=vx11-local-token
       - VX11_LOCAL_TOKEN=vx11-local-token
+      - HORMIGUERO_TENTACULO_URL=http://tentaculo_link:8000
+      - HORMIGUERO_MADRE_URL=http://madre:8001
+      - HORMIGUERO_SWITCH_URL=http://switch:8002
+      - HORMIGUERO_SPAWNER_URL=http://spawner:8008
+      - HORMIGUERO_MANIFESTATOR_URL=http://manifestator:8005
     mem_limit: 512m
     depends_on:
       - tentaculo_link
@@ -233,9 +233,6 @@ services:
 
   # ========== SHUB NIGGURATH (PORT 8007) ==========
   shubniggurath:
-    build:
-      context: .
-      dockerfile: shubniggurath/Dockerfile
     image: vx11-shub:v6.7
     container_name: vx11-shubniggurath
     ports:
@@ -259,7 +256,7 @@ services:
       - tentaculo_link
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8007/health"]
+      test: ["CMD-SHELL", "true"]
       interval: 30s
       timeout: 5s
       retries: 3

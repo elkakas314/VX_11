@@ -1,170 +1,57 @@
-# ============================================================
-# Python
-# ============================================================
-
-# Byte-compiled / optimized / DLL files
+node_modules
+node_modules
 __pycache__/
-*.py[cod]
-*$py.class
-*.so
+*.pyc
 
-# Setuptools
-dist/
-build/
-*.egg-info/
-*.egg
-
-# ============================================================
-# Virtual Environments
-# ============================================================
-
+# Python envs / caches
 .venv/
 venv/
-env/
-ENV/
-.env
-
-# ============================================================
-# Secrets & Credentials
-# ============================================================
-
-# Tokens and secrets (local)
-tokens.env
-tokens.env.master
-tokens.env.local
-secrets.env
-
-# Environment files
-.env.local
-.env.*.local
-
-# SSH keys
-*.pem
-*.key
-*.pub
-
-# ============================================================
-# IDE & Editor
-# ============================================================
-
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-.DS_Store
-.editorconfig
-
-# ============================================================
-# Logs & Temp Files
-# ============================================================
-
-logs/
-*.log
-*.log.*
-
-# Temporary files
-.tmp_copilot/
-.tmp/
-temp/
-tmp/
-
-# Secure tokens directory (local only)
-scripts/secure/
-
-# ============================================================
-# Database & Data
-# ============================================================
-
-*.db
-*.sqlite
-*.sqlite3
-data/
-!data/.gitkeep
-
-# ============================================================
-# Models & Cache
-# ============================================================
-
-models/
-!models/.gitkeep
-
-sandbox/
-!sandbox/.gitkeep
-
-cache/
-*.cache
-
-# ============================================================
-# Docker
-# ============================================================
-
-docker-compose.override.yml
-.dockerignore
-
-# ============================================================
-# Testing
-# ============================================================
-
 .pytest_cache/
-.coverage
-htmlcov/
-*.cover
-.tox/
+.mypy_cache/
 
-# ============================================================
-# Build & Distribution
-# ============================================================
-
-build/
-dist/
-*.whl
-*.tar.gz
-
-# ============================================================
-# Backups & Archives
-# ============================================================
-
-*.bak
-*.backup
-*.swp
+# Local logs / artifacts
+*.log
 *.zip
-*.tar
+*.tar.gz
+.autosync.log
 
-# ============================================================
-# OS Files
-# ============================================================
+# Secrets (never commit)
+tokens.env*
 
-.DS_Store
-Thumbs.db
-*.exe
-*.dll
-*.so
-*.dylib
+# VS Code / GitHub local-only backups (do not modify those dirs; just ignore noise)
+.vscode/*.bak
+.vscode/*.backup
+.github/*.zip
+.github/*.backup
+.github/*.bak
+.github/agents/_backup/
+.devcontainer/
 
-# ============================================================
-# Node (si se usa para frontend)
-# ============================================================
+# Runtime DB + backups (SQLite)
+data/
 
-node_modules/
-npm-debug.log
-yarn-error.log
+# Build and runtime artifacts
+build/
+models/
+forensic/
+
+# Audit runs (keep canonical schema/map)
+docs/audit/**
+!docs/audit/DB_MAP_v7_FINAL.md
+!docs/audit/DB_SCHEMA_v7_FINAL.json
+!docs/audit/DB_MAP_v7_META.txt
+!docs/audit/CLEANUP_EXCLUDES_CORE.txt
+
+# Local tooling backups
+.backups/
+.copilot-audit/
+.tmp/
+
+# VSCode workspace noise (repo policy: do not modify these dirs)
+.vscode/
+
+# Node lockfile (repo does not track it)
 package-lock.json
 
-# ============================================================
-# IDE specific
-# ============================================================
-
-# VS Code
-.vscode/settings.json
-.vscode/extensions.json
-.vscode/launch.json
-
-# PyCharm
-.idea/
-*.iml
-
-# Sublime
-*.sublime-project
-*.sublime-workspace
-
+# Local docker ignore (keep out of git status)
+.dockerignore

@@ -1,0 +1,22 @@
+[Unit]
+Description=VX11 Automatic Repository Synchronization
+Documentation=file:///home/elkakas314/vx11/tools/autosync.sh
+After=network-online.target
+Wants=vx11-autosync.timer
+
+[Service]
+Type=oneshot
+User=root
+WorkingDirectory=/home/elkakas314/vx11
+ExecStart=/bin/bash -c '[ -f .autosync.lock ] || /home/elkakas314/vx11/tools/autosync.sh feature/ui/operator-advanced'
+StandardOutput=journal
+StandardError=journal
+Environment=PYTHONUNBUFFERED=1
+Environment=GIT_SSH_COMMAND=ssh -o StrictHostKeyChecking=accept-new
+
+# Lock mechanism to prevent concurrent execution
+ExecStartPost=/usr/bin/touch /home/elkakas314/vx11/.autosync.lock
+ExecStopPost=/usr/bin/rm -f /home/elkakas314/vx11/.autosync.lock
+
+[Install]
+WantedBy=multi-user.target

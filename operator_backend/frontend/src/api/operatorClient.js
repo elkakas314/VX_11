@@ -9,28 +9,36 @@ const client = axios.create({
     },
 });
 
+const safeCall = async (promise) => {
+    try {
+        return await promise;
+    } catch (err) {
+        return { data: { status: 'service_offline', error: err.message } };
+    }
+};
+
 export const operatorApi = {
     // Chat
     postChat: (sessionId, message, metadata = {}) =>
-        client.post('/operator/chat', { session_id: sessionId, message, metadata }),
+        safeCall(client.post('/operator/chat', { session_id: sessionId, message, metadata })),
 
     // Sessions
-    getSession: (sessionId) => client.get(`/operator/session/${sessionId}`),
+    getSession: (sessionId) => safeCall(client.get(`/operator/session/${sessionId}`)),
 
     // System
-    getVx11Overview: () => client.get('/operator/vx11/overview'),
+    getVx11Overview: () => safeCall(client.get('/operator/vx11/overview')),
 
     // Shub
-    getShubDashboard: () => client.get('/operator/shub/dashboard'),
+    getShubDashboard: () => safeCall(client.get('/operator/shub/dashboard')),
 
     // Resources
-    getResources: () => client.get('/operator/resources'),
+    getResources: () => safeCall(client.get('/operator/resources')),
 
     // Browser
     postBrowserTask: (url, sessionId) =>
-        client.post('/operator/browser/task', { url, session_id: sessionId }),
+        safeCall(client.post('/operator/browser/task', { url, session_id: sessionId })),
     getBrowserTaskStatus: (taskId) =>
-        client.get(`/operator/browser/task/${taskId}`),
+        safeCall(client.get(`/operator/browser/task/${taskId}`)),
 };
 
 export default client;

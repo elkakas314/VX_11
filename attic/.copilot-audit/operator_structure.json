@@ -1,0 +1,192 @@
+{
+  "generatedAt": "2025-12-12T03:40:06+01:00",
+  "root": "/home/elkakas314/vx11",
+  "paths": {
+    "operator": [
+      "operator/Dockerfile",
+      "operator/backend/main.py (re-export operator_backend.backend.main_v7)",
+      "operator/backend/__init__.py"
+    ],
+    "operator_backend/frontend": {
+      "entry": [
+        "src/main.tsx",
+        "src/App.tsx",
+        "src/config.ts",
+        "src/styles.css"
+      ],
+      "components": [
+        "src/components/ChatPanel.tsx",
+        "src/components/HormigueroMapPanel.tsx",
+        "src/components/HormigueroPanel.tsx",
+        "src/components/ManifestatorPanel.tsx",
+        "src/components/ShubPanel.tsx",
+        "src/components/SelfOverviewPanel.tsx",
+        "src/components/StatusBar.tsx",
+        "src/components/MiniStatusPanel.tsx",
+        "src/components/MiniMapPanel.tsx",
+        "src/components/EventsTimelinePanel.tsx",
+        "src/components/LogsPanel.tsx",
+        "src/components/MadrePanel.tsx",
+        "src/components/SwitchQueuePanel.tsx",
+        "src/components/HermesPanel.tsx",
+        "src/components/MCPPanel.tsx",
+        "src/components/SpawnerPanel.tsx",
+        "src/components/BrowserPanel.tsx",
+        "src/components/DeepSeekHelper.tsx",
+        "src/components/ShortcutsPanel.tsx"
+      ],
+      "state/hooks": [
+        "src/hooks/useOperatorStreams.ts (polling + WebSocket client)",
+        "src/context/OperatorContext.jsx (legacy context, unused in App.tsx)"
+      ],
+      "api": [
+        "src/services/api.ts (fetch wrappers + wsConnect)",
+        "src/api/operatorClient.js (axios legacy, unused)",
+        "src/simple/api.ts (simple chat)"
+      ],
+      "simple_mode": [
+        "src/simple/SimpleApp.tsx",
+        "src/simple/api.ts"
+      ],
+      "legacy_pages": [
+        "src/pages/Chat.jsx",
+        "src/pages/Dashboard.jsx",
+        "src/pages/Resources.jsx",
+        "src/pages/*.css"
+      ],
+      "config/build": [
+        "package.json",
+        "vite.config.ts",
+        "tsconfig.json",
+        "tsconfig.node.json",
+        "index.html",
+        "Dockerfile",
+        "nginx.conf",
+        "build.sh (fallback bundle script, Node<18)",
+        "README_OPERATOR_UI_v7.md"
+      ],
+      "artifacts": [
+        "dist/**/* (prebuilt assets)"
+      ],
+      "legacy_component": [
+        "components/ShubDashboard.vue (not referenced)"
+      ]
+    },
+    "operator_backend/backend": {
+      "main": "operator_backend/backend/main_v7.py",
+      "support": [
+        "browser.py",
+        "cli_hub.py",
+        "shub_api.py",
+        "web_bridge.py",
+        "switch_integration.py",
+        "feedback_loop.py",
+        "services/*.py"
+      ]
+    }
+  },
+  "components": [
+    {
+      "name": "ChatPanel",
+      "path": "operator_backend/frontend/src/components/ChatPanel.tsx",
+      "dataSources": ["/operator/chat", "/operator/session/{id}", "/operator/switch/feedback", "/operator/bridge/deepseek_web", "/operator/bridge/gemini_web"],
+      "state": "local useState; no global store",
+      "gaps": ["sin streaming", "sin optimistic UI real de traces", "sin TanStack Query", "sin virtualización (>200 msgs)", "sin store centralizado (zustand)"]
+    },
+    {
+      "name": "HormigueroMapPanel",
+      "path": "operator_backend/frontend/src/components/HormigueroMapPanel.tsx",
+      "dataSources": ["/operator/hormiguero/scan", "/operator/hormiguero/clean", "status.modules_list", "ws/ui events"],
+      "state": "local state, svg estático",
+      "gaps": ["sin React Flow", "sin overlay D3 real", "sin severidad animada/gradual", "acciones síncronas sin query cache"]
+    },
+    {
+      "name": "ManifestatorPanel",
+      "path": "operator_backend/frontend/src/components/ManifestatorPanel.tsx",
+      "dataSources": ["/operator/manifestator/validate", "/operator/manifestator/patchplan", "/operator/manifestator/apply"],
+      "state": "local state; textarea plano",
+      "gaps": ["sin Monaco editor", "sin markers/diagnostics", "sin tabla de patch plan", "sin TanStack Query"]
+    },
+    {
+      "name": "ShubPanel",
+      "path": "operator_backend/frontend/src/components/ShubPanel.tsx",
+      "dataSources": ["/operator/shub/dashboard", "/operator/intent", "/operator/shub/control"],
+      "state": "local state; polling cada 8s",
+      "gaps": ["sin dashboard rico", "controles stub", "sin manejo de health/bridge", "sin cache/query"]
+    },
+    {
+      "name": "SelfOverviewPanel",
+      "path": "operator_backend/frontend/src/components/SelfOverviewPanel.tsx",
+      "dataSources": ["/operator/self/overview"],
+      "state": "local state; polling 15s",
+      "gaps": ["sin memo/selectors globales", "sin loading skeleton", "sin TanStack Query"]
+    }
+  ],
+  "endpoints": [
+    {"method": "GET", "path": "/operator/system/status", "files": ["operator_backend/backend/main_v7.py", "operator_backend/frontend/src/services/api.ts", "useOperatorStreams.ts"]},
+    {"method": "POST", "path": "/operator/chat", "files": ["operator_backend/backend/main_v7.py", "operator_backend/frontend/src/services/api.ts", "ChatPanel.tsx"]},
+    {"method": "GET", "path": "/operator/session/{id}", "files": ["operator_backend/backend/main_v7.py", "ChatPanel.tsx", "src/services/api.ts"]},
+    {"method": "POST", "path": "/operator/manifestator/validate", "files": ["operator_backend/backend/main_v7.py", "ManifestatorPanel.tsx", "src/services/api.ts"]},
+    {"method": "POST", "path": "/operator/manifestator/patchplan", "files": ["operator_backend/backend/main_v7.py", "ManifestatorPanel.tsx", "src/services/api.ts"]},
+    {"method": "POST", "path": "/operator/manifestator/apply", "files": ["operator_backend/backend/main_v7.py", "ManifestatorPanel.tsx", "src/services/api.ts"]},
+    {"method": "POST", "path": "/operator/hormiguero/scan", "files": ["operator_backend/backend/main_v7.py", "HormigueroMapPanel.tsx", "HormigueroPanel.tsx", "src/services/api.ts"]},
+    {"method": "POST", "path": "/operator/hormiguero/clean", "files": ["operator_backend/backend/main_v7.py", "HormigueroMapPanel.tsx", "HormigueroPanel.tsx", "src/services/api.ts"]},
+    {"method": "GET", "path": "/operator/bridge/health", "files": ["operator_backend/backend/main_v7.py", "src/services/api.ts", "useOperatorStreams.ts"]},
+    {"method": "POST", "path": "/operator/bridge/deepseek_web", "files": ["operator_backend/backend/main_v7.py", "ChatPanel.tsx", "src/services/api.ts"]},
+    {"method": "POST", "path": "/operator/bridge/gemini_web", "files": ["operator_backend/backend/main_v7.py", "ChatPanel.tsx", "src/services/api.ts"]},
+    {"method": "GET", "path": "/operator/shub/dashboard", "files": ["operator_backend/backend/main_v7.py", "ShubPanel.tsx", "src/services/api.ts", "components/ShubDashboard.vue"]},
+    {"method": "POST", "path": "/operator/shub/control", "files": ["operator_backend/backend/main_v7.py", "ShubPanel.tsx", "src/services/api.ts"]},
+    {"method": "GET", "path": "/operator/self/overview", "files": ["operator_backend/backend/main_v7.py", "SelfOverviewPanel.tsx", "src/services/api.ts"]},
+    {"method": "GET", "path": "/operator/vx11/overview", "files": ["operator_backend/backend/main_v7.py", "src/api/operatorClient.js (legacy)"]},
+    {"method": "GET", "path": "/ui/events", "files": ["operator_backend/backend/main_v7.py", "useOperatorStreams.ts"]},
+    {"method": "GET", "path": "/operator/bridge/health", "files": ["operator_backend/backend/main_v7.py", "useOperatorStreams.ts"]},
+    {"method": "GET", "path": "/operator/hormiguero/events", "files": ["operator_backend/backend/main_v7.py", "src/services/api.ts"]},
+    {"method": "GET", "path": "/operator/hormiguero/queen_tasks", "files": ["operator_backend/backend/main_v7.py", "src/services/api.ts"]},
+    {"method": "GET", "path": "/operator/system/status", "files": ["operator_backend/backend/main_v7.py", "useOperatorStreams.ts"]},
+    {"method": "POST", "path": "/operator/switch/feedback", "files": ["operator_backend/backend/main_v7.py", "ChatPanel.tsx", "src/services/api.ts"]}
+  ],
+  "websocket": {
+    "client": "operator_backend/frontend/src/services/api.ts#wsConnect",
+    "url": "ws(s)://<OPERATOR_BASE_URL>/ws (config OPERATOR_BASE_URL defaults http://operator_backend:8011)",
+    "backend": "operator_backend/backend/main_v7.py @ /ws and /ws/{session_id}",
+    "events": ["bootstrap", "status", "heartbeat", "echo"],
+    "gaps": ["sin reconexión/backoff", "sin heartbeat cliente", "sin rutas específicas por tipo (status_update/hormiguero_event/shub_event)"]
+  },
+  "libraries": {
+    "present": ["react 18", "react-dom 18", "vite 4", "typescript 5.9", "@vitejs/plugin-react"],
+    "missing_for_plan": ["zustand", "@tanstack/react-query", "react-flow", "@monaco-editor/react o monaco-editor", "tailwindcss (tokens)", "d3/overlay ligero", "virtualization (react-window/virt)"],
+    "legacy_unused": ["axios (referenciado en src/api/operatorClient.js pero no declarado en package.json)", "Vue component (components/ShubDashboard.vue)"]
+  },
+  "obsolete_or_duplicate": [
+    {"path": "operator_backend/frontend/src/pages/*.jsx, *.css", "reason": "legacy router-less pages using axios + context; no longer used by App.tsx"},
+    {"path": "operator_backend/frontend/src/api/operatorClient.js", "reason": "axios client not wired to current UI; axios not in dependencies"},
+    {"path": "operator_backend/frontend/src/context/OperatorContext.jsx", "reason": "legacy context; App.tsx uses direct state/hooks"},
+    {"path": "operator_backend/frontend/src/components/Layout.jsx and Layout.css", "reason": "unused layout wrapper"},
+    {"path": "operator_backend/frontend/src/components/HormigueroPanel_fixed.tsx", "reason": "duplicate of HormigueroPanel.tsx"},
+    {"path": "operator_backend/frontend/components/ShubDashboard.vue", "reason": "Vue legacy dashboard, not imported"},
+    {"path": "operator_backend/frontend/build.sh", "reason": "fallback build for Node<18 (manual bundle) not aligned with Vite flow"},
+    {"path": "operator_backend/frontend/README_OPERATOR_UI_v7.md", "reason": "outdated roadmap (2025) vs requested v7.x alignment"},
+    {"path": "operator_backend/frontend/dist/*", "reason": "built artifacts checked in; should be regenerated not versioned"}
+  ],
+  "secrets": [
+    {"path": "tokens.env", "note": "contains API tokens (DeepSeek, etc). Do not print contents or commit; already in .gitignore"},
+    {"path": "tokens.env.master", "note": "sensitive backup"},
+    {"path": "tokens.env.sample", "note": "sample values only; still treat as sensitive placeholders"}
+  ],
+  "risks": [
+    "Frontend hits OPERATOR_BASE_URL default http://operator_backend:8011; not explicitly aligned to ws://localhost:8011/ws for dev.",
+    "No global state or react-query caching; repeated fetch/polling increases load.",
+    "WebSocket client lacks reconnection/heartbeat; UI may silently stop receiving events.",
+    "Manifestator editor plain textarea: no validation markers; errors surfaced only via JSON response.",
+    "Resource-heavy panels (chat/events) not virtualized; risk of re-render on every state change."
+  ],
+  "recommendations": [
+    "Crear store con Zustand por slices (chat, traces, hormiguero, system, ui) y usar selectors para minimizar renders.",
+    "Integrar TanStack Query con staleTime/GC y react-query DevTools opcional; centralizar llamadas /operator/*.",
+    "Reemplazar mapa SVG por React Flow + overlay D3 ligero para hormigas/severidad; añadir Drawer de detalle y acciones scan/clean.",
+    "Montar Monaco editor con validación y markers para Manifestator; mostrar tabla patch plan + confirmación apply.",
+    "Implementar cliente WS robusto (backoff, heartbeat 30s, re-subscribe) y enrutar eventos status_update/hormiguero_event/shub_event/trace.",
+    "Eliminar o archivar los archivos legacy listados para reducir bundle y confusión.",
+    "Garantizar secrets fuera del bundle; usar VITE_VX11_TOKEN desde entorno/CI y documentar rotación."
+  ]
+}

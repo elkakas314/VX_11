@@ -1,4 +1,5 @@
 #!/bin/bash
+source "$(dirname "${BASH_SOURCE[0]}")/cleanup_protect.sh"
 # VX11 System - Stop all services
 
 set -e

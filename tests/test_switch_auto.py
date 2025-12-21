@@ -14,6 +14,9 @@ from switch.main import app
 client = TestClient(app)
 
 
+pytestmark = pytest.mark.integration
+
+
 def test_switch_auto_returns_engine():
     r = client.post("/switch/route", json={"prompt": "hello world", "mode": "auto"})
     assert r.status_code == 200
@@ -21,4 +24,3 @@ def test_switch_auto_returns_engine():
     assert "status" in body and body["status"] == "ok"
     assert "engine" in body
     assert body["engine"] in ("local", "deepseek", "hermes")
-

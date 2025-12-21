@@ -1,0 +1,516 @@
+{
+  "schema": "VX11_SHUB_CANONICAL",
+  "version": "1.7.1",
+  "changelog": [
+    {
+      "id": "1.7.1",
+      "summary": "Canonical freeze for VX11 integration (no runtime behavior changes; OFF by default; docs/canonical/modules placement).",
+      "type": "patch",
+      "notes": [
+        "Bumps version from 1.7.0 → 1.7.1 to match VX11 integration bundle expectations.",
+        "No breaking changes; existing endpoints and job taxonomy unchanged.",
+        "Module remains disabled by default under SOLO_MADRE policy."
+      ]
+    },
+    {
+      "id": "1.7.0",
+      "summary": "Expanded engines and pipelines, enhanced contracts, improved safety and observability.",
+      "type": "minor",
+      "notes": [
+        "Adds/expands engine registry and pipelines.",
+        "Clarifies VX11 integration: Madre-managed lifecycle, Tentaculo_link relay-only access.",
+        "Adds feature flags and safety constraints; defaults set to minimize accidental activation."
+      ]
+    }
+  ],
+  "compatibility": {
+    "breaking_changes": [],
+    "compat_shims": {
+      "job_type_enum_unchanged": true,
+      "existing_endpoints_unchanged": true,
+      "contract_extensions_backward_compatible": true
+    },
+    "migration_notes": "New optional tables added. Existing job data unaffected. New feature flags default to false. (1.7.1: canonical freeze/version bump only; no migration required.)"
+  },
+  "module": {
+    "name": "shubniggurath",
+    "role": "Audio Engine (REAPER-first) + DSP pipelines + job runner",
+    "default_state": "disabled",
+    "listen": {
+      "host": "0.0.0.0",
+      "port": 8007
+    },
+    "dependencies": [
+      "madre",
+      "tentaculo_link"
+    ],
+    "optional_dependencies": [
+      "switch",
+      "operator_backend",
+      "spawner"
+    ],
+    "service_control": {
+      "owner": "madre",
+      "mode": "madre_managed",
+      "start_stop_mechanism": "docker_compose_or_systemd",
+      "notes": "VX11 default is 'solo madre arriba'. Shub is started only when Madre schedules audio work."
+    },
+    "resource_profile": {
+      "default": "sleeping",
+      "caps": {
+        "max_workers": 2,
+        "max_concurrent_jobs": 2,
+        "max_concurrent_renders": 1,
+        "max_concurrent_uploads": 1
+      },
+      "idle_ttl_seconds": 180,
+      "lazy_import_heavy_modules": true,
+      "wake_on_demand": true,
+      "wake_timeout_seconds": 30
+    },
+    "logging": {
+      "level": "INFO",
+      "structured": true,
+      "audit_events": true,
+      "redact_tokens": true,
+      "log_root": "forensic/shub/"
+    }
+  },
+  "api": {
+    "base_prefix": "/shub",
+    "convention": "All endpoints are under /shub/* and are accessed via tentaculo_link relay only (no direct public exposure).",
+    "health_envelope": {
+      "fields": [
+        "ok",
+        "module",
+        "version",
+        "state",
+        "timestamp_utc",
+        "details"
+      ],
+      "notes": "Health responses must be stable for Madre/Operator dashboards."
+    },
+    "error_envelope": {
+      "fields": [
+        "ok",
+        "error_code",
+        "message",
+        "correlation_id",
+        "retryable",
+        "details"
+      ]
+    },
+    "auth_headers": {
+      "token_header": "X-VX11-Token",
+      "signature_header": "X-VX11-Signature",
+      "timestamp_header": "X-VX11-Timestamp",
+      "nonce_header": "X-VX11-Nonce",
+      "notes": "Tentaculo_link is the trust boundary; Shub validates signed relay requests."
+    },
+    "idempotency": {
+      "header": "Idempotency-Key",
+      "enforced_on": [
+        "POST /shub/jobs",
+        "POST /shub/jobs/{job_id}/actions",
+        "POST /shub/presets",
+        "POST /shub/uploads",
+        "POST /shub/reaper/session"
+      ],
+      "storage_table": "shub_idempotency_keys",
+      "notes": "Idempotency is mandatory for job submission and side-effectful actions."
+    },
+    "openapi": true,
+    "endpoints": [
+      {
+        "method": "GET",
+        "path": "/health",
+        "contract": "Healthcheck",
+        "security": {
+          "required": false
+        }
+      },
+      {
+        "method": "GET",
+        "path": "/ready",
+        "contract": "Readinesscheck",
+        "security": {
+          "required": true
+        }
+      },
+      {
+        "method": "GET",
+        "path": "/version",
+        "contract": "VersionInfo",
+        "security": {
+          "required": false
+        }
+      },
+      {
+        "method": "POST",
+        "path": "/jobs",
+        "contract": "SubmitJob",
+        "security": {
+          "required": true
+        }
+      },
+      {
+        "method": "GET",
+        "path": "/jobs/{job_id}",
+        "contract": "GetJob",
+        "security": {
+          "required": true
+        }
+      },
+      {
+        "method": "GET",
+        "path": "/jobs/{job_id}/events",
+        "contract": "GetJobEvents",
+        "security": {
+          "required": true
+        }
+      },
+      {
+        "method": "GET",
+        "path": "/jobs/{job_id}/artifacts",
+        "contract": "ListArtifacts",
+        "security": {
+          "required": true
+        }
+      },
+      {
+        "method": "GET",
+        "path": "/jobs/{job_id}/artifacts/{artifact_id}",
+        "contract": "DownloadArtifact",
+        "security": {
+          "required": true
+        },
+        "returns": "ShubJobArtifact",
+        "notes": "Must be accessed via tentaculo_link relay only."
+      },
+      {
+        "method": "POST",
+        "path": "/jobs/{job_id}/actions",
+        "contract": "JobAction",
+        "security": {
+          "required": true
+        }
+      },
+      {
+        "method": "POST",
+        "path": "/presets",
+        "contract": "PresetUpsert",
+        "security": {
+          "required": true
+        }
+      },
+      {
+        "method": "GET",
+        "path": "/presets",
+        "contract": "PresetList",
+        "security": {
+          "required": true
+        }
+      },
+      {
+        "method": "POST",
+        "path": "/uploads",
+        "contract": "UploadArtifact",
+        "security": {
+          "required": true
+        }
+      },
+      {
+        "method": "POST",
+        "path": "/reaper/session",
+        "contract": "ReaperSessionStart",
+        "security": {
+          "required": true
+        }
+      },
+      {
+        "method": "POST",
+        "path": "/reaper/session/{session_id}/close",
+        "contract": "ReaperSessionClose",
+        "security": {
+          "required": true
+        }
+      },
+      {
+        "method": "GET",
+        "path": "/engines",
+        "contract": "EngineList",
+        "security": {
+          "required": true
+        }
+      },
+      {
+        "method": "GET",
+        "path": "/pipelines",
+        "contract": "PipelineList",
+        "security": {
+          "required": true
+        }
+      },
+      {
+        "method": "POST",
+        "path": "/pipelines/run",
+        "contract": "PipelineRun",
+        "security": {
+          "required": true
+        }
+      },
+      {
+        "method": "GET",
+        "path": "/metrics",
+        "contract": "Metrics",
+        "security": {
+          "required": true
+        }
+      },
+      {
+        "method": "GET",
+        "path": "/events/stream",
+        "contract": "OperatorEventStream",
+        "security": {
+          "required": true
+        },
+        "returns": "SSE stream",
+        "notes": "SSE stream for Operator dashboard via tentaculo_link relay only."
+      }
+    ],
+    "rate_limiting": {
+      "enabled": true,
+      "notes": "Rate limits are enforced at tentaculo_link and optionally at Shub for defense-in-depth."
+    }
+  },
+  "security": {
+    "mode": "HMAC",
+    "algorithm": "HMAC-SHA256",
+    "signature_header": "X-VX11-Signature",
+    "timestamp_header": "X-VX11-Timestamp",
+    "nonce_header": "X-VX11-Nonce",
+    "shared_secret_env": [
+      "VX11_GATEWAY_TOKEN",
+      "VX11_TENTACULO_LINK_TOKEN"
+    ],
+    "max_clock_skew_seconds": 60,
+    "signing_string": "METHOD\\nPATH\\nTIMESTAMP\\nNONCE\\nBODY_SHA256",
+    "replay_protection": {
+      "enabled": true,
+      "nonce_table": "shub_nonce_cache",
+      "nonce_ttl_seconds": 300
+    },
+    "allowlist": {
+      "enabled": true,
+      "trusted_callers": [
+        "tentaculo_link",
+        "madre"
+      ]
+    },
+    "trust_boundary": "No direct external callers. All traffic relayed and signed by tentaculo_link."
+  },
+  "database": {
+    "kind": "sqlite",
+    "vx11_db_path": "data/runtime/vx11.db",
+    "tables_namespace": "shub_",
+    "required_tables": [
+      "shub_jobs",
+      "shub_job_events",
+      "shub_job_artifacts",
+      "shub_presets",
+      "shub_reaper_sessions",
+      "shub_reaper_projects",
+      "shub_render_outputs",
+      "shub_audio_metrics",
+      "shub_pipeline_runs",
+      "shub_idempotency_keys",
+      "shub_nonce_cache",
+      "shub_schema_version",
+      "shub_edit_logs"
+    ],
+    "optional_tables": {
+      "enabled": true,
+      "tables": [
+        "shub_error_reports",
+        "shub_undo_snapshots"
+      ],
+      "auto_create_optional_tables": false,
+      "schema_version_table": "shub_schema_version",
+      "migrations_dir": "shubniggurath/migrations/"
+    },
+    "retention": {
+      "jobs_days": 30,
+      "events_days": 14,
+      "artifacts_days": 30,
+      "metrics_days": 90,
+      "cache_days": 7,
+      "edit_logs_days": 30,
+      "analysis_reports_days": 90,
+      "undo_snapshots_days": 3
+    },
+    "backup": {
+      "before_major_ops": true,
+      "strategy": "rotate_2",
+      "backup_root": "data/runtime/backups/",
+      "auto_vacuum_mode": "INCREMENTAL",
+      "vacuum_on_startup": false
+    }
+  },
+  "engines": {
+    "registry": [
+      {
+        "name": "reaper_bridge",
+        "role": "REAPER session orchestration and render control",
+        "notes": "REAPER-first. Must support headless operation where possible."
+      },
+      {
+        "name": "pipeline_engine",
+        "role": "DSP pipeline execution and chaining",
+        "notes": "Executes declared pipelines with safety caps and degraded modes."
+      },
+      {
+        "name": "edit_engine",
+        "role": "Comping/editing automation",
+        "notes": "Assemble best parts of multiple takes with audit trail."
+      },
+      {
+        "name": "analysis_engine",
+        "role": "Audio analysis and metrics extraction",
+        "notes": "Provides metrics for dashboards and quality checks."
+      }
+    ],
+    "degraded_modes": {
+      "enabled": true,
+      "modes": [
+        "no_reaper",
+        "no_uploads",
+        "analysis_only",
+        "export_only"
+      ],
+      "notes": "When dependencies are missing (REAPER/plugins), Shub must degrade safely instead of crashing."
+    }
+  },
+  "pipelines": {
+    "registry": [
+      {
+        "name": "mixdown_basic",
+        "purpose": "Mixdown pipeline (basic)",
+        "inputs": [
+          "project_path"
+        ],
+        "outputs": [
+          "render_path",
+          "processed_audio"
+        ]
+      },
+      {
+        "name": "mastering_basic",
+        "purpose": "Mastering pipeline (basic)",
+        "inputs": [
+          "audio_path"
+        ],
+        "outputs": [
+          "master_path",
+          "final_processed"
+        ]
+      }
+    ],
+    "notes": "Pipeline registry is declarative; implementation must respect resource caps and idempotency."
+  },
+  "feature_flags": {
+    "reaper_bridge": {
+      "default": true,
+      "description": "Enable REAPER bridge engine"
+    },
+    "pipeline_engine": {
+      "default": true,
+      "description": "Enable DSP pipeline engine"
+    },
+    "virtual_engineer": {
+      "default": false,
+      "description": "Enable 'virtual engineer' behavior (Operator Shub Mode)."
+    },
+    "operator_stream": {
+      "default": true,
+      "description": "SSE events for Operator dashboard"
+    },
+    "spawner_heavy_jobs": {
+      "default": false,
+      "description": "Allow delegating heavy jobs to spawner daughters"
+    },
+    "uploads": {
+      "default": false,
+      "description": "Enable uploads endpoint"
+    },
+    "advanced_engines": {
+      "default": true,
+      "description": "Enable extended engine set"
+    },
+    "vocal_engine": {
+      "default": false,
+      "description": "Enable vocal processing engine"
+    },
+    "drums_engine": {
+      "default": false,
+      "description": "Enable drums processing engine"
+    },
+    "bass_engine": {
+      "default": false,
+      "description": "Enable bass processing engine"
+    },
+    "guitar_engine": {
+      "default": false,
+      "description": "Enable guitar processing engine"
+    },
+    "bus_engine": {
+      "default": false,
+      "description": "Enable bus/stem processing engine"
+    },
+    "delivery_engine": {
+      "default": false,
+      "description": "Enable delivery/export engine"
+    },
+    "restoration_engine": {
+      "default": false,
+      "description": "Enable restoration/noise-reduction engine"
+    },
+    "session_engine": {
+      "default": false,
+      "description": "Enable session lifecycle engine"
+    }
+  },
+  "job_events": {
+    "taxonomy": [
+      "JOB_SUBMITTED",
+      "JOB_ACCEPTED",
+      "JOB_RUNNING",
+      "JOB_PROGRESS",
+      "JOB_ARTIFACT",
+      "JOB_COMPLETED",
+      "JOB_FAILED",
+      "JOB_CANCELED"
+    ]
+  },
+  "validation": {
+    "preflight_checks": [
+      "vx11_db_path exists or is creatable",
+      "required tables exist or migrations available",
+      "disk space threshold",
+      "REAPER availability (if reaper_bridge enabled)",
+      "plugin dependencies (optional)",
+      "port bind and health endpoints"
+    ],
+    "notes": "Preflight must be run on wake/start; failures force degraded mode or safe refusal."
+  },
+  "A_B_C_extensions": {
+    "A_artifacts_download": "Artifact downloads must be streamed; tentaculo_link relays and enforces auth headers; Shub never exposes raw filesystem paths.",
+    "B_idempotency_and_replay": "All POST side-effect endpoints must enforce idempotency and HMAC replay protection.",
+    "C_virtual_engineer_mode": "Operator 'Shub Mode' + SSE event stream + optional Switch language assist (no audio processing in Switch)."
+  },
+  "vx11_alignment": {
+    "runtime_policy": "solo_madre",
+    "default_disabled": true,
+    "temporal_window_required": true,
+    "notes": "Shub is full_profile and must remain OFF by default. Madre controls wake/sleep windows; tentaculo_link is the only ingress."
+  }
+}

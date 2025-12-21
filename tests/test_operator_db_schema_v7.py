@@ -3,6 +3,7 @@ Tests for Operator BD Schema (v7.0)
 """
 
 import pytest
+import uuid
 from config.db_schema import (
     get_session,
     OperatorSession,
@@ -26,8 +27,9 @@ class TestOperatorSession:
 
     def test_create_session(self, db_session):
         """Create new operator session."""
+        session_id = f"test-session-{uuid.uuid4().hex[:12]}"
         session = OperatorSession(
-            session_id="test-session-001",
+            session_id=session_id,
             user_id="test-user",
             source="web",
         )
@@ -35,7 +37,7 @@ class TestOperatorSession:
         db_session.commit()
         
         retrieved = db_session.query(OperatorSession).filter_by(
-            session_id="test-session-001"
+            session_id=session_id
         ).first()
         assert retrieved is not None
         assert retrieved.user_id == "test-user"
@@ -48,8 +50,9 @@ class TestOperatorMessage:
     def test_create_message(self, db_session):
         """Create message in session."""
         # First create session
+        session_id = f"test-msg-session-{uuid.uuid4().hex[:12]}"
         session = OperatorSession(
-            session_id="test-msg-session",
+            session_id=session_id,
             user_id="test-user",
         )
         db_session.add(session)
@@ -57,7 +60,7 @@ class TestOperatorMessage:
         
         # Then create message
         msg = OperatorMessage(
-            session_id="test-msg-session",
+            session_id=session_id,
             role="user",
             content="Hello!",
         )
@@ -65,7 +68,7 @@ class TestOperatorMessage:
         db_session.commit()
         
         retrieved = db_session.query(OperatorMessage).filter_by(
-            session_id="test-msg-session"
+            session_id=session_id
         ).first()
         assert retrieved is not None
         assert retrieved.role == "user"
@@ -78,12 +81,13 @@ class TestOperatorToolCall:
     def test_create_tool_call(self, db_session):
         """Create tool call record."""
         # Setup
-        session = OperatorSession(session_id="test-tool-session", user_id="user")
+        session_id = f"test-tool-session-{uuid.uuid4().hex[:12]}"
+        session = OperatorSession(session_id=session_id, user_id="user")
         db_session.add(session)
         db_session.commit()
         
         msg = OperatorMessage(
-            session_id="test-tool-session",
+            session_id=session_id,
             role="assistant",
             content="Calling tool",
         )
@@ -113,12 +117,13 @@ class TestOperatorBrowserTask:
 
     def test_create_browser_task(self, db_session):
         """Create browser task."""
-        session = OperatorSession(session_id="test-browser-session", user_id="user")
+        session_id = f"test-browser-session-{uuid.uuid4().hex[:12]}"
+        session = OperatorSession(session_id=session_id, user_id="user")
         db_session.add(session)
         db_session.commit()
         
         task = OperatorBrowserTask(
-            session_id="test-browser-session",
+            session_id=session_id,
             url="https://example.com",
             status="pending",
         )
@@ -137,12 +142,13 @@ class TestOperatorSwitchAdjustment:
 
     def test_create_adjustment(self, db_session):
         """Create switch adjustment."""
-        session = OperatorSession(session_id="test-adj-session", user_id="user")
+        session_id = f"test-adj-session-{uuid.uuid4().hex[:12]}"
+        session = OperatorSession(session_id=session_id, user_id="user")
         db_session.add(session)
         db_session.commit()
         
         adjustment = OperatorSwitchAdjustment(
-            session_id="test-adj-session",
+            session_id=session_id,
             before_config='{"model":"local"}',
             after_config='{"model":"deepseek"}',
             reason="Local model was slow",

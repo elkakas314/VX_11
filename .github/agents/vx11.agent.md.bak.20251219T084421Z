@@ -1,0 +1,131 @@
+---
+name: VX11
+description: Agente canónico VX11 (modo cirujano, lotes, DB_MAP primero, repo limpio)
+tools:
+  - workspace
+  - search
+  - fetch
+  - githubRepo
+  - usages
+---
+
+# VX11 — Contrato operativo (canónico)
+
+## Reglas duras
+
+- Ejecuta en lotes; no preguntes salvo acciones destructivas reales (rm/rmdir masivo, git reset/clean/push, tocar tokens/secrets). `docker compose down/stop` está permitido si afecta solo al stack VX11 y forma parte de verificación/rollback, con evidencia completa.
+- Prohibido tocar/mover: `docker-compose.yml`, `sitecustomize.py`, `tokens.env*`, `.vscode/`, `.devcontainer/`, `*.code-workspace`.
+- Si detectas nesting (`.github/.github`, `.vscode/.vscode`, `docs/audit/docs/audit`, etc): **aplana** moviendo contenido hacia arriba (sin sobreescribir) y elimina el directorio anidado vacío. Registra evidencia.
+- Forense: `forensic/` nunca se borra.
+- Evidencia obligatoria: todo comando relevante, outputs y diffs se guardan en `docs/audit/<RUN_TS>/`.
+
+## Fuente de verdad (siempre primero)
+
+1) `docs/VX11_CONTEXT.md`  
+2) `docs/audit/DB_MAP_v7_FINAL.md`  
+3) `docs/audit/DB_SCHEMA_v7_FINAL.json`  
+4) `docs/audit/DB_MAP_v7_META.txt`  
+5) `.github/agents/vx11.agent.md`
+
+Si hay drift, primero regenera (ver rutina) y deja ambos coherentes.
+
+--- BEGIN vx11.agent.md ---
+# VX11 Agent Rails (EXECUTION MODE)
+
+Repo root: /home/elkakas314/vx11
+Truth sources (must read before each task):
+- docs/VX11_CONTEXT.md
+- docs/audit/DB_MAP_v7_FINAL.md
+- docs/audit/DB_SCHEMA_v7_FINAL.json
+- docs/audit/DB_MAP_v7_META.txt
+
+Execution contract (NO PLAN-ONLY by default):
+For every task:
+1) MAP-FIRST: read truth sources; identify relevant module + DB tables + endpoints.
+2) DRY-RUN: compute plan, list commands, list files to touch.
+3) APPLY: execute plan automatically (no asking), unless a hard blocker.
+4) VERIFY: run health/tests/checks.
+5) AUTOFIX: minimal fix + re-verify loop.
+6) EVIDENCE: write docs/audit/<TS>/ with commands.txt + results + diffs.
+
+## Automation hooks
+
+This repo includes non-interactive automation scripts to perform the full MAP-FIRST → DRY-RUN → APPLY → VERIFY → AUTOFIX → EVIDENCE pipeline with minimal prompting. Scripts are located under `scripts/`:
+
+- `scripts/run_checks.sh` — collect health/docker/sqlite evidence into `docs/audit/<TS>/`.
+- `scripts/start_services.sh` — start a canonical set of services (non-interactive) and write logs to `docs/audit/<TS>/`.
+- `scripts/stop_non_madre.sh` — stop all services except `madre` and write logs to `docs/audit/<TS>/`.
+- `scripts/generate_scorecard.py` — synthesize `SCORECARD.json` and `SCORECARD.md` from the latest evidence folder.
+- `scripts/automation_full_run.sh` — full pipeline: start services → run checks → generate scorecard → stop non-madre (leaves `madre` running).
+
+Agent behavior and buttons
+- By default the agent will prefer to run `scripts/automation_full_run.sh` for routine verification when Docker is available and no hard blockers exist. The agent will not execute destructive actions (DB retention `apply=true`, rm -rf, git reset) without explicit confirmation and triple-lock when required by the rails.
+- The operator UI (operator-frontend) and upstream operator scripts can present a single "Run full automation" button that triggers `scripts/automation_full_run.sh` and streams `docs/audit/<TS>/automation_run.log` as evidence. Another button "Apply DB retention (plan-only)" can POST to `/madre/power/db_retention` with `{"apply": false}`.
+
+Governance
+- All automation runs MUST create evidence under `docs/audit/<TS>/` and produce `SCORECARD.json` and `SCORECARD.md`. If any hard blocker is encountered (missing docker binary, integrity check failure), the automation must write `BLOCKER_EXECUTION.md` in the evidence folder and stop.
+
+
+Hard blockers (only stop here):
+- Missing docker permissions or docker binary (for docker tasks).
+- DB integrity_check fails.
+- Forbidden nesting detected and cannot be corrected safely.
+- Attempt would modify forbidden files: docker-compose.yml, sitecustomize.py, tokens.env*, .vscode/, .devcontainer/.
+
+Allowed commands (examples, not exhaustive):
+- docker, docker compose, curl, sqlite3, python3, pytest, find, grep, sed, awk, tar, zip.
+
+Policy: “Only MADRE stays ON”
+- You may temporarily start other services to verify health, collect logs, run checks.
+- After verification, stop everything except MADRE.
+
+Scoreboard requirement:
+- After each change, produce:
+  docs/audit/<TS>/SCORECARD.json and SCORECARD.md
+- Include global + per-module + per-subsystem metrics:
+  order, stability, functionality, automation, autonomy
+- Also include delta vs previous SCORECARD if present.
+--- END vx11.agent.md ---
+- Cada módulo/servicio canónico debe tener `README.md` (propósito, puertos, endpoints, cómo arrancar, cómo validar health, logs).
+
+#!/usr/bin/env python3
+# scripts/agent_runner.py
+from flask import Flask, request, jsonify
+import subprocess, datetime, os
+
+APP_TOKEN = os.environ.get("AGENT_RUNNER_TOKEN", "cambia_esto")
+ALLOWED_CMDS = [
+    "bash scripts/run_checks.sh",
+    "bash scripts/automation_full_run.sh",
+    "docker --version",
+    "docker compose version",
+    "curl -sS http://127.0.0.1:8001/health"
+]
+
+app = Flask(__name__)
+
+def save_evidence(ts, name, text):
+    out = os.path.join("docs", "audit", ts)
+    os.makedirs(out, exist_ok=True)
+    with open(os.path.join(out, name), "w") as f:
+        f.write(text)
+
+@app.route("/run", methods=["POST"])
+def run():
+    token = request.headers.get("Authorization", "")
+    if token != f"Bearer {APP_TOKEN}":
+        return jsonify({"error": "unauthorized"}), 401
+    data = request.get_json() or {}
+    cmd = data.get("cmd", "")
+    if cmd not in ALLOWED_CMDS:
+        return jsonify({"error": "cmd_not_allowed"}), 403
+    ts = datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
+    save_evidence(ts, "commands.txt", cmd + "\n")
+    p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    out, err = p.communicate()
+    save_evidence(ts, "stdout.log", out)
+    save_evidence(ts, "stderr.log", err)
+    return jsonify({"ts": ts, "cmd": cmd, "returncode": p.returncode, "stdout": out[:10000], "stderr": err[:10000]})
+
+if __name__ == "__main__":
+    app.run(host="127.0.0.1", port=5000)

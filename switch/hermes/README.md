@@ -2,6 +2,12 @@
 
 Gestor de modelos locales ligeros (<2GB) y CLI externos para VX11.
 
+## Docker (compose)
+
+- **Servicio:** `hermes`
+- **Puerto:** 8003
+- **Health:** `GET /health`
+
 ## Funcionalidad
 - Registro y listado de modelos en SQLite (`/app/data/hermes_models.db`).
 - Categorías por tipo de tarea (Python, seguridad, audio, etc).
@@ -23,6 +29,12 @@ Gestor de modelos locales ligeros (<2GB) y CLI externos para VX11.
 
 ## Docker
 ```
-docker build -f hermes/Dockerfile -t vx11-hermes:latest .
+docker build -f switch/hermes/Dockerfile -t vx11-hermes:latest .
 docker run -p 8003:8003 vx11-hermes:latest
+```
+
+## Arranque rápido (stack local)
+```
+docker compose up -d tentaculo_link hermes
+curl -fsS http://localhost:8003/health
 ```

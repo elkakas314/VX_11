@@ -1,0 +1,208 @@
+# Minimal .gitignore to reduce noise; non-destructive and conservative
+# Do NOT ignore docs/audit or data/runtime/vx11.db
+.venv/
+__pycache__/
+*.pyc
+.tmp/
+tmp/
+.vscode/
+node_modules/
+.pytest_cache/
+forensic/
+forensic/*
+logs/
+playwright/
+# ============================================================
+# Python
+# ============================================================
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Setuptools
+dist/
+build/
+*.egg-info/
+*.egg
+
+# ============================================================
+# Virtual Environments
+# ============================================================
+
+.venv/
+venv/
+env/
+ENV/
+.env
+
+# ============================================================
+# Secrets & Credentials
+# ============================================================
+
+# Tokens and secrets (local)
+tokens.env
+tokens.env.master
+tokens.env.local
+secrets.env
+
+# Environment files
+.env.local
+.env.*.local
+
+# SSH keys
+*.pem
+*.key
+*.pub
+
+# ============================================================
+# IDE & Editor
+# ============================================================
+
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.editorconfig
+
+# ============================================================
+# Logs & Temp Files
+# ============================================================
+
+logs/
+*.log
+*.log.*
+
+# Temporary files
+.tmp_copilot/
+.tmp/
+temp/
+tmp/
+
+# Secure tokens directory (local only)
+scripts/secure/
+
+# ============================================================
+# Database & Data
+# ============================================================
+
+*.db
+*.sqlite
+*.sqlite3
+data/
+!data/.gitkeep
+
+# ============================================================
+# Models & Cache
+# ============================================================
+
+models/
+!models/.gitkeep
+
+sandbox/
+!sandbox/.gitkeep
+
+cache/
+*.cache
+
+# ============================================================
+# Docker
+# ============================================================
+
+docker-compose.override.yml
+.dockerignore
+
+# ============================================================
+# Testing
+# ============================================================
+
+.pytest_cache/
+.coverage
+htmlcov/
+*.cover
+.tox/
+
+# ============================================================
+# Build & Distribution
+# ============================================================
+
+build/
+dist/
+*.whl
+*.tar.gz
+
+# ============================================================
+# Backups & Archives
+# ============================================================
+
+*.bak
+*.backup
+*.swp
+*.zip
+*.tar
+
+# ============================================================
+# OS Files
+# ============================================================
+
+.DS_Store
+Thumbs.db
+*.exe
+*.dll
+*.so
+*.dylib
+
+# ============================================================
+# Node (si se usa para frontend) — STRICT RULES
+# ============================================================
+
+# Node modules NUNCA versionado
+node_modules/
+/operator/node_modules/
+/operator_backend/frontend/node_modules/
+/build/node_modules/
+
+# Build outputs
+/operator/dist/
+/operator/build/
+/operator_backend/frontend/dist/
+/operator_backend/frontend/build/
+/build/dist/
+
+# Vite cache
+.vite/
+.cache/
+.eslintcache
+
+# Logs
+npm-debug.log
+yarn-error.log
+package-lock.json
+pnpm-lock.yaml
+
+# ============================================================
+# IDE specific
+# ============================================================
+
+# VS Code
+.vscode/settings.json
+.vscode/extensions.json
+.vscode/launch.json
+
+# PyCharm
+.idea/
+*.iml
+
+# Sublime
+*.sublime-project
+*.sublime-workspace
+
+node_modules
+
+# Local backups and module quarantines
+.backups/
+tentaculo_link/_legacy/quarantine/

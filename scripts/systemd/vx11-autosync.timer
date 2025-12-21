@@ -1,0 +1,15 @@
+[Unit]
+Description=VX11 Autosync Timer (Every 5 minutes)
+Documentation=file:///home/elkakas314/vx11/tools/autosync.sh
+Requires=vx11-autosync.service
+
+[Timer]
+# Run every 5 minutes
+OnBootSec=1min
+OnUnitActiveSec=5min
+# Randomize start within ±30 seconds to avoid thundering herd
+RandomizedDelaySec=30s
+Unit=vx11-autosync.service
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,15 @@
+services:
+  hermes:
+    profiles: ["full"]
+  hormiguero:
+    profiles: ["full"]
+  manifestator:
+    profiles: ["full"]
+  shubniggurath:
+    profiles: ["full"]
+  spawner:
+    profiles: ["full"]
+  operator-backend:
+    profiles: ["full"]
+  operator-frontend:
+    profiles: ["full"]

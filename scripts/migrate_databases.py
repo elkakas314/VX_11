@@ -6,6 +6,8 @@ Consolida BDs legadas presentes en data/runtime hacia vx11.db con namespaces.
 Uso:
   python scripts/migrate_databases.py  [--dry-run]
 """
+from scripts.cleanup_guard import safe_move_py, safe_rm_py
+
 
 import sys
 import os

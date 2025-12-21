@@ -17,10 +17,15 @@ settings.deepseek_api_key = None
 client = TestClient(app)
 
 
+pytestmark = pytest.mark.integration
+
+
 def test_switch_deepseek_fallback_when_no_key():
-    r = client.post("/switch/route", json={"prompt": "this is a long prompt to prefer deep reasoning in real world"})
+    r = client.post(
+        "/switch/route",
+        json={"prompt": "this is a long prompt to prefer deep reasoning in real world"},
+    )
     assert r.status_code == 200
     body = r.json()
     assert body["status"] == "ok"
     assert body["engine"] in ("local", "hermes", "deepseek")
-

@@ -1,0 +1,791 @@
+  scripts/validate_canon_v6.1.sh:58:[ -f "prompts/madre.prompt.json" ]
+  scripts/validate_canon_v6.1.sh:76:for json_file in prompts/context-7.schema.json prompts/switch.prompt.json prompts/hermes.prompt.json prompts/madre.prompt.json prompts/hormiguero.prompt.json prompts/shubniggurath.prompt.json; do
+  scripts/vx11_runtime_truth.py:41:        "endpoints": ["/health", "/healthz", "/madre/health"],
+  scripts/vx11_task_router.py:282:    ("Madre", "http://localhost:8001", "/madre/daughter/spawn"),
+  scripts/vx11_scan_and_map.py:151:        ("madre", "localhost", 8001, "/madre/health"),
+  docker-compose.shub.yml:48:      MADRE_URL: http://madre:${MADRE_PORT:-8001}
+  data/backups/vx11_CANONICAL_STATE.json.bak_20251215T131433Z:250:          "health_url": "/madre/health",
+  data/backups/canonical.table_catalog.json.new:1010:          "health_url": "/madre/health",
+  .github/instructions/vx11-core.instructions.md:72:- Usa DNS de Docker: `http://madre:8001`, `http://switch:8002`, etc.
+  .github/AGENT_GUIDE.md:162:cat /home/elkakas314/vx11/forensic/madre/hashes/*.json | jq '.changed | length'
+  .github/AGENT_GUIDE.md:165:tail -f /home/elkakas314/vx11/forensic/madre/logs/* | grep ERROR
+  .github/AGENT_GUIDE.md:188:| Logs forenses | `forensic/{module}/logs/{timestamp}.log` | `forensic/madre/logs/20250102T120000Z.log` |
+  .github/AGENT_GUIDE.md:191:| System prompts | `prompts/{module}.md` | `prompts/madre.md` |
+  .github/agents/vx11.agent.md.bak:32:| 2 | Madre:8001 | `/health` OK | POST `/madre/daughter/spawn` | 5s |
+  forensic/crashes/CRASH_20251216T034024Z/main.py:1585:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  forensic/crashes/CRASH_20251216T231834Z/main.py:1605:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  forensic/crashes/CRASH_20251216T034026Z/main.py:1585:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  forensic/crashes/CRASH_20251216T034013Z/main.py:1585:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  forensic/crashes/CRASH_20251217T004341Z/main.py:1605:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  forensic/crashes/CRASH_20251217T004343Z/main.py:1605:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  forensic/crashes/CRASH_20251216T032117Z/main.py:1585:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  forensic/crashes/CRASH_20251216T033803Z/main.py:1585:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  forensic/crashes/CRASH_20251217T004334Z/main.py:1605:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  forensic/crashes/CRASH_20251216T233637Z/main.py:1605:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  forensic/crashes/CRASH_20251216T034025Z/main.py:1585:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  forensic/crashes/CRASH_20251216T231833Z/main.py:1605:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  forensic/crashes/CRASH_20251216T033751Z/main.py:1585:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  forensic/crashes/CRASH_20251216T033804Z/main.py:1585:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  forensic/crashes/CRASH_20251217T004342Z/main.py:1605:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  forensic/crashes/CRASH_20251216T233644Z/main.py:1605:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  forensic/crashes/CRASH_20251216T032116Z/main.py:1585:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  forensic/crashes/CRASH_20251216T233645Z/main.py:1605:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  docs/MADRE_v7_QUICKSTART.md:120:curl -X POST http://127.0.0.1:8001/madre/chat \
+  docs/MADRE_v7_QUICKSTART.md:149:curl -X POST http://127.0.0.1:8001/madre/chat \
+  docs/MADRE_v7_QUICKSTART.md:178:curl -X POST http://127.0.0.1:8001/madre/control \
+  docs/MADRE_v7_QUICKSTART.md:203:curl -s "http://127.0.0.1:8001/madre/plans?skip=0&limit=5" \
+  docs/MADRE_v7_QUICKSTART.md:226:curl -s "http://127.0.0.1:8001/madre/plans/$PLAN_ID" \
+  docs/MADRE_v7_QUICKSTART.md:254:curl -X POST "http://127.0.0.1:8001/madre/plans/$PLAN_ID/confirm" \
+  docs/MADRE_v7_QUICKSTART.md:279:tail -f forensic/madre/logs/$(date +%Y-%m-%d).log
+  docs/MADRE_v7_QUICKSTART.md:414:- [ ] `/madre/chat` works (simple message)
+  docs/MADRE_v7_QUICKSTART.md:415:- [ ] `/madre/chat` works (audio intent)
+  docs/MADRE_v7_QUICKSTART.md:416:- [ ] `/madre/control` works (low risk = accepted)
+  docs/MADRE_v7_QUICKSTART.md:417:- [ ] `/madre/control` works (high risk = pending confirmation)
+  docs/INDEX.md:8:- Madre: `docs/madre/_index.md`
+  docs/DEEP_SURGEON_VX11_v7_FINAL_COMPLETION.md:349:✅ INTENT dispatch: Queen sends POST to /madre/intent
+  docs/DEEP_SURGEON_VX11_v7_FINAL_COMPLETION.md:381:url = settings.madre_url or f"http://madre:{settings.madre_port}"
+  docs/DEEP_SURGEON_VX11_v7_FINAL_COMPLETION.md:394:with open("logs/madre.log", "a") as f: f.write(...)  # ❌ NOT USED
+  docs/SHUBNIGGURATH_COMPLETE.md:256:MADRE_URL=http://madre:8001
+  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:13:- **Canonical endpoints P0:** `/madre/chat`, `/madre/control`, `/madre/plans/*`
+  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:26:- **Symptom:** POST /madre/chat returning 404 despite GET /health being OK
+  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:32:- Added `HealthResponse` to imports and `__all__` in `/madre/core/__init__.py`
+  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:35:- **Result:** Container now responds with v7.0 /health and exposes `/madre/chat`
+  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:49:# OpenAPI routes (now includes /madre/chat)
+  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:50:curl http://127.0.0.1:8001/openapi.json | jq '.paths | keys'
+  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:53:  "/madre/chat",
+  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:54:  "/madre/control",
+  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:55:  "/madre/plans",
+  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:56:  "/madre/plans/{plan_id}",
+  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:57:  "/madre/plans/{plan_id}/confirm",
+  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:67:**File:** `/madre/core/parser.py`
+  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:109:**File:** `/madre/core/policy.py`
+  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:149:**File:** `/madre/core/runner.py`
+  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:192:- `POST /madre/chat` → ChatRequest/ChatResponse
+  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:193:- `POST /madre/control` → ControlRequest/ControlResponse  
+  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:194:- `GET /madre/plans` → List plans
+  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:195:- `GET /madre/plans/{plan_id}` → Get plan details
+  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:196:- `POST /madre/plans/{plan_id}/confirm` → Confirm pending plan
+  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:200:curl -X POST http://127.0.0.1:8001/madre/chat \
+  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:206:  "response": "Action requires confirmation. Provide plan_id and confirm_token to /madre/plans/{id}/confirm",
+  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:249:  - EndpointExistence: 1 NEW test (/madre/chat route in FastAPI app)
+  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:268:- `test_main_module_importable` — madre.main importable, has app, routes include /madre/chat
+  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:293:- ✅ `/madre/core/__init__.py` — Added HealthResponse export
+  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:294:- ✅ `/madre/core/models.py` — Added warnings field to DSL
+  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:295:- ✅ `/madre/core/parser.py` — Added DESTRUCTIVE_VERBS detection
+  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:296:- ✅ `/madre/core/policy.py` — Added suicidal action denial
+  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:297:- ✅ `/madre/core/runner.py` — Modified SPAWNER_REQUEST to insert daughter_tasks
+  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:326:User must call: POST /madre/plans/{plan_id}/confirm?confirm_token=<token>
+  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:368:| P0 endpoints exist | ✅ | /madre/chat in OpenAPI + functional test |
+  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:383:1. **Switch/Hormiguero modules down:** Policy and runner still functional; /madre/chat executes fallback parser
+  docs/WORKFLOWS_VX11_LOW_COST.md:42:curl -s http://127.0.0.1:8001/madre/health
+  docs/ARCHITECTURE.md:94:  - `POST /madre/v3/autonomous/start` → iniciar ciclo autónomo
+  docs/ARCHITECTURE.md:95:  - `POST /madre/v3/autonomous/stop` → detener ciclo
+  docs/SHUB_VX11_V7_FINAL_REPORT.md:113:POST   /madre/audio/analyze             → Tarea análisis vía Spawner
+  docs/SHUB_VX11_V7_FINAL_REPORT.md:114:POST   /madre/audio/mix                 → Tarea mezcla
+  docs/SHUB_VX11_V7_FINAL_REPORT.md:115:POST   /madre/audio/master              → Tarea masterización
+  docs/SHUB_VX11_V7_FINAL_REPORT.md:119:- ✅ **/madre/power/on|off|status** → Control de módulos (P&P)
+  docs/SHUB_VX11_V7_FINAL_REPORT.md:120:- ✅ **/madre/power/auto-decide** → Decisión automática
+  docs/API_REFERENCE.md:114:### POST /madre/v3/autonomous/start
+  docs/API_REFERENCE.md:119:### POST /madre/v3/autonomous/stop
+  docs/MADRE_v7_ROADMAP.md:75:  - [ ] `POST /madre/autonomous/start` endpoint
+  docs/MADRE_v7_ROADMAP.md:76:  - [ ] `POST /madre/autonomous/stop` endpoint
+  docs/MADRE_v7_EXECUTION_REPORT.md:172:2. `POST /madre/chat` → ChatResponse (pipeline completo)
+  docs/MADRE_v7_EXECUTION_REPORT.md:173:3. `POST /madre/control` → ControlResponse (risk classification)
+  docs/MADRE_v7_EXECUTION_REPORT.md:174:4. `GET /madre/plans` → List[Plan]
+  docs/MADRE_v7_EXECUTION_REPORT.md:175:5. `GET /madre/plans/{id}` → PlanDetail
+  docs/MADRE_v7_EXECUTION_REPORT.md:176:6. `POST /madre/plans/{id}/confirm` → Confirmation result
+  docs/MADRE_v7_EXECUTION_REPORT.md:299:- ✅ POST /madre/chat (ChatRequest → ChatResponse)
+  docs/MADRE_v7_EXECUTION_REPORT.md:300:- ✅ POST /madre/control (ControlRequest → ControlResponse)
+  docs/MADRE_v7_EXECUTION_REPORT.md:301:- ✅ GET /madre/plans (List)
+  docs/MADRE_v7_EXECUTION_REPORT.md:302:- ✅ GET /madre/plans/{id} (Detail)
+  docs/MADRE_v7_EXECUTION_REPORT.md:303:- ✅ POST /madre/plans/{id}/confirm (Confirmation)
+  docs/MADRE_v7_EXECUTION_REPORT.md:460:tail -f forensic/madre/logs/$(date +%Y-%m-%d).log
+  docs/audit/archived_forensic/forensic_crashes_CRASH_20251216T233637Z_main.py:1605:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  docs/audit/archived_forensic/forensic_crashes_CRASH_20251216T233644Z_main.py:1605:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  docs/audit/archived_forensic/forensic_crashes_CRASH_20251216T233645Z_main.py:1605:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  docs/audit/archived_forensic/forensic_crashes_CRASH_20251217T004342Z_main.py:1605:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  docs/audit/archived_forensic/forensic_crashes_CRASH_20251216T034013Z_main.py:1585:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  docs/audit/archived_forensic/forensic_crashes_CRASH_20251216T231834Z_main.py:1605:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  docs/audit/archived_forensic/forensic_crashes_CRASH_20251216T034025Z_main.py:1585:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  docs/audit/archived_forensic/forensic_crashes_CRASH_20251216T032117Z_main.py:1585:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  docs/audit/archived_forensic/forensic_crashes_CRASH_20251217T004334Z_main.py:1605:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  docs/audit/archived_forensic/forensic_crashes_CRASH_20251216T033804Z_main.py:1585:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  docs/audit/archived_forensic/forensic_crashes_CRASH_20251216T231833Z_main.py:1605:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  docs/audit/archived_forensic/forensic_crashes_CRASH_20251216T033803Z_main.py:1585:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  docs/audit/archived_forensic/forensic_crashes_CRASH_20251216T034024Z_main.py:1585:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  docs/audit/archived_forensic/forensic_crashes_CRASH_20251216T034026Z_main.py:1585:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  docs/audit/archived_forensic/forensic_crashes_CRASH_20251216T032116Z_main.py:1585:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  docs/audit/archived_forensic/forensic_crashes_CRASH_20251217T004343Z_main.py:1605:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  docs/audit/archived_forensic/forensic_crashes_CRASH_20251216T033751Z_main.py:1585:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  docs/audit/archived_forensic/forensic_crashes_CRASH_20251217T004341Z_main.py:1605:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  docs/audit/DB_MAP_v7_FINAL.md:316:| docs/archive/madre/_index.md | 861aec6389813fd51ab966aa2db26bcb053c910716748683e6da8ddc80864192 | text/plain | tracked | 2025-12-17T16:14:20.999585Z |
+  docs/audit/DB_MAP_v7_FINAL.md:464:| madre/madre_shub_orchestrator.py | 0b7b36db193fa0f112ad5f47b306f00567c01bd9458cad9dda3c63a0f783d364 | text/plain | tracked | 2025-12-17T16:14:22.247347Z |
+  docs/audit/DB_MAP_v7_FINAL.md:612:| prompts/madre.md | 9f268de6792836b2c30a9b9a21e0bf4d4a701c793c874c31cbce1709fee05698 | text/plain | tracked | 2025-12-17T16:14:23.236009Z |
+  docs/audit/DB_MAP_v7_FINAL.md:613:| prompts/madre.prompt.json | 83ae6874c11fd0e8413555bc6f83148a58383efae4a0b92d986fb0e167153303 | application/json | tracked | 2025-12-17T16:14:23.237962Z |
+  docs/audit/DB_MAP_v7_FINAL.md:692:| shubniggurath/api/madre_shub_handler.py | 3a0d8c99f9f3a12785a7fb58747ba71cac23904d2a9229432f9c2891e7410124 | text/plain | tracked | 2025-12-17T16:14:23.620744Z |
+  docs/audit/DB_MAP_v7_FINAL.md:693:| shubniggurath/api/madre_shub_router.py | 728f02d6aaa8ee672ce4873f33e2e5a0e88624b5ff55b4adde3db94df682d4ec | text/plain | tracked | 2025-12-17T16:14:23.624292Z |
+  docs/audit/VX11_AGENT_IMPLEMENTATION_REPORT.md:235:   - Probar múltiples endpoints por servicio (/health, /status, /docs, /openapi.json)
+  docs/audit/scan_20251217T172633Z/import_map.json:125:      "madre/madre_shub_orchestrator.py": [
+  docs/audit/scan_20251217T172633Z/inventory.txt:173:72K	./forensic/madre
+  docs/audit/scan_20251217T172633Z/inventory.txt:179:96K	./madre/core
+  docs/audit/scan_20251217T172633Z/inventory.txt:197:176K	./madre/__pycache__
+  docs/audit/scan_20251217T172633Z/inventory.txt:217:496K	./madre
+  docs/audit/PHASEG_TENTACULO_LINK_ROUTER_REPORT.md:22:  - ANALYSIS → madre:/madre/task (timeout 60s)
+  docs/audit/PHASEG_TENTACULO_LINK_ROUTER_REPORT.md:193:- OpenAPI JSON: http://localhost:8000/openapi.json
+  docs/audit/VX11_API_DISCOVERY.md:4:**Fuente:** `curl /openapi.json` desde servicios 7/10 OK  
+  docs/audit/VX11_API_DISCOVERY.md:48:| `/madre/hijas` | GET | Listar hijas activas | `@vx11 watch hijas` |
+  docs/audit/VX11_API_DISCOVERY.md:49:| `/madre/daughter/spawn` | POST | Spawn hija ejecutora | `@vx11 task:enqueue` |
+  docs/audit/VX11_API_DISCOVERY.md:50:| `/madre/daughters` | GET | Estado hijas | Monitoring |
+  docs/audit/VX11_API_DISCOVERY.md:51:| `/madre/dsl` | POST | Ejecutar DSL de Madre | Internal |
+  docs/audit/VX11_API_DISCOVERY.md:57:curl -X POST http://localhost:8001/madre/daughter/spawn \
+  docs/audit/VX11_API_DISCOVERY.md:207:2. Madre (8001) /madre/daughter/spawn → spawn hija diagnosticadora
+  docs/audit/imports_ast_report.json:19218:    "shubniggurath/api/madre_shub_handler.py": {
+  docs/audit/imports_ast_report.json:19333:    "shubniggurath/api/madre_shub_router.py": {
+  docs/audit/imports_ast_report.json:24909:    "madre/madre_shub_orchestrator.py": {
+  docs/audit/VX11_FINAL_REPORT.md:28:  - ImportError/404 en varios módulos y endpoints (ej. `hormiguero.VX11_TOKEN` falta, rutas `/madre/chat` no registradas).
+  docs/audit/VX11_FINAL_REPORT.md:43:2. Revisar `madre` rutas faltantes (`/madre/chat` y demás) y excepciones 500 — capturar tracebacks en `forensic/madre/logs` y parchear handlers.
+  docs/audit/VX11_PYTEST_FULL_RUN.md:111:    assert "/madre/chat" in routes
+  docs/audit/VX11_PYTEST_FULL_RUN.md:112:E   AssertionError: assert '/madre/chat' in ['/openapi.json', '/docs', '/docs/oauth2-redirect', '/redoc', '/madre/power/on/{module}', '/madre/power/off/{module}', ...]
+  docs/audit/VX11_PYTEST_FULL_RUN.md:304:  File "/home/elkakas314/vx11/shubniggurath/api/madre_shub_handler.py", line 200, in handle_batch_task
+  docs/audit/ULTRA_AUDIT_2025-12-16/VX11_ULTRA_AUDIT_FIX_PLAN.md:19:1. Inspect `forensic/madre/logs/*` entries causing `file is not a database`; investigate whether temporary files or incorrect file descriptors exist.
+  docs/audit/ULTRA_AUDIT_2025-12-16/raw/ls_raw_after_runtime_fase5.txt:45:-rw-rw-r-- 1 elkakas314 elkakas314    82 dic 16 19:57 hermes_openapi.json
+  docs/audit/ULTRA_AUDIT_2025-12-16/raw/ls_raw_after_runtime_fase5.txt:61:-rw-rw-r-- 1 elkakas314 elkakas314    82 dic 16 19:57 madre_openapi.json
+  docs/audit/ULTRA_AUDIT_2025-12-16/raw/ls_raw_after_runtime_fase5.txt:67:-rw-rw-r-- 1 elkakas314 elkakas314    82 dic 16 19:57 switch_openapi.json
+  docs/audit/ULTRA_AUDIT_2025-12-16/raw/ls_raw_after_runtime_fase5.txt:70:-rw-rw-r-- 1 elkakas314 elkakas314    82 dic 16 19:57 tentaculo_link_openapi.json
+  docs/audit/ULTRA_AUDIT_2025-12-16/raw/db_paths_hits.txt:9:./madre/README.md:211:  -e DATABASE_URL=sqlite:///data/runtime/vx11.db \
+  docs/audit/ULTRA_AUDIT_2025-12-16/raw/db_paths_hits.txt:10:./madre/core/runner.py:93:                "sqlite:////home/elkakas314/vx11/data/runtime/vx11.db"
+  docs/audit/ULTRA_AUDIT_2025-12-16/raw/db_paths_hits.txt:20:./shubniggurath/api/madre_shub_handler.py:240:            # En implementación real, consultar BD vx11.db
+  docs/audit/ULTRA_AUDIT_2025-12-16/raw/db_paths_hits.txt:36:./prompts/madre.md:179:- **BD unificada:** get_session("madre") → vx11.db
+  docs/audit/ULTRA_AUDIT_2025-12-16/raw/files_head800.txt:164:./madre/bridge_handler.py
+  docs/audit/ULTRA_AUDIT_2025-12-16/raw/files_head800.txt:165:./madre/daughters_paso5.py
+  docs/audit/ULTRA_AUDIT_2025-12-16/raw/files_head800.txt:166:./madre/daughters.py
+  docs/audit/ULTRA_AUDIT_2025-12-16/raw/files_head800.txt:167:./madre/Dockerfile
+  docs/audit/ULTRA_AUDIT_2025-12-16/raw/files_head800.txt:168:./madre/dsl_compiler.py
+  docs/audit/ULTRA_AUDIT_2025-12-16/raw/files_head800.txt:169:./madre/dsl_parser.py
+  docs/audit/ULTRA_AUDIT_2025-12-16/raw/files_head800.txt:170:./madre/fluzo_integration.py
+  docs/audit/ULTRA_AUDIT_2025-12-16/raw/files_head800.txt:171:./madre/__init__.py
+  docs/audit/ULTRA_AUDIT_2025-12-16/raw/files_head800.txt:172:./madre/madre_shub_orchestrator.py
+  docs/audit/ULTRA_AUDIT_2025-12-16/raw/files_head800.txt:173:./madre/main_legacy.py
+  docs/audit/ULTRA_AUDIT_2025-12-16/raw/files_head800.txt:174:./madre/main.py
+  docs/audit/ULTRA_AUDIT_2025-12-16/raw/files_head800.txt:175:./madre/main_v7_production.py
+  docs/audit/ULTRA_AUDIT_2025-12-16/raw/files_head800.txt:176:./madre/README.md
+  docs/audit/ULTRA_AUDIT_2025-12-16/raw/files_head800.txt:229:./prompts/madre.md
+  docs/audit/ULTRA_AUDIT_2025-12-16/raw/files_head800.txt:230:./prompts/madre.prompt.json
+  docs/audit/ULTRA_AUDIT_2025-12-16/raw/absolute_paths_hits.txt:31:./hormiguero/hormiguero_v7.py:215:            "/app/madre", "/app/spawner", "/app/switch", "/app/hermes",
+  docs/audit/ULTRA_AUDIT_2025-12-16/raw/absolute_paths_hits.txt:38:./madre/Dockerfile:28:COPY config /app/config/
+  docs/audit/ULTRA_AUDIT_2025-12-16/raw/absolute_paths_hits.txt:39:./madre/Dockerfile:29:COPY madre /app/madre/
+  docs/audit/ULTRA_AUDIT_2025-12-16/raw/absolute_paths_hits.txt:40:./madre/Dockerfile:30:COPY sitecustomize.py /app/
+  docs/audit/ULTRA_AUDIT_2025-12-16/raw/absolute_paths_hits.txt:41:./madre/Dockerfile:33:RUN mkdir -p /app/logs /app/data /app/models /app/sandbox
+  docs/audit/ULTRA_AUDIT_2025-12-16/raw/absolute_paths_hits.txt:42:./madre/README.md:137:cd /home/elkakas314/vx11
+  docs/audit/ULTRA_AUDIT_2025-12-16/raw/absolute_paths_hits.txt:43:./madre/README.md:212:  -v /data:/app/data \
+  docs/audit/ULTRA_AUDIT_2025-12-16/raw/absolute_paths_hits.txt:44:./madre/core/runner.py:93:                "sqlite:////home/elkakas314/vx11/data/runtime/vx11.db"
+  docs/audit/ULTRA_AUDIT_2025-12-16/raw/absolute_paths_hits.txt:51:./tests/test_reina_logic_v7.py:43:        incident.location = "/app/madre/main.py"
+  docs/audit/ULTRA_AUDIT_2025-12-16/raw/absolute_paths_hits.txt:53:./tests/test_paso7_integration.py:510:            py_compile.compile('/home/elkakas314/vx11/madre/main.py', doraise=True)
+  docs/audit/ULTRA_AUDIT_2025-12-16/raw/absolute_paths_hits.txt:467:./docs/VX11_HORMIGUERO_v7_COMPLETION.md:278:        "location": "/app/madre/main.py",
+  docs/audit/ULTRA_AUDIT_2025-12-16/raw/absolute_paths_hits.txt:547:./docs/audit/ULTRA_AUDIT_CLEANUP_2025-12-16/db_paths_hits.txt:10:./madre/core/runner.py:93:                "sqlite:////home/elkakas314/vx11/data/runtime/vx11.db"
+  docs/audit/ULTRA_AUDIT_2025-12-16/raw/top_du_fase2.txt:46:420K	./madre
+  docs/audit/ULTRA_AUDIT_2025-12-16/raw/top_du_fase2.txt:97:108K	./madre/__pycache__
+  docs/audit/ULTRA_AUDIT_2025-12-16/raw/top_du_fase2.txt:106:96K	./madre/core
+  docs/audit/ULTRA_AUDIT_2025-12-16/raw/top_du_fase2.txt:112:92K	./madre/main_legacy.py
+  docs/audit/ULTRA_AUDIT_2025-12-16/raw/top_du_fase2.txt:160:64K	./forensic/madre
+  docs/audit/ULTRA_AUDIT_2025-12-16/raw/top_du_fase2.txt:171:56K	./forensic/madre/logs
+  docs/audit/ULTRA_AUDIT_2025-12-16/raw/top_du_fase2.txt:181:48K	./madre/core/__pycache__
+  docs/audit/ULTRA_AUDIT_2025-12-16/raw/dirs_maxdepth2.txt:32:./forensic/madre
+  docs/audit/ULTRA_AUDIT_2025-12-16/raw/dirs_maxdepth2.txt:64:./madre
+  docs/audit/ULTRA_AUDIT_2025-12-16/raw/dirs_maxdepth2.txt:65:./madre/core
+  docs/audit/ULTRA_AUDIT_2025-12-16/raw/dirs_maxdepth2.txt:66:./madre/__pycache__
+  docs/audit/ULTRA_AUDIT_2025-12-16/raw/dirs_maxdepth2.txt:148:./tests/madre
+  docs/audit/ULTRA_AUDIT_2025-12-16/sandbox/vx11_audit_runner.py:147:        url = f"http://127.0.0.1:{port}/openapi.json"
+  docs/audit/ULTRA_AUDIT_2025-12-16/consolidated/RUNTIME_AUDIT_REPORT.md:3:Resumen de la ejecución controlada de servicios (arranques uno-a-uno, recolección de `/health`, `openapi.json` y logs). Evidencia en `../raw/`.
+  docs/audit/ULTRA_AUDIT_2025-12-16/consolidated/RUNTIME_AUDIT_REPORT.md:9:  - OpenAPI: [raw/tentaculo_link_openapi.json](../raw/tentaculo_link_openapi.json)
+  docs/audit/ULTRA_AUDIT_2025-12-16/consolidated/RUNTIME_AUDIT_REPORT.md:13:  - Health: [raw/madre_health.txt](../raw/madre_health.txt)
+  docs/audit/ULTRA_AUDIT_2025-12-16/consolidated/RUNTIME_AUDIT_REPORT.md:14:  - OpenAPI: [raw/madre_openapi.json](../raw/madre_openapi.json)
+  docs/audit/ULTRA_AUDIT_2025-12-16/consolidated/RUNTIME_AUDIT_REPORT.md:15:  - Logs: [raw/madre_logs.txt](../raw/madre_logs.txt)
+  docs/audit/ULTRA_AUDIT_2025-12-16/consolidated/RUNTIME_AUDIT_REPORT.md:19:  - OpenAPI: [raw/switch_openapi.json](../raw/switch_openapi.json)
+  docs/audit/ULTRA_AUDIT_2025-12-16/consolidated/RUNTIME_AUDIT_REPORT.md:24:  - OpenAPI: [raw/hermes_openapi.json](../raw/hermes_openapi.json)
+  docs/audit/ULTRA_AUDIT_2025-12-16/VX11_ULTRA_AUDIT_REPORT.md:37:- Revisión manual de entradas problemáticas en `forensic/madre/logs` (picos en 2025-12-15 y 2025-12-16).
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:1:  scripts/validate_canon_v6.1.sh:58:[ -f "prompts/madre.prompt.json" ]
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:2:  scripts/validate_canon_v6.1.sh:76:for json_file in prompts/context-7.schema.json prompts/switch.prompt.json prompts/hermes.prompt.json prompts/madre.prompt.json prompts/hormiguero.prompt.json prompts/shubniggurath.prompt.json; do
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:3:  scripts/vx11_runtime_truth.py:41:        "endpoints": ["/health", "/healthz", "/madre/health"],
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:4:  scripts/vx11_task_router.py:282:    ("Madre", "http://localhost:8001", "/madre/daughter/spawn"),
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:5:  scripts/vx11_scan_and_map.py:151:        ("madre", "localhost", 8001, "/madre/health"),
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:6:  docker-compose.shub.yml:48:      MADRE_URL: http://madre:${MADRE_PORT:-8001}
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:7:  data/backups/vx11_CANONICAL_STATE.json.bak_20251215T131433Z:250:          "health_url": "/madre/health",
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:8:  data/backups/canonical.table_catalog.json.new:1010:          "health_url": "/madre/health",
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:9:  .github/instructions/vx11-core.instructions.md:72:- Usa DNS de Docker: `http://madre:8001`, `http://switch:8002`, etc.
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:10:  .github/AGENT_GUIDE.md:162:cat /home/elkakas314/vx11/forensic/madre/hashes/*.json | jq '.changed | length'
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:11:  .github/AGENT_GUIDE.md:165:tail -f /home/elkakas314/vx11/forensic/madre/logs/* | grep ERROR
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:12:  .github/AGENT_GUIDE.md:188:| Logs forenses | `forensic/{module}/logs/{timestamp}.log` | `forensic/madre/logs/20250102T120000Z.log` |
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:13:  .github/AGENT_GUIDE.md:191:| System prompts | `prompts/{module}.md` | `prompts/madre.md` |
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:14:  .github/agents/vx11.agent.md.bak:32:| 2 | Madre:8001 | `/health` OK | POST `/madre/daughter/spawn` | 5s |
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:15:  forensic/crashes/CRASH_20251216T034024Z/main.py:1585:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:16:  forensic/crashes/CRASH_20251216T231834Z/main.py:1605:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:17:  forensic/crashes/CRASH_20251216T034026Z/main.py:1585:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:18:  forensic/crashes/CRASH_20251216T034013Z/main.py:1585:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:19:  forensic/crashes/CRASH_20251217T004341Z/main.py:1605:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:20:  forensic/crashes/CRASH_20251217T004343Z/main.py:1605:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:21:  forensic/crashes/CRASH_20251216T032117Z/main.py:1585:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:22:  forensic/crashes/CRASH_20251216T033803Z/main.py:1585:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:23:  forensic/crashes/CRASH_20251217T004334Z/main.py:1605:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:24:  forensic/crashes/CRASH_20251216T233637Z/main.py:1605:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:25:  forensic/crashes/CRASH_20251216T034025Z/main.py:1585:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:26:  forensic/crashes/CRASH_20251216T231833Z/main.py:1605:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:27:  forensic/crashes/CRASH_20251216T033751Z/main.py:1585:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:28:  forensic/crashes/CRASH_20251216T033804Z/main.py:1585:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:29:  forensic/crashes/CRASH_20251217T004342Z/main.py:1605:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:30:  forensic/crashes/CRASH_20251216T233644Z/main.py:1605:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:31:  forensic/crashes/CRASH_20251216T032116Z/main.py:1585:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:32:  forensic/crashes/CRASH_20251216T233645Z/main.py:1605:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:33:  docs/MADRE_v7_QUICKSTART.md:120:curl -X POST http://127.0.0.1:8001/madre/chat \
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:34:  docs/MADRE_v7_QUICKSTART.md:149:curl -X POST http://127.0.0.1:8001/madre/chat \
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:35:  docs/MADRE_v7_QUICKSTART.md:178:curl -X POST http://127.0.0.1:8001/madre/control \
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:36:  docs/MADRE_v7_QUICKSTART.md:203:curl -s "http://127.0.0.1:8001/madre/plans?skip=0&limit=5" \
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:37:  docs/MADRE_v7_QUICKSTART.md:226:curl -s "http://127.0.0.1:8001/madre/plans/$PLAN_ID" \
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:38:  docs/MADRE_v7_QUICKSTART.md:254:curl -X POST "http://127.0.0.1:8001/madre/plans/$PLAN_ID/confirm" \
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:39:  docs/MADRE_v7_QUICKSTART.md:279:tail -f forensic/madre/logs/$(date +%Y-%m-%d).log
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:40:  docs/MADRE_v7_QUICKSTART.md:414:- [ ] `/madre/chat` works (simple message)
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:41:  docs/MADRE_v7_QUICKSTART.md:415:- [ ] `/madre/chat` works (audio intent)
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:42:  docs/MADRE_v7_QUICKSTART.md:416:- [ ] `/madre/control` works (low risk = accepted)
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:43:  docs/MADRE_v7_QUICKSTART.md:417:- [ ] `/madre/control` works (high risk = pending confirmation)
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:44:  docs/INDEX.md:8:- Madre: `docs/madre/_index.md`
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:45:  docs/DEEP_SURGEON_VX11_v7_FINAL_COMPLETION.md:349:✅ INTENT dispatch: Queen sends POST to /madre/intent
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:46:  docs/DEEP_SURGEON_VX11_v7_FINAL_COMPLETION.md:381:url = settings.madre_url or f"http://madre:{settings.madre_port}"
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:47:  docs/DEEP_SURGEON_VX11_v7_FINAL_COMPLETION.md:394:with open("logs/madre.log", "a") as f: f.write(...)  # ❌ NOT USED
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:48:  docs/SHUBNIGGURATH_COMPLETE.md:256:MADRE_URL=http://madre:8001
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:49:  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:13:- **Canonical endpoints P0:** `/madre/chat`, `/madre/control`, `/madre/plans/*`
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:50:  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:26:- **Symptom:** POST /madre/chat returning 404 despite GET /health being OK
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:51:  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:32:- Added `HealthResponse` to imports and `__all__` in `/madre/core/__init__.py`
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:52:  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:35:- **Result:** Container now responds with v7.0 /health and exposes `/madre/chat`
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:53:  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:49:# OpenAPI routes (now includes /madre/chat)
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:54:  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:50:curl http://127.0.0.1:8001/openapi.json | jq '.paths | keys'
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:55:  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:53:  "/madre/chat",
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:56:  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:54:  "/madre/control",
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:57:  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:55:  "/madre/plans",
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:58:  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:56:  "/madre/plans/{plan_id}",
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:59:  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:57:  "/madre/plans/{plan_id}/confirm",
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:60:  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:67:**File:** `/madre/core/parser.py`
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:61:  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:109:**File:** `/madre/core/policy.py`
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:62:  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:149:**File:** `/madre/core/runner.py`
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:63:  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:192:- `POST /madre/chat` → ChatRequest/ChatResponse
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:64:  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:193:- `POST /madre/control` → ControlRequest/ControlResponse  
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:65:  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:194:- `GET /madre/plans` → List plans
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:66:  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:195:- `GET /madre/plans/{plan_id}` → Get plan details
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:67:  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:196:- `POST /madre/plans/{plan_id}/confirm` → Confirm pending plan
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:68:  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:200:curl -X POST http://127.0.0.1:8001/madre/chat \
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:69:  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:206:  "response": "Action requires confirmation. Provide plan_id and confirm_token to /madre/plans/{id}/confirm",
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:70:  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:249:  - EndpointExistence: 1 NEW test (/madre/chat route in FastAPI app)
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:71:  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:268:- `test_main_module_importable` — madre.main importable, has app, routes include /madre/chat
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:72:  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:293:- ✅ `/madre/core/__init__.py` — Added HealthResponse export
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:73:  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:294:- ✅ `/madre/core/models.py` — Added warnings field to DSL
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:74:  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:295:- ✅ `/madre/core/parser.py` — Added DESTRUCTIVE_VERBS detection
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:75:  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:296:- ✅ `/madre/core/policy.py` — Added suicidal action denial
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:76:  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:297:- ✅ `/madre/core/runner.py` — Modified SPAWNER_REQUEST to insert daughter_tasks
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:77:  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:326:User must call: POST /madre/plans/{plan_id}/confirm?confirm_token=<token>
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:78:  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:368:| P0 endpoints exist | ✅ | /madre/chat in OpenAPI + functional test |
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:79:  docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:383:1. **Switch/Hormiguero modules down:** Policy and runner still functional; /madre/chat executes fallback parser
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:80:  docs/WORKFLOWS_VX11_LOW_COST.md:42:curl -s http://127.0.0.1:8001/madre/health
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:81:  docs/ARCHITECTURE.md:94:  - `POST /madre/v3/autonomous/start` → iniciar ciclo autónomo
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:82:  docs/ARCHITECTURE.md:95:  - `POST /madre/v3/autonomous/stop` → detener ciclo
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:83:  docs/SHUB_VX11_V7_FINAL_REPORT.md:113:POST   /madre/audio/analyze             → Tarea análisis vía Spawner
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:84:  docs/SHUB_VX11_V7_FINAL_REPORT.md:114:POST   /madre/audio/mix                 → Tarea mezcla
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:85:  docs/SHUB_VX11_V7_FINAL_REPORT.md:115:POST   /madre/audio/master              → Tarea masterización
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:86:  docs/SHUB_VX11_V7_FINAL_REPORT.md:119:- ✅ **/madre/power/on|off|status** → Control de módulos (P&P)
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:87:  docs/SHUB_VX11_V7_FINAL_REPORT.md:120:- ✅ **/madre/power/auto-decide** → Decisión automática
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:88:  docs/API_REFERENCE.md:114:### POST /madre/v3/autonomous/start
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:89:  docs/API_REFERENCE.md:119:### POST /madre/v3/autonomous/stop
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:90:  docs/MADRE_v7_ROADMAP.md:75:  - [ ] `POST /madre/autonomous/start` endpoint
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:91:  docs/MADRE_v7_ROADMAP.md:76:  - [ ] `POST /madre/autonomous/stop` endpoint
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:92:  docs/MADRE_v7_EXECUTION_REPORT.md:172:2. `POST /madre/chat` → ChatResponse (pipeline completo)
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:93:  docs/MADRE_v7_EXECUTION_REPORT.md:173:3. `POST /madre/control` → ControlResponse (risk classification)
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:94:  docs/MADRE_v7_EXECUTION_REPORT.md:174:4. `GET /madre/plans` → List[Plan]
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:95:  docs/MADRE_v7_EXECUTION_REPORT.md:175:5. `GET /madre/plans/{id}` → PlanDetail
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:96:  docs/MADRE_v7_EXECUTION_REPORT.md:176:6. `POST /madre/plans/{id}/confirm` → Confirmation result
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:97:  docs/MADRE_v7_EXECUTION_REPORT.md:299:- ✅ POST /madre/chat (ChatRequest → ChatResponse)
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:98:  docs/MADRE_v7_EXECUTION_REPORT.md:300:- ✅ POST /madre/control (ControlRequest → ControlResponse)
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:99:  docs/MADRE_v7_EXECUTION_REPORT.md:301:- ✅ GET /madre/plans (List)
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:100:  docs/MADRE_v7_EXECUTION_REPORT.md:302:- ✅ GET /madre/plans/{id} (Detail)
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:101:  docs/MADRE_v7_EXECUTION_REPORT.md:303:- ✅ POST /madre/plans/{id}/confirm (Confirmation)
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:102:  docs/MADRE_v7_EXECUTION_REPORT.md:460:tail -f forensic/madre/logs/$(date +%Y-%m-%d).log
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:103:  docs/audit/archived_forensic/forensic_crashes_CRASH_20251216T233637Z_main.py:1605:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:104:  docs/audit/archived_forensic/forensic_crashes_CRASH_20251216T233644Z_main.py:1605:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:105:  docs/audit/archived_forensic/forensic_crashes_CRASH_20251216T233645Z_main.py:1605:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:106:  docs/audit/archived_forensic/forensic_crashes_CRASH_20251217T004342Z_main.py:1605:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:107:  docs/audit/archived_forensic/forensic_crashes_CRASH_20251216T034013Z_main.py:1585:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:108:  docs/audit/archived_forensic/forensic_crashes_CRASH_20251216T231834Z_main.py:1605:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:109:  docs/audit/archived_forensic/forensic_crashes_CRASH_20251216T034025Z_main.py:1585:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:110:  docs/audit/archived_forensic/forensic_crashes_CRASH_20251216T032117Z_main.py:1585:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:111:  docs/audit/archived_forensic/forensic_crashes_CRASH_20251217T004334Z_main.py:1605:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:112:  docs/audit/archived_forensic/forensic_crashes_CRASH_20251216T033804Z_main.py:1585:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:113:  docs/audit/archived_forensic/forensic_crashes_CRASH_20251216T231833Z_main.py:1605:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:114:  docs/audit/archived_forensic/forensic_crashes_CRASH_20251216T033803Z_main.py:1585:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:115:  docs/audit/archived_forensic/forensic_crashes_CRASH_20251216T034024Z_main.py:1585:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:116:  docs/audit/archived_forensic/forensic_crashes_CRASH_20251216T034026Z_main.py:1585:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:117:  docs/audit/archived_forensic/forensic_crashes_CRASH_20251216T032116Z_main.py:1585:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:118:  docs/audit/archived_forensic/forensic_crashes_CRASH_20251217T004343Z_main.py:1605:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:119:  docs/audit/archived_forensic/forensic_crashes_CRASH_20251216T033751Z_main.py:1585:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:120:  docs/audit/archived_forensic/forensic_crashes_CRASH_20251217T004341Z_main.py:1605:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:121:  docs/audit/DB_MAP_v7_FINAL.md:316:| docs/archive/madre/_index.md | 861aec6389813fd51ab966aa2db26bcb053c910716748683e6da8ddc80864192 | text/plain | tracked | 2025-12-17T16:14:20.999585Z |
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:122:  docs/audit/DB_MAP_v7_FINAL.md:464:| madre/madre_shub_orchestrator.py | 0b7b36db193fa0f112ad5f47b306f00567c01bd9458cad9dda3c63a0f783d364 | text/plain | tracked | 2025-12-17T16:14:22.247347Z |
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:123:  docs/audit/DB_MAP_v7_FINAL.md:612:| prompts/madre.md | 9f268de6792836b2c30a9b9a21e0bf4d4a701c793c874c31cbce1709fee05698 | text/plain | tracked | 2025-12-17T16:14:23.236009Z |
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:124:  docs/audit/DB_MAP_v7_FINAL.md:613:| prompts/madre.prompt.json | 83ae6874c11fd0e8413555bc6f83148a58383efae4a0b92d986fb0e167153303 | application/json | tracked | 2025-12-17T16:14:23.237962Z |
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:125:  docs/audit/DB_MAP_v7_FINAL.md:692:| shubniggurath/api/madre_shub_handler.py | 3a0d8c99f9f3a12785a7fb58747ba71cac23904d2a9229432f9c2891e7410124 | text/plain | tracked | 2025-12-17T16:14:23.620744Z |
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:126:  docs/audit/DB_MAP_v7_FINAL.md:693:| shubniggurath/api/madre_shub_router.py | 728f02d6aaa8ee672ce4873f33e2e5a0e88624b5ff55b4adde3db94df682d4ec | text/plain | tracked | 2025-12-17T16:14:23.624292Z |
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:127:  docs/audit/VX11_AGENT_IMPLEMENTATION_REPORT.md:235:   - Probar múltiples endpoints por servicio (/health, /status, /docs, /openapi.json)
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:128:  docs/audit/scan_20251217T172633Z/import_map.json:125:      "madre/madre_shub_orchestrator.py": [
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:129:  docs/audit/scan_20251217T172633Z/inventory.txt:173:72K	./forensic/madre
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:130:  docs/audit/scan_20251217T172633Z/inventory.txt:179:96K	./madre/core
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:131:  docs/audit/scan_20251217T172633Z/inventory.txt:197:176K	./madre/__pycache__
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:132:  docs/audit/scan_20251217T172633Z/inventory.txt:217:496K	./madre
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:133:  docs/audit/PHASEG_TENTACULO_LINK_ROUTER_REPORT.md:22:  - ANALYSIS → madre:/madre/task (timeout 60s)
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:134:  docs/audit/PHASEG_TENTACULO_LINK_ROUTER_REPORT.md:193:- OpenAPI JSON: http://localhost:8000/openapi.json
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:135:  docs/audit/VX11_API_DISCOVERY.md:4:**Fuente:** `curl /openapi.json` desde servicios 7/10 OK  
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:136:  docs/audit/VX11_API_DISCOVERY.md:48:| `/madre/hijas` | GET | Listar hijas activas | `@vx11 watch hijas` |
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:137:  docs/audit/VX11_API_DISCOVERY.md:49:| `/madre/daughter/spawn` | POST | Spawn hija ejecutora | `@vx11 task:enqueue` |
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:138:  docs/audit/VX11_API_DISCOVERY.md:50:| `/madre/daughters` | GET | Estado hijas | Monitoring |
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:139:  docs/audit/VX11_API_DISCOVERY.md:51:| `/madre/dsl` | POST | Ejecutar DSL de Madre | Internal |
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:140:  docs/audit/VX11_API_DISCOVERY.md:57:curl -X POST http://localhost:8001/madre/daughter/spawn \
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:141:  docs/audit/VX11_API_DISCOVERY.md:207:2. Madre (8001) /madre/daughter/spawn → spawn hija diagnosticadora
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:142:  docs/audit/imports_ast_report.json:19218:    "shubniggurath/api/madre_shub_handler.py": {
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:143:  docs/audit/imports_ast_report.json:19333:    "shubniggurath/api/madre_shub_router.py": {
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:144:  docs/audit/imports_ast_report.json:24909:    "madre/madre_shub_orchestrator.py": {
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:145:  docs/audit/VX11_FINAL_REPORT.md:28:  - ImportError/404 en varios módulos y endpoints (ej. `hormiguero.VX11_TOKEN` falta, rutas `/madre/chat` no registradas).
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:146:  docs/audit/VX11_FINAL_REPORT.md:43:2. Revisar `madre` rutas faltantes (`/madre/chat` y demás) y excepciones 500 — capturar tracebacks en `forensic/madre/logs` y parchear handlers.
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:147:  docs/audit/VX11_PYTEST_FULL_RUN.md:111:    assert "/madre/chat" in routes
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:148:  docs/audit/VX11_PYTEST_FULL_RUN.md:112:E   AssertionError: assert '/madre/chat' in ['/openapi.json', '/docs', '/docs/oauth2-redirect', '/redoc', '/madre/power/on/{module}', '/madre/power/off/{module}', ...]
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:149:  docs/audit/VX11_PYTEST_FULL_RUN.md:304:  File "/home/elkakas314/vx11/shubniggurath/api/madre_shub_handler.py", line 200, in handle_batch_task
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:150:  docs/audit/ULTRA_AUDIT_2025-12-16/VX11_ULTRA_AUDIT_FIX_PLAN.md:19:1. Inspect `forensic/madre/logs/*` entries causing `file is not a database`; investigate whether temporary files or incorrect file descriptors exist.
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:151:  docs/audit/ULTRA_AUDIT_2025-12-16/raw/ls_raw_after_runtime_fase5.txt:45:-rw-rw-r-- 1 elkakas314 elkakas314    82 dic 16 19:57 hermes_openapi.json
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:152:  docs/audit/ULTRA_AUDIT_2025-12-16/raw/ls_raw_after_runtime_fase5.txt:61:-rw-rw-r-- 1 elkakas314 elkakas314    82 dic 16 19:57 madre_openapi.json
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:153:  docs/audit/ULTRA_AUDIT_2025-12-16/raw/ls_raw_after_runtime_fase5.txt:67:-rw-rw-r-- 1 elkakas314 elkakas314    82 dic 16 19:57 switch_openapi.json
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:154:  docs/audit/ULTRA_AUDIT_2025-12-16/raw/ls_raw_after_runtime_fase5.txt:70:-rw-rw-r-- 1 elkakas314 elkakas314    82 dic 16 19:57 tentaculo_link_openapi.json
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:155:  docs/audit/ULTRA_AUDIT_2025-12-16/raw/db_paths_hits.txt:9:./madre/README.md:211:  -e DATABASE_URL=sqlite:///data/runtime/vx11.db \
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:156:  docs/audit/ULTRA_AUDIT_2025-12-16/raw/db_paths_hits.txt:10:./madre/core/runner.py:93:                "sqlite:////home/elkakas314/vx11/data/runtime/vx11.db"
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:157:  docs/audit/ULTRA_AUDIT_2025-12-16/raw/db_paths_hits.txt:20:./shubniggurath/api/madre_shub_handler.py:240:            # En implementación real, consultar BD vx11.db
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:158:  docs/audit/ULTRA_AUDIT_2025-12-16/raw/db_paths_hits.txt:36:./prompts/madre.md:179:- **BD unificada:** get_session("madre") → vx11.db
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:159:  docs/audit/ULTRA_AUDIT_2025-12-16/raw/files_head800.txt:164:./madre/bridge_handler.py
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:160:  docs/audit/ULTRA_AUDIT_2025-12-16/raw/files_head800.txt:165:./madre/daughters_paso5.py
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:161:  docs/audit/ULTRA_AUDIT_2025-12-16/raw/files_head800.txt:166:./madre/daughters.py
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:162:  docs/audit/ULTRA_AUDIT_2025-12-16/raw/files_head800.txt:167:./madre/Dockerfile
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:163:  docs/audit/ULTRA_AUDIT_2025-12-16/raw/files_head800.txt:168:./madre/dsl_compiler.py
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:164:  docs/audit/ULTRA_AUDIT_2025-12-16/raw/files_head800.txt:169:./madre/dsl_parser.py
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:165:  docs/audit/ULTRA_AUDIT_2025-12-16/raw/files_head800.txt:170:./madre/fluzo_integration.py
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:166:  docs/audit/ULTRA_AUDIT_2025-12-16/raw/files_head800.txt:171:./madre/__init__.py
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:167:  docs/audit/ULTRA_AUDIT_2025-12-16/raw/files_head800.txt:172:./madre/madre_shub_orchestrator.py
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:168:  docs/audit/ULTRA_AUDIT_2025-12-16/raw/files_head800.txt:173:./madre/main_legacy.py
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:169:  docs/audit/ULTRA_AUDIT_2025-12-16/raw/files_head800.txt:174:./madre/main.py
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:170:  docs/audit/ULTRA_AUDIT_2025-12-16/raw/files_head800.txt:175:./madre/main_v7_production.py
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:171:  docs/audit/ULTRA_AUDIT_2025-12-16/raw/files_head800.txt:176:./madre/README.md
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:172:  docs/audit/ULTRA_AUDIT_2025-12-16/raw/files_head800.txt:229:./prompts/madre.md
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:173:  docs/audit/ULTRA_AUDIT_2025-12-16/raw/files_head800.txt:230:./prompts/madre.prompt.json
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:174:  docs/audit/ULTRA_AUDIT_2025-12-16/raw/absolute_paths_hits.txt:31:./hormiguero/hormiguero_v7.py:215:            "/app/madre", "/app/spawner", "/app/switch", "/app/hermes",
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:175:  docs/audit/ULTRA_AUDIT_2025-12-16/raw/absolute_paths_hits.txt:38:./madre/Dockerfile:28:COPY config /app/config/
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:176:  docs/audit/ULTRA_AUDIT_2025-12-16/raw/absolute_paths_hits.txt:39:./madre/Dockerfile:29:COPY madre /app/madre/
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:177:  docs/audit/ULTRA_AUDIT_2025-12-16/raw/absolute_paths_hits.txt:40:./madre/Dockerfile:30:COPY sitecustomize.py /app/
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/openapi_and_paths_search.txt:178:  docs/audit/ULTRA_AUDIT_2025-12-16/raw/absolute_paths_hits.txt:41:./madre/Dockerfile:33:RUN mkdir -p /app/logs /app/data /app/models
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/tree_madre.txt:16:  madre/madre_shub_orchestrator.py
+  docs/audit/MADRE_VERIFICATION_2025-12-16/raw/tree_madre.txt:35:  madre/__pycache__/madre_shub_orchestrator.cpython-310.pyc
+  docs/VX11_v6.4_ANTI_CAOS_REPORT.md:8:  - `madre/main.py`: endpoint `/madre/organize` para recibir INTENT organize.
+  docs/VX11_v6.4_ANTI_CAOS_REPORT.md:22:  - Madre (`/madre/organize`) crea HIJA organize, pide patch a Manifestator (`auto_patcher`), y aplica operaciones con `apply_patch_operations` de spawner (TTL 60s, backups en `build/artifacts/backups/<timestamp>`).
+  docs/VX11_v6.4_ANTI_CAOS_REPORT.md:32:  - No crea módulos nuevos top-level; solo reutiliza hormiguero/manifestator/madre/spawner/scripts/docs.
+  docs/VX11_HORMIGUERO_v7_COMPLETION.md:230:Queen dispatches INTENT to /madre/intent:
+  docs/VX11_HORMIGUERO_v7_COMPLETION.md:278:        "location": "/app/madre/main.py",
+  docs/VX11_OPERATOR_AGENT_EXAMPLES.md:204:  - Canonical pattern: HTTP GET /madre/session endpoint
+  docs/VX11_OPERATOR_AGENT_EXAMPLES.md:209:            response = await client.get("http://madre:8001/session")
+  docs/SHUB_OPERATOR_AUDIT_v1.md:133:3. MADRE puede recibir `/madre/shub/task` (endpoints existen).
+  docs/SHUB_OPERATOR_AUDIT_v1.md:162:- Endpoints `/madre/power/on/{mod}`, `/madre/power/off/{mod}`, `/madre/power/auto-decide`.
+  docs/FASE_1_SHUB_REAL_PLAN.md:237:- [ ] HTTP calls a Madre (`/madre/power/status`)
+  docs/docsset/vx11.txt:515:@app.post("/madre/chat", response_model=ChatResponse)
+  docs/docsset/vx11.txt:552:@app.post("/madre/command", response_model=CommandResponse)
+  docs/docsset/vx11.txt:2497:POST http://127.0.0.1:52112/madre/chat
+  docs/docsset/vx11.txt:2655:curl -X POST http://localhost:52112/madre/chat \
+  docs/docsset/vx11.txt:2832:    U->>G: POST /madre/chat
+  docs/docsset/vx11_zip.txt:277:        super().__init__("data/madre.db")
+  docs/docsset/vx11_zip.txt:574:        "madre": settings.madre_url + "/madre/health",
+  docs/docsset/vx11_zip.txt:628:                f"{settings.madre_url}/madre/control",
+  docs/docsset/vx11_zip.txt:642:                f"{settings.madre_url}/madre/chat",
+  docs/docsset/vx11_zip.txt:1222:@app.post("/madre/chat", response_model=ChatResponse)
+  docs/docsset/vx11_zip.txt:1241:@app.post("/madre/control")
+  docs/docsset/vx11_zip.txt:1260:@app.get("/madre/health")
+  docs/docsset/vx11_zip.txt:1850:            "${workspaceFolder}/madre",
+  docs/docsset/vx11_zip.txt:2060:GET http://localhost:52112/madre/health
+  docs/docsset/vx11_union.txt:475:                f"{settings.madre_url}/madre/chat",
+  docs/docsset/vx11_union.txt:575:# 📄 vx11_final/madre/__init__.py
+  docs/docsset/vx11_union.txt:582:# 📄 vx11_final/madre/main.py
+  docs/docsset/vx11_union.txt:640:@app.post("/madre/chat", response_model=ChatResponse)
+  docs/docsset/vx11_union.txt:701:@app.post("/madre/command", response_model=CommandResponse)
+  docs/docsset/vx11_union.txt:788:@app.get("/madre/sessions/{session_id}")
+  docs/docsset/vx11_union.txt:838:# 📄 vx11_final/madre/core/__init__.py
+  docs/docsset/vx11_union.txt:845:# 📄 vx11_final/madre/core/dsl_parser.py
+  docs/docsset/vx11_union.txt:5054:        "${workspaceFolder}/madre",
+  docs/docsset/vx11_union.txt:5213:            "${workspaceFolder}/madre",
+  docs/docsset/vx11_union.txt:5613:### POST /madre/chat
+  docs/docsset/vx11_union.txt:5616:### POST /madre/command
+  docs/docsset/vx11_union.txt:5619:### GET /madre/sessions/{session_id}
+  docs/archive/README_VX11_v6.md:205:- `prompts/madre.md` — Orchestration brain, tasks
+  docs/archive/repo_inventory.csv:14008:docs/archive/madre/_index.md,CANONICAL_ARCHIVE,Located under docs/audit or existing archive folders,395
+  docs/archive/repo_inventory.csv:14113:forensic/madre/logs/2025-12-10.log,POTENTIAL_ARCHIVE,Build/artifacts/backups/logs; likely archival candidate,3095
+  docs/archive/repo_inventory.csv:14114:forensic/madre/logs/2025-12-11.log,POTENTIAL_ARCHIVE,Build/artifacts/backups/logs; likely archival candidate,1080
+  docs/archive/repo_inventory.csv:14115:forensic/madre/logs/2025-12-12.log,POTENTIAL_ARCHIVE,Build/artifacts/backups/logs; likely archival candidate,522
+  docs/archive/repo_inventory.csv:14116:forensic/madre/logs/2025-12-14.log,POTENTIAL_ARCHIVE,Build/artifacts/backups/logs; likely archival candidate,3209
+  docs/archive/repo_inventory.csv:14117:forensic/madre/logs/2025-12-15.log,POTENTIAL_ARCHIVE,Build/artifacts/backups/logs; likely archival candidate,4689
+  docs/archive/repo_inventory.csv:14195:madre/__pycache__/madre_shub_orchestrator.cpython-310.pyc,ACTIVE,Source code or runtime/configuration directory,4938
+  docs/archive/repo_inventory.csv:14204:madre/madre_shub_orchestrator.py,ACTIVE,Source code or runtime/configuration directory,4948
+  docs/archive/repo_inventory.csv:26932:prompts/madre.md,ACTIVE,Source code or runtime/configuration directory,4462
+  docs/archive/repo_inventory.csv:26933:prompts/madre.prompt.json,ACTIVE,Source code or runtime/configuration directory,4853
+  docs/archive/repo_inventory.csv:27022:shubniggurath/api/__pycache__/madre_shub_handler.cpython-310.pyc,ACTIVE,Source code or runtime/configuration directory,6725
+  docs/archive/repo_inventory.csv:27023:shubniggurath/api/__pycache__/madre_shub_router.cpython-310.pyc,ACTIVE,Source code or runtime/configuration directory,5866
+  docs/archive/repo_inventory.csv:27025:shubniggurath/api/madre_shub_handler.py,ACTIVE,Source code or runtime/configuration directory,9151
+  docs/archive/repo_inventory.csv:27026:shubniggurath/api/madre_shub_router.py,ACTIVE,Source code or runtime/configuration directory,5804
+  docs/archive/repo_inventory.csv:27487:tests/madre/__pycache__/test_daughters.cpython-310.pyc,ACTIVE,Source code or runtime/configuration directory,705
+  docs/archive/repo_inventory.csv:27488:tests/madre/__pycache__/test_madre_dsl_orchestrator.cpython-310.pyc,ACTIVE,Source code or runtime/configuration directory,726
+  docs/archive/FINAL_VERIFICATION.txt:149:  ✓ prompts/madre.md (120+ líneas)
+  docs/archive/INSTRUCCIONES_PASO_2_1.md:172:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  docs/archive/COMPLETION_SUMMARY.md:33:   - Madre (8001): /health, /task, /tasks/{id}, /madre/v3/autonomous/*, /chat
+  docs/archive/VX11_AUDIT_v6_3.md:49:  - POST `/vx11/orchestrate` (usa `config.orchestration_bridge` a switch/hermes/madre localhost).  
+  docs/archive/VX11_AUDIT_v6_3.md:61:- Endpoints: health `/health`; métricas `/metrics/cpu|memory|queue|throughput`; tasks `/task`, `/task/{id}`, `/tasks`; chat `/chat`; orquestación `/orchestrate` (spawn→error, route→switch, exec→hermes); bridge `/madre/bridge`, `/madre/hija/{id}`, `/madre/hijas`; módulo P&P `/orchestration/module_states`, `/orchestration/set_module_state`; status `/status`.  
+  docs/archive/VX11_AUDIT_v6_3.md:165:  - madre (./madre/Dockerfile, 8001:8001, vols logs/data/sandbox/models, mem 512m, depends tentáculo)  
+  docs/archive/VX11_CANON_v6.1.md:40:  - `prompts/madre.prompt.json` (orquestador central)
+  docs/archive/VX11_CANON_v6.1.md:245:- `prompts/madre.prompt.json` - Orquestador
+  docs/archive/VX11_CANON_v6.1.md:670:- `prompts/madre.prompt.json` - Prompts de madre
+  docs/archive/PASO_8_FINAL_AUDIT.md:117:✅ Madre → /madre/daughter/spawn
+  docs/archive/PASO_8_FINAL_AUDIT.md:172:| /madre/workflow/execute | 300-2000ms | ✅ OK |
+  docs/archive/PASO_8_FINAL_AUDIT.md:173:| /madre/daughter/spawn | 50-100ms | ✅ OK |
+  docs/archive/ARCHITECTURE_v4.md:160:- `POST /madre/v3/chat` - Chat with optional R1 reasoning
+  docs/archive/ARCHITECTURE_v4.md:161:- `POST /madre/v3/autonomous/start` - Inicia ciclo autónomo
+  docs/archive/ARCHITECTURE_v4.md:162:- `GET /madre/v3/autonomous/status` - Estado actual
+  docs/archive/ARCHITECTURE_v4.md:163:- `POST /madre/v3/autonomous/stop` - Detiene + report
+  docs/archive/ARCHITECTURE_v4.md:168:curl -X POST http://127.0.0.1:52112/madre/v3/autonomous/start
+  docs/archive/ARCHITECTURE_v4.md:171:curl http://127.0.0.1:52112/madre/v3/autonomous/status
+  docs/archive/ARCHITECTURE_v4.md:174:curl -X POST http://127.0.0.1:52112/madre/v3/chat \
+  docs/archive/VX11_CANON_v6_4.md:20:- Madre: `/orchestrate` (plan + delegación a switch/hermes/spawner), `/madre/bridge` (hijas), métricas y salud.
+  docs/archive/VX11_v6.3_CANONICAL.json:22:    "madre": "docs/madre/_index.md",
+  docs/archive/AUDITORIA_FINAL_PRODUCCION_READY.md:56:| Endpoints HTTP | ✅ | POST /shub/madre/* disponibles |
+  docs/archive/AUDITORIA_FINAL_PRODUCCION_READY.md:151:- Madre ↔ Shub: POST /shub/madre/* (JSON)
+  docs/archive/AUDITORIA_FINAL_PRODUCCION_READY.md:152:- Switch ↔ Shub: POST /shub/madre/* (JSON)
+  docs/archive/AUDITORIA_FINAL_PRODUCCION_READY.md:167:Usuario → POST /madre/route
+  docs/archive/AUDITORIA_FINAL_PRODUCCION_READY.md:170:  → Hija llama: POST /shub/madre/analyze
+  docs/archive/AUDITORIA_FINAL_PRODUCCION_READY.md:181:  → Enruta: POST /shub/madre/*
+  docs/archive/AUDITORIA_FINAL_PRODUCCION_READY.md:211:  → HTTP → Shub /shub/madre/analyze
+  docs/archive/TODO_CANON_SHUB_MAESTRO.md:131:- Madre: `settings.madre_url or f"http://madre:{settings.madre_port}"`
+  docs/archive/FASE3_STATUS_FINAL.md:63:**Archivo: `/madre/dsl_parser.py` (reescrito)**
+  docs/archive/FASE3_STATUS_FINAL.md:93:**Archivo: `/madre/daughters_paso5.py`**
+  docs/archive/DEVELOPMENT.md:340:tail -f logs/madre.log
+  docs/archive/DEVELOPMENT.md:352:sqlite3 data/madre.db
+  docs/archive/DEVELOPMENT.md:438:cp data/madre.db data/madre.db.bak
+  docs/archive/DEVELOPMENT.md:439:rm data/madre.db  # Se recreará automáticamente en el siguiente init
+  docs/archive/RESUMEN_EJECUTIVO_FINAL.md:24:   - ✅ Madre: `/madre/shub/task` operativo (YA EXISTÍA)
+  docs/archive/REMEDIATION_COMPLETION_v7.md:258:   - Ver `logs/madre_dev.log` para ciclos de orquestación
+  docs/archive/DEEP_SURGEON_MADRE_SPAWNER_v7_COMPLETION.md:54:  1. `POST /madre/intent` → Processes INTENT, creates DaughterTask
+  docs/archive/DEEP_SURGEON_MADRE_SPAWNER_v7_COMPLETION.md:55:  2. `GET /madre/tasks/active` → Lists tasks by status filter
+  docs/archive/DEEP_SURGEON_MADRE_SPAWNER_v7_COMPLETION.md:56:  3. `GET /madre/hijas/active` → Lists daughters by status filter
+  docs/archive/DEEP_SURGEON_MADRE_SPAWNER_v7_COMPLETION.md:57:  4. `GET /madre/task/{task_id}` → Full nested structure with daughters + attempts
+  docs/archive/DEEP_SURGEON_MADRE_SPAWNER_v7_COMPLETION.md:58:  5. `POST /madre/task/{task_id}/cancel` → Cancels task and kills daughters
+  docs/archive/DEEP_SURGEON_MADRE_SPAWNER_v7_COMPLETION.md:185:1. `POST /madre/intent`
+  docs/archive/DEEP_SURGEON_MADRE_SPAWNER_v7_COMPLETION.md:190:2. `GET /madre/tasks/active?status=...`
+  docs/archive/DEEP_SURGEON_MADRE_SPAWNER_v7_COMPLETION.md:194:3. `GET /madre/hijas/active?status=...`
+  docs/archive/DEEP_SURGEON_MADRE_SPAWNER_v7_COMPLETION.md:198:4. `GET /madre/task/{task_id}`
+  docs/archive/DEEP_SURGEON_MADRE_SPAWNER_v7_COMPLETION.md:202:5. `POST /madre/task/{task_id}/cancel`
+  docs/archive/DEEP_SURGEON_MADRE_SPAWNER_v7_COMPLETION.md:259:POST /madre/intent (IntentRequest)
+  docs/archive/DEEP_SURGEON_MADRE_SPAWNER_v7_COMPLETION.md:281:  ├→ GET /madre/tasks/active → List pending/running tasks
+  docs/archive/DEEP_SURGEON_MADRE_SPAWNER_v7_COMPLETION.md:282:  ├→ GET /madre/hijas/active → List spawned/running daughters
+  docs/archive/DEEP_SURGEON_MADRE_SPAWNER_v7_COMPLETION.md:283:  ├→ GET /madre/task/{id} → Full nested status with attempts
+  docs/archive/DEEP_SURGEON_MADRE_SPAWNER_v7_COMPLETION.md:286:  ├→ POST /madre/task/{id}/cancel
+  docs/archive/QUICK_REFERENCE.md:28:| 8001 | Madre | `/task`, `/madre/v3/autonomous/*` | Tareas autónomas |
+  docs/archive/QUICK_REFERENCE.md:124:cp data/madre.db data/madre.db.bak
+  docs/archive/QUICK_REFERENCE.md:125:rm data/madre.db  # Se recreará automáticamente
+  docs/archive/QUICK_REFERENCE.md:188:- **BD**: data/madre.db (SQLite)
+  docs/archive/QUICK_REFERENCE.md:230:**Estados por defecto:** gateway/madre/switch/hermes/hormiguero/mcp = `active` | manifestator/shubniggurath/spawner = `standby`
+  docs/archive/AUDITORIA_FASE_6_WIRING.md:29:| Madre | `/madre/*` | ✅ Intacto |
+  docs/archive/AUDITORIA_FASE_6_WIRING.md:49:| Handler | `shubniggurath/api/madre_shub_handler.py` | `handle_analyze_task()` | ✅ Creado |
+  docs/archive/AUDITORIA_FASE_6_WIRING.md:50:| Handler | `shubniggurath/api/madre_shub_handler.py` | `handle_mastering_task()` | ✅ Creado |
+  docs/archive/AUDITORIA_FASE_6_WIRING.md:51:| Handler | `shubniggurath/api/madre_shub_handler.py` | `handle_batch_task()` | ✅ Creado |
+  docs/archive/AUDITORIA_FASE_6_WIRING.md:52:| Handler | `shubniggurath/api/madre_shub_handler.py` | `handle_status()` | ✅ Creado |
+  docs/archive/AUDITORIA_FASE_6_WIRING.md:53:| Router | `shubniggurath/api/madre_shub_router.py` | `/shub/madre/analyze` | ✅ Creado |
+  docs/archive/AUDITORIA_FASE_6_WIRING.md:54:| Router | `shubniggurath/api/madre_shub_router.py` | `/shub/madre/mastering` | ✅ Creado |
+  docs/archive/AUDITORIA_FASE_6_WIRING.md:55:| Router | `shubniggurath/api/madre_shub_router.py` | `/shub/madre/batch/submit` | ✅ Creado |
+  docs/archive/AUDITORIA_FASE_6_WIRING.md:56:| Router | `shubniggurath/api/madre_shub_router.py` | `/shub/madre/task/*/status` | ✅ Creado |
+  docs/archive/AUDITORIA_FASE_6_WIRING.md:59:**Funcionalidad:** Madre puede llamar Shub vía POST /shub/madre/* para análisis y mastering
+  docs/archive/AUDITORIA_FASE_6_WIRING.md:141:1. `shubniggurath/api/madre_shub_handler.py` (250+ L)
+  docs/archive/AUDITORIA_FASE_6_WIRING.md:142:2. `shubniggurath/api/madre_shub_router.py` (200+ L)
+  docs/archive/AUDITORIA_FASE_6_WIRING.md:159:POST /madre/shub/task
+  docs/archive/AUDITORIA_FASE_6_WIRING.md:163:Spawner llama: POST /shub/madre/analyze
+  docs/archive/AUDITORIA_FASE_6_WIRING.md:178:HTTP POST → Shub /shub/madre/analyze
+  docs/archive/AUDITORIA_FASE_6_WIRING.md:217:HTTP POST → Shub /shub/madre/analyze
+  docs/archive/VX11_NAVIGATION_GUIDE.md:101:| **madre** | `prompts/madre.md` | Orchestration brain, task manager |
+  docs/archive/VX11_NAVIGATION_GUIDE.md:165:cat logs/madre_dev.log  # Ver error
+  docs/archive/AUDITORIA_FINAL_COMPLETA.md:76:- **Madre:** ✅ `/madre/shub/task` + `_dispatch_shub_task()` (YA EXISTE)
+  docs/archive/AUDITORIA_INTERMEDIA_1.md:23:- ✅ Madre (1956 L) — YA TIENE `/madre/shub/task` + `_dispatch_shub_task()`
+  docs/archive/AUDITORIA_INTERMEDIA_1.md:46:**Endpoint Existente:** `/madre/shub/task`
+  docs/archive/AUDITORIA_INTERMEDIA_1.md:133:1. **MADRE YA INTEGRADO:** Tiene endpoint `/madre/shub/task` + despacho a Spawner
+  docs/archive/RELEASE_NOTES_v4.md:73:- `/madre/v3/chat` - Chat con reasoning opcional
+  docs/archive/RELEASE_NOTES_v4.md:74:- `/madre/v3/autonomous/start` - Inicia ciclo
+  docs/archive/RELEASE_NOTES_v4.md:75:- `/madre/v3/autonomous/status` - Status actual
+  docs/archive/RELEASE_NOTES_v4.md:76:- `/madre/v3/autonomous/stop` - Detiene + report
+  docs/archive/RELEASE_NOTES_v4.md:220:3. MCP → Madre (via /madre/v3/chat):
+  docs/archive/RELEASE_NOTES_v4.md:341:curl -X POST http://127.0.0.1:52112/madre/v3/autonomous/start
+  docs/archive/RELEASE_NOTES_v4.md:342:curl http://127.0.0.1:52112/madre/v3/autonomous/status
+  docs/archive/OPERATOR_RECONSTRUCTION_COMPLETE.md:26:  - `/operator/madre/plans*` (3)
+  docs/archive/OPERATOR_RECONSTRUCTION_COMPLETE.md:80:✅ GET    /operator/madre/plans
+  docs/archive/OPERATOR_RECONSTRUCTION_COMPLETE.md:81:✅ GET    /operator/madre/plans/{id}
+  docs/archive/OPERATOR_RECONSTRUCTION_COMPLETE.md:82:✅ POST   /operator/madre/plans
+  docs/archive/OPERATOR_RECONSTRUCTION_COMPLETE.md:153:  http://127.0.0.1:8011/operator/madre/plans
+  docs/archive/FASES_1_TO_8_IMPLEMENTATION.md:78:    - `POST /madre/bridge` - ejecutar acción (audit_full|scan_hive|route_query|spawn_cmd)
+  docs/archive/FASES_1_TO_8_IMPLEMENTATION.md:79:    - `GET /madre/hija/{hija_id}` - obtener status de HIJA
+  docs/archive/FASES_1_TO_8_IMPLEMENTATION.md:80:    - `GET /madre/hijas` - listar todas las HIJAS
+  docs/archive/FASES_1_TO_8_IMPLEMENTATION.md:168:    - Forwarda a `http://127.0.0.1:{madre_port}/madre/bridge`
+  docs/archive/FASES_1_TO_8_IMPLEMENTATION.md:219:4. `madre/main.py` - Integración BridgeHandler + endpoints /madre/bridge, /madre/hija/*, /madre/hijas
+  docs/archive/FASES_1_TO_8_IMPLEMENTATION.md:239:│  │ POST /vx11/bridge → MADRE /madre/bridge               │ │
+  docs/archive/FASES_1_TO_8_IMPLEMENTATION.md:250:        │  │ POST /madre/bridge                ││
+  docs/archive/CANONIZATION_v6.1_REPORT.md:80:| `prompts/madre.prompt.json` | 4.7 KB | Prompts orquestador central |
+  docs/archive/CANONIZATION_v6.1_REPORT.md:125:✓ prompts/madre.prompt.json
+  docs/archive/CANONIZATION_v6.1_REPORT.md:199:   - `POST /madre/chat` debe generar context-7
+  docs/archive/OPERATOR_AUDIT_v6_4_QUICK_START.md:114:        base = getattr(settings, "madre_url", f"http://madre:{settings.madre_port}")
+  docs/archive/SHUBNIGGURATH_EXECUTION_COMPLETE.md:95:- madre/madre_shub_orchestrator.py
+  docs/archive/START_HERE.md:42:| `prompts/madre.md` | madre:8001 | 120+ |
+  docs/archive/DEPLOYMENT_CHECKLIST.md:148:tail -f logs/madre_dev.log
+  docs/archive/DEPLOYMENT_CHECKLIST.md:163:cat logs/madre_dev.log
+  docs/archive/DEPLOYMENT_CHECKLIST.md:198:# logs/madre_dev.log
+  docs/archive/DEPLOYMENT_CHECKLIST.md:228:cp data/backups/madre_*.db.bak data/madre.db
+  docs/archive/OPERATOR_AUDIT_v6_4.md:674:POST /clients/madre.py              # MadreClient para planes
+  docs/archive/VX11_v4_FINAL_STATUS.txt:211:  - Madre:        http://127.0.0.1:52112/madre/v3/chat (POST)
+  docs/archive/VX11_v4_FINAL_STATUS.txt:265:curl -X POST http://127.0.0.1:52112/madre/v3/autonomous/start
+  docs/archive/VX11_v4_FINAL_STATUS.txt:268:curl http://127.0.0.1:52112/madre/v3/autonomous/status
+  docs/archive/VX11_FINAL_REPORT_v6.0.md:118:    "madre": "sqlite:///./data/madre.db",
+  docs/archive/VX11_FINAL_REPORT_v6.0.md:157:ANTES: ./hermes & ./switch & ./madre & ...
+  docs/archive/VX11_FINAL_REPORT_v6.0.md:339:| prompts/madre.md | 120+ | System prompt madre |
+  docs/archive/FINAL_COMMANDS.md:495:cp data/madre.db data/madre.db.bak
+  docs/archive/FINAL_COMMANDS.md:498:rm data/madre.db
+  docs/archive/PASOS_2_6_COMPLETION.md:88:1. `POST /madre/workflow/compile` — Parsear intent a workflow
+  docs/archive/PASOS_2_6_COMPLETION.md:89:2. `POST /madre/workflow/execute` — Ejecutar workflow con routing inteligente
+  docs/archive/PASOS_2_6_COMPLETION.md:121:1. `POST /madre/daughter/spawn` — Crear hija
+  docs/archive/PASOS_2_6_COMPLETION.md:122:2. `POST /madre/daughter/{id}/heartbeat` — Reportar progreso
+  docs/archive/PASOS_2_6_COMPLETION.md:123:3. `POST /madre/daughter/{id}/complete` — Marcar completada
+  docs/archive/PASOS_2_6_COMPLETION.md:124:4. `POST /madre/daughter/{id}/fail` — Marcar fallida
+  docs/archive/PASOS_2_6_COMPLETION.md:125:5. `GET /madre/daughter/{id}` — Estado individual
+  docs/archive/PASOS_2_6_COMPLETION.md:126:6. `GET /madre/daughters` — Listar todas
+  docs/archive/PASOS_2_6_COMPLETION.md:127:7. `POST /madre/daughter/{id}/wait` — Blocking wait
+  docs/archive/PASOS_2_6_COMPLETION.md:255:Usuario → /madre/workflow/execute
+  docs/archive/PASOS_2_6_COMPLETION.md:265:Madre → /madre/daughter/spawn
+  docs/archive/PASOS_2_6_COMPLETION.md:368:- [ ] Test `/madre/workflow/execute` DSL
+  docs/archive/OPERATOR_VX11_v6_4_FINAL.md:15:2. **Madre** (8001) - Orchestration planner (nuevos endpoints: `/operator/madre/plans*`)
+  docs/archive/OPERATOR_VX11_v6_4_FINAL.md:95:GET    /operator/madre/plans           → lista todos los planes
+  docs/archive/OPERATOR_VX11_v6_4_FINAL.md:96:GET    /operator/madre/plans/{id}      → obtiene plan específico
+  docs/archive/OPERATOR_VX11_v6_4_FINAL.md:97:POST   /operator/madre/plans           → crea nuevo plan (json: name, modules, priority)
+  docs/archive/OPERATOR_VX11_v6_4_FINAL.md:279:│    (/operator/madre/plans | /operator/spawner/spawns | ...)  │
+  docs/archive/OPERATOR_VX11_v6_4_FINAL.md:316:  http://127.0.0.1:8011/operator/madre/plans
+  docs/VX11_SHUB_SWITCH_HERMES_FLOWS_v7.x.md:15:2) Madre expone `/madre/shub/task`: registra intent `shub_task`, despacha a Spawner.
+  docs/AUDITORIA_VX11_ESTRUCTURA_COMPLETA_v7.md:390:| `madre/madre_shub_orchestrator.py` | .py | Proto | Archivar |
+  docs/AUDITORIA_FASE3_COHERENCIA_v7.md:130:| `madre/madre_shub_orchestrator.py` | Proto |
+  logs/pytest_full_run.txt:246:  File "/home/elkakas314/vx11/shubniggurath/api/madre_shub_handler.py", line 212, in handle_batch_task
+  logs/pytest_full.txt:793:  File "/home/elkakas314/vx11/shubniggurath/api/madre_shub_handler.py", line 200, in handle_batch_task
+  logs/shub_tests_after_stub.txt:156:  File "/home/elkakas314/vx11/shubniggurath/api/madre_shub_handler.py", line 212, in handle_batch_task
+  logs/shub_tests_after_stub.txt:377:  File "/home/elkakas314/vx11/shubniggurath/api/madre_shub_handler.py", line 212, in handle_batch_task
+  logs/pytest_failed_details.txt:230:  File "/home/elkakas314/vx11/shubniggurath/api/madre_shub_handler.py", line 212, in handle_batch_task
+  logs/phase3_tests.log:1221:shubniggurath/api/madre_shub_handler.py:15: in <module>
+  switch/shub_forwarder.py:134:        Endpoint Shub: POST /shub/madre/analyze
+  switch/shub_forwarder.py:150:                    f"{self.shub_url}/shub/madre/analyze",
+  switch/shub_forwarder.py:183:        Endpoint Shub: POST /shub/madre/mastering
+  switch/shub_forwarder.py:201:                    f"{self.shub_url}/shub/madre/mastering",
+  switch/shub_forwarder.py:234:        Endpoint Shub: POST /shub/madre/batch/submit
+  switch/shub_forwarder.py:248:                    f"{self.shub_url}/shub/madre/batch/submit",
+  switch/main.py:1605:                f"{settings.madre_url.rstrip('/')}/madre/route-system",
+  operator_backend/frontend/src/components/MadrePanel.tsx.bak:15:                const data = await fetchJSON("/operator/madre/plans");
+  operator_backend/frontend/src/components/MadrePanel.tsx.bak:31:            const data = await fetchJSON("/operator/madre/plans");
+  operator_backend/frontend/src/components/MadrePanel.tsx.bak:52:            const data = await fetchJSON("/operator/madre/plans");
+  operator_backend/frontend/src/components/MadrePanel.tsx.bak:67:            const data = await fetchJSON("/operator/madre/plans");
+  operator_backend/frontend/src/components/MadrePanel.tsx:12:                const data = await fetchJSON("/operator/madre/plans");
+  operator_backend/frontend/src/services/api.ts.bak:44:  return fetchJSON("/operator/madre/plans");
+  operator_backend/frontend/src/services/api.ts.bak:48:  return fetchJSON(`/operator/madre/plans/${id}`);
+  operator_backend/frontend/src/services/api.ts.bak:52:  return fetchJSON("/operator/madre/plans", {
+  operator_backend/frontend/src/services/api.ts.bak:243:  return fetchJSON("/operator/madre/plan", {
+  operator_backend/frontend/src/services/api.ts.bak:251:  return fetchJSON("/operator/madre/plan/execute", {
+  operator_backend/frontend/src/services/api.ts:44:  return fetchJSON("/operator/madre/plans");
+  operator_backend/frontend/src/services/api.ts:48:  return fetchJSON(`/operator/madre/plans/${id}`);
+  operator_backend/frontend/src/services/api.ts:52:  return fetchJSON("/operator/madre/plans", {
+  operator_backend/frontend/src/services/api.ts:243:  return fetchJSON("/operator/madre/plan", {
+  operator_backend/frontend/src/services/api.ts:251:  return fetchJSON("/operator/madre/plan/execute", {
+  operator_backend/backend/services/health_aggregator.py:23:            "madre": (getattr(settings, "madre_url", "") or f"http://madre:{settings.madre_port}").rstrip("/"),
+  operator_backend/backend/services/clients.py:59:        base = getattr(settings, "madre_url", f"http://madre:{settings.madre_port}")
+  operator_backend/backend/operator_shub_prompts.py:80:                    f"{self.shub_url}/shub/madre/analyze",
+  operator_backend/backend/operator_shub_prompts.py:152:                    f"{self.shub_url}/shub/madre/mastering",
+  operator_backend/backend/operator_shub_prompts.py:337:                    f"{self.shub_url}/shub/madre/batch/submit",
+  build/artifacts/logs/pytest_full_run.txt:246:  File "/home/elkakas314/vx11/shubniggurath/api/madre_shub_handler.py", line 212, in handle_batch_task
+  build/artifacts/logs/pytest_full.txt:793:  File "/home/elkakas314/vx11/shubniggurath/api/madre_shub_handler.py", line 200, in handle_batch_task
+  build/artifacts/logs/shub_tests_after_stub.txt:156:  File "/home/elkakas314/vx11/shubniggurath/api/madre_shub_handler.py", line 212, in handle_batch_task
+  build/artifacts/logs/shub_tests_after_stub.txt:377:  File "/home/elkakas314/vx11/shubniggurath/api/madre_shub_handler.py", line 212, in handle_batch_task
+  build/artifacts/logs/pytest_failed_details.txt:230:  File "/home/elkakas314/vx11/shubniggurath/api/madre_shub_handler.py", line 212, in handle_batch_task
+  build/artifacts/logs/phase3_tests.log:1221:shubniggurath/api/madre_shub_handler.py:15: in <module>
+  tentaculo_link/routes.py:79:        endpoint="/madre/task",
+  tentaculo_link/routes.py:87:        endpoint="/madre/task",
+  tentaculo_link/main_v7.py:385:**Versión:** 7.0 | **Fase:** G | **Actualizado:** 2025-12-14---- `config/settings.py` — Configuración centralizada- `tentaculo_link/context7_middleware.py` — Context-7 sessions TTL- `tentaculo_link/routes.py` — Route table static- `tentaculo_link/clients.py` — ModuleClient + CircuitBreaker- `tentaculo_link/main_v7.py` — Endpoints principales## Referencias---```    - hermes    - switch    - madre  depends_on:    - vx11  networks:    # ... etc    - SWITCH_PORT=8002    - MADRE_PORT=8001    - ENABLE_AUTH=true    - VX11_TENTACULO_LINK_TOKEN=vx11-local-token    - TENTACULO_LINK_PORT=8000  environment:    - "8000:8000"  ports:  image: vx11/tentaculo_link:latesttentaculo_link:# docker-compose.yml```yaml## Docker Compose---```# context7.add_message(...)# context7 = get_context7_manager()```pythonComentar middleware en `main_v7.py`:### Deshabilitar Context-7```self.circuit_breaker = None  # o usar un mock que siempre retorna should_attempt=True# En ModuleClient.__init__()```pythonModificar `clients.py`:### Deshabilitar Circuit Breaker```ENABLE_AUTH=false# .env```bash### Deshabilitar Autenticación (Solo Dev Local)## Desactivar Características (Opcionales)---3. Si es manual: enviar POST `/vx11/context-7/cleanup` (si existe endpoint)2. Verificar logs de cleanup: `grep "cleanup_expired" logs/`1. Chequear que `CONTEXT7_CLEANUP_INTERVAL` está configurado**Solución:****Causa:** Context-7 no limpian sesiones expiradas o cleanup parado**Síntoma:** Memoria crece constantemente### TTL Sessions Acumuladas```curl -H "X-VX11-Token: vx11-local-token" ...# Incluir en requestsexport VX11_TENTACULO_LINK_TOKEN="vx11-local-token"# Asegurar token en env var```bash**Solución:****Causa:** Header `X-VX11-Token` faltante o incorrecto**Síntoma:** `401 Unauthorized`### Token Inválido4. Si necesita forzar reset: reiniciar Tentáculo Link3. Circuit breaker se auto-recuperará tras `recovery_timeout` (default 60s)2. Ver logs del módulo1. Chequear módulo target: `curl http://127.0.0.1:{puerto}/health`**Solución:**- Errores persistentes en el módulo- Módulo respondiendo lentamente (timeouts)- Módulo no disponible (proceso muerto, puerto cerrado)**Causas:****Síntoma:** Responses con `"status": "circuit_open"`### Circuit Breaker Abierto## Troubleshooting---```  http://127.0.0.1:8000/vx11/context-7/sessionscurl -H "X-VX11-Token: vx11-local-token" \# Ver sesiones activas```bash### Context-7 Sessions```  }'    "metadata": {"source": "ui"}    "session_id": "session-001",    "message": "Hola, ¿cómo estás?",  -d '{  -H "Content-Type: application/json" \  -H "X-VX11-Token: vx11-local-token" \curl -X POST http://127.0.0.1:8000/operator/chat \# Route chat to Switch (via Tentáculo Link)```bash### Chat Routing```  http://127.0.0.1:8000/vx11/circuit-breaker/statuscurl -H "X-VX11-Token: vx11-local-token" \# Circuit breaker status# { "ok": true, "modules": {...}, "summary": {...} }curl http://127.0.0.1:8000/vx11/status# Aggregated status (all modules)# { "status": "ok", "module": "tentaculo_link", "version": "7.0" }curl http://127.0.0.1:8000/health# Simple health```bash### Health Checks## Endpoints Principales---```http://127.0.0.1:8000/openapi.json# OpenAPI JSONhttp://127.0.0.1:8000/redoc# ReDochttp://127.0.0.1:8000/docs# Swagger UI```bashTentáculo Link expone documentación automática:## OpenAPI Docs---```# }#   "total": 1#   ],#     }#       "message_count": 5#       "expires_at": "2025-12-14T11:30:00Z",#       "created_at": "2025-12-14T10:30:00Z",#       "session_id": "session-001",#     {#   "sessions": [# {# Respuesta:  http://127.0.0.1:8000/vx11/context-7/sessions | jq .curl -H "X-VX11-Token: vx11-local-token" \# Ver sesiones activas```bash### Monitorear Sesiones```        # Borra sesiones expiradas (tarea background)    def cleanup_expired(self):            # Retorna resumen de contexto para enviar al LLM    def get_hint_for_llm(self, session_id):            # Agrega mensaje a contexto de sesión    def add_message(self, session_id, role, content):            self.ttl_seconds = ttl_seconds        self.sessions = {}  # session_id → context    def __init__(self, ttl_seconds=3600):class Context7Manager:# Ver context7_middleware.py para detalles```python### ImplementaciónContext-7 es un middleware que mantiene estado de sesión en memoria con TTL auto-cleanup.### ¿Qué es?## Context-7 (TTL Sessions)---```)    timeout=25.0,    method="POST",    endpoint="/my_module/process",    module="my_module",ROUTE_TABLE[IntentType.MY_CUSTOM] = RouteConfig(# En routes.py (recomendado)```python### Agregar Nueva Ruta```print(all_routes.keys())  # dict_keys(['chat', 'code', 'audio', ...])all_routes = list_routes()# Listar todas las rutasprint(route.module, route.endpoint, route.timeout)  # switch, /switch/route-v5, 15.0route = get_route("chat")# Obtener ruta específicafrom tentaculo_link.routes import get_route, list_routes```python### Usoing Route Lookup```}    ...    IntentType.ANALYSIS: RouteConfig(module="madre", endpoint="/madre/task", ...),    IntentType.AUDIO:   RouteConfig(module="hermes", endpoint="/hermes/analyze-audio", ...),    IntentType.CODE:    RouteConfig(module="switch", endpoint="/switch/route-v5", ...),    IntentType.CHAT:    RouteConfig(module="switch", endpoint="/switch/route-v5", ...),ROUTE_TABLE = {# Ejemplos:```pythonEl archivo `routes.py` define mapeo estático `IntentType → RouteConfig`:### Mapeo de Intents## Route Table---```# }#   "timestamp": 1702616420.3#   },#     "switch": { "state": "half_open", "failure_count": 2, "last_failure": 1702616400.5 }#     "madre": { "state": "closed", "failure_count": 0, "last_failure": null },#   "breakers": {#   "status": "ok",# {# Respuesta:  http://127.0.0.1:8000/vx11/circuit-breaker/status | jq .curl -H "X-VX11-Token: vx11-local-token" \# Ver status de todos los circuit breakers```bash### Monitoreo| **HALF_OPEN** | Esperando recuperación | Intenta 1 request de prueba; si éxito → CLOSED; si fallo → OPEN || **OPEN** | Módulo no disponible | Rechaza requests, retorna `circuit_open` || **CLOSED** | Normal | Procesa requests ||--------|-------------|--------|| Estado | Descripción | Acción |### Estados```)    recovery_timeout=60.0,    # Intenta recuperación tras 60s    failure_threshold=3,      # Abre después de 3 fallosself.circuit_breaker = CircuitBreaker(# En clients.py: ModuleClient.__init__()```python### Configuración## Circuit Breaker---```CONTEXT7_TTL_SECONDS=3600OPERATOR_PORT=8011HERMES_PORT=8003SWITCH_PORT=8002MADRE_PORT=8001ENABLE_AUTH=falseVX11_TENTACULO_LINK_TOKEN=vx11-local-tokenTENTACULO_LINK_PORT=8000```bash### `.env` Mínimo (Desarrollo Local)```CONTEXT7_CLEANUP_INTERVAL=300  # limpieza cada 5 minCONTEXT7_TTL_SECONDS=3600  # sesiones expiran en 1 hora# Context-7 TTL# ... etcOPERATOR_URL="http://operator-backend:8011"HERMES_URL="http://hermes:8003"SWITCH_URL="http://switch:8002"MADRE_URL="http://madre:8001"# Módulos (URLs)ENABLE_AUTH=true  # false para dev localVX11_GATEWAY_TOKEN="vx11-local-token"  # fallbackVX11_TENTACULO_LINK_TOKEN="vx11-local-token"# AutenticaciónTENTACULO_LINK_PORT=8000# Puerto```bash### Env Variables## Configuración---```8. Si fallo: registra en circuit breaker, retorna error   ↓7. Si éxito: graba en contexto, retorna respuesta   ↓   - Si HALF_OPEN: intenta recovery   - Si OPEN: retorna circuit_open + fallback   - Si CLOSED: intenta request6. ModuleClient verifica circuit breaker (¿módulo disponible?)   ↓5. Obtiene ModuleClient para módulo target   ↓4. Tentáculo Link consulta route table (routes.py)   ↓3. Context-7 middleware: agrega sesión si es nueva   ↓2. Token validation (X-VX11-Token header)   ↓1. Request entra a Tentáculo Link (:8000)```### Flujo| **Context-7** | `context7_middleware.py` | Gestor de sesiones con TTL auto-cleanup || **Route table** | `routes.py` | Mapeo intento_type → endpoint + módulo || **Module clients** | `clients.py` | HTTP clients para cada módulo con circuit breaker || **Main app** | `main_v7.py` | FastAPI app, endpoints principales ||-----------|---------|---------|| Componente | Archivo | Función |### Componentes## Arquitectura---**Puerto:** 8000 | **Objetivo:** HTTP gateway con autenticación, router inteligente, circuit breaker y TTL Context-7.**Versión:** 7.0 | **Módulo:** `tentaculo_link`  Pure proxy + auth + context-7 middleware + modular clients
+  tentaculo_link/clients.py:151:            "madre": settings.madre_url or f"http://madre:{settings.madre_port}",
+  tentaculo_link/config/command_routes.json:19:        "endpoint": "/madre/task",
+  tentaculo_link/config/command_routes.json:24:        "endpoint": "/madre/task",
+  import_map.json:125:      "madre/madre_shub_orchestrator.py": [
+  MADRE_v7_COMPLETE.md:166:curl -X POST http://127.0.0.1:8001/madre/chat \
+  MADRE_v7_COMPLETE.md:209:- `forensic/madre/logs/` — daily log files
+  MADRE_v7_COMPLETE.md:290:1. POST /madre/chat
+  MADRE_v7_COMPLETE.md:335:tail -f forensic/madre/logs/$(date +%Y-%m-%d).log
+  MADRE_v7_COMPLETE.md:393:kubectl apply -f k8s/madre-deployment.yaml
+  spawner/main.py:171:                f"{settings.madre_url.rstrip('/')}/madre/callback",
+  README.md:266:cp data/madre.db data/madre.db.bak
+  README.md:267:rm data/madre.db  # Se recreará automáticamente
+  shubniggurath/api/madre_shub_router.py:16:router = APIRouter(prefix="/shub/madre", tags=["madre"])
+  shubniggurath/integrations/vx11_bridge.py:33:MADRE_URL = getattr(settings, 'madre_url', None) or f"http://madre:{settings.madre_port}"
+  shubniggurath/integrations/vx11_bridge.py:156:                f"{self.madre_url}/madre/events/analysis_complete",
+  shubniggurath/integrations/vx11_bridge.py:235:                f"{self.madre_url}/madre/events/mastering_start",
+  shubniggurath/integrations/vx11_bridge.py:443:                f"{self.madre_url}/madre/events",
+  shubniggurath/integrations/__init__.py:17:        self.madre_url = config.get("madre_url", "http://madre:8001")
+  shubniggurath/shub_vx11_bridge.py:222:            f"{client.config.madre_url}/madre/shub/task",
+  shubniggurath/shub_vx11_bridge.py:238:        resp = await client.http_client.get(f"{client.config.madre_url}/madre/hijas")
+  shubniggurath/main.py:213:    "http://madre:8001",
+  tests/test_paso7_integration.py:510:            py_compile.compile('/home/elkakas314/vx11/madre/main.py', doraise=True)
+  tests/test_madre_spawner_v7.py:6:1. POST /madre/intent → DaughterTask creado con status pending
+  tests/test_madre_spawner_v7.py:7:2. GET /madre/tasks/active → lista tasks con filtro de status
+  tests/test_madre_spawner_v7.py:8:3. GET /madre/hijas/active → lista daughters con filtro de status
+  tests/test_madre_spawner_v7.py:13:8. POST /madre/task/{id}/cancel → daughters marked killed
+  tests/test_madre_spawner_v7.py:108:    """Suite: POST /madre/intent → DaughterTask creation"""
+  tests/test_madre_spawner_v7.py:111:        """Test 1: POST /madre/intent crea DaughterTask con status pending"""
+  tests/test_madre_spawner_v7.py:123:            response = client.post("/madre/intent", json=payload)
+  tests/test_madre_spawner_v7.py:150:            response = client.post("/madre/intent", json=payload)
+  tests/test_madre_spawner_v7.py:169:            response = client.post("/madre/intent", json=payload)
+  tests/test_madre_spawner_v7.py:177:    """Suite: GET /madre/tasks/active and /madre/hijas/active"""
+  tests/test_madre_spawner_v7.py:180:        """Test 2: GET /madre/tasks/active lista tasks con statuses por defecto"""
+  tests/test_madre_spawner_v7.py:193:        response = client.get("/madre/tasks/active")
+  tests/test_madre_spawner_v7.py:201:        """Test: GET /madre/tasks/active?status=running filtra por status"""
+  tests/test_madre_spawner_v7.py:214:        response = client.get("/madre/tasks/active?status=running")
+  tests/test_madre_spawner_v7.py:222:        """Test 3: GET /madre/hijas/active lista hijas con statuses por defecto"""
+  tests/test_madre_spawner_v7.py:245:        response = client.get("/madre/hijas/active")
+  tests/test_madre_spawner_v7.py:253:        """Test: GET /madre/hijas/active?status=finished filtra por status"""
+  tests/test_madre_spawner_v7.py:275:        response = client.get("/madre/hijas/active?status=finished,failed")
+  tests/test_madre_spawner_v7.py:283:    """Suite: GET /madre/task/{task_id} - full nested structure"""
+  tests/test_madre_spawner_v7.py:286:        """Test 4: GET /madre/task/{id} retorna estructura completa con hijas + attempts"""
+  tests/test_madre_spawner_v7.py:322:        response = client.get(f"/madre/task/{task.id}")
+  tests/test_madre_spawner_v7.py:338:        """Test: GET /madre/task/999 retorna 404"""
+  tests/test_madre_spawner_v7.py:339:        response = client.get("/madre/task/999")
+  tests/test_madre_spawner_v7.py:346:    """Suite: POST /madre/task/{id}/cancel"""
+  tests/test_madre_spawner_v7.py:349:        """Test 8: POST /madre/task/{id}/cancel marca task como cancelled, hijas como killed"""
+  tests/test_madre_spawner_v7.py:372:        response = client.post(f"/madre/task/{task.id}/cancel")
+  tests/test_madre_spawner_v7.py:716:        """Test 11: POST /madre/intent sin source → error"""
+  tests/test_madre_spawner_v7.py:722:        response = client.post("/madre/intent", json=payload)
+  tests/test_madre_spawner_v7.py:753:        """Test: GET /madre/task/{id} con id inválido → 404"""
+  tests/test_madre_spawner_v7.py:754:        response = client.get("/madre/task/invalid")
+  tests/test_madre_spawner_v7.py:780:            response = client.post("/madre/intent", json=payload)
+  tests/test_madre_spawner_v7.py:791:        """Test: POST /madre/intent crea IntentLog para auditoría"""
+  tests/test_madre_spawner_v7.py:801:            response = client.post("/madre/intent", json=payload)
+  tests/test_madre_spawner_v7_simple.py:6:1. POST /madre/intent → DaughterTask created
+  tests/test_madre_spawner_v7_simple.py:7:2. GET /madre/tasks/active, GET /madre/hijas/active
+  tests/test_madre_spawner_v7_simple.py:334:    """Suite: GET /madre/tasks/active, GET /madre/hijas/active"""
+  tests/test_madre_spawner_v7_simple.py:337:        """Test 2: GET /madre/tasks/active lista tasks con filtro de status"""
+  tests/test_madre_spawner_v7_simple.py:357:        """Test 3: GET /madre/hijas/active lista daughters con filtro de status"""
+  tests/test_reina_logic_v7.py:43:        incident.location = "/app/madre/main.py"
+  tests/test_reina_logic_v7.py:148:        """Test: Queen sends INTENT to Madre via /madre/intent endpoint."""
+  tests/test_reina_logic_v7.py:172:            assert "/madre/intent" in call_args.args[0]
+  tests/test_shub_autonomy_e2e.py:475:            "madre": "/madre",
+  tests/test_switch_hermes_shub_pipeline.py:49:    res = client.post("/madre/shub/task", json=payload, headers={"X-VX11-Token": os.environ.get("VX11_LOCAL_TOKEN", "vx11-local-token")})
+  tests/test_madre.py:341:        assert "/madre/chat" in routes
+  tests/test_switch_hermes_flow.py:85:    assert any("/madre/callback" in c for c in calls)
+  .copilot-audit/operator_audit.md:20:- Extras en código actual: `/operator/madre/*`, `/operator/spawner/*`, `/operator/switch/*`, `/operator/cli/*`, `/operator/hormiguero/events|queen_tasks`, `/ui/events` (polling eventos UI).
+  .copilot-audit/tentaculo_link_audit.md:31:- **POST `/vx11/operator/chat`** — Con auth. Chat unificado con CONTEXT-7 tracking. Ruta interna a madre:8001 `/madre/chat`.
+  .copilot-audit/tentaculo_link_audit.md:39:- **POST `/vx11/dsl`** — Proxy DSL (texto natural) hacia Madre (/madre/dsl).
+  .copilot-audit/tentaculo_link_audit.md:58:1. **Sin hardcoding de localhost** — Usa `settings.madre_url or f"http://madre:{settings.madre_port}"` para URLs internas.
+  .copilot-audit/tentaculo_link_structure.json:38:            "routes_to": "madre:8001 /madre/dsl"
+  .copilot-audit/tentaculo_link_structure.json:48:            "routes_to": "madre:8001 /madre/intent"
+  .copilot-audit/tentaculo_link_structure.json:60:            "routes_to": "madre:8001 /madre/chat",
+  .copilot-audit/tentaculo_link_structure.json:135:        "madre": "http://madre:8001",
+  .copilot-audit/tentaculo_link_reorg_plan.md:28:    "vx11:dsl": {"endpoint": "/madre/dsl", "module": "madre"},
+  .copilot-audit/tentaculo_link_reorg_plan.md:29:    "vx11:intent": {"endpoint": "/madre/intent", "module": "madre"},
+  .copilot-audit/tentaculo_link_reorg_plan.md:30:    "vx11:chat": {"endpoint": "/madre/chat", "module": "madre"},
+  .copilot-audit/tentaculo_link_reorg_plan.md:97:    openapi_url="/openapi.json",
+  madre/core/models.py:99:    """POST /madre/chat request."""
+  madre/core/models.py:107:    """POST /madre/chat response: guaranteed fields."""
+  madre/core/models.py:121:    """POST /madre/control request."""
+  madre/core/models.py:130:    """POST /madre/control response."""
+  madre/main_v7_production.py:88:@app.post("/madre/chat", response_model=ChatResponse)
+  madre/main_v7_production.py:91:    POST /madre/chat: Main chat endpoint.
+  madre/main_v7_production.py:186:                response="Action requires confirmation. Provide plan_id and confirm_token to /madre/plans/{id}/confirm",
+  madre/main_v7_production.py:251:@app.post("/madre/control")
+  madre/main_v7_production.py:254:    POST /madre/control: Execute control actions.
+  madre/main_v7_production.py:297:@app.get("/madre/plans")
+  madre/main_v7_production.py:309:@app.get("/madre/plans/{plan_id}")
+  madre/main_v7_production.py:328:@app.post("/madre/plans/{plan_id}/confirm")
+  madre/Dockerfile:29:COPY madre /app/madre/
+  madre/README.md:43:| /madre/chat | POST | ChatRequest → ChatResponse | ✅ |
+  madre/README.md:44:| /madre/control | POST | ControlRequest → ControlResponse | ✅ |
+  madre/README.md:45:| /madre/plans | GET | → List[PlanSummary] | ✅ |
+  madre/README.md:46:| /madre/plans/{id} | GET | → PlanDetail | ✅ |
+  madre/README.md:47:| /madre/plans/{id}/confirm | POST | {confirm_token} → Confirmed | ✅ |
+  madre/README.md:58:curl -X POST http://127.0.0.1:8001/madre/chat \
+  madre/README.md:66:curl -X POST http://127.0.0.1:8001/madre/chat \
+  madre/README.md:74:curl -X POST http://127.0.0.1:8001/madre/control \
+  madre/README.md:96:POST /madre/chat "mix 3 stems"
+  madre/README.md:113:POST /madre/control target=shub action=delete
+  madre/README.md:121:Usuario: POST /madre/plans/{id}/confirm token=...
+  madre/README.md:151:- **Audit:** Append-only forensics en `forensic/madre/logs/`
+  madre/README.md:226:| confirm_token inválido | Token expirado o typo | Generar nuevo con POST /madre/control |
+  madre/main_legacy.py:679:@app.post("/madre/power/on/{module}")
+  madre/main_legacy.py:685:@app.post("/madre/power/off/{module}")
+  madre/main_legacy.py:691:@app.get("/madre/power/status")
+  madre/main_legacy.py:697:@app.post("/madre/power/auto-decide")
+  madre/main_legacy.py:706:@app.post("/madre/audio/analyze")
+  madre/main_legacy.py:746:@app.post("/madre/audio/mix")
+  madre/main_legacy.py:766:@app.post("/madre/audio/master")
+  madre/main_legacy.py:1087:@app.post("/madre/daughter/spawn")
+  madre/main_legacy.py:1136:@app.post("/madre/daughter/{daughter_id}/heartbeat")
+  madre/main_legacy.py:1164:@app.post("/madre/daughter/{daughter_id}/complete")
+  madre/main_legacy.py:1190:@app.post("/madre/daughter/{daughter_id}/fail")
+  madre/main_legacy.py:1218:@app.get("/madre/daughter/{daughter_id}")
+  madre/main_legacy.py:1236:@app.get("/madre/daughters")
+  madre/main_legacy.py:1256:@app.post("/madre/daughter/{daughter_id}/wait")
+  madre/main_legacy.py:1632:@app.post("/madre/callback")
+  madre/main_legacy.py:1749:@app.post("/madre/bridge")
+  madre/main_legacy.py:1785:@app.post("/madre/organize")
+  madre/main_legacy.py:1793:@app.get("/madre/hija/{hija_id}")
+  madre/main_legacy.py:1814:@app.get("/madre/hijas")
+  madre/main_legacy.py:1836:@app.post("/madre/shub/task")
+  madre/main_legacy.py:2084:@app.post("/madre/intent")
+  madre/main_legacy.py:2104:@app.get("/madre/tasks/active")
+  madre/main_legacy.py:2141:@app.get("/madre/hijas/active")
+  madre/main_legacy.py:2169:@app.get("/madre/task/{task_id}")
+  madre/main_legacy.py:2224:@app.post("/madre/task/{task_id}/cancel")
+  madre/main_legacy.py:2383:@app.post("/madre/workflow/compile")
+  madre/main_legacy.py:2429:@app.post("/madre/workflow/execute")
+  madre/main.py:86:@app.post("/madre/chat", response_model=ChatResponse)
+  madre/main.py:89:    POST /madre/chat: Main chat endpoint.
+  madre/main.py:184:                response="Action requires confirmation. Provide plan_id and confirm_token to /madre/plans/{id}/confirm",
+  madre/main.py:249:@app.post("/madre/control")
+  madre/main.py:252:    POST /madre/control: Execute control actions.
+  madre/main.py:295:@app.get("/madre/plans")
+  madre/main.py:307:@app.get("/madre/plans/{plan_id}")
+  madre/main.py:326:@app.post("/madre/plans/{plan_id}/confirm")
+  hormiguero/hormiguero_v7.py:215:            "/app/madre", "/app/spawner", "/app/switch", "/app/hermes",
+  hormiguero/hormiguero_v7.py:481:                    f"{settings.madre_url.rstrip('/')}/madre/intent",
+  hormiguero/auto_organizer.py:434:        self.madre_url = (madre_url or settings.madre_url or f"http://madre:{settings.madre_port}").rstrip("/")
+  hormiguero/auto_organizer.py:464:                resp = await client.post(f"{self.madre_url}/madre/organize", json=intent, headers=headers)
+  operador_ui/src/config/vx11.config.ts:13:    madre: "http://madre:8001",
+  config/orchestration_bridge.py:24:            "madre": "http://madre:8001",
+  config/orchestration_bridge.py:190:            "madre": (settings.madre_url or f"http://madre:{settings.madre_port}").rstrip("/"),
+  .backups/migrate_operator_backend/docs_audit_deepseek_operator_alternatives.txt.bak:115:- Madre: `docs/madre/_index.md`
+  .backups/migrate_operator_backend/docs_audit_deepseek_operator_alternatives.txt.bak:785:**Fuente:** `curl /openapi.json` desde servicios 7/10 OK  
+  .backups/migrate_operator_backend/docs_audit_deepseek_operator_alternatives.txt.bak:1647:2. **Madre** (8001) - Orchestration planner (nuevos endpoints: `/operator/madre/plans*`)
+  .backups/migrate_operator_backend/docs_audit_deepseek_operator_alternatives.txt.bak:9640:- Extras en código actual: `/operator/madre/*`, `/operator/spawner/*`, `/operator/switch/*`, `/operator/cli/*`, `/operator/hormiguero/events|queen_tasks`, `/ui/events` (polling eventos UI).
+  MADRE_v7_TAREA_COMPLETADA.md:20:| **Diagnóstico 404** | ✅ | `/madre/chat` funciona, returns 200 |
+  MADRE_v7_TAREA_COMPLETADA.md:23:| **Endpoints P0** | ✅ | `/madre/chat`, `/madre/control`, `/madre/plans/*` activos |
+  MADRE_v7_TAREA_COMPLETADA.md:34:**Problema:** POST /madre/chat → 404  
+  MADRE_v7_TAREA_COMPLETADA.md:38:# /madre/core/__init__.py
+  MADRE_v7_TAREA_COMPLETADA.md:47:**Implementación en:** `/madre/core/parser.py`
+  MADRE_v7_TAREA_COMPLETADA.md:72:**Implementación en:** `/madre/core/policy.py`
+  MADRE_v7_TAREA_COMPLETADA.md:95:**Implementación en:** `/madre/core/runner.py`
+  MADRE_v7_TAREA_COMPLETADA.md:118:- ✅ `POST /madre/chat` → ChatRequest/ChatResponse
+  MADRE_v7_TAREA_COMPLETADA.md:119:- ✅ `POST /madre/control` → ControlRequest/ControlResponse
+  MADRE_v7_TAREA_COMPLETADA.md:120:- ✅ `GET /madre/plans` → List plans
+  MADRE_v7_TAREA_COMPLETADA.md:121:- ✅ `GET /madre/plans/{plan_id}` → Get plan
+  MADRE_v7_TAREA_COMPLETADA.md:122:- ✅ `POST /madre/plans/{plan_id}/confirm` → Confirm
+  MADRE_v7_TAREA_COMPLETADA.md:124:**Test funcional:** Endpoint `/madre/chat` verifi cado con DELETE intent ✅
+  MADRE_v7_TAREA_COMPLETADA.md:158:curl -X POST http://127.0.0.1:8001/madre/chat \
+  MADRE_v7_TAREA_COMPLETADA.md:182:  "response": "Action requires confirmation. Provide plan_id and confirm_token to /madre/plans/{id}/confirm",
+  MADRE_v7_TAREA_COMPLETADA.md:224:- ✅ `/madre/core/__init__.py` — Export HealthResponse
+  MADRE_v7_TAREA_COMPLETADA.md:225:- ✅ `/madre/core/models.py` — Add warnings field to DSL
+  MADRE_v7_TAREA_COMPLETADA.md:226:- ✅ `/madre/core/parser.py` — Add DESTRUCTIVE_VERBS detection
+  MADRE_v7_TAREA_COMPLETADA.md:227:- ✅ `/madre/core/policy.py` — Add suicidal action denial
+  MADRE_v7_TAREA_COMPLETADA.md:228:- ✅ `/madre/core/runner.py` — Safe daughter_tasks insertion
