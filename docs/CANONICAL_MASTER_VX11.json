@@ -1,6 +1,53 @@
 {
-  "version": "vx11_canonical_master_v1",
-  "generated_at_utc": "2025-12-20T18:37:57Z",
+  "format_version": "vx11_canonical_master_v2",
+  "canonical_version": "vx11_canon_v7",
+  "generated_at_utc": "2025-12-20T20:14:00Z",
+  "repo_root": "/home/elkakas314/vx11",
+  "git_commit": "60f54ef19cbe2e08a92e5bf5edd11b966834707c",
+  "git_branch": "canon/final_20251220T183158Z",
+  "canonical_files": {
+    "fs_snapshot": "docs/CANONICAL_FS_VX11.json",
+    "fs_target": "docs/CANONICAL_TARGET_FS_VX11.json",
+    "flows": "docs/CANONICAL_FLOWS_VX11.json",
+    "semantic": "docs/CANONICAL_SEMANTIC_VX11.json",
+    "runtime_policy": "docs/CANONICAL_RUNTIME_POLICY_VX11.json"
+  },
+  "sha256": {
+    "docs/CANONICAL_FS_VX11.json": "36b147d69ac1c2fb052f0022f39c51f77027528eadb95aed173a2848e6df2020",
+    "docs/CANONICAL_TARGET_FS_VX11.json": "57b7e9fb0ec94e50918bf5836a07ccabbb1f6e2d853294a20b4ceb63db389f25",
+    "docs/CANONICAL_FLOWS_VX11.json": "14dacf6babc3072b0420154169ab603b94830492b091689af35d016032604259",
+    "docs/CANONICAL_SEMANTIC_VX11.json": "26f5c15a76f8115fdb4e62696e6f9e7be057922a0072ac59b9f1b146a1cc16d5",
+    "docs/CANONICAL_RUNTIME_POLICY_VX11.json": "75582208202bdc6b5ae1d5fcb286f5d9ac64aa14265b81f26e5f3e3bcd34f9aa"
+  },
+  "owners": [
+    {
+      "name": "VX11 Core",
+      "role": "canonical",
+      "contact": "docs/audit"
+    }
+  ],
+  "invariants": [
+    {
+      "id": "solo_madre_default",
+      "severity": "critical",
+      "rule": "SOLO MADRE ARRIBA by default; other modules only for verification windows."
+    },
+    {
+      "id": "runtime_db_path",
+      "severity": "critical",
+      "rule": "Runtime DB path is data/runtime/vx11.db."
+    },
+    {
+      "id": "hermes_under_switch",
+      "severity": "critical",
+      "rule": "Hermes canonical lives under switch/hermes/ (no root duplicate)."
+    },
+    {
+      "id": "audit_evidence_under_docs_audit",
+      "severity": "critical",
+      "rule": "All verification outputs are written under docs/audit/."
+    }
+  ],
   "fs_snapshot": "docs/CANONICAL_FS_VX11.json",
   "fs_target": "docs/CANONICAL_TARGET_FS_VX11.json",
   "flows": "docs/CANONICAL_FLOWS_VX11.json",
