@@ -1,0 +1,127 @@
+{
+  "format_version": "vx11_module_config_v1",
+  "module": "manifestator",
+  "canonical_version": "vx11_canon_v7",
+  "module_version": "7.0.0",
+  "role": "Canonical drift detector + patch planner (stateless comparator, conservative)",
+  "generated_at_utc": "2025-12-21T01:00:00Z",
+  "description": "Manifestator is VX11's architectural drift detector and conservative patch planner. It compares repo state vs canonical docs (FS snapshot/target, flows, semantic, runtime policy), produces a plan/diff, and NEVER applies changes by default. It runs only when Madre opens an explicit maintenance window. Compatibility: original doc spec tagged as module_version '7.0.0-canon'; this canonical file exposes '7.0.0' for stable filenames, keeping semantics identical.",
+  "owners": [
+    "vx11_architect",
+    "madre"
+  ],
+  "invariants": [
+    "Default state is disabled; must remain OFF under solo_madre unless explicitly enabled in a temporal maintenance window.",
+    "Stateless comparator: no side effects during scan/compare.",
+    "Patch planner is conservative: if uncertain, output NO_ACTION with rationale.",
+    "Never hardcode tokens; secrets remain outside repo.",
+    "No auto-apply changes unless explicit permission is provided by Madre/operator."
+  ],
+  "default_state": "disabled",
+  "default_state_description": "OFF by default. Activated only by Madre in explicit maintenance window. No background scanning when disabled.",
+  "default_profile": "low_power",
+  "profiles": {
+    "low_power": {
+      "enabled_by_default": false,
+      "description": "Minimal scan scope and conservative diff plan output. Designed for quick audits."
+    },
+    "full_audit": {
+      "enabled_by_default": false,
+      "description": "Full repo audit vs canonical: deeper checks, richer evidence output, still no apply."
+    }
+  },
+  "auto_scan": {
+    "enabled": false,
+    "interval_minutes": 10,
+    "description": "Automatically scan for file or configuration drift. Disabled by default. NOTE: MUST remain OFF by default; enable only inside an explicit Madre-authorized temporal maintenance window."
+  },
+  "auto_patch": {
+    "enabled": false,
+    "description": "Automatically generate and apply patches for detected drift. Disabled by default. NOTE: Patch APPLY is always gated by explicit operator/Madre permission; Manifestator MUST NOT self-apply by default."
+  },
+  "patch_validation": {
+    "enabled": true,
+    "require_tests": true,
+    "require_canonical_verify": true,
+    "description": "Before any patch is considered for application, require JSON lint, canonical verify, and tests. If any check fails, do not proceed (no automatic application)."
+  },
+  "rollback_on_error": {
+    "enabled": true,
+    "description": "Automatically roll back any changes if a patch application fails. Ensures system reverts to stable state on errors."
+  },
+  "ai_suggestions": {
+    "enabled": false,
+    "provider": "deepseek",
+    "description": "Use AI to suggest fixes and reasoning for detected drift. Disabled by default. NOTE: MUST remain OFF by default; when enabled, do not hardcode provider tokens—resolve via VX11 Switch/CLI catalog."
+  },
+  "authentication": {
+    "enabled": false,
+    "default_method": "HMAC",
+    "JWT": {
+      "secret_env": "JWT_SECRET_KEY",
+      "algorithm": "HS256",
+      "token_header": "X-VX11-Token",
+      "token_expiration_hours": 24,
+      "notes": "JWT authentication settings. Secret key and algorithm must be provided via environment (JWT_SECRET_KEY); clients must send a valid JWT in X-VX11-Token header."
+    },
+    "HMAC": {
+      "shared_token_env": [
+        "VX11_GATEWAY_TOKEN",
+        "VX11_TENTACULO_LINK_TOKEN"
+      ],
+      "notes": "HMAC authentication settings. Uses a shared secret token from gateway/tentaculo_link; only requests with a correct signature from tentaculo_link gateway are accepted."
+    },
+    "description": "Optional authentication for incoming requests. By default, module stays disabled; when enabled, integrate with the central gateway's security mechanism."
+  },
+  "logging": {
+    "level": "INFO",
+    "structured": true,
+    "audit_events": true,
+    "redact_tokens": true,
+    "log_root": "forensic/manifestator/"
+  },
+  "io": {
+    "repo_root_env": "VX11_REPO_ROOT",
+    "canonical_master_path": "docs/CANONICAL_MASTER_VX11.json",
+    "canonical_files_expected": [
+      "docs/CANONICAL_FS_VX11.json",
+      "docs/CANONICAL_TARGET_FS_VX11.json",
+      "docs/CANONICAL_FLOWS_VX11.json",
+      "docs/CANONICAL_SEMANTIC_VX11.json",
+      "docs/CANONICAL_RUNTIME_POLICY_VX11.json"
+    ],
+    "outputs_root": "docs/audit/",
+    "plan_output_name": "MANIFESTATOR_PATCH_PLAN.json",
+    "diff_output_name": "MANIFESTATOR_DIFF.txt",
+    "evidence_output_name": "MANIFESTATOR_EVIDENCE.md",
+    "notes": "Outputs are written only when explicitly run in maintenance. No writes when disabled."
+  },
+  "safety": {
+    "never_apply_by_default": true,
+    "sandbox_required_for_temp": true,
+    "no_renames_core_modules": true,
+    "no_token_reads": true,
+    "notes": "If any ambiguity arises, prefer NO_ACTION. If temp files are needed, use sandbox and clean up."
+  },
+  "git_ops": {
+    "allowed": true,
+    "modes": [
+      "diff_only",
+      "plan_only"
+    ],
+    "apply_mode": {
+      "enabled": false,
+      "requires_explicit_flag": true,
+      "requires_tests": true
+    },
+    "notes": "Manifestator can generate patch plans and diffs; apply requires explicit flag and passing checks."
+  },
+  "operation_phases": [
+    "discover",
+    "compare",
+    "plan",
+    "evidence",
+    "exit"
+  ],
+  "operation_phases_description": "discover: locate repo_root + canonical files; compare: evaluate drift; plan: produce conservative patch plan; evidence: write audit evidence; exit: no side effects beyond outputs."
+}
