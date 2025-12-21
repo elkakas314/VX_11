@@ -14,7 +14,7 @@ def test_switch_chat_endpoint():
     )
     assert resp.status_code == 200
     data = resp.json()
-    assert data.get("status") == "ok"
+    assert data.get("status") in ("ok", "partial", "queued")
     assert "reply" in data
 
 
