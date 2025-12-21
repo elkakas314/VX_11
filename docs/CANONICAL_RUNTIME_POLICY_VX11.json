@@ -7,7 +7,9 @@
     "tentaculo_link",
     "switch",
     "spawner",
-    "hormiguero"
+    "hormiguero",
+    "manifestator",
+    "shubniggurath"
   ],
   "final_enforcement": {
     "actions": [
