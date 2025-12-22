@@ -34,4 +34,6 @@
     "pytest_hormiguero.log",
     "modules_structure.log"
 ]
-
+,
+"pr_number": 2,
+"pr_url": "https://github.com/elkakas314/VX_11/pull/2"
