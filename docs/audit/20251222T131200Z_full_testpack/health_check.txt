@@ -1,0 +1,72 @@
+{
+  "tentaculo_link": {
+    "port": 8000,
+    "status": "ok",
+    "returncode": 0,
+    "url": "http://localhost:8000/health",
+    "body_sample": "{\"status\":\"ok\",\"module\":\"tentaculo_link\",\"version\":\"7.0\"}"
+  },
+  "madre": {
+    "port": 8001,
+    "status": "ok",
+    "returncode": 0,
+    "url": "http://localhost:8001/health",
+    "body_sample": "{\"module\":\"madre\",\"status\":\"ok\",\"version\":\"7.0\",\"time\":\"2025-12-22T13:12:39.083568\",\"deps\":{\"switch\":\"up\",\"hormiguero\":\"up\",\"spawner\":\"up\"}}"
+  },
+  "switch": {
+    "port": 8002,
+    "status": "ok",
+    "returncode": 0,
+    "url": "http://localhost:8002/health",
+    "body_sample": "{\"status\":\"ok\",\"module\":\"switch\",\"active_model\":\"general-7b\",\"warm_model\":\"audio-engineering\",\"queue_size\":0}"
+  },
+  "hermes": {
+    "port": 8003,
+    "status": "ok",
+    "returncode": 0,
+    "url": "http://localhost:8003/health",
+    "body_sample": "{\"status\":\"ok\",\"module\":\"hermes\",\"version\":\"minimal\"}"
+  },
+  "hormiguero": {
+    "port": 8004,
+    "status": "ok",
+    "returncode": 0,
+    "url": "http://localhost:8004/health",
+    "body_sample": "{\"status\":\"ok\",\"service\":\"hormiguero\",\"version\":\"v7\"}"
+  },
+  "manifestator": {
+    "port": 8005,
+    "status": "ok",
+    "returncode": 0,
+    "url": "http://localhost:8005/health",
+    "body_sample": "{\"status\":\"healthy\",\"service\":\"manifestator\"}"
+  },
+  "mcp": {
+    "port": 8006,
+    "status": "ok",
+    "returncode": 0,
+    "url": "http://localhost:8006/health",
+    "body_sample": "{\"status\":\"ok\"}"
+  },
+  "shubniggurath": {
+    "port": 8007,
+    "status": "ok",
+    "returncode": 0,
+    "url": "http://localhost:8007/health",
+    "body_sample": "{\"status\":\"ok\",\"module\":\"shubniggurath\",\"version\":\"7.0-FASE1\"}"
+  },
+  "spawner": {
+    "port": 8008,
+    "status": "ok",
+    "returncode": 0,
+    "url": "http://localhost:8008/health",
+    "body_sample": "{\"status\":\"ok\",\"service\":\"spawner\",\"version\":\"v7.0\"}"
+  },
+  "operator-backend": {
+    "port": 8011,
+    "status": "ok",
+    "returncode": 0,
+    "url": "http://localhost:8011/health",
+    "body_sample": "{\"status\":\"ok\",\"module\":\"operator\",\"version\":\"7.0\"}"
+  }
+}

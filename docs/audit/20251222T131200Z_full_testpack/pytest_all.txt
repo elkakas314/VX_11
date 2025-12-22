@@ -1,0 +1,410 @@
+============================= test session starts ==============================
+platform linux -- Python 3.10.12, pytest-7.4.3, pluggy-1.6.0
+rootdir: /home/elkakas314/vx11
+configfile: pytest.ini
+testpaths: tests
+plugins: cov-7.0.0, asyncio-0.21.1, anyio-3.7.1
+asyncio: mode=auto
+collected 110 items
+
+tests/test_all_healthchecks.py s                                         [  0%]
+tests/test_canonical_integrity.py ........                               [  8%]
+tests/test_cli_concentrator_selection.py .....                           [ 12%]
+tests/test_cli_usage_db_writes.py ....                                   [ 16%]
+tests/test_context7_v7.py ...FFF.FF                                      [ 24%]
+tests/test_fluzo_scoring_influence.py .....                              [ 29%]
+tests/test_forensics_rotate.py .                                         [ 30%]
+tests/test_ga_router_tokens.py .                                         [ 30%]
+tests/test_health_endpoints.py s                                         [ 31%]
+tests/test_hermes_cli_detection.py .                                     [ 32%]
+tests/test_hermes_cli_registry_module.py .                               [ 33%]
+tests/test_hermes_registry_db.py .                                       [ 34%]
+tests/test_hormiguero_canonical.py F..                                   [ 37%]
+tests/test_hormiguero_min.py ...                                         [ 40%]
+tests/test_integration_flows_e2e.py ssss                                 [ 43%]
+tests/test_leonidas_permissions.py ..                                    [ 45%]
+tests/test_madre_orchestration.py ....                                   [ 49%]
+tests/test_madre_power_manager_phase4.py ....                            [ 52%]
+tests/test_operator_db_schema_v7.py .....                                [ 57%]
+tests/test_operator_production_phase5.py FFFFFF...F..                    [ 68%]
+tests/test_pnp_and_switch_integration.py ......................          [ 88%]
+tests/test_routingresult_compat.py .                                     [ 89%]
+tests/test_shubniggurath_phase8.py ..                                    [ 90%]
+tests/test_switch_auto.py s                                              [ 91%]
+tests/test_switch_chat_and_breaker.py ss                                 [ 93%]
+tests/test_switch_deepseek_staging.py s                                  [ 94%]
+tests/test_switch_local.py s                                             [ 95%]
+tests/test_switch_registry_enqueue.py F                                  [ 96%]
+tests/test_tentaculo_link.py .FFF                                        [100%]
+
+=================================== FAILURES ===================================
+____________ TestContext7ManagerAdvanced.test_manager_lru_eviction _____________
+tests/test_context7_v7.py:63: in test_manager_lru_eviction
+    s1 = manager.get_or_create_session("sess-1")
+tentaculo_link/context7_middleware.py:156: in get_or_create_session
+    write_log("tentaculo_link", f"context7_session_created:{session_id}")
+config/forensics.py:65: in write_log
+    with out.open("a", encoding="utf-8") as f:
+/usr/lib/python3.10/pathlib.py:1119: in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+E   PermissionError: [Errno 13] Permission denied: '/home/elkakas314/vx11/forensic/tentaculo_link/logs/2025-12-22.log'
+____________ TestContext7ManagerAdvanced.test_manager_access_order _____________
+tests/test_context7_v7.py:76: in test_manager_access_order
+    manager.get_or_create_session("sess-1")
+tentaculo_link/context7_middleware.py:156: in get_or_create_session
+    write_log("tentaculo_link", f"context7_session_created:{session_id}")
+config/forensics.py:65: in write_log
+    with out.open("a", encoding="utf-8") as f:
+/usr/lib/python3.10/pathlib.py:1119: in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+E   PermissionError: [Errno 13] Permission denied: '/home/elkakas314/vx11/forensic/tentaculo_link/logs/2025-12-22.log'
+___________ TestContext7ManagerAdvanced.test_get_metadata_for_switch ___________
+tests/test_context7_v7.py:93: in test_get_metadata_for_switch
+    manager.add_message("sess-abc", "user", "What modules are running?")
+tentaculo_link/context7_middleware.py:167: in add_message
+    session = self.get_or_create_session(session_id)
+tentaculo_link/context7_middleware.py:156: in get_or_create_session
+    write_log("tentaculo_link", f"context7_session_created:{session_id}")
+config/forensics.py:65: in write_log
+    with out.open("a", encoding="utf-8") as f:
+/usr/lib/python3.10/pathlib.py:1119: in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+E   PermissionError: [Errno 13] Permission denied: '/home/elkakas314/vx11/forensic/tentaculo_link/logs/2025-12-22.log'
+_____________ TestContext7Integration.test_full_session_lifecycle ______________
+tests/test_context7_v7.py:122: in test_full_session_lifecycle
+    manager.add_message(session_id, "user", "Hello Operator")
+tentaculo_link/context7_middleware.py:167: in add_message
+    session = self.get_or_create_session(session_id)
+tentaculo_link/context7_middleware.py:156: in get_or_create_session
+    write_log("tentaculo_link", f"context7_session_created:{session_id}")
+config/forensics.py:65: in write_log
+    with out.open("a", encoding="utf-8") as f:
+/usr/lib/python3.10/pathlib.py:1119: in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+E   PermissionError: [Errno 13] Permission denied: '/home/elkakas314/vx11/forensic/tentaculo_link/logs/2025-12-22.log'
+_________________ TestContext7Integration.test_hint_generation _________________
+tests/test_context7_v7.py:144: in test_hint_generation
+    manager.add_message("sess-hint", "user", "This is a very long message " * 50)
+tentaculo_link/context7_middleware.py:167: in add_message
+    session = self.get_or_create_session(session_id)
+tentaculo_link/context7_middleware.py:156: in get_or_create_session
+    write_log("tentaculo_link", f"context7_session_created:{session_id}")
+config/forensics.py:65: in write_log
+    with out.open("a", encoding="utf-8") as f:
+/usr/lib/python3.10/pathlib.py:1119: in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+E   PermissionError: [Errno 13] Permission denied: '/home/elkakas314/vx11/forensic/tentaculo_link/logs/2025-12-22.log'
+___________________ test_hormiguero_transactional_integrity ____________________
+tests/test_hormiguero_canonical.py:57: in test_hormiguero_transactional_integrity
+    repo.upsert_hormiga_state(
+hormiguero/hormiguero/core/db/repo.py:38: in upsert_hormiga_state
+    conn.execute(
+E   sqlite3.OperationalError: table hormiga_state has no column named ant_id
+_____________________ test_vx11_overview_queries_tentaculo _____________________
+tests/test_operator_production_phase5.py:69: in test_vx11_overview_queries_tentaculo
+    with patch('operator_backend.backend.main_v7.httpx.AsyncClient') as mock_client:
+/usr/lib/python3.10/unittest/mock.py:1431: in __enter__
+    self.target = self.getter()
+/usr/lib/python3.10/unittest/mock.py:1618: in <lambda>
+    getter = lambda: _importer(target)
+/usr/lib/python3.10/unittest/mock.py:1261: in _importer
+    thing = _dot_lookup(thing, comp, import_path)
+/usr/lib/python3.10/unittest/mock.py:1250: in _dot_lookup
+    __import__(import_path)
+E   ModuleNotFoundError: No module named 'operator_backend.backend.main_v7.httpx'; 'operator_backend.backend.main_v7' is not a package
+______________ test_vx11_overview_fallback_when_tentaculo_offline ______________
+tests/test_operator_production_phase5.py:99: in test_vx11_overview_fallback_when_tentaculo_offline
+    with patch('operator_backend.backend.main_v7.httpx.AsyncClient') as mock_client:
+/usr/lib/python3.10/unittest/mock.py:1431: in __enter__
+    self.target = self.getter()
+/usr/lib/python3.10/unittest/mock.py:1618: in <lambda>
+    getter = lambda: _importer(target)
+/usr/lib/python3.10/unittest/mock.py:1261: in _importer
+    thing = _dot_lookup(thing, comp, import_path)
+/usr/lib/python3.10/unittest/mock.py:1250: in _dot_lookup
+    __import__(import_path)
+E   ModuleNotFoundError: No module named 'operator_backend.backend.main_v7.httpx'; 'operator_backend.backend.main_v7' is not a package
+__________________ test_shub_dashboard_queries_shubniggurath ___________________
+tests/test_operator_production_phase5.py:125: in test_shub_dashboard_queries_shubniggurath
+    with patch('operator_backend.backend.main_v7.httpx.AsyncClient') as mock_client:
+/usr/lib/python3.10/unittest/mock.py:1431: in __enter__
+    self.target = self.getter()
+/usr/lib/python3.10/unittest/mock.py:1618: in <lambda>
+    getter = lambda: _importer(target)
+/usr/lib/python3.10/unittest/mock.py:1261: in _importer
+    thing = _dot_lookup(thing, comp, import_path)
+/usr/lib/python3.10/unittest/mock.py:1250: in _dot_lookup
+    __import__(import_path)
+E   ModuleNotFoundError: No module named 'operator_backend.backend.main_v7.httpx'; 'operator_backend.backend.main_v7' is not a package
+________________ test_shub_dashboard_fallback_when_shub_offline ________________
+tests/test_operator_production_phase5.py:173: in test_shub_dashboard_fallback_when_shub_offline
+    with patch('operator_backend.backend.main_v7.httpx.AsyncClient') as mock_client:
+/usr/lib/python3.10/unittest/mock.py:1431: in __enter__
+    self.target = self.getter()
+/usr/lib/python3.10/unittest/mock.py:1618: in <lambda>
+    getter = lambda: _importer(target)
+/usr/lib/python3.10/unittest/mock.py:1261: in _importer
+    thing = _dot_lookup(thing, comp, import_path)
+/usr/lib/python3.10/unittest/mock.py:1250: in _dot_lookup
+    __import__(import_path)
+E   ModuleNotFoundError: No module named 'operator_backend.backend.main_v7.httpx'; 'operator_backend.backend.main_v7' is not a package
+________________________ test_resources_queries_hermes _________________________
+tests/test_operator_production_phase5.py:203: in test_resources_queries_hermes
+    with patch('operator_backend.backend.main_v7.httpx.AsyncClient') as mock_client:
+/usr/lib/python3.10/unittest/mock.py:1431: in __enter__
+    self.target = self.getter()
+/usr/lib/python3.10/unittest/mock.py:1618: in <lambda>
+    getter = lambda: _importer(target)
+/usr/lib/python3.10/unittest/mock.py:1261: in _importer
+    thing = _dot_lookup(thing, comp, import_path)
+/usr/lib/python3.10/unittest/mock.py:1250: in _dot_lookup
+    __import__(import_path)
+E   ModuleNotFoundError: No module named 'operator_backend.backend.main_v7.httpx'; 'operator_backend.backend.main_v7' is not a package
+_________________ test_resources_fallback_when_hermes_offline __________________
+tests/test_operator_production_phase5.py:245: in test_resources_fallback_when_hermes_offline
+    with patch('operator_backend.backend.main_v7.httpx.AsyncClient') as mock_client:
+/usr/lib/python3.10/unittest/mock.py:1431: in __enter__
+    self.target = self.getter()
+/usr/lib/python3.10/unittest/mock.py:1618: in <lambda>
+    getter = lambda: _importer(target)
+/usr/lib/python3.10/unittest/mock.py:1261: in _importer
+    thing = _dot_lookup(thing, comp, import_path)
+/usr/lib/python3.10/unittest/mock.py:1250: in _dot_lookup
+    __import__(import_path)
+E   ModuleNotFoundError: No module named 'operator_backend.backend.main_v7.httpx'; 'operator_backend.backend.main_v7' is not a package
+______________________ test_fallback_when_service_offline ______________________
+tests/test_operator_production_phase5.py:358: in test_fallback_when_service_offline
+    with patch('operator_backend.backend.main_v7.httpx.AsyncClient') as mock_client:
+/usr/lib/python3.10/unittest/mock.py:1431: in __enter__
+    self.target = self.getter()
+/usr/lib/python3.10/unittest/mock.py:1618: in <lambda>
+    getter = lambda: _importer(target)
+/usr/lib/python3.10/unittest/mock.py:1261: in _importer
+    thing = _dot_lookup(thing, comp, import_path)
+/usr/lib/python3.10/unittest/mock.py:1250: in _dot_lookup
+    __import__(import_path)
+E   ModuleNotFoundError: No module named 'operator_backend.backend.main_v7.httpx'; 'operator_backend.backend.main_v7' is not a package
+_________________ test_ensure_cli_registry_enqueues_discovery __________________
+switch/main.py:1162: in _ensure_cli_registry_or_enqueue
+    write_log("switch", f"enqueued_discover_cli:task_id={job.id}")
+config/forensics.py:65: in write_log
+    with out.open("a", encoding="utf-8") as f:
+/usr/lib/python3.10/pathlib.py:1119: in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+E   PermissionError: [Errno 13] Permission denied: '/home/elkakas314/vx11/forensic/switch/logs/2025-12-22.log'
+
+During handling of the above exception, another exception occurred:
+tests/test_switch_registry_enqueue.py:20: in test_ensure_cli_registry_enqueues_discovery
+    enqueued = _ensure_cli_registry_or_enqueue(db_session=s)
+switch/main.py:1165: in _ensure_cli_registry_or_enqueue
+    write_log("switch", f"ensure_cli_registry_error:{exc}", level="ERROR")
+config/forensics.py:65: in write_log
+    with out.open("a", encoding="utf-8") as f:
+/usr/lib/python3.10/pathlib.py:1119: in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+E   PermissionError: [Errno 13] Permission denied: '/home/elkakas314/vx11/forensic/switch/logs/2025-12-22.log'
+_____________________________ test_status_endpoint _____________________________
+tests/test_tentaculo_link.py:18: in test_status_endpoint
+    resp = client.get("/vx11/status")
+../.local/lib/python3.10/site-packages/starlette/testclient.py:499: in get
+    return super().get(
+../.local/lib/python3.10/site-packages/httpx/_client.py:1041: in get
+    return self.request(
+../.local/lib/python3.10/site-packages/starlette/testclient.py:465: in request
+    return super().request(
+../.local/lib/python3.10/site-packages/httpx/_client.py:814: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+../.local/lib/python3.10/site-packages/httpx/_client.py:901: in send
+    response = self._send_handling_auth(
+../.local/lib/python3.10/site-packages/httpx/_client.py:929: in _send_handling_auth
+    response = self._send_handling_redirects(
+../.local/lib/python3.10/site-packages/httpx/_client.py:966: in _send_handling_redirects
+    response = self._send_single_request(request)
+../.local/lib/python3.10/site-packages/httpx/_client.py:1002: in _send_single_request
+    response = transport.handle_request(request)
+../.local/lib/python3.10/site-packages/starlette/testclient.py:342: in handle_request
+    raise exc
+../.local/lib/python3.10/site-packages/starlette/testclient.py:339: in handle_request
+    portal.call(self.app, scope, receive, send)
+../.local/lib/python3.10/site-packages/anyio/from_thread.py:277: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+/usr/lib/python3.10/concurrent/futures/_base.py:458: in result
+    return self.__get_result()
+/usr/lib/python3.10/concurrent/futures/_base.py:403: in __get_result
+    raise self._exception
+../.local/lib/python3.10/site-packages/anyio/from_thread.py:217: in _call_func
+    retval = await retval
+../.local/lib/python3.10/site-packages/fastapi/applications.py:1106: in __call__
+    await super().__call__(scope, receive, send)
+../.local/lib/python3.10/site-packages/starlette/applications.py:122: in __call__
+    await self.middleware_stack(scope, receive, send)
+../.local/lib/python3.10/site-packages/starlette/middleware/errors.py:184: in __call__
+    raise exc
+../.local/lib/python3.10/site-packages/starlette/middleware/errors.py:162: in __call__
+    await self.app(scope, receive, _send)
+../.local/lib/python3.10/site-packages/starlette/middleware/cors.py:83: in __call__
+    await self.app(scope, receive, send)
+../.local/lib/python3.10/site-packages/starlette/middleware/exceptions.py:79: in __call__
+    raise exc
+../.local/lib/python3.10/site-packages/starlette/middleware/exceptions.py:68: in __call__
+    await self.app(scope, receive, sender)
+../.local/lib/python3.10/site-packages/fastapi/middleware/asyncexitstack.py:20: in __call__
+    raise e
+../.local/lib/python3.10/site-packages/fastapi/middleware/asyncexitstack.py:17: in __call__
+    await self.app(scope, receive, send)
+../.local/lib/python3.10/site-packages/starlette/routing.py:718: in __call__
+    await route.handle(scope, receive, send)
+../.local/lib/python3.10/site-packages/starlette/routing.py:276: in handle
+    await self.app(scope, receive, send)
+../.local/lib/python3.10/site-packages/starlette/routing.py:66: in app
+    response = await func(request)
+../.local/lib/python3.10/site-packages/fastapi/routing.py:274: in app
+    raw_response = await run_endpoint_function(
+../.local/lib/python3.10/site-packages/fastapi/routing.py:191: in run_endpoint_function
+    return await dependant.call(**values)
+tentaculo_link/main_v7.py:546: in vx11_status
+    write_log("tentaculo_link", "vx11_status:aggregated")
+config/forensics.py:65: in write_log
+    with out.open("a", encoding="utf-8") as f:
+/usr/lib/python3.10/pathlib.py:1119: in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+E   PermissionError: [Errno 13] Permission denied: '/home/elkakas314/vx11/forensic/tentaculo_link/logs/2025-12-22.log'
+__________________________ test_websocket_basic_echo ___________________________
+tests/test_tentaculo_link.py:30: in test_websocket_basic_echo
+    first = websocket.receive_json()
+../.local/lib/python3.10/site-packages/starlette/testclient.py:175: in receive_json
+    message = self.receive()
+../.local/lib/python3.10/site-packages/starlette/testclient.py:160: in receive
+    raise message
+../.local/lib/python3.10/site-packages/anyio/from_thread.py:217: in _call_func
+    retval = await retval
+../.local/lib/python3.10/site-packages/starlette/testclient.py:118: in _run
+    await self.app(scope, receive, send)
+../.local/lib/python3.10/site-packages/fastapi/applications.py:1106: in __call__
+    await super().__call__(scope, receive, send)
+../.local/lib/python3.10/site-packages/starlette/applications.py:122: in __call__
+    await self.middleware_stack(scope, receive, send)
+../.local/lib/python3.10/site-packages/starlette/middleware/errors.py:149: in __call__
+    await self.app(scope, receive, send)
+../.local/lib/python3.10/site-packages/starlette/middleware/cors.py:75: in __call__
+    await self.app(scope, receive, send)
+../.local/lib/python3.10/site-packages/starlette/middleware/exceptions.py:79: in __call__
+    raise exc
+../.local/lib/python3.10/site-packages/starlette/middleware/exceptions.py:68: in __call__
+    await self.app(scope, receive, sender)
+../.local/lib/python3.10/site-packages/fastapi/middleware/asyncexitstack.py:20: in __call__
+    raise e
+../.local/lib/python3.10/site-packages/fastapi/middleware/asyncexitstack.py:17: in __call__
+    await self.app(scope, receive, send)
+../.local/lib/python3.10/site-packages/starlette/routing.py:718: in __call__
+    await route.handle(scope, receive, send)
+../.local/lib/python3.10/site-packages/starlette/routing.py:341: in handle
+    await self.app(scope, receive, send)
+../.local/lib/python3.10/site-packages/starlette/routing.py:82: in app
+    await func(session)
+../.local/lib/python3.10/site-packages/fastapi/routing.py:325: in app
+    await dependant.call(**values)
+tentaculo_link/main_v7.py:1297: in websocket_endpoint
+    await manager.connect(websocket, client_id)
+tentaculo_link/main_v7.py:1202: in connect
+    write_log("tentaculo_link", f"ws_connect:{client_id}")
+config/forensics.py:65: in write_log
+    with out.open("a", encoding="utf-8") as f:
+/usr/lib/python3.10/pathlib.py:1119: in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+E   PermissionError: [Errno 13] Permission denied: '/home/elkakas314/vx11/forensic/tentaculo_link/logs/2025-12-22.log'
+_________________________ test_event_ingest_with_token _________________________
+tests/test_tentaculo_link.py:43: in test_event_ingest_with_token
+    resp = client.post(
+../.local/lib/python3.10/site-packages/starlette/testclient.py:590: in post
+    return super().post(
+../.local/lib/python3.10/site-packages/httpx/_client.py:1132: in post
+    return self.request(
+../.local/lib/python3.10/site-packages/starlette/testclient.py:465: in request
+    return super().request(
+../.local/lib/python3.10/site-packages/httpx/_client.py:814: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+../.local/lib/python3.10/site-packages/httpx/_client.py:901: in send
+    response = self._send_handling_auth(
+../.local/lib/python3.10/site-packages/httpx/_client.py:929: in _send_handling_auth
+    response = self._send_handling_redirects(
+../.local/lib/python3.10/site-packages/httpx/_client.py:966: in _send_handling_redirects
+    response = self._send_single_request(request)
+../.local/lib/python3.10/site-packages/httpx/_client.py:1002: in _send_single_request
+    response = transport.handle_request(request)
+../.local/lib/python3.10/site-packages/starlette/testclient.py:342: in handle_request
+    raise exc
+../.local/lib/python3.10/site-packages/starlette/testclient.py:339: in handle_request
+    portal.call(self.app, scope, receive, send)
+../.local/lib/python3.10/site-packages/anyio/from_thread.py:277: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+/usr/lib/python3.10/concurrent/futures/_base.py:458: in result
+    return self.__get_result()
+/usr/lib/python3.10/concurrent/futures/_base.py:403: in __get_result
+    raise self._exception
+../.local/lib/python3.10/site-packages/anyio/from_thread.py:217: in _call_func
+    retval = await retval
+../.local/lib/python3.10/site-packages/fastapi/applications.py:1106: in __call__
+    await super().__call__(scope, receive, send)
+../.local/lib/python3.10/site-packages/starlette/applications.py:122: in __call__
+    await self.middleware_stack(scope, receive, send)
+../.local/lib/python3.10/site-packages/starlette/middleware/errors.py:184: in __call__
+    raise exc
+../.local/lib/python3.10/site-packages/starlette/middleware/errors.py:162: in __call__
+    await self.app(scope, receive, _send)
+../.local/lib/python3.10/site-packages/starlette/middleware/cors.py:83: in __call__
+    await self.app(scope, receive, send)
+../.local/lib/python3.10/site-packages/starlette/middleware/exceptions.py:79: in __call__
+    raise exc
+../.local/lib/python3.10/site-packages/starlette/middleware/exceptions.py:68: in __call__
+    await self.app(scope, receive, sender)
+../.local/lib/python3.10/site-packages/fastapi/middleware/asyncexitstack.py:20: in __call__
+    raise e
+../.local/lib/python3.10/site-packages/fastapi/middleware/asyncexitstack.py:17: in __call__
+    await self.app(scope, receive, send)
+../.local/lib/python3.10/site-packages/starlette/routing.py:718: in __call__
+    await route.handle(scope, receive, send)
+../.local/lib/python3.10/site-packages/starlette/routing.py:276: in handle
+    await self.app(scope, receive, send)
+../.local/lib/python3.10/site-packages/starlette/routing.py:66: in app
+    response = await func(request)
+../.local/lib/python3.10/site-packages/fastapi/routing.py:274: in app
+    raw_response = await run_endpoint_function(
+../.local/lib/python3.10/site-packages/fastapi/routing.py:191: in run_endpoint_function
+    return await dependant.call(**values)
+tentaculo_link/main_v7.py:720: in events_ingest
+    write_log(
+config/forensics.py:65: in write_log
+    with out.open("a", encoding="utf-8") as f:
+/usr/lib/python3.10/pathlib.py:1119: in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+E   PermissionError: [Errno 13] Permission denied: '/home/elkakas314/vx11/forensic/tentaculo_link/logs/2025-12-22.log'
+=========================== short test summary info ============================
+SKIPPED [1] tests/test_all_healthchecks.py: Integration tests skipped by default. Set VX11_INTEGRATION=1 to run.
+SKIPPED [1] tests/test_health_endpoints.py: Integration tests skipped by default. Set VX11_INTEGRATION=1 to run.
+SKIPPED [1] tests/test_integration_flows_e2e.py:56: Set VX11_INTEGRATION=1 to run integration tests
+SKIPPED [1] tests/test_integration_flows_e2e.py:95: Set VX11_INTEGRATION=1 to run integration tests
+SKIPPED [1] tests/test_integration_flows_e2e.py:144: Set VX11_INTEGRATION=1 to run integration tests
+SKIPPED [1] tests/test_integration_flows_e2e.py:168: Set VX11_INTEGRATION=1 to run integration tests
+SKIPPED [1] tests/test_switch_auto.py: Integration tests skipped by default. Set VX11_INTEGRATION=1 to run.
+SKIPPED [2] tests/test_switch_chat_and_breaker.py: Integration tests skipped by default. Set VX11_INTEGRATION=1 to run.
+SKIPPED [1] tests/test_switch_deepseek_staging.py: Integration tests skipped by default. Set VX11_INTEGRATION=1 to run.
+SKIPPED [1] tests/test_switch_local.py: Integration tests skipped by default. Set VX11_INTEGRATION=1 to run.
+FAILED tests/test_context7_v7.py::TestContext7ManagerAdvanced::test_manager_lru_eviction
+FAILED tests/test_context7_v7.py::TestContext7ManagerAdvanced::test_manager_access_order
+FAILED tests/test_context7_v7.py::TestContext7ManagerAdvanced::test_get_metadata_for_switch
+FAILED tests/test_context7_v7.py::TestContext7Integration::test_full_session_lifecycle
+FAILED tests/test_context7_v7.py::TestContext7Integration::test_hint_generation
+FAILED tests/test_hormiguero_canonical.py::test_hormiguero_transactional_integrity
+FAILED tests/test_operator_production_phase5.py::test_vx11_overview_queries_tentaculo
+FAILED tests/test_operator_production_phase5.py::test_vx11_overview_fallback_when_tentaculo_offline
+FAILED tests/test_operator_production_phase5.py::test_shub_dashboard_queries_shubniggurath
+FAILED tests/test_operator_production_phase5.py::test_shub_dashboard_fallback_when_shub_offline
+FAILED tests/test_operator_production_phase5.py::test_resources_queries_hermes
+FAILED tests/test_operator_production_phase5.py::test_resources_fallback_when_hermes_offline
+FAILED tests/test_operator_production_phase5.py::test_fallback_when_service_offline
+FAILED tests/test_switch_registry_enqueue.py::test_ensure_cli_registry_enqueues_discovery
+FAILED tests/test_tentaculo_link.py::test_status_endpoint - PermissionError: ...
+FAILED tests/test_tentaculo_link.py::test_websocket_basic_echo - PermissionEr...
+FAILED tests/test_tentaculo_link.py::test_event_ingest_with_token - Permissio...
+============ 17 failed, 82 passed, 11 skipped, 8 warnings in 6.31s =============
