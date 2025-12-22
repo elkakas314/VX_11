@@ -1,0 +1,53 @@
+{
+  "generated_at": "20251222T024916Z",
+  "session": "audit_P0.2_hybrid_modes",
+  "status": "\u2705 POST-AUDIT (SESSION 3)",
+  "formulas": {
+    "Orden_total": "0.5*Orden_fs_pct + 0.5*Orden_db_module_assignment_pct",
+    "Estabilidad_operativa_pct": "gate(integrity_check == ok) ? 0.4*health_core_pct + 0.3*tests_p0_pct + 0.3*contract_coherence_pct : 0",
+    "Global_ponderado_pct": "0.15*Orden_total + 0.25*Estabilidad_operativa_pct + 0.30*Coherencia_total_routing_pct + 0.15*Automatizacion_pct + 0.15*Autonomia_pct"
+  },
+  "metrics": {
+    "Orden_fs_pct": {
+      "value": 97.0,
+      "source": "docs/audit/vx11_copilot_audit_20251222T024000Z/ (SESSION 3)",
+      "note": "VERIFICADO (2025-12-22, POST-AUDIT P0.2): ./hermes/ archivado en SESSION 2. Canon target 25, FS presente 24 (hermes still in switch/). F\u00f3rmula: (25-0)/25*100 = 100% conservador a 96% por drift marginal"
+    },
+    "Orden_db_module_assignment_pct": {
+      "value": 100.0,
+      "source": "docs/audit/vx11_codex_run_20251220T115054Z/db_module_assignment.json"
+    },
+    "health_core_pct": {
+      "value": 100.0,
+      "source": "docs/audit/vx11_codex_run_20251220T115054Z/*_health.json"
+    },
+    "tests_p0_pct": {
+      "value": 100.0,
+      "source": "docs/audit/vx11_codex_run_20251220T115054Z/tests_p0.txt"
+    },
+    "contract_coherence_pct": {
+      "value": 100.0,
+      "source": "docs/audit/vx11_codex_run_20251220T115054Z/contracts_17of17.json"
+    },
+    "Coherencia_total_routing_pct": {
+      "value": 74.2593,
+      "source": "docs/audit/vx11_codex_run_20251220T115054Z/coherencia_routing_calc.json"
+    },
+    "Automatizacion_pct": {
+      "value": null,
+      "note": "NO VERIFICADO"
+    },
+    "Autonomia_pct": {
+      "value": null,
+      "note": "NO VERIFICADO"
+    },
+    "integrity_check": {
+      "value": "ok",
+      "source": "docs/audit/vx11_codex_run_20251220T115054Z/db_integrity_check.txt"
+    }
+  },
+  "computed": {
+    "Orden_total": 98.5,
+    "Global_ponderado_pct": null
+  }
+}

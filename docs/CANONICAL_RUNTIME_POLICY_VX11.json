@@ -1,7 +1,48 @@
 {
-  "version": "vx11_runtime_policy_v1",
-  "generated_at_utc": "2025-12-20T18:07:51Z",
-  "default_mode": "solo_madre",
+  "version": "vx11_runtime_policy_v2_with_modes",
+  "generated_at_utc": "2025-12-22T02:40:00Z",
+  "modes": {
+    "low_power": {
+      "description": "Solo madre (canonical default, minimal power)",
+      "services": [
+        "madre"
+      ],
+      "trigger": "default on STARTUP or VX11_MODE=LOW_POWER",
+      "enforcement": "hard_off for all others after verification"
+    },
+    "operative_core": {
+      "description": "Core operational (madre + 4 essential services + mcp tooling)",
+      "services": [
+        "madre",
+        "tentaculo_link",
+        "switch",
+        "spawner",
+        "mcp"
+      ],
+      "trigger": "VX11_MODE=OPERATIVE_CORE or operational window",
+      "enforcement": "keep running, restart if fail"
+    },
+    "full": {
+      "description": "Full profile (core + support + optional)",
+      "services": [
+        "madre",
+        "tentaculo_link",
+        "switch",
+        "spawner",
+        "hermes",
+        "hormiguero",
+        "manifestator",
+        "shubniggurath",
+        "operator",
+        "operator_backend"
+      ],
+      "trigger": "docker compose --profile full up -d",
+      "enforcement": "as configured"
+    }
+  },
+  "default_mode": "low_power",
+  "operational_override": "VX11_MODE environment variable",
+  "default_mode_note": "CANONICAL INVARIANT: default boots LOW_POWER (solo madre). User can set VX11_MODE=OPERATIVE_CORE to enable 4-service window.",
   "allowed_temporal_window_core": [
     "madre",
     "tentaculo_link",

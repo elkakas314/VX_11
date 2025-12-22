@@ -28,9 +28,10 @@
   ],
   "invariants": [
     {
-      "id": "solo_madre_default",
+      "id": "solo_madre_default_low_power",
       "severity": "critical",
-      "rule": "SOLO MADRE ARRIBA by default; other modules only for verification windows."
+      "rule": "DEFAULT mode is LOW_POWER: solo madre only. OPERATIVE_CORE mode (madre+4) enabled via VX11_MODE=OPERATIVE_CORE or runtime override. FULL mode via docker compose --profile full.",
+      "updated": "2025-12-22T02:40:00Z"
     },
     {
       "id": "runtime_db_path",
@@ -40,7 +41,8 @@
     {
       "id": "hermes_under_switch",
       "severity": "critical",
-      "rule": "Hermes canonical lives under switch/hermes/ (no root duplicate)."
+      "rule": "Hermes canonical lives under switch/hermes/ (no root duplicate). Root ./hermes must be archived or not exist.",
+      "updated": "2025-12-22T02:40:00Z (verified: ./hermes archived)"
     },
     {
       "id": "audit_evidence_under_docs_audit",
