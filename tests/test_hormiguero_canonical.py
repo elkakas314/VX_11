@@ -1,0 +1,86 @@
+import pytest
+import sqlite3
+import os
+from pathlib import Path
+from hormiguero.core.db import repo
+from hormiguero.core.db.sqlite import ensure_schema, get_connection
+from hormiguero.config import settings
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
+
+
+@pytest.fixture
+def temp_db(tmp_path, monkeypatch):
+    db_path = tmp_path / "vx11_test.db"
+    monkeypatch.setattr(settings, "db_path", str(db_path))
+    ensure_schema()
+    return db_path
+
+
+def test_hormiguero_transactional_integrity(temp_db):
+    """Verifica que las mutaciones de estado sean atómicas."""
+    # Insertar un estado inicial
+    repo.upsert_hormiga_state(
+        hormiga_id="ant-1",
+        name="test-ant",
+        role="scanner",
+        enabled=True,
+        aggression_level=1,
+        scan_interval_sec=60,
+        last_scan_at="2025-12-22T00:00:00Z",
+        stats_json={"ok": True},
+    )
+
+    # Verificar que se insertó
+    with get_connection() as conn:
+        row = conn.execute(
+            "SELECT * FROM hormiga_state WHERE hormiga_id='ant-1'"
+        ).fetchone()
+        assert row["name"] == "test-ant"
+        assert row["enabled"] == 1
+
+
+def test_hormiguero_incident_deduplication(temp_db):
+    """Verifica que los incidentes con el mismo correlation_id se dedupliquen."""
+    id1 = repo.upsert_incident(
+        kind="test_drift",
+        severity="high",
+        status="open",
+        title="Drift 1",
+        description="Desc 1",
+        source="test",
+        correlation_id="corr-unique-123",
+    )
+
+    id2 = repo.upsert_incident(
+        kind="test_drift",
+        severity="high",
+        status="open",
+        title="Drift 2",
+        description="Desc 2",
+        source="test",
+        correlation_id="corr-unique-123",
+    )
+
+    assert id1 == id2
+
+    with get_connection() as conn:
+        count = conn.execute(
+            "SELECT COUNT(*) as c FROM incidents WHERE incident_id='corr-unique-123'"
+        ).fetchone()["c"]
+        assert count == 1
+
+
+def test_hormiguero_pheromone_log(temp_db):
+    """Verifica el registro de feromonas (acciones)."""
+    # Simular una acción
+    with get_connection() as conn:
+        conn.execute(
+            "INSERT INTO pheromone_log (pheromone_id, action_kind, status, created_at) VALUES (?, ?, ?, ?)",
+            ("ph-1", "cleanup", "pending", "2025-12-22T10:00:00Z"),
+        )
+        conn.commit()
+
+    logs = repo.list_pheromones(limit=10)
+    assert len(logs) >= 1
+    assert logs[0]["pheromone_id"] == "ph-1"

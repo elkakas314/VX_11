@@ -216,8 +216,10 @@ class TaskQueue(Base):
     priority = Column(Integer, default=5)
     payload = Column(Text, nullable=False)
     status = Column(String(32), default="queued")
+    result = Column(Text, nullable=True)
     enqueued_at = Column(DateTime, default=datetime.utcnow)
     dequeued_at = Column(DateTime, nullable=True)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
 class Events(Base):

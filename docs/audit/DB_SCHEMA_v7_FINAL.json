@@ -1,5 +1,5 @@
 {
-  "generated_at": "2025-12-22T01:45:19.521032Z",
+  "generated_at": "2025-12-22T04:36:40.750055Z",
   "database": "data/runtime/vx11.db",
   "tables": [
     {
@@ -1317,7 +1317,7 @@
           "match": "NONE"
         }
       ],
-      "rows": 149,
+      "rows": 151,
       "status": "ACTIVE",
       "module": "spawner"
     },
@@ -1438,7 +1438,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 99,
+      "rows": 101,
       "status": "ACTIVE",
       "module": "spawner"
     },
@@ -1554,7 +1554,7 @@
           "match": "NONE"
         }
       ],
-      "rows": 149,
+      "rows": 151,
       "status": "ACTIVE",
       "module": "spawner"
     },
@@ -2186,7 +2186,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 24,
+      "rows": 26,
       "status": "ACTIVE",
       "module": "hormiguero"
     },
@@ -2267,7 +2267,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 12,
+      "rows": 14,
       "status": "ACTIVE",
       "module": "hormiguero"
     },
@@ -2791,7 +2791,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 100,
+      "rows": 102,
       "status": "ACTIVE",
       "module": "madre"
     },
@@ -4970,7 +4970,7 @@
           "match": "NONE"
         }
       ],
-      "rows": 37,
+      "rows": 39,
       "status": "ACTIVE",
       "module": "spawner"
     },
@@ -5331,10 +5331,26 @@
           "notnull": false,
           "dflt_value": null,
           "pk": false
+        },
+        {
+          "cid": 7,
+          "name": "result",
+          "type": "TEXT",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 8,
+          "name": "updated_at",
+          "type": "DATETIME",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         }
       ],
       "foreign_keys": [],
-      "rows": 35,
+      "rows": 91,
       "status": "ACTIVE",
       "module": "madre"
     },

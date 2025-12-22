@@ -336,7 +336,7 @@ async def madre_intent(req: MadreIntentRequest):
     }
 
 
-# ============ ORCHESTRATION COMPAT ============ 
+# ============ ORCHESTRATION COMPAT ============
 
 
 class OrchestrateRequest(BaseModel):
@@ -370,7 +370,9 @@ async def status():
 
 @app.get("/sessions")
 async def sessions():
-    return {"sessions": [{"session_id": sid, **meta} for sid, meta in _SESSIONS.items()]}
+    return {
+        "sessions": [{"session_id": sid, **meta} for sid, meta in _SESSIONS.items()]
+    }
 
 
 # ============ PLAN ENDPOINTS ============
@@ -487,10 +489,7 @@ async def power_status():
             text=True,
             check=False,
         )
-        proc_list = [
-            l for l in res.stdout.splitlines()
-            if "/home/elkakas314/vx11" in l
-        ]
+        proc_list = [l for l in res.stdout.splitlines() if "/home/elkakas314/vx11" in l]
     except Exception:
         proc_list = []
     # build response
@@ -578,10 +577,8 @@ try:
 except Exception:
     pass
 
-try:
-    power_manager_module.register_power_routes(app)
-except Exception:
-    pass
+
+power_manager_module.register_power_routes(app)
 
 # Expose httpx at module level so tests can patch 'madre.main.httpx.AsyncClient'
 try:

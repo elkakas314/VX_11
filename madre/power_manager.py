@@ -87,7 +87,9 @@ def _write_json(path: str, payload: Dict[str, Any]) -> None:
         json.dump(payload, f, indent=2)
 
 
-def _run(args: List[str], timeout: int = 20, cwd: Optional[str] = None) -> Dict[str, Any]:
+def _run(
+    args: List[str], timeout: int = 20, cwd: Optional[str] = None
+) -> Dict[str, Any]:
     started = time.time()
     proc = subprocess.run(
         args,
@@ -194,7 +196,7 @@ def _compose_services() -> Tuple[List[str], Optional[str]]:
     files = _compose_files()
     if not files:
         return [], "compose_files_missing"
-    args = ["docker", "compose"]
+    args = ["docker", "compose", "-p", "vx11"]
     for f in files:
         args.extend(["-f", f])
     args.extend(["config", "--services"])
@@ -209,13 +211,17 @@ def _compose_services() -> Tuple[List[str], Optional[str]]:
 
 
 def _db_services() -> List[str]:
-    db_path = os.environ.get("VX11_DB_PATH") or os.path.join(REPO_ROOT, "data", "runtime", "vx11.db")
+    db_path = os.environ.get("VX11_DB_PATH") or os.path.join(
+        REPO_ROOT, "data", "runtime", "vx11.db"
+    )
     if not os.path.exists(db_path):
         return []
     try:
         conn = sqlite3.connect(db_path)
         cur = conn.cursor()
-        cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='module_status'")
+        cur.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='module_status'"
+        )
         if not cur.fetchone():
             return []
         cur.execute("SELECT module_name FROM module_status ORDER BY module_name")
@@ -309,7 +315,9 @@ def _docker_available() -> bool:
     return res.get("rc") == 0
 
 
-def _security_flags(key_ok: bool, token_ok: bool, confirm_ok: bool, rate_ok: bool) -> Dict[str, bool]:
+def _security_flags(
+    key_ok: bool, token_ok: bool, confirm_ok: bool, rate_ok: bool
+) -> Dict[str, bool]:
     return {
         "key": key_ok,
         "token": token_ok,
@@ -352,7 +360,7 @@ def _ensure_service(service: str, allowlist: List[str]) -> None:
 
 def _plan_for_service(action: str, service: str) -> List[Dict[str, Any]]:
     files = _compose_files()
-    cmd = ["docker", "compose"]
+    cmd = ["docker", "compose", "-p", "vx11"]
     for f in files:
         cmd.extend(["-f", f])
     cmd.append(action)
@@ -366,7 +374,7 @@ def _plan_for_mode(action: str, allowlist: List[str]) -> List[Dict[str, Any]]:
     for svc in allowlist:
         if action == "idle_min" and svc == "madre":
             continue
-        cmd = ["docker", "compose"]
+        cmd = ["docker", "compose", "-p", "vx11"]
         for f in files:
             cmd.extend(["-f", f])
         cmd.append("stop")
@@ -435,12 +443,18 @@ async def maintenance_post_task(req: PostTaskRequest) -> Dict[str, Any]:
         apply_retention = bool(size_mb and size_mb >= 500.0)
 
     sqlite_results = {
-        "quick_check": _run_sqlite_check(db_path, out_dir, "quick_check", "quick_check"),
+        "quick_check": _run_sqlite_check(
+            db_path, out_dir, "quick_check", "quick_check"
+        ),
         "integrity_check": _run_sqlite_check(
             db_path, out_dir, "integrity_check", "integrity_check"
         ),
         "foreign_key_check": _run_sqlite_check(
-            db_path, out_dir, "foreign_key_check", "foreign_key_check", foreign_keys=True
+            db_path,
+            out_dir,
+            "foreign_key_check",
+            "foreign_key_check",
+            foreign_keys=True,
         ),
     }
 
@@ -492,7 +506,9 @@ async def maintenance_post_task(req: PostTaskRequest) -> Dict[str, Any]:
         except Exception:
             db_size_bytes = None
         backup_counts = _count_backups(os.path.join(REPO_ROOT, "data", "backups"))
-        integrity_value = _parse_sqlite_result(sqlite_results.get("integrity_check", {}))
+        integrity_value = _parse_sqlite_result(
+            sqlite_results.get("integrity_check", {})
+        )
         scorecard = {
             "generated_ts": _now_ts(),
             "integrity": integrity_value,
@@ -537,7 +553,9 @@ async def power_start(
     x_vx11_power_key: Optional[str] = Header(None),
     x_vx11_power_token: Optional[str] = Header(None),
 ):
-    return await _power_action("start", name, req, request, x_vx11_power_key, x_vx11_power_token)
+    return await _power_action(
+        "start", name, req, request, x_vx11_power_key, x_vx11_power_token
+    )
 
 
 @router.post("/madre/power/service/{name}/stop")
@@ -548,7 +566,9 @@ async def power_stop(
     x_vx11_power_key: Optional[str] = Header(None),
     x_vx11_power_token: Optional[str] = Header(None),
 ):
-    return await _power_action("stop", name, req, request, x_vx11_power_key, x_vx11_power_token)
+    return await _power_action(
+        "stop", name, req, request, x_vx11_power_key, x_vx11_power_token
+    )
 
 
 @router.post("/madre/power/service/{name}/restart")
@@ -559,7 +579,9 @@ async def power_restart(
     x_vx11_power_key: Optional[str] = Header(None),
     x_vx11_power_token: Optional[str] = Header(None),
 ):
-    return await _power_action("restart", name, req, request, x_vx11_power_key, x_vx11_power_token)
+    return await _power_action(
+        "restart", name, req, request, x_vx11_power_key, x_vx11_power_token
+    )
 
 
 @router.post("/madre/power/mode/idle_min")
@@ -569,7 +591,9 @@ async def power_idle_min(
     x_vx11_power_key: Optional[str] = Header(None),
     x_vx11_power_token: Optional[str] = Header(None),
 ):
-    return await _power_mode("idle_min", req, request, x_vx11_power_key, x_vx11_power_token)
+    return await _power_mode(
+        "idle_min", req, request, x_vx11_power_key, x_vx11_power_token
+    )
 
 
 @router.post("/madre/power/mode/hard_off")
@@ -579,7 +603,9 @@ async def power_hard_off(
     x_vx11_power_key: Optional[str] = Header(None),
     x_vx11_power_token: Optional[str] = Header(None),
 ):
-    return await _power_mode("hard_off", req, request, x_vx11_power_key, x_vx11_power_token)
+    return await _power_mode(
+        "hard_off", req, request, x_vx11_power_key, x_vx11_power_token
+    )
 
 
 async def _power_action(
@@ -605,32 +631,88 @@ async def _power_action(
     ua = request.headers.get("user-agent", "")
     rate_ok, _rate_state = _rate_limit(ip, action)
 
-    key_ok = bool(os.environ.get("VX11_POWER_KEY")) and key_header == os.environ.get("VX11_POWER_KEY")
+    key_ok = bool(os.environ.get("VX11_POWER_KEY")) and key_header == os.environ.get(
+        "VX11_POWER_KEY"
+    )
     token_ok = bool(token_header) and _validate_token(token_header, ip, ua)
-    confirm_ok = (req.confirm == "I_UNDERSTAND_THIS_STOPS_SERVICES")
+    confirm_ok = req.confirm == "I_UNDERSTAND_THIS_STOPS_SERVICES"
 
     if not req.apply:
         db_write = _record_db(f"power_{action}_plan", f"service:{name}")
-        return _response("plan", False, name, action, plan, [], out_dir, db_write, _security_flags(key_ok, token_ok, confirm_ok, rate_ok))
+        return _response(
+            "plan",
+            False,
+            name,
+            action,
+            plan,
+            [],
+            out_dir,
+            db_write,
+            _security_flags(key_ok, token_ok, confirm_ok, rate_ok),
+        )
 
     if not docker_ok:
         reason_path = os.path.join(out_dir, "plan_only_reason.txt")
         with open(reason_path, "w", encoding="utf-8") as f:
             f.write("docker_unavailable_or_no_permissions\n")
-        db_write = _record_db(f"power_{action}_plan", f"service:{name}:docker_unavailable")
-        return _response("plan", False, name, action, plan, [], out_dir, db_write, _security_flags(key_ok, token_ok, confirm_ok, rate_ok))
+        db_write = _record_db(
+            f"power_{action}_plan", f"service:{name}:docker_unavailable"
+        )
+        return _response(
+            "plan",
+            False,
+            name,
+            action,
+            plan,
+            [],
+            out_dir,
+            db_write,
+            _security_flags(key_ok, token_ok, confirm_ok, rate_ok),
+        )
 
     if not rate_ok:
-        return _response("error", False, name, action, plan, [], out_dir, "skipped", _security_flags(key_ok, token_ok, confirm_ok, rate_ok), code=429)
+        return _response(
+            "error",
+            False,
+            name,
+            action,
+            plan,
+            [],
+            out_dir,
+            "skipped",
+            _security_flags(key_ok, token_ok, confirm_ok, rate_ok),
+            code=429,
+        )
 
     if not (key_ok and token_ok and confirm_ok):
-        return _response("error", False, name, action, plan, [], out_dir, "skipped", _security_flags(key_ok, token_ok, confirm_ok, rate_ok), code=400)
+        return _response(
+            "error",
+            False,
+            name,
+            action,
+            plan,
+            [],
+            out_dir,
+            "skipped",
+            _security_flags(key_ok, token_ok, confirm_ok, rate_ok),
+            code=400,
+        )
 
     _write_snapshot(out_dir, "pre")
     executed = _execute_plan(out_dir, plan)
     _write_snapshot(out_dir, "post")
     db_write = _record_db(f"power_{action}_apply", f"service:{name}")
-    return _response("ok", True, name, action, plan, executed, out_dir, db_write, _security_flags(key_ok, token_ok, confirm_ok, rate_ok))
+    return _response(
+        "ok",
+        True,
+        name,
+        action,
+        plan,
+        executed,
+        out_dir,
+        db_write,
+        _security_flags(key_ok, token_ok, confirm_ok, rate_ok),
+    )
 
 
 async def _power_mode(
@@ -646,39 +728,200 @@ async def _power_mode(
     docker_ok = _docker_available()
     _write_json(
         os.path.join(out_dir, "plan.json"),
-        {"plan": plan, "apply": req.apply, "mode": action, "docker_available": docker_ok},
+        {
+            "plan": plan,
+            "apply": req.apply,
+            "mode": action,
+            "docker_available": docker_ok,
+        },
     )
 
     ip = request.client.host if request.client else "unknown"
     ua = request.headers.get("user-agent", "")
     rate_ok, _rate_state = _rate_limit(ip, action)
 
-    key_ok = bool(os.environ.get("VX11_POWER_KEY")) and key_header == os.environ.get("VX11_POWER_KEY")
+    key_ok = bool(os.environ.get("VX11_POWER_KEY")) and key_header == os.environ.get(
+        "VX11_POWER_KEY"
+    )
     token_ok = bool(token_header) and _validate_token(token_header, ip, ua)
-    confirm_ok = (req.confirm == "I_UNDERSTAND_THIS_STOPS_SERVICES")
+    confirm_ok = req.confirm == "I_UNDERSTAND_THIS_STOPS_SERVICES"
 
     if not req.apply:
         db_write = _record_db(f"power_{action}_plan", "mode")
-        return _response("plan", False, None, action, plan, [], out_dir, db_write, _security_flags(key_ok, token_ok, confirm_ok, rate_ok))
+        return _response(
+            "plan",
+            False,
+            None,
+            action,
+            plan,
+            [],
+            out_dir,
+            db_write,
+            _security_flags(key_ok, token_ok, confirm_ok, rate_ok),
+        )
 
     if not docker_ok:
         reason_path = os.path.join(out_dir, "plan_only_reason.txt")
         with open(reason_path, "w", encoding="utf-8") as f:
             f.write("docker_unavailable_or_no_permissions\n")
         db_write = _record_db(f"power_{action}_plan", "mode:docker_unavailable")
-        return _response("plan", False, None, action, plan, [], out_dir, db_write, _security_flags(key_ok, token_ok, confirm_ok, rate_ok))
+        return _response(
+            "plan",
+            False,
+            None,
+            action,
+            plan,
+            [],
+            out_dir,
+            db_write,
+            _security_flags(key_ok, token_ok, confirm_ok, rate_ok),
+        )
 
     if not rate_ok:
-        return _response("error", False, None, action, plan, [], out_dir, "skipped", _security_flags(key_ok, token_ok, confirm_ok, rate_ok), code=429)
+        return _response(
+            "error",
+            False,
+            None,
+            action,
+            plan,
+            [],
+            out_dir,
+            "skipped",
+            _security_flags(key_ok, token_ok, confirm_ok, rate_ok),
+            code=429,
+        )
 
     if not (key_ok and token_ok and confirm_ok):
-        return _response("error", False, None, action, plan, [], out_dir, "skipped", _security_flags(key_ok, token_ok, confirm_ok, rate_ok), code=400)
+        return _response(
+            "error",
+            False,
+            None,
+            action,
+            plan,
+            [],
+            out_dir,
+            "skipped",
+            _security_flags(key_ok, token_ok, confirm_ok, rate_ok),
+            code=400,
+        )
 
     _write_snapshot(out_dir, "pre")
     executed = _execute_plan(out_dir, plan)
     _write_snapshot(out_dir, "post")
     db_write = _record_db(f"power_{action}_apply", "mode")
-    return _response("ok", True, None, action, plan, executed, out_dir, db_write, _security_flags(key_ok, token_ok, confirm_ok, rate_ok))
+    return _response(
+        "ok",
+        True,
+        None,
+        action,
+        plan,
+        executed,
+        out_dir,
+        db_write,
+        _security_flags(key_ok, token_ok, confirm_ok, rate_ok),
+    )
+
+
+class ModeRequest(BaseModel):
+    mode: str
+
+
+class ServiceRequest(BaseModel):
+    service: str
+
+
+@router.post("/madre/power/mode")
+async def set_power_mode_simple(req: ModeRequest, apply: bool = True):
+    allowlist, _ = _allowlist()
+    mode = req.mode.lower()
+    out_dir = _make_out_dir(f"mode_{mode}", None)
+    plan = _plan_for_named_mode(mode, allowlist)
+
+    if not apply:
+        return {"status": "plan", "mode": mode, "plan": plan, "out_dir": out_dir}
+
+    executed = _execute_plan(out_dir, plan)
+    return {"status": "ok", "mode": mode, "executed": executed, "out_dir": out_dir}
+
+
+@router.post("/madre/power/service/start")
+async def start_service_simple(req: ServiceRequest):
+    allowlist, _ = _allowlist()
+    svc = req.service
+    if svc not in allowlist:
+        raise HTTPException(status_code=404, detail=f"Service {svc} not in allowlist")
+    out_dir = _make_out_dir("start", svc)
+    plan = _plan_for_service("up", svc)
+    # Ensure -d is present for up
+    for step in plan:
+        if "up" in step["cmd"] and "-d" not in step["cmd"]:
+            idx = step["cmd"].index("up")
+            step["cmd"].insert(idx + 1, "-d")
+
+    executed = _execute_plan(out_dir, plan)
+    return {"status": "ok", "service": svc, "executed": executed, "out_dir": out_dir}
+
+
+@router.post("/madre/power/service/stop")
+async def stop_service_simple(req: ServiceRequest):
+    allowlist, _ = _allowlist()
+    svc = req.service
+    if svc not in allowlist:
+        raise HTTPException(status_code=404, detail=f"Service {svc} not in allowlist")
+    out_dir = _make_out_dir("stop", svc)
+    plan = _plan_for_service("stop", svc)
+    executed = _execute_plan(out_dir, plan)
+    return {"status": "ok", "service": svc, "executed": executed, "out_dir": out_dir}
+
+
+@router.get("/madre/power/status")
+async def get_power_status_simple():
+    res = _run(["docker", "compose", "-p", "vx11", "ps", "--format", "json"])
+    try:
+        # docker compose ps --format json returns multiple lines of json objects or a list
+        raw = res.get("stdout", "").strip()
+        if raw.startswith("["):
+            services = json.loads(raw)
+        else:
+            services = [json.loads(l) for l in raw.splitlines() if l.strip()]
+    except Exception:
+        services = res.get("stdout", "")
+    return {"status": "ok", "services": services}
+
+
+def _plan_for_named_mode(mode: str, allowlist: List[str]) -> List[Dict[str, Any]]:
+    modes = {
+        "low_power": ["madre"],
+        "operative_core": ["madre", "tentaculo_link", "switch", "spawner", "mcp"],
+        "full": [
+            "madre",
+            "tentaculo_link",
+            "switch",
+            "spawner",
+            "hermes",
+            "hormiguero",
+            "manifestator",
+            "shubniggurath",
+            "operator-backend",
+            "operator-frontend",
+        ],
+    }
+    target = modes.get(mode, ["madre"])
+    plan = []
+    # Stop services not in target
+    for svc in allowlist:
+        if svc not in target:
+            plan.append(
+                {"cmd": ["docker", "compose", "-p", "vx11", "stop", svc], "timeout": 30}
+            )
+    # Start services in target
+    for svc in target:
+        if svc == "madre":
+            continue
+        plan.append(
+            {"cmd": ["docker", "compose", "-p", "vx11", "up", "-d", svc], "timeout": 30}
+        )
+    return plan
 
 
 def register_power_routes(app) -> None:
