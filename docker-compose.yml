@@ -316,6 +316,9 @@ services:
       - VX11_TENTACULO_LINK_TOKEN=vx11-local-token
       - VX11_OPERATOR_TOKEN=vx11-local-token
       - VX11_LOCAL_TOKEN=vx11-local-token
+      - VX11_MODE=${VX11_MODE:-operative_core}
+      - OPERATOR_ADMIN_PASSWORD=${OPERATOR_ADMIN_PASSWORD:-admin}
+      - OPERATOR_TOKEN_SECRET=${OPERATOR_TOKEN_SECRET:-operator-secret-v7}
     mem_limit: 512m
     depends_on:
       tentaculo_link:
