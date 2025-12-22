@@ -1,12 +1,28 @@
 import pytest
 import sqlite3
 import os
+import sys
+from importlib import import_module
 from pathlib import Path
-from hormiguero.core.db import repo
-from hormiguero.core.db.sqlite import ensure_schema, get_connection
-from hormiguero.config import settings
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
+SRC_ROOT = REPO_ROOT / "src"
+
+sys.path.insert(0, str(REPO_ROOT))
+if SRC_ROOT.is_dir():
+    sys.path.insert(0, str(SRC_ROOT))
+
+# Ensure the package root itself is discoverable in editable installs.
+sys.path.insert(0, str(SRC_ROOT / "hormiguero"))
+
+from hormiguero.core.db import repo, ensure_schema, get_connection
+
+try:
+    settings = import_module("hormiguero.config").settings
+except (ModuleNotFoundError, AttributeError):
+    from types import SimpleNamespace
+
+    settings = SimpleNamespace(db_path="")
 
 
 @pytest.fixture
