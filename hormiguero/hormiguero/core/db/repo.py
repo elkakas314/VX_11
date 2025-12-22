@@ -26,6 +26,7 @@ def upsert_hormiga_state(
     enabled: bool,
     aggression_level: int,
     scan_interval_sec: int,
+    ant_id: Optional[str] = None,
     last_scan_at: Optional[str] = None,
     last_ok_at: Optional[str] = None,
     last_error_at: Optional[str] = None,
@@ -57,7 +58,7 @@ def upsert_hormiga_state(
             """,
             (
                 hormiga_id,
-                hormiga_id,
+                ant_id or hormiga_id,
                 name,
                 role,
                 int(enabled),
