@@ -409,13 +409,41 @@ def docker_up_services(services: List[str], mode: str = "low_power") -> Tuple[in
 
 
 def docker_down_services(services: List[str]) -> Tuple[int, str]:
-    """Stop and remove docker compose services (safe, per-service)."""
-    # Stop services one by one
-    for svc in services:
-        run_cmd(f"docker compose stop {svc} 2>/dev/null || true", timeout=15)
-        run_cmd(f"docker compose rm -f {svc} 2>/dev/null || true", timeout=15)
+    """
+    Stop and remove docker compose services with verification.
 
-    return 0, "Services stopped and removed"
+    Per DeepSeek R1: Add timeout handling and termination verification.
+    """
+    errors = []
+    for svc in services:
+        # Stop with timeout
+        stop_rc, _, _ = run_cmd(
+            f"docker compose stop -t 10 {svc} 2>/dev/null || true", timeout=15
+        )
+
+        # Force kill if needed
+        run_cmd(f"docker compose kill {svc} 2>/dev/null || true", timeout=5)
+
+        # Remove
+        rm_rc, _, _ = run_cmd(
+            f"docker compose rm -f {svc} 2>/dev/null || true", timeout=15
+        )
+
+        # Verify removal
+        verify_rc, stdout, _ = run_cmd(
+            f"docker ps -q --filter 'label=com.docker.compose.service={svc}' 2>/dev/null | wc -l",
+            timeout=5,
+            silent=True,
+        )
+
+        # If container still exists, force remove
+        if verify_rc == 0 and stdout.strip() != "0":
+            run_cmd(
+                f"docker rm -f $(docker ps -aq --filter 'label=com.docker.compose.service={svc}') 2>/dev/null || true",
+                timeout=15,
+            )
+
+    return 0, "Services stopped, killed, and removed"
 
 
 def find_test_files(pattern: str, test_dir: str = "tests") -> List[str]:
