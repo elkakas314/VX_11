@@ -446,6 +446,51 @@ def docker_down_services(services: List[str]) -> Tuple[int, str]:
     return 0, "Services stopped, killed, and removed"
 
 
+# ============================================================================
+# Formatting Helpers (Robust for N/A and Missing Values)
+# ============================================================================
+
+
+def as_float(x: Any) -> Optional[float]:
+    """Safely convert value to float. Returns None if not convertible."""
+    if x is None or x == "N/A":
+        return None
+    if isinstance(x, (int, float)):
+        return float(x)
+    if isinstance(x, str):
+        try:
+            return float(x)
+        except ValueError:
+            return None
+    return None
+
+
+def fmt_float(x: Any, decimals: int = 1, suffix: str = "") -> str:
+    """Format float with fallback to N/A. Safe for str/int/float/None."""
+    val = as_float(x)
+    if val is None:
+        return "N/A"
+    return f"{val:.{decimals}f}{suffix}"
+
+
+def fmt_mib(x: Any) -> str:
+    """Format memory value in MiB. Handles N/A strings gracefully."""
+    val = as_float(x)
+    if val is None:
+        return "N/A"
+    return f"{val:.1f} MiB"
+
+
+def fmt_int(x: Any) -> str:
+    """Format integer with fallback to N/A."""
+    if x is None or x == "N/A":
+        return "N/A"
+    try:
+        return str(int(x))
+    except (ValueError, TypeError):
+        return "N/A"
+
+
 def find_test_files(pattern: str, test_dir: str = "tests") -> List[str]:
     """
     Find test files matching pattern.
@@ -651,7 +696,7 @@ class StabilityP0Runner:
                 success, latency_ms = health_check(endpoint, timeout=self.timeout_sec)
                 health_latencies.append(latency_ms)
                 status_str = "✓" if success else "✗"
-                print(f"      {status_str} {label}: {latency_ms:.1f}ms")
+                print(f"      {status_str} {label}: {fmt_float(latency_ms, 1, 'ms')}")
 
             if not any(health_latencies):
                 module_result["errors"].append("No health endpoints responded")
@@ -667,7 +712,7 @@ class StabilityP0Runner:
                 flow_results.append(result)
                 status_str = "✓" if result["success"] else "✗"
                 print(
-                    f"      {status_str} {label}: {result['latency_ms']:.1f}ms (code: {result['http_code']}, hash: {result['payload_hash']})"
+                    f"      {status_str} {label}: {fmt_float(result['latency_ms'], 1, 'ms')} (code: {result['http_code']}, hash: {result['payload_hash']})"
                 )
 
             module_result["flow_results"] = flow_results
@@ -834,8 +879,10 @@ class StabilityP0Runner:
                 for svc, metrics in result["metrics"].items():
                     stats = metrics.get("stats", {})
                     inspect = metrics.get("inspect", {})
-                    mem_peak = max(mem_peak, stats.get("mem_mib", 0.0))
-                    cpu_max = max(cpu_max, stats.get("cpu_pct", 0.0))
+                    mem_val = as_float(stats.get("mem_mib"))
+                    cpu_val = as_float(stats.get("cpu_pct"))
+                    mem_peak = max(mem_peak, mem_val if mem_val is not None else 0.0)
+                    cpu_max = max(cpu_max, cpu_val if cpu_val is not None else 0.0)
                     restarts = max(restarts, inspect.get("restart_count", 0))
                     if inspect.get("oom_killed"):
                         oom = "Yes"
@@ -854,7 +901,7 @@ class StabilityP0Runner:
             )
 
             lines.append(
-                f"| {module_name} | {status} | {mem_peak:.1f} | {cpu_max:.1f} | {restarts} | {oom} | {health_p95:.1f} | {tests_str} | {stability:.1f}% |"
+                f"| {module_name} | {status} | {fmt_float(mem_peak, 1, '')} | {fmt_float(cpu_max, 1, '')} | {fmt_int(restarts)} | {oom} | {fmt_float(health_p95, 1, '')} | {tests_str} | {fmt_float(stability, 1, '%')} |"
             )
 
         lines.extend(
@@ -875,7 +922,7 @@ class StabilityP0Runner:
             lines.append("")
             lines.append(f"**Status:** {result['status']}")
             lines.append(
-                f"**Stability Score:** {result.get('stability_p0_pct', 0.0):.1f}%"
+                f"**Stability Score:** {fmt_float(result.get('stability_p0_pct', 0.0), 1, '%')}"
             )
             lines.append("")
 
@@ -891,9 +938,9 @@ class StabilityP0Runner:
                     lines.append(f"- {svc}:")
                     stats = metrics.get("stats", {})
                     lines.append(
-                        f"  - RAM: {stats.get('mem_mib', 'N/A'):.1f} MiB (limit: {stats.get('mem_limit_mib', 'N/A')})"
+                        f"  - RAM: {fmt_mib(stats.get('mem_mib'))} (limit: {fmt_mib(stats.get('mem_limit_mib'))})"
                     )
-                    lines.append(f"  - CPU: {stats.get('cpu_pct', 'N/A'):.1f}%")
+                    lines.append(f"  - CPU: {fmt_float(stats.get('cpu_pct'), 1, '%')}")
                     lines.append(
                         f"  - Restarts: {metrics['inspect'].get('restart_count', 0)}"
                     )
@@ -903,7 +950,9 @@ class StabilityP0Runner:
                     latencies = metrics.get("health_latency_ms", [])
                     if latencies:
                         p95_latency = sorted(latencies)[int(len(latencies) * 0.95)]
-                        lines.append(f"  - Health p95 latency: {p95_latency:.1f}ms")
+                        lines.append(
+                            f"  - Health p95 latency: {fmt_float(p95_latency, 1, 'ms')}"
+                        )
                 lines.append("")
 
             if result["test_results"]:
@@ -944,7 +993,7 @@ class StabilityP0Runner:
             )
             stability = result.get("stability_p0_pct", 0.0)
             lines.append(
-                f"{rank}. **{module_name}**: {mem_peak:.1f} MiB (Stability: {stability:.1f}%)"
+                f"{rank}. **{module_name}**: {fmt_mib(mem_peak)} (Stability: {fmt_float(stability, 1, '%')})"
             )
 
         return "\n".join(lines)

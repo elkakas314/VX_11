@@ -219,5 +219,121 @@ class TestStabilityP0Integration:
         assert runner.cycles == 1
 
 
+class TestFormattingHelpers:
+    """Test formatting helper functions for robustness."""
+
+    def test_fmt_float_with_valid_values(self):
+        """Test fmt_float with valid numeric inputs."""
+        from scripts.vx11_stability_p0 import fmt_float
+
+        assert fmt_float(123.456, 1) == "123.5"
+        assert fmt_float(0.1, 1) == "0.1"
+        assert fmt_float(99.9, 0) == "100"
+        assert fmt_float(50.0, 1, "%") == "50.0%"
+
+    def test_fmt_float_with_strings(self):
+        """Test fmt_float with string inputs (including N/A)."""
+        from scripts.vx11_stability_p0 import fmt_float
+
+        assert fmt_float("N/A") == "N/A"
+        assert fmt_float("123.45", 1) == "123.5"  # Python rounding
+        assert fmt_float("invalid", 1) == "N/A"
+
+    def test_fmt_float_with_none(self):
+        """Test fmt_float with None."""
+        from scripts.vx11_stability_p0 import fmt_float
+
+        assert fmt_float(None) == "N/A"
+
+    def test_fmt_mib_with_valid_values(self):
+        """Test fmt_mib with valid memory values."""
+        from scripts.vx11_stability_p0 import fmt_mib
+
+        assert fmt_mib(512.5) == "512.5 MiB"
+        assert fmt_mib(1024) == "1024.0 MiB"
+        assert fmt_mib(0.1) == "0.1 MiB"
+
+    def test_fmt_mib_with_strings(self):
+        """Test fmt_mib with string inputs."""
+        from scripts.vx11_stability_p0 import fmt_mib
+
+        assert fmt_mib("N/A") == "N/A"
+        assert fmt_mib("256") == "256.0 MiB"
+        assert fmt_mib("invalid") == "N/A"
+
+    def test_fmt_mib_with_none(self):
+        """Test fmt_mib with None."""
+        from scripts.vx11_stability_p0 import fmt_mib
+
+        assert fmt_mib(None) == "N/A"
+
+    def test_fmt_int_with_valid_values(self):
+        """Test fmt_int with valid integer inputs."""
+        from scripts.vx11_stability_p0 import fmt_int
+
+        assert fmt_int(0) == "0"
+        assert fmt_int(42) == "42"
+        assert fmt_int(1000) == "1000"
+
+    def test_fmt_int_with_strings(self):
+        """Test fmt_int with string inputs."""
+        from scripts.vx11_stability_p0 import fmt_int
+
+        assert fmt_int("N/A") == "N/A"
+        assert fmt_int("123") == "123"
+        assert fmt_int("invalid") == "N/A"
+
+    def test_fmt_int_with_none(self):
+        """Test fmt_int with None."""
+        from scripts.vx11_stability_p0 import fmt_int
+
+        assert fmt_int(None) == "N/A"
+
+    def test_markdown_generation_with_na_values(self):
+        """Test _generate_markdown doesn't crash with N/A values."""
+        from datetime import datetime
+
+        runner = StabilityP0Runner(cycles=1, modules="switch", keep_core=True)
+
+        # Simulate results with N/A values
+        runner.results = {
+            "timestamp": datetime.now().isoformat(),
+            "mode": "low_power",
+            "cycles": 1,
+            "summary": {"total_modules": 1, "passed": 1, "failed": 0},
+            "modules": {
+                "test_module": {
+                    "status": "PASS",
+                    "stability_p0_pct": 95.5,
+                    "metrics": {
+                        "svc1": {
+                            "stats": {
+                                "mem_mib": "N/A",  # String instead of float
+                                "mem_limit_mib": "N/A",
+                                "cpu_pct": "N/A",
+                            },
+                            "inspect": {"restart_count": 0, "oom_killed": False},
+                            "health_latency_ms": [10.5, 11.2, 9.8, 12.1],
+                        }
+                    },
+                    "flow_results": [],
+                    "test_results": {"test_module_basic.py": {"passed": True}},
+                    "errors": [],
+                }
+            },
+        }
+
+        # Should not crash when generating markdown with N/A values
+        markdown = runner._generate_markdown()
+
+        # Verify N/A appears in output where expected
+        assert "N/A" in markdown
+        # Verify no ValueError about format codes
+        assert "N/A (limit: N/A)" in markdown
+        # Verify health p95 latency is formatted correctly (p95 of [10.5, 11.2, 9.8, 12.1] is 12.1)
+        assert "12.1ms" in markdown
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
+
