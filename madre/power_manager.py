@@ -47,6 +47,10 @@ CANONICAL_SERVICES = [
     "operator-frontend",
 ]
 
+# VX11 Service Control Policy: guardrails for autonomy
+VX11_ALLOW_SERVICE_CONTROL = os.environ.get("VX11_ALLOW_SERVICE_CONTROL", "0").lower() in ("1", "true", "yes")
+MAINTENANCE_WINDOW_ENABLED = os.environ.get("VX11_MAINTENANCE_WINDOW_ENABLED", "1").lower() in ("1", "true", "yes")
+
 _TOKENS: Dict[str, Dict[str, Any]] = {}
 _RATE: Dict[str, Dict[str, Any]] = {}
 
@@ -846,6 +850,13 @@ async def set_power_mode_simple(req: ModeRequest, apply: bool = True):
 
 @router.post("/madre/power/service/start")
 async def start_service_simple(req: ServiceRequest):
+    # VX11 GUARDRAIL: Service control requires explicit enablement
+    if not VX11_ALLOW_SERVICE_CONTROL:
+        raise HTTPException(
+            status_code=403,
+            detail="Service control disabled. Set VX11_ALLOW_SERVICE_CONTROL=1 to enable."
+        )
+    
     allowlist, _ = _allowlist()
     svc = req.service
     if svc not in allowlist:
@@ -864,6 +875,13 @@ async def start_service_simple(req: ServiceRequest):
 
 @router.post("/madre/power/service/stop")
 async def stop_service_simple(req: ServiceRequest):
+    # VX11 GUARDRAIL: Service control requires explicit enablement
+    if not VX11_ALLOW_SERVICE_CONTROL:
+        raise HTTPException(
+            status_code=403,
+            detail="Service control disabled. Set VX11_ALLOW_SERVICE_CONTROL=1 to enable."
+        )
+    
     allowlist, _ = _allowlist()
     svc = req.service
     if svc not in allowlist:
@@ -872,7 +890,6 @@ async def stop_service_simple(req: ServiceRequest):
     plan = _plan_for_service("stop", svc)
     executed = _execute_plan(out_dir, plan)
     return {"status": "ok", "service": svc, "executed": executed, "out_dir": out_dir}
-
 
 @router.get("/madre/power/status")
 async def get_power_status_simple():
