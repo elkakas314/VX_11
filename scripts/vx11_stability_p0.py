@@ -41,8 +41,8 @@ MODULE_DEPENDENCY_MAP = {
         "services": ["madre", "tentaculo_link"],
         "depends_on": [],
         "health_endpoints": [
-            ("http://127.0.0.1:8000", "madre"),
-            ("http://127.0.0.1:8004", "tentaculo_link"),
+            ("http://127.0.0.1:8001", "madre"),
+            ("http://127.0.0.1:8000", "tentaculo_link"),
         ],
         "test_patterns": ["test_madre_*.py"],
     },
@@ -50,28 +50,28 @@ MODULE_DEPENDENCY_MAP = {
         "description": "Provider routing",
         "services": ["switch"],
         "depends_on": ["baseline"],
-        "health_endpoints": [("http://127.0.0.1:8001", "switch")],
+        "health_endpoints": [("http://127.0.0.1:8002", "switch")],
         "test_patterns": ["test_switch_*.py"],
     },
     "hermes": {
         "description": "Registry & orchestration",
         "services": ["hermes"],
         "depends_on": ["baseline", "switch"],
-        "health_endpoints": [("http://127.0.0.1:8002", "hermes")],
+        "health_endpoints": [("http://127.0.0.1:8003", "hermes")],
         "test_patterns": ["test_hermes_*.py"],
     },
     "spawner": {
         "description": "Daughter process spawner",
         "services": ["spawner"],
         "depends_on": ["baseline", "hermes"],
-        "health_endpoints": [("http://127.0.0.1:8005", "spawner")],
+        "health_endpoints": [("http://127.0.0.1:8008", "spawner")],
         "test_patterns": ["test_spawner_*.py"],
     },
     "hormiguero": {
         "description": "Worker ant farm",
         "services": ["hormiguero"],
         "depends_on": ["baseline", "hermes", "spawner"],
-        "health_endpoints": [("http://127.0.0.1:8003", "hormiguero")],
+        "health_endpoints": [("http://127.0.0.1:8004", "hormiguero")],
         "test_patterns": ["test_hormiguero_*.py"],
     },
     "mcp": {
@@ -85,13 +85,20 @@ MODULE_DEPENDENCY_MAP = {
         "description": "Manifest generator",
         "services": ["manifestator"],
         "depends_on": ["baseline", "hermes"],
-        "health_endpoints": [("http://127.0.0.1:8007", "manifestator")],
+        "health_endpoints": [("http://127.0.0.1:8005", "manifestator")],
         "test_patterns": ["test_manifestator_*.py"],
+    },
+    "shubniggurath": {
+        "description": "Shubniggurath LLM orchestrator",
+        "services": ["shubniggurath"],
+        "depends_on": ["baseline"],
+        "health_endpoints": [("http://127.0.0.1:8007", "shubniggurath")],
+        "test_patterns": ["test_shub_*.py"],
     },
     "operator-backend": {
         "description": "Operator backend API (v7)",
         "services": ["operator-backend"],
-        "depends_on": ["baseline"],
+        "depends_on": ["baseline", "switch"],
         "health_endpoints": [("http://127.0.0.1:8011", "operator-backend")],
         "test_patterns": ["test_operator_*.py"],
     },
@@ -182,46 +189,67 @@ def run_cmd(cmd: str, timeout: int = 10, silent: bool = False) -> Tuple[int, str
 
 def docker_stats(service_name: str) -> Dict[str, Any]:
     """
-    Get docker stats for a service (no-stream).
-
-    Improved per DeepSeek R1: use docker inspect --format for robustness.
+    Get docker stats for a container (RAM/CPU).
+    Uses docker stats --no-stream --format json for robustness.
+    Returns dict with mem_mib, mem_limit_mib, mem_pct, cpu_pct.
     """
-    _, stdout, _ = run_cmd(
-        f"docker inspect {service_name} --format='{{{{json .State}}}}'",
-        timeout=5,
-        silent=True,
-    )
-
-    if not stdout:
-        return {}
-
     try:
-        state = json.loads(stdout)
-        return {
-            "container_name": service_name,
-            "status": state.get("Status", "unknown"),
-            "running": state.get("Running", False),
-            "restart_count": state.get("RestartCount", 0),
-            "oom_killed": state.get("OOMKilled", False),
-        }
-    except:
-        # Fallback: docker stats
-        _, stdout, _ = run_cmd(
-            f"docker stats --no-stream {service_name} 2>/dev/null",
+        returncode, stdout, _ = run_cmd(
+            f"docker stats --no-stream --format '{{{{json .}}}}' {service_name} 2>/dev/null",
             timeout=5,
             silent=True,
         )
-        lines = stdout.strip().split("\n")
-        if len(lines) < 2:
+        if returncode != 0 or not stdout:
             return {}
 
-        data = lines[1].split()
+        # Parse JSON line
+        data = json.loads(stdout.strip())
+
+        # Extract memory usage (format: "123.4MiB")
+        mem_str = data.get("MemUsage", "0B").split("/")[0].strip()
+        mem_mib = _parse_memory_to_mib(mem_str)
+
+        mem_limit_str = (
+            data.get("MemUsage", "0B").split("/")[-1].strip()
+            if "/" in data.get("MemUsage", "")
+            else "0B"
+        )
+        mem_limit_mib = _parse_memory_to_mib(mem_limit_str)
+
+        # Extract CPU (format: "1.23%")
+        cpu_str = data.get("CPUPerc", "0%").replace("%", "").strip()
+        cpu_pct = float(cpu_str) if cpu_str else 0.0
+
+        mem_pct_str = data.get("MemPerc", "0%").replace("%", "").strip()
+        mem_pct = float(mem_pct_str) if mem_pct_str else 0.0
+
         return {
-            "container_name": service_name,
-            "cpu_pct": data[2] if len(data) > 2 else "N/A",
-            "memory_usage": data[3] if len(data) > 3 else "N/A",
-            "memory_pct": data[5] if len(data) > 5 else "N/A",
+            "mem_mib": mem_mib,
+            "mem_limit_mib": mem_limit_mib,
+            "mem_pct": mem_pct,
+            "cpu_pct": cpu_pct,
         }
+    except Exception:
+        # Fallback to empty if JSON parsing fails
+        return {"error": "Failed to parse docker stats"}
+
+
+def _parse_memory_to_mib(mem_str: str) -> float:
+    """Parse memory string (e.g., '123.4MiB') to MiB float."""
+    try:
+        mem_str = mem_str.strip()
+        if mem_str.endswith("MiB"):
+            return float(mem_str.replace("MiB", "").strip())
+        elif mem_str.endswith("GiB"):
+            return float(mem_str.replace("GiB", "").strip()) * 1024
+        elif mem_str.endswith("KiB"):
+            return float(mem_str.replace("KiB", "").strip()) / 1024
+        elif mem_str.endswith("B"):
+            return float(mem_str.replace("B", "").strip()) / (1024 * 1024)
+        else:
+            return 0.0
+    except Exception:
+        return 0.0
 
 
 def docker_inspect(service_name: str) -> Dict[str, Any]:
@@ -259,13 +287,13 @@ def health_check(
     Check health endpoint with exponential backoff retry.
     Returns (success, latency_ms).
 
-    Improved per DeepSeek R1: exponential backoff with jitter.
+    Uses curl with %{http_code} to parse HTTP status code.
     """
     latencies = []
     for attempt in range(max_retries):
         start = time.time()
         try:
-            # Use curl with short timeout, parse HTTP status
+            # Use curl to get HTTP status code in stdout
             returncode, stdout, _ = run_cmd(
                 f"curl -s -o /dev/null -w '%{{http_code}}' {endpoint} --max-time {timeout}",
                 timeout=timeout + 2,
@@ -274,15 +302,16 @@ def health_check(
             latency_ms = (time.time() - start) * 1000
             latencies.append(latency_ms)
 
-            # Success if 200-299
-            if returncode == "200":
+            # Parse HTTP code (stdout should be like "200", "404", etc.)
+            http_code_str = stdout.strip()
+            if http_code_str and http_code_str[0] == "2":  # 200-299
                 return True, latency_ms
 
-            # Exponential backoff: 2^attempt seconds, e.g., 1s, 2s, 4s
+            # Exponential backoff: 2^attempt seconds, e.g., 2s, 4s, 8s + jitter
             if attempt < max_retries - 1:
                 wait_time = 2**attempt + (attempt * 0.5)  # jitter
                 time.sleep(wait_time)
-        except:
+        except Exception as e:
             latency_ms = (time.time() - start) * 1000
             latencies.append(latency_ms)
 
@@ -307,11 +336,13 @@ def docker_up_services(services: List[str], mode: str = "low_power") -> Tuple[in
 
 
 def docker_down_services(services: List[str]) -> Tuple[int, str]:
-    """Stop docker compose services."""
-    svc_str = " ".join(services)
-    cmd = f"docker compose down -v {svc_str} 2>/dev/null || true"
-    rc, stdout, stderr = run_cmd(cmd, timeout=30)
-    return rc, stdout + stderr
+    """Stop and remove docker compose services (safe, per-service)."""
+    # Stop services one by one
+    for svc in services:
+        run_cmd(f"docker compose stop {svc} 2>/dev/null || true", timeout=15)
+        run_cmd(f"docker compose rm -f {svc} 2>/dev/null || true", timeout=15)
+
+    return 0, "Services stopped and removed"
 
 
 def find_test_files(pattern: str, test_dir: str = "tests") -> List[str]:
@@ -331,6 +362,56 @@ def find_test_files(pattern: str, test_dir: str = "tests") -> List[str]:
         return []
 
     return [str(m.relative_to(test_dir)) for m in matches if m.is_file()]
+
+
+def calculate_stability_p0_pct(
+    tests_pass: bool,
+    health_ok: bool,
+    restarts_increased: bool,
+    oom_killed: bool,
+    mem_peak_mib: float,
+    mem_limit_mib: float,
+    mem_threshold_mib: float = 400.0,
+) -> float:
+    """
+    Calculate Stability_P0_pct score (0-100).
+
+    Weights:
+    - 40%: Tests (100% pass => full; any fail => 0)
+    - 20%: Health (all OK => full; any fail => 0)
+    - 15%: Restarts (no increase => full; any increase => 0)
+    - 15%: OOM (not killed => full; killed => 0)
+    - 10%: Memory (mem_peak <= threshold => full; linear degrade)
+    """
+    score = 0.0
+
+    # 40% Tests
+    if tests_pass:
+        score += 40.0
+
+    # 20% Health
+    if health_ok:
+        score += 20.0
+
+    # 15% Restarts
+    if not restarts_increased:
+        score += 15.0
+
+    # 15% OOM
+    if not oom_killed:
+        score += 15.0
+
+    # 10% Memory (linear: 100% at threshold, 0% at 2*threshold)
+    if mem_peak_mib <= mem_threshold_mib:
+        score += 10.0
+    elif mem_peak_mib <= (mem_threshold_mib * 2):
+        # Linear degrade
+        usage_ratio = (mem_peak_mib - mem_threshold_mib) / mem_threshold_mib
+        mem_score = 10.0 * (1.0 - usage_ratio)
+        score += max(0.0, mem_score)
+    # else: mem_peak > 2*threshold => 0 for memory
+
+    return min(100.0, max(0.0, score))
 
 
 # ============================================================================
@@ -510,7 +591,56 @@ class StabilityP0Runner:
                         )
                         test_out_file.write_text(output)
 
-            # Determine overall status
+            # Determine overall status and calculate stability score
+            tests_pass = (
+                all(tr.get("passed") for tr in module_result["test_results"].values())
+                if module_result["test_results"]
+                else False
+            )
+
+            health_ok = len(health_latencies) > 0 and not module_result["errors"]
+
+            # Check if any restart counts increased (start with 0 baseline assumption)
+            restarts_increased = False
+            for svc, metrics in module_result["metrics"].items():
+                if metrics.get("inspect", {}).get("restart_count", 0) > 0:
+                    restarts_increased = True
+                    break
+
+            oom_killed = any(
+                metrics.get("inspect", {}).get("oom_killed", False)
+                for metrics in module_result["metrics"].values()
+            )
+
+            # Get max memory usage
+            mem_peak_mib = max(
+                (
+                    metrics.get("stats", {}).get("mem_mib", 0)
+                    for metrics in module_result["metrics"].values()
+                ),
+                default=0.0,
+            )
+            mem_limit_mib = max(
+                (
+                    metrics.get("stats", {}).get("mem_limit_mib", 512)
+                    for metrics in module_result["metrics"].values()
+                ),
+                default=512.0,
+            )
+
+            # Calculate stability score
+            stability_p0_pct = calculate_stability_p0_pct(
+                tests_pass=tests_pass,
+                health_ok=health_ok,
+                restarts_increased=restarts_increased,
+                oom_killed=oom_killed,
+                mem_peak_mib=mem_peak_mib,
+                mem_limit_mib=mem_limit_mib,
+                mem_threshold_mib=min(400.0, mem_limit_mib * 0.8),
+            )
+
+            module_result["stability_p0_pct"] = stability_p0_pct
+
             if module_result["errors"]:
                 module_result["status"] = "FAIL"
             elif any(
@@ -568,9 +698,52 @@ class StabilityP0Runner:
             f"- Passed: {self.results['summary']['passed']}",
             f"- Failed: {self.results['summary']['failed']}",
             "",
-            "## Module Results",
+            "## Cost & Stability Table",
             "",
+            "| Module | Status | Mem Peak (MiB) | CPU % | Restarts | OOM | Health p95 (ms) | Tests | Stability % |",
+            "|--------|--------|----------------|-------|----------|-----|-----------------|-------|-------------|",
         ]
+        
+        # Add cost table rows
+        for module_name, result in sorted(self.results["modules"].items()):
+            status = result["status"]
+            stability = result.get("stability_p0_pct", 0.0)
+            
+            # Extract metrics
+            mem_peak = 0.0
+            cpu_max = 0.0
+            restarts = 0
+            oom = "No"
+            health_p95 = 0.0
+            
+            if result["metrics"]:
+                for svc, metrics in result["metrics"].items():
+                    stats = metrics.get("stats", {})
+                    inspect = metrics.get("inspect", {})
+                    mem_peak = max(mem_peak, stats.get("mem_mib", 0.0))
+                    cpu_max = max(cpu_max, stats.get("cpu_pct", 0.0))
+                    restarts = max(restarts, inspect.get("restart_count", 0))
+                    if inspect.get("oom_killed"):
+                        oom = "Yes"
+                    
+                    latencies = metrics.get("health_latency_ms", [])
+                    if latencies:
+                        health_p95 = sorted(latencies)[int(len(latencies) * 0.95)]
+            
+            tests_pass = all(
+                tr.get("passed") for tr in result["test_results"].values()
+            ) if result["test_results"] else "N/A"
+            tests_str = "✓" if tests_pass else "✗" if isinstance(tests_pass, bool) else "—"
+            
+            lines.append(
+                f"| {module_name} | {status} | {mem_peak:.1f} | {cpu_max:.1f} | {restarts} | {oom} | {health_p95:.1f} | {tests_str} | {stability:.1f}% |"
+            )
+        
+        lines.extend([
+            "",
+            "## Module Results (Detailed)",
+            "",
+        ])
 
         for module_name, result in self.results["modules"].items():
             status_emoji = (
@@ -581,6 +754,7 @@ class StabilityP0Runner:
             lines.append(f"### {status_emoji} {module_name}")
             lines.append("")
             lines.append(f"**Status:** {result['status']}")
+            lines.append(f"**Stability Score:** {result.get('stability_p0_pct', 0.0):.1f}%")
             lines.append("")
 
             if result["errors"]:
@@ -593,10 +767,9 @@ class StabilityP0Runner:
                 lines.append("**Metrics:**")
                 for svc, metrics in result["metrics"].items():
                     lines.append(f"- {svc}:")
-                    lines.append(
-                        f"  - RAM: {metrics['stats'].get('memory_usage', 'N/A')}"
-                    )
-                    lines.append(f"  - CPU: {metrics['stats'].get('cpu_pct', 'N/A')}")
+                    stats = metrics.get("stats", {})
+                    lines.append(f"  - RAM: {stats.get('mem_mib', 'N/A'):.1f} MiB (limit: {stats.get('mem_limit_mib', 'N/A')})")
+                    lines.append(f"  - CPU: {stats.get('cpu_pct', 'N/A'):.1f}%")
                     lines.append(
                         f"  - Restarts: {metrics['inspect'].get('restart_count', 0)}"
                     )
@@ -615,6 +788,30 @@ class StabilityP0Runner:
                     status = "✓ PASS" if tr["passed"] else "✗ FAIL"
                     lines.append(f"- {test_file}: {status}")
                 lines.append("")
+        
+        # Add cost ranking
+        lines.extend([
+            "",
+            "## Cost Ranking (by Memory Peak)",
+            "",
+        ])
+        
+        sorted_by_mem = sorted(
+            self.results["modules"].items(),
+            key=lambda x: max(
+                (m.get("stats", {}).get("mem_mib", 0.0) for m in x[1].get("metrics", {}).values()),
+                default=0.0
+            ),
+            reverse=True
+        )
+        
+        for rank, (module_name, result) in enumerate(sorted_by_mem, 1):
+            mem_peak = max(
+                (m.get("stats", {}).get("mem_mib", 0.0) for m in result.get("metrics", {}).values()),
+                default=0.0
+            )
+            stability = result.get("stability_p0_pct", 0.0)
+            lines.append(f"{rank}. **{module_name}**: {mem_peak:.1f} MiB (Stability: {stability:.1f}%)")
 
         return "\n".join(lines)
 
