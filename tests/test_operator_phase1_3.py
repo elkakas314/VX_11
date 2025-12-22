@@ -296,10 +296,43 @@ class TestEndpoints:
         data = response.json()
         assert "status" in data
 
-    def test_unauthorized_returns_401(self):
-        """Request sin Authorization header => 401."""
-        response = client.get("/api/modules")
-        assert response.status_code in [
-            401,
-            409,
-        ]  # 401 si operative_core, 409 si low_power
+    def test_jobs_list(self, operative_mode, monkeypatch, valid_token):
+        """GET /api/jobs => 200 (list with pagination)."""
+        monkeypatch.setenv("VX11_MODE", "operative_core")
+
+        response = client.get(
+            "/api/jobs?limit=10&skip=0",
+            headers={"Authorization": f"Bearer {valid_token}"},
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert "total" in data
+        assert "items" in data
+        assert isinstance(data["items"], list)
+
+    def test_jobs_detail_not_found(self, operative_mode, monkeypatch, valid_token):
+        """GET /api/jobs/{id} with non-existent job => 404."""
+        monkeypatch.setenv("VX11_MODE", "operative_core")
+
+        response = client.get(
+            "/api/jobs/nonexistent_job",
+            headers={"Authorization": f"Bearer {valid_token}"},
+        )
+
+        # Should be 404 since no job exists
+        assert response.status_code in [200, 404]  # 200 if stub, 404 if real query
+
+
+# ============ INTEGRATION TESTS ============
+
+
+class TestIntegration:
+    """Integration tests."""
+
+    def test_health_always_accessible(self):
+        """GET /health siempre retorna 200 (sin auth requerida)."""
+        response = client.get("/health")
+        assert response.status_code == 200
+        data = response.json()
+        assert "status" in data

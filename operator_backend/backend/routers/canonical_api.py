@@ -28,7 +28,7 @@ from pydantic import BaseModel
 import jwt
 from sqlalchemy.orm import Session
 
-from config.db_schema import get_session, OperatorSession, AuditLogs
+from config.db_schema import get_session, OperatorSession, AuditLogs, OperatorJob
 
 # Config
 VX11_MODE = os.getenv("VX11_MODE", "low_power")
@@ -602,3 +602,146 @@ async def get_events(
         event_generator(),
         media_type="text/event-stream",
     )
+
+
+# ============ JOBS ENDPOINTS (Phase 2b) ============
+
+
+@router.get("/api/jobs")
+async def list_jobs(
+    skip: int = 0,
+    limit: int = 100,
+    status: Optional[str] = None,
+    intent: Optional[str] = None,
+    _: Dict = Depends(policy_check),
+    user: Dict = Depends(auth_check),
+    db: Session = Depends(get_session),
+):
+    """
+    List operator jobs (Phase 2b real implementation).
+
+    Query params:
+      - skip: offset (default 0)
+      - limit: max results (default 100, max 1000)
+      - status: filter by status (queued, running, completed, failed)
+      - intent: filter by intent
+
+    Response (200):
+      {
+        "total": 1234,
+        "items": [
+          {"id": 1, "job_id": "job_...", "intent": "chat", "status": "completed",
+           "payload": {...}, "result": {...}, "created_at": "2024-12-22T...Z", "updated_at": "...Z"}
+        ]
+      }
+
+    Errors:
+      - 401: auth required
+      - 409: policy violation (low_power mode)
+    """
+    limit = min(limit, 1000)  # cap at 1000
+    query = db.query(OperatorJob)
+
+    if status:
+        query = query.filter(OperatorJob.status == status.lower())
+
+    if intent:
+        query = query.filter(OperatorJob.intent == intent.lower())
+
+    total = query.count()
+    items = (
+        query.order_by(OperatorJob.created_at.desc()).offset(skip).limit(limit).all()
+    )
+
+    return {
+        "total": total,
+        "items": [
+            {
+                "id": item.id,
+                "job_id": item.job_id,
+                "intent": item.intent,
+                "status": item.status,
+                "payload": item.payload,
+                "result": item.result,
+                "created_at": (
+                    item.created_at.isoformat() + "Z" if item.created_at else None
+                ),
+                "updated_at": (
+                    item.updated_at.isoformat() + "Z" if item.updated_at else None
+                ),
+            }
+            for item in items
+        ],
+    }
+
+
+@router.get("/api/jobs/{job_id}")
+async def get_job(
+    job_id: str,
+    _: Dict = Depends(policy_check),
+    user: Dict = Depends(auth_check),
+    db: Session = Depends(get_session),
+):
+    """
+    Get job detail (Phase 2b real implementation).
+
+    Path param:
+      - job_id: job identifier (can be numeric ID or job_id string)
+
+    Response (200):
+      {
+        "id": 1,
+        "job_id": "job_...",
+        "intent": "chat",
+        "status": "completed",
+        "payload": {...},
+        "result": {...},
+        "created_at": "2024-12-22T...Z",
+        "updated_at": "2024-12-22T...Z",
+        "progress": {
+          "percent": 100,
+          "message": "Job completed successfully"
+        }
+      }
+
+    Errors:
+      - 401: auth required
+      - 404: job not found
+      - 409: policy violation (low_power mode)
+    """
+    # Try to find by numeric ID first, then by job_id string
+    item = None
+    try:
+        item_id = int(job_id)
+        item = db.query(OperatorJob).filter(OperatorJob.id == item_id).first()
+    except ValueError:
+        pass
+
+    if not item:
+        item = db.query(OperatorJob).filter(OperatorJob.job_id == job_id).first()
+
+    if not item:
+        raise HTTPException(status_code=404, detail=f"Job {job_id} not found")
+
+    # Calculate progress based on status
+    progress_map = {
+        "queued": {"percent": 0, "message": "Job queued, waiting to run"},
+        "running": {"percent": 50, "message": "Job is running"},
+        "completed": {"percent": 100, "message": "Job completed successfully"},
+        "failed": {"percent": 100, "message": "Job failed"},
+    }
+    progress = progress_map.get(
+        item.status, {"percent": 0, "message": "Unknown status"}
+    )
+
+    return {
+        "id": item.id,
+        "job_id": item.job_id,
+        "intent": item.intent,
+        "status": item.status,
+        "payload": item.payload,
+        "result": item.result,
+        "created_at": item.created_at.isoformat() + "Z" if item.created_at else None,
+        "updated_at": item.updated_at.isoformat() + "Z" if item.updated_at else None,
+        "progress": progress,
+    }
