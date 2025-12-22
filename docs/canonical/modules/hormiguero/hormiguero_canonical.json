@@ -1,0 +1,22 @@
+{
+    "format_version": "vx11_module_config_v1",
+    "module": "hormiguero",
+    "canonical_version": "vx11_canon_v7",
+    "module_version": "1.0.0",
+    "role": "FS Scanner & Auto-organizer",
+    "generated_at_utc": "2025-12-22T08:00:00Z",
+    "description": "Hormiguero scans the filesystem for drift against canonical maps and can automatically organize files based on predefined rules.",
+    "owners": [
+        "vx11_core"
+    ],
+    "invariants": [
+        "Respects .gitignore and internal ignore lists.",
+        "Never deletes files without explicit operator confirmation.",
+        "Logs all movements to the audit trail."
+    ],
+    "default_state": "disabled",
+    "default_state_description": "Disabled by default to prevent accidental file movements.",
+    "dependencies": [
+        "madre"
+    ]
+}

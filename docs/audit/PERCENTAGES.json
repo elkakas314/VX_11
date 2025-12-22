@@ -1,7 +1,5 @@
 {
-  "generated_at": "20251222T024916Z",
-  "session": "audit_P0.2_hybrid_modes",
-  "status": "\u2705 POST-AUDIT (SESSION 3)",
+  "generated_at": "2025-12-22T08:05:00Z",
   "formulas": {
     "Orden_total": "0.5*Orden_fs_pct + 0.5*Orden_db_module_assignment_pct",
     "Estabilidad_operativa_pct": "gate(integrity_check == ok) ? 0.4*health_core_pct + 0.3*tests_p0_pct + 0.3*contract_coherence_pct : 0",
@@ -9,45 +7,51 @@
   },
   "metrics": {
     "Orden_fs_pct": {
-      "value": 97.0,
-      "source": "docs/audit/vx11_copilot_audit_20251222T024000Z/ (SESSION 3)",
-      "note": "VERIFICADO (2025-12-22, POST-AUDIT P0.2): ./hermes/ archivado en SESSION 2. Canon target 25, FS presente 24 (hermes still in switch/). F\u00f3rmula: (25-0)/25*100 = 100% conservador a 96% por drift marginal"
+      "value": 100.0,
+      "source": "docs/CANONICAL_FS_VX11.json"
     },
     "Orden_db_module_assignment_pct": {
-      "value": 100.0,
-      "source": "docs/audit/vx11_codex_run_20251220T115054Z/db_module_assignment.json"
+      "value": 92.3077,
+      "source": "docs/audit/DB_SCHEMA_v7_FINAL.json"
     },
     "health_core_pct": {
-      "value": 100.0,
-      "source": "docs/audit/vx11_codex_run_20251220T115054Z/*_health.json"
+      "value": "NV",
+      "source": [
+        "docs/audit/madre_health.json",
+        "docs/audit/tentaculo_health.json",
+        "docs/audit/switch_health.json",
+        "docs/audit/spawner_health.json",
+        "docs/audit/hormiguero_health.json"
+      ]
     },
     "tests_p0_pct": {
       "value": 100.0,
-      "source": "docs/audit/vx11_codex_run_20251220T115054Z/tests_p0.txt"
+      "source": "docs/audit/20251222T080000Z/pytest_canonical_integrity.log"
     },
     "contract_coherence_pct": {
       "value": 100.0,
-      "source": "docs/audit/vx11_codex_run_20251220T115054Z/contracts_17of17.json"
+      "source": "docs/audit/20251222T080000Z/modules_structure.log"
     },
     "Coherencia_total_routing_pct": {
-      "value": 74.2593,
-      "source": "docs/audit/vx11_codex_run_20251220T115054Z/coherencia_routing_calc.json"
+      "value": "NV",
+      "source": "docs/audit/coherencia_routing_calc.json"
     },
     "Automatizacion_pct": {
-      "value": null,
-      "note": "NO VERIFICADO"
+      "value": "NV",
+      "source": null
     },
     "Autonomia_pct": {
-      "value": null,
-      "note": "NO VERIFICADO"
+      "value": "NV",
+      "source": null
     },
     "integrity_check": {
       "value": "ok",
-      "source": "docs/audit/vx11_codex_run_20251220T115054Z/db_integrity_check.txt"
+      "source": "docs/audit/20251222T080000Z/verifier_contract_validation.log"
     }
   },
   "computed": {
-    "Orden_total": 98.5,
-    "Global_ponderado_pct": null
+    "Orden_total": 96.15,
+    "Estabilidad_operativa_pct": 60.0,
+    "Global_ponderado_pct": "NV"
   }
 }

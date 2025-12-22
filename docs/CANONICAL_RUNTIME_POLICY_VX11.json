@@ -50,7 +50,10 @@
     "spawner",
     "hormiguero",
     "manifestator",
-    "shubniggurath"
+    "shubniggurath",
+    "mcp",
+    "operator",
+    "operator_backend"
   ],
   "final_enforcement": {
     "actions": [
