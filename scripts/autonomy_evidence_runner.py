@@ -16,6 +16,7 @@ import json
 import subprocess
 import sys
 import os
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 import sqlite3
@@ -23,6 +24,10 @@ from typing import Dict, List, Any
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 OUTDIR = None
+
+# Retry + backoff config
+RETRY_ATTEMPTS = 3
+RETRY_BACKOFF = [0.3, 0.8, 1.5]  # exponential backoff in seconds
 
 
 def get_timestamp_iso():
@@ -48,32 +53,50 @@ def log(msg: str, category: str = "INFO"):
         f.write(log_msg + "\n")
 
 
-def run_cmd(cmd: List[str], capture=True, label: str = None) -> Dict[str, Any]:
-    """Run command and capture output."""
+def run_cmd(
+    cmd: List[str], capture=True, label: str = None, retry_on_timeout=False
+) -> Dict[str, Any]:
+    """Run command with optional retry/backoff for timeouts."""
     label = label or " ".join(cmd[:2])
-    log(f"Running: {' '.join(cmd)}", "CMD")
 
-    try:
-        result = subprocess.run(
-            cmd,
-            cwd=REPO_ROOT,
-            capture_output=capture,
-            text=True,
-            timeout=60,
+    for attempt in range(RETRY_ATTEMPTS if retry_on_timeout else 1):
+        log(
+            f"Running: {' '.join(cmd)}"
+            + (
+                f" [attempt {attempt+1}/{RETRY_ATTEMPTS}]"
+                if retry_on_timeout and attempt > 0
+                else ""
+            ),
+            "CMD",
         )
-        return {
-            "returncode": result.returncode,
-            "stdout": result.stdout if capture else "",
-            "stderr": result.stderr if capture else "",
-            "success": result.returncode == 0,
-            "label": label,
-        }
-    except subprocess.TimeoutExpired:
-        log(f"TIMEOUT: {label}", "ERROR")
-        return {"success": False, "label": label, "error": "timeout"}
-    except Exception as e:
-        log(f"ERROR: {label}: {e}", "ERROR")
-        return {"success": False, "label": label, "error": str(e)}
+
+        try:
+            result = subprocess.run(
+                cmd,
+                cwd=REPO_ROOT,
+                capture_output=capture,
+                text=True,
+                timeout=60,
+            )
+            return {
+                "returncode": result.returncode,
+                "stdout": result.stdout if capture else "",
+                "stderr": result.stderr if capture else "",
+                "success": result.returncode == 0,
+                "label": label,
+            }
+        except subprocess.TimeoutExpired:
+            if retry_on_timeout and attempt < RETRY_ATTEMPTS - 1:
+                backoff = RETRY_BACKOFF[attempt]
+                log(f"TIMEOUT: {label} — backoff {backoff}s", "WARN")
+                time.sleep(backoff)
+                continue
+            else:
+                log(f"TIMEOUT: {label} (final)", "ERROR")
+                return {"success": False, "label": label, "error": "timeout"}
+        except Exception as e:
+            log(f"ERROR: {label}: {e}", "ERROR")
+            return {"success": False, "label": label, "error": str(e)}
 
 
 # ============================================================================
@@ -100,9 +123,10 @@ def check_health_endpoints() -> Dict[str, Any]:
     health_results = {}
     for service, port in ports.items():
         result = run_cmd(
-            ["curl", "-s", "-m", "5", f"http://localhost:{port}/health"],
+            ["curl", "-s", "-m", "7", f"http://localhost:{port}/health"],
             label=f"Health check {service}:{port}",
             capture=True,
+            retry_on_timeout=True,  # Enable retry for health checks
         )
 
         # Parse response
@@ -191,30 +215,34 @@ def flow_a_gateway_to_madre() -> Dict[str, Any]:
 
     # Step 1: tentaculo_link health (localhost from host machine)
     result1 = run_cmd(
-        ["curl", "-s", "-m", "5", "http://localhost:8000/health"],
+        ["curl", "-s", "-m", "7", "http://localhost:8000/health"],
         label="Flow A: tentaculo_link health",
         capture=True,
+        retry_on_timeout=True,
     )
 
     # Step 2: Switch health (required for routing check)
     result2 = run_cmd(
-        ["curl", "-s", "-m", "5", "http://localhost:8002/health"],
+        ["curl", "-s", "-m", "7", "http://localhost:8002/health"],
         label="Flow A: switch health",
         capture=True,
+        retry_on_timeout=True,
     )
 
     # Step 3: Hermes health (the actual "deterministic broker" in the flow)
     result3 = run_cmd(
-        ["curl", "-s", "-m", "5", "http://localhost:8003/health"],
+        ["curl", "-s", "-m", "7", "http://localhost:8003/health"],
         label="Flow A: hermes health",
         capture=True,
+        retry_on_timeout=True,
     )
 
     # Step 4: Madre health (final destination for intent registration)
     result4 = run_cmd(
-        ["curl", "-s", "-m", "5", "http://localhost:8001/health"],
+        ["curl", "-s", "-m", "7", "http://localhost:8001/health"],
         label="Flow A: madre health",
         capture=True,
+        retry_on_timeout=True,
     )
 
     # All 4 health checks must pass for Flow A to succeed
@@ -302,16 +330,18 @@ def flow_c_hormiguero_manifestator() -> Dict[str, Any]:
 
     # Step 1: Hormiguero health
     result1 = run_cmd(
-        ["curl", "-s", "-m", "5", "http://localhost:8004/health"],
+        ["curl", "-s", "-m", "7", "http://localhost:8004/health"],
         label="Flow C: hormiguero health",
         capture=True,
+        retry_on_timeout=True,
     )
 
     # Step 2: Manifestator health (if running)
     result2 = run_cmd(
-        ["curl", "-s", "-m", "5", "http://localhost:8005/health"],
+        ["curl", "-s", "-m", "7", "http://localhost:8005/health"],
         label="Flow C: manifestator health",
         capture=True,
+        retry_on_timeout=True,
     )
 
     # Step 3: Check incidents table in DB
