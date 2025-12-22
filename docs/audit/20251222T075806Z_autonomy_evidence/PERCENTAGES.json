@@ -1,0 +1,13 @@
+{
+  "generated_at": "2025-12-22T07:58:15.537188Z",
+  "metrics": {
+    "health_core_pct": 100.0,
+    "tests_p0_pct": 0.0,
+    "contract_coherence_pct": 100.0,
+    "Estabilidad_operativa_pct": 70.0
+  },
+  "formulas": {
+    "health_core_pct": "5/5 core services healthy",
+    "Estabilidad_operativa_pct": "0.4*health_core_pct + 0.3*tests_p0_pct + 0.3*contract_coherence_pct"
+  }
+}
