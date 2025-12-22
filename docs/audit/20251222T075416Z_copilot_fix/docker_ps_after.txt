@@ -1,0 +1,11 @@
+NAME                    IMAGE                        COMMAND                  SERVICE            CREATED              STATUS                        PORTS
+vx11-hermes             vx11-hermes:v6.7             "python -m uvicorn s…"   hermes             About a minute ago   Up About a minute (healthy)   0.0.0.0:8003->8003/tcp, :::8003->8003/tcp
+vx11-hormiguero         vx11-hormiguero:v6.7         "python -m uvicorn h…"   hormiguero         About a minute ago   Up About a minute (healthy)   0.0.0.0:8004->8004/tcp, :::8004->8004/tcp
+vx11-madre              vx11-madre:v6.7              "sh -c 'apt-get upda…"   madre              About a minute ago   Up About a minute (healthy)   0.0.0.0:8001->8001/tcp, :::8001->8001/tcp
+vx11-manifestator       vx11-manifestator:v6.7       "python -m uvicorn m…"   manifestator       4 hours ago          Up 4 hours (healthy)          0.0.0.0:8005->8005/tcp, :::8005->8005/tcp
+vx11-mcp                vx11-mcp:v6.7                "python -m uvicorn m…"   mcp                About a minute ago   Up About a minute (healthy)   0.0.0.0:8006->8006/tcp, :::8006->8006/tcp
+vx11-operator-backend   vx11-operator-backend:v7.0   "python -m uvicorn o…"   operator-backend   5 hours ago          Up 5 hours (healthy)          0.0.0.0:8011->8011/tcp, :::8011->8011/tcp
+vx11-shubniggurath      vx11-shub:v6.7               "python -m uvicorn s…"   shubniggurath      About a minute ago   Up About a minute (healthy)   0.0.0.0:8007->8007/tcp, :::8007->8007/tcp
+vx11-spawner            vx11-spawner:v6.7            "python -m uvicorn s…"   spawner            About a minute ago   Up About a minute (healthy)   0.0.0.0:8008->8008/tcp, :::8008->8008/tcp
+vx11-switch             vx11-switch:v6.7             "python -m uvicorn s…"   switch             About a minute ago   Up About a minute (healthy)   0.0.0.0:8002->8002/tcp, :::8002->8002/tcp
+vx11-tentaculo-link     vx11-tentaculo-link:v6.7     "python -m uvicorn t…"   tentaculo_link     About a minute ago   Up About a minute (healthy)   0.0.0.0:8000->8000/tcp, :::8000->8000/tcp
