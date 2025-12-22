@@ -1,1 +1,6 @@
-Wrote SCORECARD to docs/audit/20251222T080000Z
+{
+	"latest_audit_dir": "docs/audit/20251222T080000Z",
+	"branch": "audit/20251222T080000Z_canonical_hardening",
+	"pr_suggested_url": "https://github.com/elkakas314/VX_11/pull/new/audit/20251222T080000Z_canonical_hardening",
+	"note": "See docs/audit/20251222T080000Z for full evidence"
+}
