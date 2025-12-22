@@ -35,12 +35,16 @@ build/
 models/
 forensic/
 
-# Audit runs (keep canonical schema/map)
+# Audit runs (keep canonical schema/map + evidence trails)
 docs/audit/**
 !docs/audit/DB_MAP_v7_FINAL.md
 !docs/audit/DB_SCHEMA_v7_FINAL.json
 !docs/audit/DB_MAP_v7_META.txt
 !docs/audit/CLEANUP_EXCLUDES_CORE.txt
+!docs/audit/PERCENTAGES.json
+!docs/audit/SCORECARD.json
+!docs/audit/FASE6_EVIDENCE_INDEX.md
+!docs/audit/FASE7_CONCLUSIÓN_FINAL.md
 
 # VX11 audit artifacts (must not live in repo root)
 *_openapi.json
