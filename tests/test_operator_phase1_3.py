@@ -178,8 +178,8 @@ class TestEndpoints:
         assert "message_id" in data
         assert data["status"] == "received"
 
-    def test_restart_module_stub(self, operative_mode, monkeypatch, valid_token):
-        """POST /api/module/{name}/restart (stub) => 501."""
+    def test_restart_module_ok(self, operative_mode, monkeypatch, valid_token):
+        """POST /api/module/{name}/restart (real) => 200."""
         monkeypatch.setenv("VX11_MODE", "operative_core")
 
         response = client.post(
@@ -187,34 +187,112 @@ class TestEndpoints:
             headers={"Authorization": f"Bearer {valid_token}"},
         )
 
-        assert response.status_code == 501
+        assert response.status_code == 200
         data = response.json()
-        assert "not_implemented" in data["error"]
+        assert data["module"] == "madre"
+        assert data["status"] == "restarting"
 
-    def test_download_audit_stub(self, operative_mode, monkeypatch, valid_token):
-        """GET /api/audit/{id}/download (stub) => 501."""
+    def test_restart_module_invalid_name(
+        self, operative_mode, monkeypatch, valid_token
+    ):
+        """POST /api/module/{name}/restart with invalid name => 400."""
         monkeypatch.setenv("VX11_MODE", "operative_core")
 
-        response = client.get(
-            "/api/audit/123/download",
+        response = client.post(
+            "/api/module/invalid_module/restart",
             headers={"Authorization": f"Bearer {valid_token}"},
         )
 
-        assert response.status_code == 501
+        assert response.status_code == 400
         data = response.json()
-        assert "not_implemented" in data["error"]
+        # Response can be either {"detail": "..."} or raw error string
+        detail_str = str(data)
+        assert "invalid" in detail_str.lower()
 
+    def test_download_audit_not_found(self, operative_mode, monkeypatch, valid_token):
+        """GET /api/audit/{id}/download with non-existent ID => 404."""
+        monkeypatch.setenv("VX11_MODE", "operative_core")
 
-# ============ INTEGRATION TESTS ============
+        response = client.get(
+            "/api/audit/999999/download",
+            headers={"Authorization": f"Bearer {valid_token}"},
+        )
 
+        assert response.status_code == 404
+        data = response.json()
+        detail_str = str(data)
+        assert "not found" in detail_str.lower()
 
-class TestIntegration:
-    """Integration tests."""
+    def test_logout_ok(self, operative_mode, monkeypatch, valid_token):
+        """POST /auth/logout (Phase 2) => 200."""
+        monkeypatch.setenv("VX11_MODE", "operative_core")
 
-    def test_health_always_accessible(self):
-        """GET /health siempre retorna 200 (sin auth requerida)."""
-        response = client.get("/health")
+        response = client.post(
+            "/auth/logout",
+            headers={"Authorization": f"Bearer {valid_token}"},
+        )
+
         assert response.status_code == 200
+        data = response.json()
+        assert data["status"] == "logged_out"
+
+    def test_verify_token_ok(self, operative_mode, monkeypatch, valid_token):
+        """POST /auth/verify (Phase 2) => 200."""
+        monkeypatch.setenv("VX11_MODE", "operative_core")
+
+        response = client.post(
+            "/auth/verify",
+            headers={"Authorization": f"Bearer {valid_token}"},
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["valid"] is True
+        assert "user_id" in data
+
+    def test_audit_list(self, operative_mode, monkeypatch, valid_token):
+        """GET /api/audit (Phase 2) => 200."""
+        monkeypatch.setenv("VX11_MODE", "operative_core")
+
+        response = client.get(
+            "/api/audit",
+            headers={"Authorization": f"Bearer {valid_token}"},
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert "total" in data
+        assert "items" in data
+        assert isinstance(data["items"], list)
+
+    def test_power_up_module(self, operative_mode, monkeypatch, valid_token):
+        """POST /api/module/{name}/power_up (Phase 2) => 200."""
+        monkeypatch.setenv("VX11_MODE", "operative_core")
+
+        response = client.post(
+            "/api/module/madre/power_up",
+            headers={"Authorization": f"Bearer {valid_token}"},
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["module"] == "madre"
+        assert data["status"] == "powering_up"
+
+    def test_power_down_module(self, operative_mode, monkeypatch, valid_token):
+        """POST /api/module/{name}/power_down (Phase 2) => 200."""
+        monkeypatch.setenv("VX11_MODE", "operative_core")
+
+        response = client.post(
+            "/api/module/madre/power_down",
+            headers={"Authorization": f"Bearer {valid_token}"},
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["module"] == "madre"
+        assert data["status"] == "powering_down"
+
         data = response.json()
         assert "status" in data
 

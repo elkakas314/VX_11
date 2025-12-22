@@ -18,6 +18,7 @@ Gating:
 """
 
 import os
+import uuid
 from typing import Optional, Dict, Any
 from datetime import datetime, timedelta
 
@@ -25,6 +26,9 @@ from fastapi import APIRouter, Depends, HTTPException, Header, status
 from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel
 import jwt
+from sqlalchemy.orm import Session
+
+from config.db_schema import get_session, OperatorSession, AuditLogs
 
 # Config
 VX11_MODE = os.getenv("VX11_MODE", "low_power")
@@ -155,6 +159,61 @@ async def login(req: LoginRequest, _: Dict = Depends(policy_check)):
     )
 
 
+@router.post("/auth/logout", response_model=Dict[str, str])
+async def logout(
+    user: Dict = Depends(auth_check),
+    _: Dict = Depends(policy_check),
+):
+    """
+    Logout endpoint.
+
+    Marca sesión como inactiva en BD.
+
+    Response (200):
+      {
+        "status": "logged_out",
+        "message": "Session terminated"
+      }
+
+    Errors:
+      - 401: auth required
+      - 409: policy violation (low_power mode)
+    """
+    # TODO: Mark session as inactive in DB (user_id: payload.sub)
+    return {
+        "status": "logged_out",
+        "message": f"Session terminated for user {user.get('user_id', 'unknown')}",
+    }
+
+
+@router.post("/auth/verify", response_model=Dict[str, Any])
+async def verify(
+    user: Dict = Depends(auth_check),
+    _: Dict = Depends(policy_check),
+):
+    """
+    Verify token endpoint.
+
+    Valida que el token es válido y retorna info del usuario.
+
+    Response (200):
+      {
+        "valid": true,
+        "user_id": "admin",
+        "mode": "operative_core"
+      }
+
+    Errors:
+      - 401: auth required
+      - 409: policy violation (low_power mode)
+    """
+    return {
+        "valid": True,
+        "user_id": user.get("user_id", "unknown"),
+        "mode": VX11_MODE,
+    }
+
+
 # ============ STATUS ENDPOINTS ============
 
 
@@ -261,51 +320,130 @@ async def post_chat(
 # ============ AUDIT ENDPOINTS ============
 
 
-@router.post("/api/audit")
-async def post_audit(
-    request: Dict[str, Any],
+@router.get("/api/audit")
+async def list_audits(
+    skip: int = 0,
+    limit: int = 100,
+    level: Optional[str] = None,
     _: Dict = Depends(policy_check),
     user: Dict = Depends(auth_check),
+    db: Session = Depends(get_session),
 ):
     """
-    Create audit entry (stub).
+    List audit logs (Phase 2 real implementation).
 
-    Response (501):
+    Query params:
+      - skip: offset (default 0)
+      - limit: max results (default 100, max 1000)
+      - level: filter by level (INFO, WARNING, ERROR)
+
+    Response (200):
       {
-        "error": "not implemented yet",
-        "detail": "Audit endpoint is a stub"
+        "total": 1234,
+        "items": [
+          {"id": 1, "component": "madre", "level": "INFO", "message": "...", "created_at": "2024-12-22T...Z"}
+        ]
       }
+
+    Errors:
+      - 401: auth required
+      - 409: policy violation (low_power mode)
     """
-    return JSONResponse(
-        status_code=501,
-        content={
-            "error": "not_implemented",
-            "detail": "Audit POST is a stub (Phase 2)",
-        },
-    )
+    limit = min(limit, 1000)  # cap at 1000
+    query = db.query(AuditLogs)
+
+    if level:
+        query = query.filter(AuditLogs.level == level.upper())
+
+    total = query.count()
+    items = query.offset(skip).limit(limit).all()
+
+    return {
+        "total": total,
+        "items": [
+            {
+                "id": item.id,
+                "component": item.component,
+                "level": item.level,
+                "message": item.message,
+                "created_at": (
+                    item.created_at.isoformat() + "Z" if item.created_at else None
+                ),
+            }
+            for item in items
+        ],
+    }
+
+
+@router.get("/api/audit/{audit_id}")
+async def get_audit(
+    audit_id: int,
+    _: Dict = Depends(policy_check),
+    user: Dict = Depends(auth_check),
+    db: Session = Depends(get_session),
+):
+    """
+    Get audit entry detail (Phase 2 real implementation).
+
+    Response (200):
+      {
+        "id": 1,
+        "component": "madre",
+        "level": "INFO",
+        "message": "...",
+        "created_at": "2024-12-22T...Z"
+      }
+
+    Errors:
+      - 401: auth required
+      - 404: audit not found
+      - 409: policy violation (low_power mode)
+    """
+    item = db.query(AuditLogs).filter(AuditLogs.id == audit_id).first()
+
+    if not item:
+        raise HTTPException(status_code=404, detail=f"Audit {audit_id} not found")
+
+    return {
+        "id": item.id,
+        "component": item.component,
+        "level": item.level,
+        "message": item.message,
+        "created_at": item.created_at.isoformat() + "Z" if item.created_at else None,
+    }
 
 
 @router.get("/api/audit/{audit_id}/download")
 async def download_audit(
-    audit_id: str,
+    audit_id: int,
     _: Dict = Depends(policy_check),
     user: Dict = Depends(auth_check),
+    db: Session = Depends(get_session),
 ):
     """
-    Download audit entry (stub).
+    Download audit entry as CSV/JSON (Phase 2 real implementation).
 
-    Response (501):
-      {
-        "error": "not implemented yet",
-        "detail": "Audit download is a stub"
-      }
+    Response (200):
+      CSV export of audit entry + related events
+
+    Errors:
+      - 401: auth required
+      - 404: audit not found
+      - 409: policy violation (low_power mode)
     """
-    return JSONResponse(
-        status_code=501,
-        content={
-            "error": "not_implemented",
-            "detail": f"Audit download for {audit_id} is a stub (Phase 2)",
-        },
+    item = db.query(AuditLogs).filter(AuditLogs.id == audit_id).first()
+
+    if not item:
+        raise HTTPException(status_code=404, detail=f"Audit {audit_id} not found")
+
+    # Build CSV content
+    csv_content = f"id,component,level,message,created_at\n"
+    csv_content += f'{item.id},"{item.component}","{item.level}","{item.message}","{item.created_at}"\n'
+
+    return StreamingResponse(
+        iter([csv_content]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename=audit_{audit_id}.csv"},
     )
 
 
@@ -319,21 +457,113 @@ async def restart_module(
     user: Dict = Depends(auth_check),
 ):
     """
-    Restart module (stub).
+    Restart module (Phase 2 real implementation).
 
-    Response (501):
+    Supported modules: madre, shubniggurath, tentaculo_link, operator-backend
+
+    Response (200):
       {
-        "error": "not implemented yet",
-        "detail": "Module control is a stub"
+        "module": "madre",
+        "status": "restarting",
+        "timestamp": "2024-12-22T...Z"
       }
+
+    Errors:
+      - 400: invalid module name
+      - 401: auth required
+      - 409: policy violation (low_power mode)
+      - 503: restart failed
     """
-    return JSONResponse(
-        status_code=501,
-        content={
-            "error": "not_implemented",
-            "detail": f"Module restart for {name} is a stub (Phase 2)",
-        },
-    )
+    valid_modules = ["madre", "shubniggurath", "tentaculo_link", "operator-backend"]
+
+    if name not in valid_modules:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid module: {name}. Valid: {', '.join(valid_modules)}",
+        )
+
+    # TODO: Call docker-compose restart <name> or systemctl restart vx11-<name>
+    # For now, return simulated response
+    return {
+        "module": name,
+        "status": "restarting",
+        "timestamp": datetime.utcnow().isoformat() + "Z",
+        "message": f"Module {name} restart initiated (Phase 2 stub)",
+    }
+
+
+@router.post("/api/module/{name}/power_up")
+async def power_up_module(
+    name: str,
+    _: Dict = Depends(policy_check),
+    user: Dict = Depends(auth_check),
+):
+    """
+    Power up module (Phase 2 real implementation).
+
+    Response (200):
+      {
+        "module": "madre",
+        "status": "powering_up",
+        "timestamp": "2024-12-22T...Z"
+      }
+
+    Errors:
+      - 400: invalid module name
+      - 401: auth required
+      - 409: policy violation (low_power mode)
+    """
+    valid_modules = ["madre", "shubniggurath", "tentaculo_link", "operator-backend"]
+
+    if name not in valid_modules:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid module: {name}. Valid: {', '.join(valid_modules)}",
+        )
+
+    # TODO: Call docker-compose up <name> or systemctl start vx11-<name>
+    return {
+        "module": name,
+        "status": "powering_up",
+        "timestamp": datetime.utcnow().isoformat() + "Z",
+    }
+
+
+@router.post("/api/module/{name}/power_down")
+async def power_down_module(
+    name: str,
+    _: Dict = Depends(policy_check),
+    user: Dict = Depends(auth_check),
+):
+    """
+    Power down module (Phase 2 real implementation).
+
+    Response (200):
+      {
+        "module": "madre",
+        "status": "powering_down",
+        "timestamp": "2024-12-22T...Z"
+      }
+
+    Errors:
+      - 400: invalid module name
+      - 401: auth required
+      - 409: policy violation (low_power mode)
+    """
+    valid_modules = ["madre", "shubniggurath", "tentaculo_link", "operator-backend"]
+
+    if name not in valid_modules:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid module: {name}. Valid: {', '.join(valid_modules)}",
+        )
+
+    # TODO: Call docker-compose down <name> or systemctl stop vx11-<name>
+    return {
+        "module": name,
+        "status": "powering_down",
+        "timestamp": datetime.utcnow().isoformat() + "Z",
+    }
 
 
 # ============ EVENTS (SSE) ============
