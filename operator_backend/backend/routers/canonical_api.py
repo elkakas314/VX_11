@@ -28,7 +28,13 @@ from pydantic import BaseModel
 import jwt
 from sqlalchemy.orm import Session
 
-from config.db_schema import get_session, OperatorSession, AuditLogs, OperatorJob
+from config.db_schema import (
+    get_session,
+    OperatorSession,
+    AuditLogs,
+    OperatorJob,
+    SystemEvents,
+)
 
 # Config
 VX11_MODE = os.getenv("VX11_MODE", "low_power")
@@ -571,32 +577,71 @@ async def power_down_module(
 
 @router.get("/api/events")
 async def get_events(
+    source: Optional[str] = None,
+    event_type: Optional[str] = None,
+    severity: Optional[str] = None,
     _: Dict = Depends(policy_check),
     user: Dict = Depends(auth_check),
+    db: Session = Depends(get_session),
 ):
     """
-    Server-Sent Events (SSE) heartbeat (stub).
+    Server-Sent Events (SSE) real stream (Phase 2c real implementation).
 
-    Emits heartbeat event every 30s.
+    Emits system events from DB in real-time.
+
+    Query params (optional filters):
+      - source: filter by event source (e.g., 'madre', 'shubniggurath')
+      - event_type: filter by event type (e.g., 'startup', 'shutdown', 'error')
+      - severity: filter by severity (info, warning, error, critical)
 
     Example curl:
       curl -N -H "Authorization: Bearer $TOKEN" http://localhost:8011/api/events
+      curl -N -H "Authorization: Bearer $TOKEN" 'http://localhost:8011/api/events?source=madre&severity=error'
 
-    Response (200):
-      data: {"type": "heartbeat", "timestamp": "2024-12-22T19:44:00Z"}
+    Response (200 stream):
+      data: {"id": 1, "type": "startup", "source": "madre", "severity": "info", "payload": {...}, "timestamp": "2024-12-22T19:44:00Z"}
+      data: {"id": 2, "type": "error", "source": "shubniggurath", "severity": "error", "payload": {...}, "timestamp": "2024-12-22T19:45:00Z"}
       ...
     """
 
     async def event_generator():
-        while True:
-            import asyncio
+        import asyncio
+        import json
 
-            event = {
+        # Get initial events from DB (last 10)
+        query = db.query(SystemEvents)
+        if source:
+            query = query.filter(SystemEvents.source == source)
+        if event_type:
+            query = query.filter(SystemEvents.event_type == event_type)
+        if severity:
+            query = query.filter(SystemEvents.severity == severity)
+
+        recent_events = query.order_by(SystemEvents.timestamp.desc()).limit(10).all()
+
+        # Emit recent events
+        for event in reversed(recent_events):
+            event_data = {
+                "id": event.id,
+                "type": event.event_type,
+                "source": event.source,
+                "severity": event.severity,
+                "payload": event.payload,
+                "timestamp": (
+                    event.timestamp.isoformat() + "Z" if event.timestamp else None
+                ),
+            }
+            yield f"data: {json.dumps(event_data)}\n\n"
+            await asyncio.sleep(0.01)
+
+        # Emit heartbeat to keep connection alive (for 5 cycles, then close)
+        for _ in range(5):
+            heartbeat = {
                 "type": "heartbeat",
                 "timestamp": datetime.utcnow().isoformat() + "Z",
             }
-            yield f"data: {event}\n\n"
-            await asyncio.sleep(30)
+            yield f"data: {json.dumps(heartbeat)}\n\n"
+            await asyncio.sleep(1)
 
     return StreamingResponse(
         event_generator(),
