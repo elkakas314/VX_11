@@ -5,6 +5,7 @@ Endpoints: chat, session, shub/dashboard, vx11/overview, resources, browser/task
 """
 
 import json
+import os
 import uuid
 from datetime import datetime
 from typing import Dict, Optional, Any, List
@@ -35,6 +36,7 @@ from config.db_schema import (
 )
 from .browser import BrowserClient
 from .switch_integration import SwitchClient, TentaculoLinkClient
+from .routers.canonical_api import router as canonical_api_router
 
 # Load tokens
 load_tokens()
@@ -44,6 +46,9 @@ VX11_TOKEN = (
     or settings.api_token
 )
 AUTH_HEADERS = {settings.token_header: VX11_TOKEN}
+
+# Policy/Mode control (Phase 3)
+VX11_MODE = os.getenv("VX11_MODE", "low_power")
 
 
 # ============ REQUEST/RESPONSE MODELS ============
@@ -139,6 +144,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Include canonical API router (Phase 1+3)
+app.include_router(canonical_api_router)
 
 
 # ============ HEALTH ============
@@ -748,7 +756,11 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
             try:
                 import json
 
-                payload = json.loads(raw) if raw and raw.strip().startswith("{") else {"event_type": "message_received", "data": {"message": raw}}
+                payload = (
+                    json.loads(raw)
+                    if raw and raw.strip().startswith("{")
+                    else {"event_type": "message_received", "data": {"message": raw}}
+                )
                 event_type = payload.get("event_type", "message_received")
                 data = payload.get("data", {})
                 canonical = await format_canonical_event(event_type, data)
@@ -763,7 +775,10 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
                 err = {"error": str(exc)}
                 canonical = await format_canonical_event("error_reported", err)
                 await websocket.send_json(canonical)
-                write_log("operator_backend", f"ws_processing_error:{session_id}:{exc}",)
+                write_log(
+                    "operator_backend",
+                    f"ws_processing_error:{session_id}:{exc}",
+                )
 
     except Exception:
         write_log("operator_backend", f"ws_error:{session_id}")
