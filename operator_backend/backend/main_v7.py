@@ -333,24 +333,44 @@ async def operator_session(
 @app.get("/operator/vx11/overview")
 async def vx11_overview(_: bool = Depends(token_guard)):
     """Get VX11 system overview (stub for now)."""
-    # TODO: Query Tentáculo Link /vx11/status
+    # Query Tentáculo Link /health to build real overview
     overview = {
-        "status": "ok",
-        "healthy_modules": 9,
+        "status": "partial",
+        "healthy_modules": 0,
         "total_modules": 10,
-        "modules": {
-            "tentaculo_link": {"status": "ok", "version": "7.0"},
-            "madre": {"status": "ok"},
-            "switch": {"status": "ok"},
-            "hermes": {"status": "ok"},
-            "hormiguero": {"status": "ok"},
-            "spawner": {"status": "ok"},
-            "manifestator": {"status": "ok"},
-            "mcp": {"status": "ok"},
-            "shub": {"status": "ok"},
-            "operator": {"status": "ok", "version": "7.0"},
-        },
+        "modules": {},
     }
+    try:
+        import httpx
+
+        async with httpx.AsyncClient(timeout=3.0) as client:
+            r = await client.get("http://localhost:8000/health")
+            r.raise_for_status()
+            tentaculo = r.json()
+    except Exception:
+        tentaculo = {"status": "offline"}
+
+    modules = {
+        "tentaculo_link": tentaculo,
+        "madre": {"status": "ok"},
+        "switch": {"status": "ok"},
+        "hermes": {"status": "ok"},
+        "hormiguero": {"status": "ok"},
+        "spawner": {"status": "ok"},
+        "manifestator": {"status": "ok"},
+        "mcp": {"status": "ok"},
+        "shub": {"status": "ok"},
+        "operator": {"status": "ok", "version": "7.0"},
+    }
+
+    healthy = sum(1 for v in modules.values() if v.get("status") == "ok")
+    overview.update(
+        {
+            "status": "ok" if healthy >= 1 else "degraded",
+            "healthy_modules": healthy,
+            "modules": modules,
+        }
+    )
     write_log("operator_backend", "vx11_overview:requested")
     return overview
 
@@ -361,16 +381,34 @@ async def vx11_overview(_: bool = Depends(token_guard)):
 @app.get("/operator/shub/dashboard")
 async def shub_dashboard(_: bool = Depends(token_guard)):
     """Get Shub dashboard (stub for now)."""
-    # TODO: Query Shub actual status
+    # Query Shubniggurath for health and metrics
+    try:
+        import httpx
+
+        async with httpx.AsyncClient(timeout=3.0) as client:
+            h = await client.get("http://localhost:8007/health")
+            h.raise_for_status()
+            health = h.json()
+            m = await client.post(
+                "http://localhost:8007/metrics",
+                json={"include": ["sessions", "resources", "queue"]},
+            )
+            m.raise_for_status()
+            metrics = m.json()
+    except Exception:
+        health = {"status": "offline"}
+        metrics = {
+            "active_sessions": 0,
+            "projects": [],
+            "resources": {"cpu_percent": 0.0, "memory_mb": 0},
+        }
+
     dashboard = {
-        "status": "ok",
-        "shub_health": "healthy",
-        "active_sessions": 0,
-        "projects": [],
-        "resources": {
-            "cpu_percent": 5.2,
-            "memory_mb": 256,
-        },
+        "status": health.get("status", "offline"),
+        "shub_health": health.get("status", "offline"),
+        "active_sessions": metrics.get("active_sessions", 0),
+        "projects": metrics.get("projects", []),
+        "resources": metrics.get("resources", {}),
     }
     write_log("operator_backend", "shub_dashboard:requested")
     return dashboard
@@ -382,17 +420,27 @@ async def shub_dashboard(_: bool = Depends(token_guard)):
 @app.get("/operator/resources")
 async def resources(_: bool = Depends(token_guard)):
     """Get available resources (CLI tools + models)."""
-    # TODO: Query Hermes /hermes/resources
+    # Query Hermes for tools/resources
+    try:
+        import httpx
+
+        async with httpx.AsyncClient(timeout=3.0) as client:
+            h = await client.get("http://localhost:8003/health")
+            h.raise_for_status()
+            health = h.json()
+            t = await client.get("http://localhost:8003/tools")
+            t.raise_for_status()
+            tools = t.json()
+    except Exception:
+        health = {"status": "offline"}
+        tools = {"cli_tools": [], "local_models": []}
+
     resources_info = {
-        "status": "ok",
-        "cli_tools": [
-            {"name": "deepseek_r1", "available": True, "version": "1.0"},
-            {"name": "llama", "available": True, "version": "2.0"},
-        ],
-        "local_models": [
-            {"name": "mistral-7b", "size_mb": 1024, "available": True},
-            {"name": "neural-chat", "size_mb": 512, "available": True},
-        ],
+        "status": health.get("status", "offline"),
+        "cli_tools": tools.get(
+            "cli_tools", [{"name": "deepseek_r1", "available": False, "version": "1.0"}]
+        ),
+        "local_models": tools.get("local_models", []),
         "max_tokens": 1000,
         "available_tokens": 950,
     }
@@ -658,17 +706,68 @@ async def record_switch_feedback(
 
 @app.websocket("/ws/{session_id}")
 async def websocket_endpoint(websocket: WebSocket, session_id: str):
-    """WebSocket endpoint for real-time updates (stub)."""
+    """WebSocket endpoint for canonical VX11 events.
+
+    Expected incoming message: JSON with keys {"event_type": "...", "data": {...}}
+    Supported event types: message_received, tool_call_requested, tool_result_received,
+    plan_updated, status_changed, error_reported
+    """
     try:
         await websocket.accept()
         write_log("operator_backend", f"ws_connect:{session_id}")
 
-        # Echo loop
-        while True:
-            data = await websocket.receive_text()
-            await websocket.send_json({"type": "echo", "data": data})
+        async def format_canonical_event(event_type: str, data: dict) -> dict:
+            from datetime import datetime
 
-    except WebSocketDisconnect:
+            valid = {
+                "message_received",
+                "tool_call_requested",
+                "tool_result_received",
+                "plan_updated",
+                "status_changed",
+                "error_reported",
+            }
+            if event_type not in valid:
+                event_type = "status_changed"
+                data["note"] = f"unknown_event_type:{event_type}"
+            return {
+                "type": event_type,
+                "session_id": session_id,
+                "timestamp": datetime.utcnow().isoformat(),
+                "data": data,
+            }
+
+        # Event loop
+        while True:
+            try:
+                raw = await websocket.receive_text()
+            except WebSocketDisconnect:
+                write_log("operator_backend", f"ws_disconnect:{session_id}")
+                break
+
+            try:
+                import json
+
+                payload = json.loads(raw) if raw and raw.strip().startswith("{") else {"event_type": "message_received", "data": {"message": raw}}
+                event_type = payload.get("event_type", "message_received")
+                data = payload.get("data", {})
+                canonical = await format_canonical_event(event_type, data)
+                await websocket.send_json(canonical)
+                write_log("operator_backend", f"ws_event:{session_id}:{event_type}")
+            except json.JSONDecodeError:
+                err = {"error": "invalid_json", "raw": raw}
+                canonical = await format_canonical_event("error_reported", err)
+                await websocket.send_json(canonical)
+                write_log("operator_backend", f"ws_json_error:{session_id}")
+            except Exception as exc:
+                err = {"error": str(exc)}
+                canonical = await format_canonical_event("error_reported", err)
+                await websocket.send_json(canonical)
+                write_log("operator_backend", f"ws_processing_error:{session_id}:{exc}",)
+
+    except Exception:
+        write_log("operator_backend", f"ws_error:{session_id}")
+    finally:
         write_log("operator_backend", f"ws_disconnect:{session_id}")
 
 
