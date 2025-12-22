@@ -3,6 +3,7 @@ import sqlite3
 import os
 import sys
 from importlib import import_module
+import importlib.util
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -15,7 +16,24 @@ if SRC_ROOT.is_dir():
 # Ensure the package root itself is discoverable in editable installs.
 sys.path.insert(0, str(SRC_ROOT / "hormiguero"))
 
-from hormiguero.core.db import repo, ensure_schema, get_connection
+db_module_path = SRC_ROOT / "hormiguero" / "core" / "db.py"
+try:
+    db_module = import_module("hormiguero.core.db")
+except ModuleNotFoundError:
+    if not db_module_path.is_file():
+        raise
+    spec = importlib.util.spec_from_file_location("hormiguero.core.db", db_module_path)
+    module = importlib.util.module_from_spec(spec)
+    if spec.loader is None:
+        raise RuntimeError(f"Unable to load module from {db_module_path}")
+    spec.loader.exec_module(module)
+    repo = module.repo
+    ensure_schema = module.ensure_schema
+    get_connection = module.get_connection
+else:
+    repo = db_module.repo
+    ensure_schema = db_module.ensure_schema
+    get_connection = db_module.get_connection
 
 try:
     settings = import_module("hormiguero.config").settings

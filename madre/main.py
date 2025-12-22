@@ -46,7 +46,15 @@ AUTH_HEADERS = {settings.token_header: VX11_TOKEN}
 # Module instances
 _parser = FallbackParser()
 _policy = PolicyEngine()
-_planner = Planner()
+_planner = Planner(
+    enabled_targets={
+        "switch": True,
+        "hormiguero": True,
+        "manifestator": True,
+        "shub": True,
+        "spawner": True,
+    }
+)
 _runner = Runner()
 _delegator = DelegationClient()
 

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2025-12-22T08:05:00Z",
+  "generated_at": "2025-12-22T05:21:02.863687Z",
   "formulas": {
     "Orden_total": "0.5*Orden_fs_pct + 0.5*Orden_db_module_assignment_pct",
     "Estabilidad_operativa_pct": "gate(integrity_check == ok) ? 0.4*health_core_pct + 0.3*tests_p0_pct + 0.3*contract_coherence_pct : 0",
@@ -7,8 +7,8 @@
   },
   "metrics": {
     "Orden_fs_pct": {
-      "value": 100.0,
-      "source": "docs/CANONICAL_FS_VX11.json"
+      "value": "NV",
+      "source": "docs/audit/20251222T080000Z/auditor_orden_vx11.json"
     },
     "Orden_db_module_assignment_pct": {
       "value": 92.3077,
@@ -17,24 +17,24 @@
     "health_core_pct": {
       "value": "NV",
       "source": [
-        "docs/audit/madre_health.json",
-        "docs/audit/tentaculo_health.json",
-        "docs/audit/switch_health.json",
-        "docs/audit/spawner_health.json",
-        "docs/audit/hormiguero_health.json"
+        "docs/audit/20251222T080000Z/madre_health.json",
+        "docs/audit/20251222T080000Z/tentaculo_health.json",
+        "docs/audit/20251222T080000Z/switch_health.json",
+        "docs/audit/20251222T080000Z/spawner_health.json",
+        "docs/audit/20251222T080000Z/hormiguero_health.json"
       ]
     },
     "tests_p0_pct": {
-      "value": 100.0,
-      "source": "docs/audit/20251222T080000Z/pytest_canonical_integrity.log"
+      "value": "NV",
+      "source": "docs/audit/20251222T080000Z/tests_p0.txt"
     },
     "contract_coherence_pct": {
-      "value": 100.0,
-      "source": "docs/audit/20251222T080000Z/modules_structure.log"
+      "value": "NV",
+      "source": "docs/audit/20251222T080000Z/contracts_17of17.json"
     },
     "Coherencia_total_routing_pct": {
       "value": "NV",
-      "source": "docs/audit/coherencia_routing_calc.json"
+      "source": "docs/audit/20251222T080000Z/coherencia_routing_calc.json"
     },
     "Automatizacion_pct": {
       "value": "NV",
@@ -45,13 +45,15 @@
       "source": null
     },
     "integrity_check": {
-      "value": "ok",
-      "source": "docs/audit/20251222T080000Z/verifier_contract_validation.log"
+      "value": "NV",
+      "source": "docs/audit/20251222T080000Z/db_integrity_check.txt"
     }
   },
   "computed": {
-    "Orden_total": 96.15,
-    "Estabilidad_operativa_pct": 60.0,
-    "Global_ponderado_pct": "NV"
+    "Orden_total": "NV",
+    "Estabilidad_operativa_pct": "NV",
+    "Global_ponderado_pct": "NV",
+    "Global_parcial_pct": "NV",
+    "coverage_pct": 0.0
   }
 }

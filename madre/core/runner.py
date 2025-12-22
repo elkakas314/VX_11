@@ -6,6 +6,7 @@ from typing import Optional, Dict, Any
 from .models import PlanV2, StatusEnum, StepType
 from .db import MadreDB
 from config.settings import settings
+from config.db_schema import get_session, DaughterTask
 
 log = logging.getLogger("madre.runner")
 
@@ -72,43 +73,46 @@ class Runner:
         elif step.type == StepType.CALL_SHUB:
             return await self._call_shub(step.payload)
         elif step.type == StepType.SPAWNER_REQUEST:
-            # Insert into daughter_tasks and mark task WAITING (no hijas launched here)
-            from config.db_schema import DaughterTask
-            import json
-            import uuid
-            from sqlalchemy.orm import sessionmaker
-            from sqlalchemy import create_engine
-
-            daughter_task = DaughterTask(
-                source="madre",
-                priority=3,
-                status="pending",
-                task_type="long",
-                description=step.payload.get(
-                    "description", "Spawner request from Madre"
-                ),
-                metadata_json=json.dumps(step.payload),
-            )
-            engine = create_engine(
-                "sqlite:////home/elkakas314/vx11/data/runtime/vx11.db"
-            )
-            Session = sessionmaker(bind=engine)
-            db = Session()
+            # Call Spawner API to trigger background task
             try:
-                db.add(daughter_task)
-                db.commit()
-                log.info(f"DaughterTask inserted: {daughter_task.id}")
-                MadreDB.record_action(
-                    module="madre",
-                    action="daughter_task_created",
-                    reason="spawner_request",
-                )
-                return {
-                    "status": "daughter_task_queued",
-                    "daughter_task_id": daughter_task.id,
-                }
-            finally:
-                db.close()
+                async with httpx.AsyncClient(timeout=self.timeout_sec) as client:
+                    resp = await client.post(
+                        f"{settings.spawner_url}/spawner/spawn",
+                        json={
+                            "intent": "spawn",
+                            "description": step.payload.get(
+                                "description", "Spawner request from Madre"
+                            ),
+                            "task_type": "long",
+                            "source": "madre",
+                            "cmd": "echo 'Hija efimera ejecutando accion...'; sleep 2; echo 'Accion completada.'",
+                            "metadata": step.payload,
+                        },
+                        headers={"X-VX11-Token": settings.api_token},
+                    )
+                    if resp.status_code == 200:
+                        data = resp.json()
+                        log.info(
+                            f"Spawner request successful: {data.get('spawn_uuid')}"
+                        )
+                        MadreDB.record_action(
+                            module="madre",
+                            action="spawner_request_sent",
+                            reason="plan_execution",
+                        )
+                        return {
+                            "status": "daughter_spawned",
+                            "spawn_uuid": data.get("spawn_uuid"),
+                            "daughter_id": data.get("daughter_id"),
+                        }
+                    else:
+                        log.error(
+                            f"Spawner call failed: {resp.status_code} - {resp.text}"
+                        )
+                        return {"status": "error", "detail": "spawner_call_failed"}
+            except Exception as e:
+                log.error(f"Spawner call exception: {e}")
+                return {"status": "error", "detail": str(e)}
         elif step.type == StepType.NOOP:
             return {"status": "noop"}
         else:
@@ -124,10 +128,16 @@ class Runner:
                 targets_list = [target]
 
             for t in targets_list:
-                port = settings.PORTS.get(t, 8000)
+                # Resolve URL from settings
+                url = getattr(settings, f"{t}_url", None)
+                if not url:
+                    # Fallback to PORTS dict if no _url attribute
+                    port = settings.PORTS.get(t, 8000)
+                    url = f"http://{t}:{port}"
+
                 try:
                     async with httpx.AsyncClient(timeout=2.0) as client:
-                        resp = await client.get(f"http://127.0.0.1:{port}/health")
+                        resp = await client.get(f"{url}/health")
                         result[t] = "up" if resp.status_code == 200 else "down"
                 except:
                     result[t] = "down"

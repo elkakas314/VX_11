@@ -76,7 +76,11 @@ class Planner:
             steps.append(
                 StepV2(
                     type=StepType.CALL_SWITCH,
-                    payload={"intent": intent.dsl.dict()},
+                    payload={
+                        "prompt": intent.dsl.original_text,
+                        "metadata": {},
+                        "source": "madre",
+                    },
                     blocking=False,
                 )
             )
@@ -100,7 +104,6 @@ class Planner:
                             "task": intent.dsl.action,
                             "params": intent.dsl.parameters,
                         },
-                        status=StatusEnum.WAITING,
                     )
                 )
 

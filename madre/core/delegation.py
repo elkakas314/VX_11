@@ -20,14 +20,14 @@ class DelegationClient:
         """Check if critical dependencies are UP."""
         deps = {}
 
-        for module, port in [
-            ("switch", settings.switch_port),
-            ("hormiguero", settings.hormiguero_port),
-            ("spawner", settings.spawner_port),
+        for module, url in [
+            ("switch", settings.switch_url),
+            ("hormiguero", settings.hormiguero_url),
+            ("spawner", settings.spawner_url),
         ]:
             try:
                 async with httpx.AsyncClient(timeout=2.0) as client:
-                    resp = await client.get(f"http://127.0.0.1:{port}/health")
+                    resp = await client.get(f"{url}/health")
                     deps[module] = "up" if resp.status_code == 200 else "down"
             except:
                 deps[module] = "down"

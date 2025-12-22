@@ -1,5 +1,5 @@
 {
-  "generated_at": "2025-12-22T04:56:36.796824Z",
+  "generated_at": "2025-12-22T06:11:08.765512Z",
   "database": "data/runtime/vx11.db",
   "tables": [
     {
@@ -47,8 +47,8 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 0,
-      "status": "EMPTY (READY)",
+      "rows": 1,
+      "status": "ACTIVE",
       "module": "madre"
     },
     {
@@ -869,7 +869,7 @@
           "match": "NONE"
         }
       ],
-      "rows": 12,
+      "rows": 36,
       "status": "ACTIVE",
       "module": "madre"
     },
@@ -1317,7 +1317,7 @@
           "match": "NONE"
         }
       ],
-      "rows": 151,
+      "rows": 160,
       "status": "ACTIVE",
       "module": "spawner"
     },
@@ -1438,7 +1438,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 101,
+      "rows": 111,
       "status": "ACTIVE",
       "module": "spawner"
     },
@@ -1554,7 +1554,7 @@
           "match": "NONE"
         }
       ],
-      "rows": 151,
+      "rows": 160,
       "status": "ACTIVE",
       "module": "spawner"
     },
@@ -2186,7 +2186,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 26,
+      "rows": 35,
       "status": "ACTIVE",
       "module": "hormiguero"
     },
@@ -2267,7 +2267,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 14,
+      "rows": 23,
       "status": "ACTIVE",
       "module": "hormiguero"
     },
@@ -2525,7 +2525,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 10217,
+      "rows": 10218,
       "status": "ACTIVE",
       "module": "switch"
     },
@@ -2791,7 +2791,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 102,
+      "rows": 121,
       "status": "ACTIVE",
       "module": "madre"
     },
@@ -2961,7 +2961,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 52,
+      "rows": 82,
       "status": "ACTIVE",
       "module": "madre"
     },
@@ -3228,7 +3228,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 10217,
+      "rows": 10218,
       "status": "ACTIVE",
       "module": "hermes"
     },
@@ -4970,7 +4970,7 @@
           "match": "NONE"
         }
       ],
-      "rows": 39,
+      "rows": 48,
       "status": "ACTIVE",
       "module": "spawner"
     },
@@ -5067,7 +5067,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 10217,
+      "rows": 10218,
       "status": "ACTIVE",
       "module": "switch"
     },
@@ -5350,7 +5350,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 91,
+      "rows": 98,
       "status": "ACTIVE",
       "module": "madre"
     },
@@ -5439,7 +5439,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 23,
+      "rows": 31,
       "status": "ACTIVE",
       "module": "madre"
     },

@@ -42,6 +42,10 @@ docs/audit/**
 !docs/audit/DB_MAP_v7_META.txt
 !docs/audit/CLEANUP_EXCLUDES_CORE.txt
 
+# VX11 audit artifacts (must not live in repo root)
+*_openapi.json
+functional_flow_results.json
+
 # Local tooling backups
 .backups/
 .copilot-audit/

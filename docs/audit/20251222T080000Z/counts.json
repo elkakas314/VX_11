@@ -2,7 +2,7 @@
   "tables": [
     {
       "table": "tasks",
-      "rows": 23
+      "rows": 26
     },
     {
       "table": "ia_decisions",
@@ -34,7 +34,7 @@
     },
     {
       "table": "task_queue",
-      "rows": 91
+      "rows": 94
     },
     {
       "table": "events",
@@ -42,7 +42,7 @@
     },
     {
       "table": "hijas_runtime",
-      "rows": 26
+      "rows": 33
     },
     {
       "table": "system_state",
@@ -86,7 +86,7 @@
     },
     {
       "table": "madre_actions",
-      "rows": 52
+      "rows": 61
     },
     {
       "table": "forensic_ledger",
@@ -102,7 +102,7 @@
     },
     {
       "table": "hijas_state",
-      "rows": 14
+      "rows": 21
     },
     {
       "table": "drift_reports",
@@ -126,11 +126,11 @@
     },
     {
       "table": "daughter_tasks",
-      "rows": 101
+      "rows": 108
     },
     {
       "table": "intents_log",
-      "rows": 102
+      "rows": 112
     },
     {
       "table": "hormiga_state",
@@ -166,7 +166,7 @@
     },
     {
       "table": "context",
-      "rows": 12
+      "rows": 21
     },
     {
       "table": "reports",
@@ -174,7 +174,7 @@
     },
     {
       "table": "spawns",
-      "rows": 39
+      "rows": 46
     },
     {
       "table": "shub_tracks",
@@ -182,7 +182,7 @@
     },
     {
       "table": "daughters",
-      "rows": 151
+      "rows": 158
     },
     {
       "table": "operator_message",
@@ -202,7 +202,7 @@
     },
     {
       "table": "daughter_attempts",
-      "rows": 151
+      "rows": 158
     },
     {
       "table": "operator_tool_call",
@@ -262,6 +262,6 @@
     }
   ],
   "total_tables": 65,
-  "total_rows": 2331692,
-  "ts": "20251222T055650Z"
+  "total_rows": 2331768,
+  "ts": "20251222T062024Z"
 }
