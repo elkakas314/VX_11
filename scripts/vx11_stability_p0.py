@@ -22,6 +22,7 @@ Environment:
 """
 
 import argparse
+import hashlib
 import json
 import os
 import subprocess
@@ -44,6 +45,10 @@ MODULE_DEPENDENCY_MAP = {
             ("http://127.0.0.1:8001", "madre"),
             ("http://127.0.0.1:8000", "tentaculo_link"),
         ],
+        "flow_checks": [
+            ("http://127.0.0.1:8001/health", "madre-health"),
+            ("http://127.0.0.1:8000/health", "tentaculo-health"),
+        ],
         "test_patterns": ["test_madre_*.py"],
     },
     "switch": {
@@ -51,6 +56,9 @@ MODULE_DEPENDENCY_MAP = {
         "services": ["switch"],
         "depends_on": ["baseline"],
         "health_endpoints": [("http://127.0.0.1:8002", "switch")],
+        "flow_checks": [
+            ("http://127.0.0.1:8002/health", "switch-health"),
+        ],
         "test_patterns": ["test_switch_*.py"],
     },
     "hermes": {
@@ -58,6 +66,9 @@ MODULE_DEPENDENCY_MAP = {
         "services": ["hermes"],
         "depends_on": ["baseline", "switch"],
         "health_endpoints": [("http://127.0.0.1:8003", "hermes")],
+        "flow_checks": [
+            ("http://127.0.0.1:8003/health", "hermes-health"),
+        ],
         "test_patterns": ["test_hermes_*.py"],
     },
     "spawner": {
@@ -65,6 +76,9 @@ MODULE_DEPENDENCY_MAP = {
         "services": ["spawner"],
         "depends_on": ["baseline", "hermes"],
         "health_endpoints": [("http://127.0.0.1:8008", "spawner")],
+        "flow_checks": [
+            ("http://127.0.0.1:8008/health", "spawner-health"),
+        ],
         "test_patterns": ["test_spawner_*.py"],
     },
     "hormiguero": {
@@ -72,6 +86,9 @@ MODULE_DEPENDENCY_MAP = {
         "services": ["hormiguero"],
         "depends_on": ["baseline", "hermes", "spawner"],
         "health_endpoints": [("http://127.0.0.1:8004", "hormiguero")],
+        "flow_checks": [
+            ("http://127.0.0.1:8004/health", "hormiguero-health"),
+        ],
         "test_patterns": ["test_hormiguero_*.py"],
     },
     "mcp": {
@@ -79,6 +96,9 @@ MODULE_DEPENDENCY_MAP = {
         "services": ["mcp"],
         "depends_on": ["baseline", "hermes"],
         "health_endpoints": [("http://127.0.0.1:8006", "mcp")],
+        "flow_checks": [
+            ("http://127.0.0.1:8006/health", "mcp-health"),
+        ],
         "test_patterns": ["test_mcp_*.py"],
     },
     "manifestator": {
@@ -86,6 +106,9 @@ MODULE_DEPENDENCY_MAP = {
         "services": ["manifestator"],
         "depends_on": ["baseline", "hermes"],
         "health_endpoints": [("http://127.0.0.1:8005", "manifestator")],
+        "flow_checks": [
+            ("http://127.0.0.1:8005/health", "manifestator-health"),
+        ],
         "test_patterns": ["test_manifestator_*.py"],
     },
     "shubniggurath": {
@@ -93,6 +116,9 @@ MODULE_DEPENDENCY_MAP = {
         "services": ["shubniggurath"],
         "depends_on": ["baseline"],
         "health_endpoints": [("http://127.0.0.1:8007", "shubniggurath")],
+        "flow_checks": [
+            ("http://127.0.0.1:8007/health", "shubniggurath-health"),
+        ],
         "test_patterns": ["test_shub_*.py"],
     },
     "operator-backend": {
@@ -100,6 +126,10 @@ MODULE_DEPENDENCY_MAP = {
         "services": ["operator-backend"],
         "depends_on": ["baseline", "switch"],
         "health_endpoints": [("http://127.0.0.1:8011", "operator-backend")],
+        "flow_checks": [
+            ("http://127.0.0.1:8011/health", "operator-backend-health"),
+            ("http://127.0.0.1:8011/api/status", "operator-backend-status"),
+        ],
         "test_patterns": ["test_operator_*.py"],
     },
     "operator-frontend": {
@@ -107,14 +137,10 @@ MODULE_DEPENDENCY_MAP = {
         "services": ["operator-frontend"],
         "depends_on": ["baseline", "operator-backend"],
         "health_endpoints": [("http://127.0.0.1:8020", "operator-frontend")],
+        "flow_checks": [
+            ("http://127.0.0.1:8020/", "operator-frontend-root"),
+        ],
         "test_patterns": ["test_operator_frontend_*.py"],
-    },
-    "shubniggurath": {
-        "description": "Audio processing (optional)",
-        "services": ["shubniggurath"],
-        "depends_on": ["baseline"],
-        "health_endpoints": [("http://127.0.0.1:9999", "shubniggurath")],
-        "test_patterns": ["test_shub*.py"],
     },
 }
 
@@ -125,9 +151,9 @@ CANONICAL_MODULE_ORDER = [
     "hormiguero",
     "mcp",
     "manifestator",
+    "shubniggurath",
     "operator-backend",
     "operator-frontend",
-    "shubniggurath",
 ]
 
 
@@ -325,6 +351,53 @@ def run_pytest(pattern: str, timeout: int = 30) -> Tuple[int, str]:
     cmd = f"python3 -m pytest -q -x tests/{pattern} 2>&1"
     rc, stdout, stderr = run_cmd(cmd, timeout=timeout, silent=True)
     return rc, stdout + stderr
+
+
+def flow_check(endpoint: str, label: str, timeout: int = 5) -> Dict[str, Any]:
+    """
+    Execute a flow check: GET endpoint, capture HTTP code, latency, and payload hash.
+    Returns dict with: success, latency_ms, http_code, payload_hash, error.
+    """
+    start = time.time()
+    try:
+        returncode, stdout, _ = run_cmd(
+            f"curl -s -w '\\n%{{http_code}}' {endpoint} --max-time {timeout}",
+            timeout=timeout + 2,
+            silent=True,
+        )
+        latency_ms = (time.time() - start) * 1000
+
+        # Split response body and HTTP code
+        lines = stdout.strip().rsplit("\n", 1)
+        if len(lines) == 2:
+            body, http_code_str = lines
+        else:
+            body = stdout.strip()
+            http_code_str = "0"
+
+        http_code = int(http_code_str) if http_code_str.isdigit() else 0
+        success = 200 <= http_code < 300
+
+        # Hash payload (if not empty)
+        payload_hash = hashlib.md5(body.encode()).hexdigest()[:8] if body else "empty"
+
+        return {
+            "label": label,
+            "success": success,
+            "http_code": http_code,
+            "latency_ms": latency_ms,
+            "payload_hash": payload_hash,
+            "error": None,
+        }
+    except Exception as e:
+        return {
+            "label": label,
+            "success": False,
+            "http_code": 0,
+            "latency_ms": (time.time() - start) * 1000,
+            "payload_hash": None,
+            "error": str(e),
+        }
 
 
 def docker_up_services(services: List[str], mode: str = "low_power") -> Tuple[int, str]:
@@ -558,6 +631,19 @@ class StabilityP0Runner:
                 self.results["modules"][module_name] = module_result
                 return
 
+            # Flow checks (real endpoint functionality)
+            print(f"    [FLOW] Testing module flows...")
+            flow_results = []
+            for endpoint, label in module_info.get("flow_checks", []):
+                result = flow_check(endpoint, label, timeout=self.timeout_sec)
+                flow_results.append(result)
+                status_str = "✓" if result["success"] else "✗"
+                print(
+                    f"      {status_str} {label}: {result['latency_ms']:.1f}ms (code: {result['http_code']}, hash: {result['payload_hash']})"
+                )
+
+            module_result["flow_results"] = flow_results
+
             # Collect metrics
             print(f"    [METRICS] Collecting docker stats...")
             for svc in module_info["services"]:
@@ -703,19 +789,19 @@ class StabilityP0Runner:
             "| Module | Status | Mem Peak (MiB) | CPU % | Restarts | OOM | Health p95 (ms) | Tests | Stability % |",
             "|--------|--------|----------------|-------|----------|-----|-----------------|-------|-------------|",
         ]
-        
+
         # Add cost table rows
         for module_name, result in sorted(self.results["modules"].items()):
             status = result["status"]
             stability = result.get("stability_p0_pct", 0.0)
-            
+
             # Extract metrics
             mem_peak = 0.0
             cpu_max = 0.0
             restarts = 0
             oom = "No"
             health_p95 = 0.0
-            
+
             if result["metrics"]:
                 for svc, metrics in result["metrics"].items():
                     stats = metrics.get("stats", {})
@@ -725,25 +811,31 @@ class StabilityP0Runner:
                     restarts = max(restarts, inspect.get("restart_count", 0))
                     if inspect.get("oom_killed"):
                         oom = "Yes"
-                    
+
                     latencies = metrics.get("health_latency_ms", [])
                     if latencies:
                         health_p95 = sorted(latencies)[int(len(latencies) * 0.95)]
-            
-            tests_pass = all(
-                tr.get("passed") for tr in result["test_results"].values()
-            ) if result["test_results"] else "N/A"
-            tests_str = "✓" if tests_pass else "✗" if isinstance(tests_pass, bool) else "—"
-            
+
+            tests_pass = (
+                all(tr.get("passed") for tr in result["test_results"].values())
+                if result["test_results"]
+                else "N/A"
+            )
+            tests_str = (
+                "✓" if tests_pass else "✗" if isinstance(tests_pass, bool) else "—"
+            )
+
             lines.append(
                 f"| {module_name} | {status} | {mem_peak:.1f} | {cpu_max:.1f} | {restarts} | {oom} | {health_p95:.1f} | {tests_str} | {stability:.1f}% |"
             )
-        
-        lines.extend([
-            "",
-            "## Module Results (Detailed)",
-            "",
-        ])
+
+        lines.extend(
+            [
+                "",
+                "## Module Results (Detailed)",
+                "",
+            ]
+        )
 
         for module_name, result in self.results["modules"].items():
             status_emoji = (
@@ -754,7 +846,9 @@ class StabilityP0Runner:
             lines.append(f"### {status_emoji} {module_name}")
             lines.append("")
             lines.append(f"**Status:** {result['status']}")
-            lines.append(f"**Stability Score:** {result.get('stability_p0_pct', 0.0):.1f}%")
+            lines.append(
+                f"**Stability Score:** {result.get('stability_p0_pct', 0.0):.1f}%"
+            )
             lines.append("")
 
             if result["errors"]:
@@ -768,7 +862,9 @@ class StabilityP0Runner:
                 for svc, metrics in result["metrics"].items():
                     lines.append(f"- {svc}:")
                     stats = metrics.get("stats", {})
-                    lines.append(f"  - RAM: {stats.get('mem_mib', 'N/A'):.1f} MiB (limit: {stats.get('mem_limit_mib', 'N/A')})")
+                    lines.append(
+                        f"  - RAM: {stats.get('mem_mib', 'N/A'):.1f} MiB (limit: {stats.get('mem_limit_mib', 'N/A')})"
+                    )
                     lines.append(f"  - CPU: {stats.get('cpu_pct', 'N/A'):.1f}%")
                     lines.append(
                         f"  - Restarts: {metrics['inspect'].get('restart_count', 0)}"
@@ -788,30 +884,40 @@ class StabilityP0Runner:
                     status = "✓ PASS" if tr["passed"] else "✗ FAIL"
                     lines.append(f"- {test_file}: {status}")
                 lines.append("")
-        
+
         # Add cost ranking
-        lines.extend([
-            "",
-            "## Cost Ranking (by Memory Peak)",
-            "",
-        ])
-        
+        lines.extend(
+            [
+                "",
+                "## Cost Ranking (by Memory Peak)",
+                "",
+            ]
+        )
+
         sorted_by_mem = sorted(
             self.results["modules"].items(),
             key=lambda x: max(
-                (m.get("stats", {}).get("mem_mib", 0.0) for m in x[1].get("metrics", {}).values()),
-                default=0.0
+                (
+                    m.get("stats", {}).get("mem_mib", 0.0)
+                    for m in x[1].get("metrics", {}).values()
+                ),
+                default=0.0,
             ),
-            reverse=True
+            reverse=True,
         )
-        
+
         for rank, (module_name, result) in enumerate(sorted_by_mem, 1):
             mem_peak = max(
-                (m.get("stats", {}).get("mem_mib", 0.0) for m in result.get("metrics", {}).values()),
-                default=0.0
+                (
+                    m.get("stats", {}).get("mem_mib", 0.0)
+                    for m in result.get("metrics", {}).values()
+                ),
+                default=0.0,
             )
             stability = result.get("stability_p0_pct", 0.0)
-            lines.append(f"{rank}. **{module_name}**: {mem_peak:.1f} MiB (Stability: {stability:.1f}%)")
+            lines.append(
+                f"{rank}. **{module_name}**: {mem_peak:.1f} MiB (Stability: {stability:.1f}%)"
+            )
 
         return "\n".join(lines)
 
