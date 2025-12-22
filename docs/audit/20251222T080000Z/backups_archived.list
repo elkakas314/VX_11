@@ -1,0 +1,22 @@
+total 2998032
+-rw-rw-r-- 1 elkakas314 elkakas314    206482 dic 15 20:13 canonical.table_catalog.json.new
+-rw-r--r-- 1 elkakas314 elkakas314     36864 dic 15 20:13 vx11_CANONICAL_DISTILLED.db
+-rw-r--r-- 1 elkakas314 elkakas314     86016 dic 15 14:04 vx11_CANONICAL_DISTILLED.db.bak_20251215T131433Z
+-rw-r--r-- 1 elkakas314 elkakas314     36864 dic 15 14:14 vx11_CANONICAL_DISTILLED.db.bak_20251215T134358Z
+-rw-r--r-- 1 elkakas314 elkakas314     36864 dic 15 14:43 vx11_CANONICAL_DISTILLED.db.bak_20251215T191331Z
+-rw-rw-r-- 1 elkakas314 elkakas314      2905 dic 15 20:13 vx11_CANONICAL_STATE.json
+-rw-rw-r-- 1 elkakas314 elkakas314    110102 dic 15 14:04 vx11_CANONICAL_STATE.json.bak_20251215T131433Z
+-rw-rw-r-- 1 elkakas314 elkakas314      2927 dic 15 14:14 vx11_CANONICAL_STATE.json.bak_20251215T134358Z
+-rw-rw-r-- 1 elkakas314 elkakas314      2927 dic 15 14:43 vx11_CANONICAL_STATE.json.bak_20251215T191331Z
+-rw-r--r-- 1 elkakas314 elkakas314 611889152 dic 20 00:45 vx11.db.backup.20251219T234444Z
+-rw-rw-r-- 1 elkakas314 elkakas314 619356160 dic 21 02:04 vx11.db.backup.20251221T010458Z
+-rw-r--r-- 1 elkakas314 elkakas314    286720 dic 15 23:07 vx11.db.canonical_20251215_220813
+-rw-r--r-- 1 elkakas314 elkakas314    307200 dic 16 01:02 vx11.db.canonical_20251216T000235Z.sqlite
+-rw-r--r-- 1 elkakas314 elkakas314    307200 dic 16 03:12 vx11.db.canonical_latest.db
+-rw-r--r-- 1 elkakas314 elkakas314         0 dic 11 02:42 vx11.db.empty_20251219T182749Z
+-rw-r--r-- 1 elkakas314 elkakas314 521408512 dic 18 20:25 vx11.db.pre_swap_20251218T191039Z.db
+-rw-r--r-- 1 elkakas314 elkakas314    315392 dic 16 01:36 vx11_phase4_20251216_013608.db
+-rw-r--r-- 1 elkakas314 elkakas314  76062720 dic 10 01:21 vx11_pre_FASE2_1765326077.db
+-rw-r--r-- 1 elkakas314 elkakas314 196247552 dic 10 17:36 vx11_pre_FASE_DB_20251210_163822.db
+-rw-r--r-- 1 elkakas314 elkakas314 521625600 dic 18 20:54 vx11_runtime_corrupt_20251218T200200Z.db
+-rw-r--r-- 1 elkakas314 elkakas314 521625600 dic 18 20:54 vx11_runtime_preswap_20251218T200200Z.db

@@ -1,0 +1,4 @@
+-rw-r--r-- 1 elkakas314 elkakas314 619356160 dic 20 22:10 data/runtime/vx11.db
+-rw-r--r-- 1 elkakas314 elkakas314 524308480 dic 19 05:46 data/runtime/vx11.db.corrupt_preserved_20251218T200200Z
+-rw-r--r-- 1 elkakas314 elkakas314     32768 dic 22 04:39 data/runtime/vx11.db-shm
+-rw-r--r-- 1 elkakas314 elkakas314   3547352 dic 22 04:37 data/runtime/vx11.db-wal
