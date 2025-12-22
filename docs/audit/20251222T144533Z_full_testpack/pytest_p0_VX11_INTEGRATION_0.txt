@@ -1,0 +1,16 @@
+============================= test session starts ==============================
+platform linux -- Python 3.10.12, pytest-7.4.3, pluggy-1.6.0
+rootdir: /home/elkakas314/vx11
+configfile: pytest.ini
+plugins: cov-7.0.0, asyncio-0.21.1, anyio-3.7.1
+asyncio: mode=auto
+collected 4 items
+
+tests/test_integration_flows_e2e.py ssss                                 [100%]
+
+=========================== short test summary info ============================
+SKIPPED [1] tests/test_integration_flows_e2e.py:56: Set VX11_INTEGRATION=1 to run integration tests
+SKIPPED [1] tests/test_integration_flows_e2e.py:95: Set VX11_INTEGRATION=1 to run integration tests
+SKIPPED [1] tests/test_integration_flows_e2e.py:144: Set VX11_INTEGRATION=1 to run integration tests
+SKIPPED [1] tests/test_integration_flows_e2e.py:168: Set VX11_INTEGRATION=1 to run integration tests
+============================== 4 skipped in 0.02s ==============================

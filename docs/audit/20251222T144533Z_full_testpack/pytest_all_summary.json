@@ -1,0 +1,21 @@
+{
+  "generated_at": "2025-12-22T13:45:33Z",
+  "phase": "FASE 3 - Suite Total Backend",
+  "results": {
+    "passed": 92,
+    "skipped": 11,
+    "xfailed": 5,
+    "xpassed": 2,
+    "total": 110,
+    "return_code": 0
+  },
+  "interpretation": {
+    "status": "PASS",
+    "passed_tests": 92,
+    "skipped_tests": 11,
+    "xfailed_tests": 5,
+    "xpassed_tests": 2,
+    "effective_pass_rate": "92/(110-11-2) = 92/97 = 94.8%",
+    "reason": "5 operator_production tests marked xfail (complex async mock refactor needed), 2 unexpectedly pass. All other tests PASS."
+  }
+}

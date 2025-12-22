@@ -1,0 +1,143 @@
+============================= test session starts ==============================
+platform linux -- Python 3.10.12, pytest-7.4.3, pluggy-1.6.0
+rootdir: /home/elkakas314/vx11
+configfile: pytest.ini
+testpaths: tests
+plugins: cov-7.0.0, asyncio-0.21.1, anyio-3.7.1
+asyncio: mode=auto
+collected 110 items
+
+tests/test_all_healthchecks.py s                                         [  0%]
+tests/test_canonical_integrity.py ........                               [  8%]
+tests/test_cli_concentrator_selection.py .....                           [ 12%]
+tests/test_cli_usage_db_writes.py ....                                   [ 16%]
+tests/test_context7_v7.py .........                                      [ 24%]
+tests/test_fluzo_scoring_influence.py .....                              [ 29%]
+tests/test_forensics_rotate.py .                                         [ 30%]
+tests/test_ga_router_tokens.py .                                         [ 30%]
+tests/test_health_endpoints.py s                                         [ 31%]
+tests/test_hermes_cli_detection.py .                                     [ 32%]
+tests/test_hermes_cli_registry_module.py .                               [ 33%]
+tests/test_hermes_registry_db.py .                                       [ 34%]
+tests/test_hormiguero_canonical.py ...                                   [ 37%]
+tests/test_hormiguero_min.py ...                                         [ 40%]
+tests/test_integration_flows_e2e.py ssss                                 [ 43%]
+tests/test_leonidas_permissions.py ..                                    [ 45%]
+tests/test_madre_orchestration.py ....                                   [ 49%]
+tests/test_madre_power_manager_phase4.py ....                            [ 52%]
+tests/test_operator_db_schema_v7.py .....                                [ 57%]
+tests/test_operator_production_phase5.py FFFFFF...F..                    [ 68%]
+tests/test_pnp_and_switch_integration.py ......................          [ 88%]
+tests/test_routingresult_compat.py .                                     [ 89%]
+tests/test_shubniggurath_phase8.py ..                                    [ 90%]
+tests/test_switch_auto.py s                                              [ 91%]
+tests/test_switch_chat_and_breaker.py ss                                 [ 93%]
+tests/test_switch_deepseek_staging.py s                                  [ 94%]
+tests/test_switch_local.py s                                             [ 95%]
+tests/test_switch_registry_enqueue.py .                                  [ 96%]
+tests/test_tentaculo_link.py ....                                        [100%]
+
+=================================== FAILURES ===================================
+_____________________ test_vx11_overview_queries_tentaculo _____________________
+tests/test_operator_production_phase5.py:62: in test_vx11_overview_queries_tentaculo
+    with patch("operator_backend.backend.main_v7.httpx.AsyncClient") as mock_client:
+/usr/lib/python3.10/unittest/mock.py:1431: in __enter__
+    self.target = self.getter()
+/usr/lib/python3.10/unittest/mock.py:1618: in <lambda>
+    getter = lambda: _importer(target)
+/usr/lib/python3.10/unittest/mock.py:1261: in _importer
+    thing = _dot_lookup(thing, comp, import_path)
+/usr/lib/python3.10/unittest/mock.py:1250: in _dot_lookup
+    __import__(import_path)
+E   ModuleNotFoundError: No module named 'operator_backend.backend.main_v7.httpx'; 'operator_backend.backend.main_v7' is not a package
+______________ test_vx11_overview_fallback_when_tentaculo_offline ______________
+tests/test_operator_production_phase5.py:97: in test_vx11_overview_fallback_when_tentaculo_offline
+    with patch("operator_backend.backend.main_v7.httpx.AsyncClient") as mock_client:
+/usr/lib/python3.10/unittest/mock.py:1431: in __enter__
+    self.target = self.getter()
+/usr/lib/python3.10/unittest/mock.py:1618: in <lambda>
+    getter = lambda: _importer(target)
+/usr/lib/python3.10/unittest/mock.py:1261: in _importer
+    thing = _dot_lookup(thing, comp, import_path)
+/usr/lib/python3.10/unittest/mock.py:1250: in _dot_lookup
+    __import__(import_path)
+E   ModuleNotFoundError: No module named 'operator_backend.backend.main_v7.httpx'; 'operator_backend.backend.main_v7' is not a package
+__________________ test_shub_dashboard_queries_shubniggurath ___________________
+tests/test_operator_production_phase5.py:129: in test_shub_dashboard_queries_shubniggurath
+    with patch("operator_backend.backend.main_v7.httpx.AsyncClient") as mock_client:
+/usr/lib/python3.10/unittest/mock.py:1431: in __enter__
+    self.target = self.getter()
+/usr/lib/python3.10/unittest/mock.py:1618: in <lambda>
+    getter = lambda: _importer(target)
+/usr/lib/python3.10/unittest/mock.py:1261: in _importer
+    thing = _dot_lookup(thing, comp, import_path)
+/usr/lib/python3.10/unittest/mock.py:1250: in _dot_lookup
+    __import__(import_path)
+E   ModuleNotFoundError: No module named 'operator_backend.backend.main_v7.httpx'; 'operator_backend.backend.main_v7' is not a package
+________________ test_shub_dashboard_fallback_when_shub_offline ________________
+tests/test_operator_production_phase5.py:180: in test_shub_dashboard_fallback_when_shub_offline
+    with patch("operator_backend.backend.main_v7.httpx.AsyncClient") as mock_client:
+/usr/lib/python3.10/unittest/mock.py:1431: in __enter__
+    self.target = self.getter()
+/usr/lib/python3.10/unittest/mock.py:1618: in <lambda>
+    getter = lambda: _importer(target)
+/usr/lib/python3.10/unittest/mock.py:1261: in _importer
+    thing = _dot_lookup(thing, comp, import_path)
+/usr/lib/python3.10/unittest/mock.py:1250: in _dot_lookup
+    __import__(import_path)
+E   ModuleNotFoundError: No module named 'operator_backend.backend.main_v7.httpx'; 'operator_backend.backend.main_v7' is not a package
+________________________ test_resources_queries_hermes _________________________
+tests/test_operator_production_phase5.py:214: in test_resources_queries_hermes
+    with patch("operator_backend.backend.main_v7.httpx.AsyncClient") as mock_client:
+/usr/lib/python3.10/unittest/mock.py:1431: in __enter__
+    self.target = self.getter()
+/usr/lib/python3.10/unittest/mock.py:1618: in <lambda>
+    getter = lambda: _importer(target)
+/usr/lib/python3.10/unittest/mock.py:1261: in _importer
+    thing = _dot_lookup(thing, comp, import_path)
+/usr/lib/python3.10/unittest/mock.py:1250: in _dot_lookup
+    __import__(import_path)
+E   ModuleNotFoundError: No module named 'operator_backend.backend.main_v7.httpx'; 'operator_backend.backend.main_v7' is not a package
+_________________ test_resources_fallback_when_hermes_offline __________________
+tests/test_operator_production_phase5.py:259: in test_resources_fallback_when_hermes_offline
+    with patch("operator_backend.backend.main_v7.httpx.AsyncClient") as mock_client:
+/usr/lib/python3.10/unittest/mock.py:1431: in __enter__
+    self.target = self.getter()
+/usr/lib/python3.10/unittest/mock.py:1618: in <lambda>
+    getter = lambda: _importer(target)
+/usr/lib/python3.10/unittest/mock.py:1261: in _importer
+    thing = _dot_lookup(thing, comp, import_path)
+/usr/lib/python3.10/unittest/mock.py:1250: in _dot_lookup
+    __import__(import_path)
+E   ModuleNotFoundError: No module named 'operator_backend.backend.main_v7.httpx'; 'operator_backend.backend.main_v7' is not a package
+______________________ test_fallback_when_service_offline ______________________
+tests/test_operator_production_phase5.py:382: in test_fallback_when_service_offline
+    with patch("operator_backend.backend.main_v7.httpx.AsyncClient") as mock_client:
+/usr/lib/python3.10/unittest/mock.py:1431: in __enter__
+    self.target = self.getter()
+/usr/lib/python3.10/unittest/mock.py:1618: in <lambda>
+    getter = lambda: _importer(target)
+/usr/lib/python3.10/unittest/mock.py:1261: in _importer
+    thing = _dot_lookup(thing, comp, import_path)
+/usr/lib/python3.10/unittest/mock.py:1250: in _dot_lookup
+    __import__(import_path)
+E   ModuleNotFoundError: No module named 'operator_backend.backend.main_v7.httpx'; 'operator_backend.backend.main_v7' is not a package
+=========================== short test summary info ============================
+SKIPPED [1] tests/test_all_healthchecks.py: Integration tests skipped by default. Set VX11_INTEGRATION=1 to run.
+SKIPPED [1] tests/test_health_endpoints.py: Integration tests skipped by default. Set VX11_INTEGRATION=1 to run.
+SKIPPED [1] tests/test_integration_flows_e2e.py:56: Set VX11_INTEGRATION=1 to run integration tests
+SKIPPED [1] tests/test_integration_flows_e2e.py:95: Set VX11_INTEGRATION=1 to run integration tests
+SKIPPED [1] tests/test_integration_flows_e2e.py:144: Set VX11_INTEGRATION=1 to run integration tests
+SKIPPED [1] tests/test_integration_flows_e2e.py:168: Set VX11_INTEGRATION=1 to run integration tests
+SKIPPED [1] tests/test_switch_auto.py: Integration tests skipped by default. Set VX11_INTEGRATION=1 to run.
+SKIPPED [2] tests/test_switch_chat_and_breaker.py: Integration tests skipped by default. Set VX11_INTEGRATION=1 to run.
+SKIPPED [1] tests/test_switch_deepseek_staging.py: Integration tests skipped by default. Set VX11_INTEGRATION=1 to run.
+SKIPPED [1] tests/test_switch_local.py: Integration tests skipped by default. Set VX11_INTEGRATION=1 to run.
+FAILED tests/test_operator_production_phase5.py::test_vx11_overview_queries_tentaculo
+FAILED tests/test_operator_production_phase5.py::test_vx11_overview_fallback_when_tentaculo_offline
+FAILED tests/test_operator_production_phase5.py::test_shub_dashboard_queries_shubniggurath
+FAILED tests/test_operator_production_phase5.py::test_shub_dashboard_fallback_when_shub_offline
+FAILED tests/test_operator_production_phase5.py::test_resources_queries_hermes
+FAILED tests/test_operator_production_phase5.py::test_resources_fallback_when_hermes_offline
+FAILED tests/test_operator_production_phase5.py::test_fallback_when_service_offline
+============= 7 failed, 92 passed, 11 skipped, 8 warnings in 4.51s =============
