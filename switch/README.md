@@ -22,6 +22,7 @@ Router de modelos con cola priorizada y rotación de modelos locales.
 - Modelo activo + modelo precalentado.
 - Hasta 30 modelos locales registrados.
 - Integración con Hermes para CLI (enrutado opcional).
+- Carril lenguaje en `/switch/chat`: prioriza Copilot CLI si está usable.
 
 ## Docker
 ```
@@ -29,8 +30,27 @@ docker build -f switch/Dockerfile -t vx11-switch:latest .
 docker run -p 8002:8002 vx11-switch:latest
 ```
 
-## Arranque rápido (stack local)
+## Arranque rápido (manual)
+Opción A (uvicorn, modo mock sin red):
+```
+VX11_MOCK_PROVIDERS=1 uvicorn switch.main:app --host 0.0.0.0 --port 8002
+curl -fsS http://localhost:8002/health
+```
+
+Opción B (compose existente):
 ```
 docker compose up -d tentaculo_link switch
 curl -fsS http://localhost:8002/health
 ```
+
+Nota: `curl http://localhost:8002/...` falla con "connection refused" si Switch no
+está levantado; no se inicia por defecto en modo VX11.
+
+## Flags relevantes
+- `VX11_COPILOT_CLI_ENABLED=1` habilita Copilot CLI (default: 1).
+- `VX11_MOCK_PROVIDERS=1` fuerza mocks en CLIs para tests/manual.
+- `VX11_TESTING_MODE=1` activa rutas seguras de testing.
+
+## Notas de API
+- `/switch/chat` usa el carril lenguaje por defecto. Para usar el routing SIL,
+  enviar `metadata.language_lane=false`.

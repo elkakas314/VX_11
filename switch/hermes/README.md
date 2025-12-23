@@ -14,6 +14,7 @@ Gestor de modelos locales ligeros (<2GB) y CLI externos para VX11.
 - Deprecación automática cuando excede 30 modelos.
 - Registro y renovación placeholder de CLI externos.
 - Healthcheck: `GET /health`.
+- Descubrimiento local/catalogo/HF en `/hermes/discover` (web opcional).
 
 ## Endpoints
 - `GET /health`
@@ -22,19 +23,29 @@ Gestor de modelos locales ligeros (<2GB) y CLI externos para VX11.
 - `POST /hermes/search_models`
 - `POST /hermes/sync`
 - `POST /hermes/reindex`
+- `POST /hermes/discover` (plan/apply, allow_web)
 - `GET /hermes/cli/list`
 - `GET /hermes/cli/available`
 - `POST /hermes/cli/register`
 - `POST /hermes/cli/renew` (placeholder)
 
-## Docker
+## Arranque rápido (manual)
+Opción A (uvicorn, modo mock sin red):
 ```
-docker build -f switch/hermes/Dockerfile -t vx11-hermes:latest .
-docker run -p 8003:8003 vx11-hermes:latest
+VX11_MOCK_PROVIDERS=1 uvicorn switch.hermes.main:app --host 0.0.0.0 --port 8003
+curl -fsS http://localhost:8003/health
 ```
 
-## Arranque rápido (stack local)
+Opción B (compose existente):
 ```
 docker compose up -d tentaculo_link hermes
 curl -fsS http://localhost:8003/health
 ```
+
+Nota: `curl http://localhost:8003/...` falla con "connection refused" si Hermes no
+está levantado; no se inicia por defecto en modo VX11.
+
+## Flags relevantes
+- `VX11_HERMES_DOWNLOAD_ENABLED=1` permite descargas (default OFF).
+- `VX11_HERMES_PLAYWRIGHT_ENABLED=1` habilita Playwright/MCP (default OFF).
+- `VX11_MOCK_PROVIDERS=1` evita red en rutas de prueba.

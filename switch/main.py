@@ -48,6 +48,8 @@ from switch.cli_concentrator.registry import get_cli_registry
 from switch.cli_concentrator.scoring import CLIScorer
 from switch.cli_concentrator.breaker import CircuitBreaker
 from switch.cli_concentrator.schemas import CLIRequest as CLIConcRequest
+from switch.cli_concentrator.executor import CLIExecutor
+from switch.cli_concentrator.providers import CopilotCLIProvider
 
 # FASE 6: Importar Shub Forwarder (Wiring)
 from switch.shub_forwarder import get_switch_shub_forwarder
@@ -262,6 +264,9 @@ class ModelPool:
         self.active: Optional[str] = None
         self.warm: Optional[str] = None
         self.last_operator_ping: float = 0.0
+        self.last_task_topic: Optional[str] = None
+        self.last_task_switch_at: float = 0.0
+        self.task_switch_interval_s: float = 15.0
         self._seed_defaults()
         self.refresh_from_db()
 
@@ -427,6 +432,33 @@ class ModelPool:
         if self.warm:
             return self.warm
         return next(iter(self.available.keys()), "auto")
+
+    def select_for_task(self, topic: str, metadata: Optional[Dict[str, Any]] = None) -> str:
+        """Select a task model while keeping 1 active + 1 warm and avoiding thrash."""
+        now = time.time()
+        if self.active and self.last_task_topic == topic:
+            if (now - self.last_task_switch_at) < self.task_switch_interval_s:
+                return self.active
+
+        meta = dict(metadata or {})
+        if topic == "audio":
+            meta.setdefault("category", "audio")
+            meta.setdefault("task_type", "audio")
+        else:
+            meta.setdefault("category", meta.get("task_type", "general"))
+            meta.setdefault("task_type", meta.get("task_type", "general"))
+
+        previous_active = self.active
+        selected = self.pick_for_metadata(meta, source="task")
+        if previous_active and selected != previous_active:
+            try:
+                self.preload(previous_active)
+            except Exception:
+                pass
+
+        self.last_task_topic = topic
+        self.last_task_switch_at = now
+        return selected
 
 
 queue = PersistentPriorityQueue()
@@ -1398,6 +1430,7 @@ async def switch_chat(req: ChatRequest):
     """
 
     start_time = time.monotonic()
+    language_lane = (req.metadata or {}).get("language_lane", True)
     sil = get_switch_intelligence_layer()
     ga_router = get_ga_router(ga_optimizer)  # ga_optimizer es global
 
@@ -1418,6 +1451,62 @@ async def switch_chat(req: ChatRequest):
         ).strip().lower() or None
 
         prompt_text = req.messages[0].content if req.messages else ""
+
+        # Canon: carril lenguaje usa Copilot CLI primero, luego otros CLIs y fallback local
+        if language_lane:
+            lane_start = time.monotonic()
+            engine_used = None
+            used_cli = False
+            fallback_reason = None
+
+            db_sess = get_session("vx11")
+            try:
+                registry = get_cli_registry(db_sess)
+                candidates = _select_language_cli_candidates(
+                    registry, provider_hint=provider_hint
+                )
+                for provider in candidates:
+                    resp = _execute_language_cli(provider, prompt_text)
+                    if resp.get("success"):
+                        engine_used = resp.get("engine") or provider.provider_id
+                        used_cli = True
+                        reply = resp.get("reply", "")
+                        latency_ms = resp.get("latency_ms", 0)
+                        _update_chat_stats(engine_used, True, latency_ms)
+                        return {
+                            "status": "ok",
+                            "provider": engine_used,
+                            "decision": "cli",
+                            "content": reply,
+                            "reply": reply,
+                            "latency_ms": latency_ms,
+                            "engine_used": engine_used,
+                            "used_cli": used_cli,
+                            "fallback_reason": None,
+                        }
+                    fallback_reason = resp.get("error_class") or "cli_failed"
+            finally:
+                try:
+                    db_sess.close()
+                except Exception:
+                    pass
+
+            local_resp = _local_llm_chat([m.model_dump() for m in req.messages])
+            reply = local_resp.get("content", "")
+            latency_ms = int((time.monotonic() - lane_start) * 1000)
+            engine_used = "general-7b"
+            _update_chat_stats(engine_used, True, latency_ms)
+            return {
+                "status": "ok",
+                "provider": engine_used,
+                "decision": "local",
+                "content": reply,
+                "reply": reply,
+                "latency_ms": latency_ms,
+                "engine_used": engine_used,
+                "used_cli": False,
+                "fallback_reason": fallback_reason or "cli_unavailable",
+            }
 
         # PASO 1: Crear contexto de routing
         context = RoutingContext(
@@ -1612,6 +1701,9 @@ async def switch_chat(req: ChatRequest):
             "reply": content_val,
             "latency_ms": latency_ms,
             "reasoning": routing_decision.reasoning,
+            "engine_used": routing_decision.primary_engine,
+            "used_cli": routing_decision.decision == RoutingDecision.CLI,
+            "fallback_reason": None,
         }
 
     except Exception as exc:
@@ -1800,8 +1892,8 @@ def _build_spawn_payload(payload: Any, queue_id: int) -> Dict[str, Any]:
         )
         cmd = payload.get("cmd") or payload.get("command")
         metadata = payload.get("metadata") if isinstance(payload.get("metadata"), dict) else {}
-        return {
-            "name": name,
+    return {
+        "name": name,
             "cmd": cmd,
             "task_id": payload.get("task_id"),
             "parent_task_id": payload.get("parent_task_id") or str(queue_id),
@@ -1831,6 +1923,66 @@ def _build_spawn_payload(payload: Any, queue_id: int) -> Dict[str, Any]:
         "trace_id": str(queue_id),
         "source": "switch",
     }
+
+
+def _extract_task_text(payload: Any) -> str:
+    if isinstance(payload, dict):
+        for key in ("prompt", "text", "query", "instruction", "content", "summary"):
+            val = payload.get(key)
+            if isinstance(val, str) and val.strip():
+                return val
+        return json.dumps(payload)[:2000]
+    return str(payload or "")
+
+
+def _classify_task_topic(payload: Any, task_type: Optional[str] = None) -> str:
+    """Minimal topic classification (4-6 buckets) to reduce model thrash."""
+    task_type = (task_type or "").lower()
+    if task_type in ("audio", "dsp", "music"):
+        return "audio"
+
+    text = _extract_task_text(payload).lower()
+    if any(k in text for k in ("audio", "waveform", "spectrogram", "dsp", "music")):
+        return "audio"
+    if any(
+        k in text
+        for k in (
+            "python",
+            "javascript",
+            "typescript",
+            "sql",
+            "traceback",
+            "exception",
+            "stacktrace",
+            "function",
+            "class ",
+            "def ",
+            "compile",
+            "test failure",
+        )
+    ):
+        return "code"
+    if any(k in text for k in ("csv", "dataset", "dataframe", "metrics", "etl")):
+        return "data"
+    if any(
+        k in text
+        for k in (
+            "summarize",
+            "summary",
+            "rewrite",
+            "draft",
+            "email",
+            "report",
+            "translate",
+        )
+    ):
+        return "writing"
+    if any(
+        k in text
+        for k in ("deploy", "docker", "k8s", "kubernetes", "ci", "infra", "server")
+    ):
+        return "ops"
+    return "general"
 
 
 def _build_forward_payload(payload: Any) -> Dict[str, Any]:
@@ -2041,6 +2193,11 @@ async def switch_task(req: TaskRequest):
     source = req.source.strip().lower() if req.source else "unknown"
     priority = PRIORITY_MAP.get(source, PRIORITY_MAP["default"])
     queue_id = None
+    topic = _classify_task_topic(req.payload, task_type=task_type)
+    task_model_hint = models.select_for_task(
+        topic,
+        metadata={"task_type": task_type, "category": topic, "source": source},
+    )
 
     # Generar payload_hash para dedup
     payload_hash = hashlib.sha256(
@@ -2248,6 +2405,8 @@ async def switch_task(req: TaskRequest):
                 "priority": priority,
                 "queue_id": queue_id,
                 "task_uuid": str(req.task_id) if hasattr(req, "task_id") else "unknown",
+                "topic": topic,
+                "model_hint": task_model_hint,
             },
             provider_hint=req.provider if hasattr(req, "provider") else None,
             max_latency_ms=(
@@ -2613,6 +2772,56 @@ def _local_llm_chat(messages: List[Dict[str, Any]]) -> Dict[str, Any]:
     text = messages[-1].get("content", "") if messages else ""
     write_log("switch", "local_llm_chat_called")
     return {"content": f"[local-7b] {text}"}
+
+
+def _mock_providers_enabled() -> bool:
+    return (
+        os.getenv("VX11_MOCK_PROVIDERS", "0") == "1"
+        or os.getenv("VX11_TESTING_MODE", "0") == "1"
+        or getattr(settings, "testing_mode", False)
+    )
+
+
+def _provider_usable(provider) -> bool:
+    return bool(provider.enabled and provider.auth_state == "ok" and provider.command)
+
+
+def _select_language_cli_candidates(registry, provider_hint: Optional[str] = None):
+    providers = [p for p in registry.get_by_priority() if _provider_usable(p)]
+    if provider_hint:
+        for p in providers:
+            if p.provider_id == provider_hint or p.kind == provider_hint:
+                return [p] + [c for c in providers if c.provider_id != p.provider_id]
+    copilot = [
+        p
+        for p in providers
+        if p.kind == "copilot_cli" or p.provider_id == "copilot_cli"
+    ]
+    others = [p for p in providers if p not in copilot]
+    return copilot + others
+
+
+def _execute_language_cli(provider, prompt: str) -> Dict[str, Any]:
+    if provider.kind == "copilot_cli" or provider.provider_id == "copilot_cli":
+        return CopilotCLIProvider(provider).call(prompt)
+
+    if _mock_providers_enabled():
+        return {
+            "success": True,
+            "ok": True,
+            "engine": provider.provider_id,
+            "reply": f"[mock:{provider.provider_id}] {prompt[:50]}",
+            "latency_ms": 1,
+            "tokens_estimated": len(prompt.split()),
+            "cost_estimated": 0.0,
+            "error_class": None,
+        }
+
+    executor = CLIExecutor(timeout_s=int(os.getenv("VX11_CLI_TIMEOUT", "30")))
+    resp = executor.execute(provider, prompt)
+    resp["engine"] = provider.provider_id
+    resp["ok"] = resp.get("success", False)
+    return resp
 
 
 def _cli_chat(messages: List[Dict[str, Any]]) -> Dict[str, Any]:

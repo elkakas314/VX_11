@@ -4,6 +4,7 @@ Runs CLI commands with timeouts and logging.
 """
 
 import subprocess
+import shlex
 import time
 from typing import Optional, Dict, Any
 from datetime import datetime
@@ -40,7 +41,17 @@ class CLIExecutor:
         start = time.time()
         try:
             # Simple execution: pass prompt to CLI
-            cmd = [provider.command, prompt]
+            cmd = shlex.split(provider.command or "")
+            if not cmd:
+                return {
+                    "success": False,
+                    "reply": "",
+                    "latency_ms": int((time.time() - start) * 1000),
+                    "error_class": "command_missing",
+                    "tokens_estimated": 0,
+                    "cost_estimated": 0.0,
+                }
+            cmd.append(prompt)
             result = subprocess.run(
                 cmd,
                 capture_output=True,

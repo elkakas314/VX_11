@@ -27,6 +27,7 @@ from config.settings import settings
 from config.tokens import get_token, load_tokens
 from config.forensics import write_log
 from config.db_schema import ModelsLocal, get_session
+from switch.hermes.hf_scanner import get_hf_scanner
 
 load_tokens()
 
@@ -220,6 +221,8 @@ async def hermes_resources(_=Depends(_token_guard)):
             "local_models": local_models,
             "catalog": _load_catalog(),
             "cli": _collect_binaries(),
+            "playwright_enabled": os.getenv("VX11_HERMES_PLAYWRIGHT_ENABLED", "0")
+            == "1",
         }
     finally:
         session.close()
@@ -252,8 +255,8 @@ def _prune_models(session, limit: int = 30) -> List[str]:
         rows = (
             session.query(ModelsLocal)
             .order_by(
-                ModelsLocal.updated_at.asc(),
                 ModelsLocal.downloaded_at.asc(),
+                ModelsLocal.updated_at.asc(),
                 ModelsLocal.id.asc(),
             )
             .all()
@@ -863,13 +866,37 @@ async def discover(req: DiscoverRequest, _: bool = Depends(_token_guard)):
     local_models = _scan_local_models()
     catalog_models = _load_catalog()
 
+    download_enabled = os.getenv("VX11_HERMES_DOWNLOAD_ENABLED", "0") == "1"
+    hf_models: List[Dict[str, Any]] = []
+    if req.allow_web:
+        hf_scanner = get_hf_scanner()
+        candidates = await hf_scanner.search_models(
+            task="text-generation", max_size_gb=2.5, limit=10, use_cache=True
+        )
+        hf_models = [
+            {
+                "model_id": m.model_id,
+                "model_name": m.model_name,
+                "task": m.task,
+                "size_gb": m.size_gb,
+                "downloads": m.downloads,
+                "score": m.score,
+                "pipeline_tag": m.pipeline_tag,
+                "gated": m.gated,
+                "download_url": m.download_url(),
+            }
+            for m in candidates
+        ]
+        _write_json(os.path.join(out_dir, "hf_scan.json"), {"models": hf_models})
+
     plan = {
         "apply": req.apply,
         "allow_web": req.allow_web,
+        "download_enabled": download_enabled,
         "tiers": {
             "local": {"enabled": True, "count": len(local_models)},
             "catalog": {"enabled": True, "count": len(catalog_models)},
-            "web": {"enabled": bool(req.allow_web), "count": 0},
+            "web": {"enabled": bool(req.allow_web), "count": len(hf_models)},
         },
     }
     _write_json(os.path.join(out_dir, "plan.json"), plan)
@@ -891,8 +918,9 @@ async def discover(req: DiscoverRequest, _: bool = Depends(_token_guard)):
         results = {
             "tier1_local": local_models,
             "tier2_catalog": catalog_models,
-            "tier3_web": [],
+            "tier3_web": hf_models,
             "web_skipped": not req.allow_web,
+            "download_attempted": False,
         }
 
         # Tier 1: upsert ModelsLocal
@@ -940,9 +968,37 @@ async def discover(req: DiscoverRequest, _: bool = Depends(_token_guard)):
             except Exception as exc:
                 write_log("hermes", f"discover_catalog_upsert_error:{exc}", level="WARNING")
 
-        # Tier 3: web (explicit)
+        # Tier 3: web (explicit HF search)
         if req.allow_web:
-            results["tier3_web"] = []
+            for m in hf_models:
+                try:
+                    name = m.get("model_id") or m.get("model_name")
+                    if not name:
+                        continue
+                    existing = session.query(ModelRegistry).filter_by(name=name).first()
+                    if not existing:
+                        session.add(
+                            ModelRegistry(
+                                name=name,
+                                path=f"hf:{name}",
+                                provider="huggingface",
+                                type=m.get("task") or m.get("pipeline_tag") or "general",
+                                size_bytes=int((m.get("size_gb", 0) or 0) * (1024**3)),
+                                meta_json=json.dumps(
+                                    {
+                                        "download_url": m.get("download_url"),
+                                        "pipeline_tag": m.get("pipeline_tag"),
+                                        "gated": m.get("gated"),
+                                        "source": "hf_scanner",
+                                    }
+                                ),
+                            )
+                        )
+                except Exception as exc:
+                    write_log("hermes", f"discover_hf_upsert_error:{exc}", level="WARNING")
+
+        if req.allow_web and download_enabled:
+            results["download_attempted"] = True
 
         session.commit()
         _write_json(os.path.join(out_dir, "result.json"), results)

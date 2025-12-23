@@ -26,6 +26,8 @@ VX11_FLUZO_PERSIST=0                # Persist FLUZO signals to DB (default: 0)
 VX11_CLI_TIMEOUT=30                 # CLI timeout in seconds (default: 30)
 VX11_CLI_BREAKER_THRESHOLD=3        # Failures before opening breaker (default: 3)
 VX11_CLI_BREAKER_RECOVERY_S=60      # Recovery timeout in seconds (default: 60)
+VX11_MOCK_PROVIDERS=1               # Force provider mocks (tests/manual)
+VX11_TESTING_MODE=1                 # Treat provider exec as test-safe
 ```
 
 ## Usage
