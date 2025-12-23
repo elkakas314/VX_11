@@ -276,6 +276,57 @@
                     "description": "Submit intent (routes to Hormiguero INEE, subject to CPU gate)"
                 }
             ]
+        },
+        {
+            "id": "switch",
+            "name": "Switch",
+            "version": "1.0.0",
+            "status": "manual-on-demand",
+            "port": 8002,
+            "canonical": "docs/canon/VX11_SWITCH_HERMES_CANONICAL_v1.0.0.json",
+            "description": "Router de conversación y tareas; concentrador de CLIs; modelo 7B fijo.",
+            "features": [
+                "Carril conversación con prioridad Copilot CLI",
+                "Carril tareas con cola persistente",
+                "Modelo local 7B fijo como fallback",
+                "Anti-thrash: 1 activo + 1 caliente"
+            ],
+            "feature_flags": [
+                "VX11_MOCK_PROVIDERS",
+                "VX11_COPILOT_CLI_ENABLED",
+                "VX11_TESTING_MODE"
+            ],
+            "endpoints": [
+                {"method": "GET", "path": "/health", "description": "Health check"},
+                {"method": "POST", "path": "/switch/chat", "description": "Carril conversación"},
+                {"method": "POST", "path": "/switch/task", "description": "Carril tareas"},
+                {"method": "GET", "path": "/switch/queue/status", "description": "Estado de cola"}
+            ]
+        },
+        {
+            "id": "hermes",
+            "name": "Hermes",
+            "version": "1.0.0",
+            "status": "manual-on-demand",
+            "port": 8003,
+            "canonical": "docs/canon/VX11_SWITCH_HERMES_CANONICAL_v1.0.0.json",
+            "description": "Intendencia de recursos (modelos/CLIs); discovery sin descargas por defecto.",
+            "features": [
+                "Discovery local/catalogo/HF",
+                "Registro de metadatos para Switch",
+                "Descarga gated por flag",
+                "Playwright/MCP OFF por defecto"
+            ],
+            "feature_flags": [
+                "VX11_HERMES_DOWNLOAD_ENABLED",
+                "VX11_HERMES_PLAYWRIGHT_ENABLED",
+                "VX11_MOCK_PROVIDERS"
+            ],
+            "endpoints": [
+                {"method": "GET", "path": "/health", "description": "Health check"},
+                {"method": "POST", "path": "/hermes/discover", "description": "Discovery"},
+                {"method": "POST", "path": "/hermes/register_model", "description": "Registro manual"}
+            ]
         }
     ],
     "shared_patterns": {

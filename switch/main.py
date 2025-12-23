@@ -1473,6 +1473,7 @@ async def switch_chat(req: ChatRequest):
                         reply = resp.get("reply", "")
                         latency_ms = resp.get("latency_ms", 0)
                         _update_chat_stats(engine_used, True, latency_ms)
+                        tokens_used = resp.get("tokens_estimated")
                         return {
                             "status": "ok",
                             "provider": engine_used,
@@ -1483,6 +1484,7 @@ async def switch_chat(req: ChatRequest):
                             "engine_used": engine_used,
                             "used_cli": used_cli,
                             "fallback_reason": None,
+                            "tokens_used": tokens_used,
                         }
                     fallback_reason = resp.get("error_class") or "cli_failed"
             finally:
@@ -1496,6 +1498,7 @@ async def switch_chat(req: ChatRequest):
             latency_ms = int((time.monotonic() - lane_start) * 1000)
             engine_used = "general-7b"
             _update_chat_stats(engine_used, True, latency_ms)
+            tokens_used = len(prompt_text.split()) if prompt_text else None
             return {
                 "status": "ok",
                 "provider": engine_used,
@@ -1506,6 +1509,7 @@ async def switch_chat(req: ChatRequest):
                 "engine_used": engine_used,
                 "used_cli": False,
                 "fallback_reason": fallback_reason or "cli_unavailable",
+                "tokens_used": tokens_used,
             }
 
         # PASO 1: Crear contexto de routing
@@ -1693,6 +1697,9 @@ async def switch_chat(req: ChatRequest):
             else:
                 content_val = str(result)
 
+        tokens_used = (
+            req.metadata.get("tokens_used") if req.metadata else None
+        )
         return {
             "status": "ok" if success else "partial",
             "provider": routing_decision.primary_engine,
@@ -1704,6 +1711,7 @@ async def switch_chat(req: ChatRequest):
             "engine_used": routing_decision.primary_engine,
             "used_cli": routing_decision.decision == RoutingDecision.CLI,
             "fallback_reason": None,
+            "tokens_used": tokens_used,
         }
 
     except Exception as exc:

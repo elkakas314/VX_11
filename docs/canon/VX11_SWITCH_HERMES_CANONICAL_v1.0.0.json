@@ -1,0 +1,69 @@
+{
+  "title": "VX11 Switch/Hermes Canonical",
+  "version": "1.0.0",
+  "last_updated": "2025-12-23",
+  "modules": {
+    "switch": {
+      "role": "router de conversación y tareas; concentra CLIs y modelo local 7B",
+      "port": 8002,
+      "dependencies": ["sqlite3", "fastapi", "pydantic", "httpx"],
+      "feature_flags": {
+        "VX11_MOCK_PROVIDERS": "mocks offline en CLIs",
+        "VX11_COPILOT_CLI_ENABLED": "habilita Copilot CLI",
+        "VX11_TESTING_MODE": "rutas seguras de testing"
+      },
+      "endpoints": [
+        {"method": "GET", "path": "/health", "description": "health check"},
+        {"method": "POST", "path": "/switch/chat", "description": "carril conversación"},
+        {"method": "POST", "path": "/switch/task", "description": "carril tareas"},
+        {"method": "GET", "path": "/switch/queue/status", "description": "estado de cola"}
+      ],
+      "chat_lane": {
+        "priority": ["copilot_cli", "other_cli", "local_7b"],
+        "metadata_contract": {
+          "engine_used": "string",
+          "used_cli": "bool",
+          "fallback_reason": "string|null",
+          "tokens_used": "int|null",
+          "latency_ms": "int|null"
+        },
+        "local_language_model": "general-7b",
+        "offline_fallback": true
+      },
+      "task_lane": {
+        "queue": "switch_queue_v2",
+        "anti_thrash": "tema simple; 1 activo + 1 caliente",
+        "topic_categories": ["general", "code", "data", "writing", "ops", "audio"]
+      },
+      "philosophy": ["bajo consumo", "seguro", "sin ejecuciones peligrosas"]
+    },
+    "hermes": {
+      "role": "intendencia de recursos (modelos/CLIs); no decide rutas",
+      "port": 8003,
+      "dependencies": ["sqlite3", "fastapi", "pydantic", "httpx"],
+      "feature_flags": {
+        "VX11_HERMES_DOWNLOAD_ENABLED": "descargas (default off)",
+        "VX11_HERMES_PLAYWRIGHT_ENABLED": "discovery web (default off)",
+        "VX11_MOCK_PROVIDERS": "mocks offline"
+      },
+      "endpoints": [
+        {"method": "GET", "path": "/health", "description": "health check"},
+        {"method": "POST", "path": "/hermes/discover", "description": "descubrimiento"},
+        {"method": "POST", "path": "/hermes/register_model", "description": "registro manual"}
+      ],
+      "discovery": {
+        "sources": ["local", "catalog", "huggingface"],
+        "max_model_size_gb": 2.5,
+        "max_models": 30,
+        "download_default": "off",
+        "metadata_registered": ["download_url", "model_id", "size", "task_domain", "origin"],
+        "openrouter": "pending"
+      },
+      "cli_registry": {
+        "discovery": "allowed",
+        "usage_accounting": "switch_concentrator"
+      },
+      "philosophy": ["bajo consumo", "seguro", "sin descargas por defecto"]
+    }
+  }
+}

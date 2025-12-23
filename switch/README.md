@@ -39,7 +39,7 @@ Router de modelos con cola priorizada y rotación de modelos locales.
 curl -s http://localhost:8002/switch/chat \\
   -H 'Content-Type: application/json' \\
   -d '{"messages":[{"role":"user","content":"hola"}]}'
-# {"engine_used":"copilot_cli","used_cli":true,"fallback_reason":null}
+# {"engine_used":"copilot_cli","used_cli":true,"fallback_reason":null,"tokens_used":12}
 ```
 
 ## Docker

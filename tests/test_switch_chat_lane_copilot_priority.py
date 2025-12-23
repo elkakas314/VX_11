@@ -63,3 +63,45 @@ def test_switch_chat_falls_back_to_local_when_copilot_unusable(monkeypatch):
     assert data.get("engine_used") == "general-7b"
     assert data.get("used_cli") is False
     assert data.get("fallback_reason")
+
+
+def test_switch_chat_uses_other_cli_when_copilot_unusable(monkeypatch):
+    monkeypatch.setenv("VX11_MOCK_PROVIDERS", "1")
+    monkeypatch.setenv("VX11_COPILOT_CLI_ENABLED", "1")
+
+    def _load_custom(self):
+        self.providers = {
+            "copilot_cli": ProviderConfig(
+                provider_id="copilot_cli",
+                kind="copilot_cli",
+                priority=1,
+                enabled=True,
+                command="copilot-cli",
+                args_template="chat {prompt}",
+                auth_state="needs_login",
+                tags=["language", "general"],
+            ),
+            "generic_shell": ProviderConfig(
+                provider_id="generic_shell",
+                kind="generic_shell",
+                priority=2,
+                enabled=True,
+                command="echo",
+                args_template="{prompt}",
+                auth_state="ok",
+                tags=["language", "general"],
+            ),
+        }
+
+    monkeypatch.setattr(cli_registry.CLIRegistry, "_load_providers", _load_custom)
+    cli_registry._registry = None
+
+    client = TestClient(switch_app)
+    resp = client.post(
+        "/switch/chat",
+        json={"messages": [{"role": "user", "content": "hola"}]},
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data.get("engine_used") == "generic_shell"
+    assert data.get("used_cli") is True

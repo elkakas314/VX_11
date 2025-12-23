@@ -27,6 +27,14 @@ Gestor de modelos locales ligeros (<2GB) y CLI externos para VX11.
 - Escribe evidencia en `docs/audit/hermes_discover_*/`.
 - Flags clave: `VX11_MOCK_PROVIDERS`, `VX11_HERMES_DOWNLOAD_ENABLED`.
 - Health simple en `/health` para smoke.
+- OpenRouter: pendiente (no activo, sin consumo).
+
+Ejemplo offline (sin descarga):
+```
+curl -s http://localhost:8003/hermes/discover \\
+  -H 'Content-Type: application/json' \\
+  -d '{"apply":true,"allow_web":false}'
+```
 
 ## Endpoints
 - `GET /health`

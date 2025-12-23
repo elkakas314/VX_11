@@ -19,6 +19,7 @@ def test_hermes_discover_offline_fallback(monkeypatch):
     assert data.get("status") in ("ok", "error")
     results = data.get("results") or {}
     web = results.get("tier3_web") or []
+    assert results.get("download_attempted") is False
     assert web
     assert "download_url" in web[0]
 
