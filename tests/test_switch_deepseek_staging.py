@@ -1,6 +1,5 @@
 import os
 import sys
-import pytest
 from fastapi.testclient import TestClient
 
 # Ensure the project root is in sys.path
@@ -15,9 +14,6 @@ from switch.main import app
 settings.deepseek_api_key = None
 
 client = TestClient(app)
-
-
-pytestmark = pytest.mark.integration
 
 
 def test_switch_deepseek_fallback_when_no_key():

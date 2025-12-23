@@ -1,6 +1,5 @@
 import os
 import sys
-import pytest
 from fastapi.testclient import TestClient
 
 # Ensure the project root is in sys.path
@@ -12,9 +11,6 @@ if project_root not in sys.path:
 from switch.main import app
 
 client = TestClient(app)
-
-
-pytestmark = pytest.mark.integration
 
 
 def test_switch_auto_returns_engine():

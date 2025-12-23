@@ -1,9 +1,5 @@
-import pytest
 from fastapi.testclient import TestClient
 from switch import main as switch_main
-
-
-pytestmark = pytest.mark.integration
 
 
 def test_switch_local_route():
