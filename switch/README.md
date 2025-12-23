@@ -24,6 +24,24 @@ Router de modelos con cola priorizada y rotación de modelos locales.
 - Integración con Hermes para CLI (enrutado opcional).
 - Carril lenguaje en `/switch/chat`: prioriza Copilot CLI si está usable.
 
+## Resumen canon (simple)
+- Carril conversación: `/switch/chat` usa Copilot CLI si está usable.
+- Si falla, intenta otros CLIs habilitados.
+- Si no hay CLI usable, usa modelo local 7B fijo (standby).
+- Devuelve `engine_used`, `used_cli`, `fallback_reason`, `latency_ms`, `tokens_used` si aplica.
+- Carril tareas: `/switch/task` + cola persistente.
+- Mantiene 1 modelo activo + 1 caliente.
+- Clasifica tema simple para evitar thrash.
+- El 7B fijo no rota; solo se enciende/apaga.
+- Flags: `VX11_MOCK_PROVIDERS`, `VX11_COPILOT_CLI_ENABLED`, `VX11_TESTING_MODE`.
+- Ejemplo:
+```
+curl -s http://localhost:8002/switch/chat \\
+  -H 'Content-Type: application/json' \\
+  -d '{"messages":[{"role":"user","content":"hola"}]}'
+# {"engine_used":"copilot_cli","used_cli":true,"fallback_reason":null}
+```
+
 ## Docker
 ```
 docker build -f switch/Dockerfile -t vx11-switch:latest .

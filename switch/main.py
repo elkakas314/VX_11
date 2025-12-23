@@ -24,7 +24,7 @@ import traceback
 import os
 from fastapi import FastAPI, HTTPException, Depends, Header, Request
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from sqlalchemy.orm import Session
 
 from config.settings import settings
@@ -2682,6 +2682,7 @@ async def queue_status():
 
 
 class PreloadRequest(BaseModel):
+    model_config = ConfigDict(protected_namespaces=())
     model_name: str
 
 
@@ -2727,6 +2728,7 @@ async def hot_reload_models():
 
 
 class DefaultModelRequest(BaseModel):
+    model_config = ConfigDict(protected_namespaces=())
     model_name: str
 
 

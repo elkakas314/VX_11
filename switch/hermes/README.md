@@ -16,6 +16,18 @@ Gestor de modelos locales ligeros (<2GB) y CLI externos para VX11.
 - Healthcheck: `GET /health`.
 - Descubrimiento local/catalogo/HF en `/hermes/discover` (web opcional).
 
+## Resumen canon (simple)
+- `/hermes/discover` propone candidatos HF <2.5GB.
+- Registra metadata: `download_url`, `model_id`, tamaño y dominio.
+- NO descarga nada por defecto.
+- Solo descarga si `VX11_HERMES_DOWNLOAD_ENABLED=1`.
+- `allow_web=true` habilita búsqueda web (OFF por defecto).
+- Playwright/MCP solo si `VX11_HERMES_PLAYWRIGHT_ENABLED=1`.
+- Sin red por defecto; fallback determinista offline.
+- Escribe evidencia en `docs/audit/hermes_discover_*/`.
+- Flags clave: `VX11_MOCK_PROVIDERS`, `VX11_HERMES_DOWNLOAD_ENABLED`.
+- Health simple en `/health` para smoke.
+
 ## Endpoints
 - `GET /health`
 - `GET /hermes/list`

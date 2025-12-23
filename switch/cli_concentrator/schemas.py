@@ -2,7 +2,7 @@
 Pydantic schemas for CLI Concentrator contract.
 """
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, Dict, Any, List
 from datetime import datetime
 
@@ -39,6 +39,8 @@ class CLIRequest(BaseModel):
 
 class CLIResponse(BaseModel):
     """Response from CLI Concentrator."""
+
+    model_config = ConfigDict(protected_namespaces=())
 
     reply: str
     provider_id: str
