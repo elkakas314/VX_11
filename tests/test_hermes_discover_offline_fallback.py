@@ -13,7 +13,10 @@ def test_hermes_discover_offline_fallback(monkeypatch):
     monkeypatch.setenv("VX11_HERMES_DOWNLOAD_ENABLED", "0")
 
     client = TestClient(hermes_app)
-    resp = client.post("/hermes/discover", json={"apply": True, "allow_web": True})
+    resp = client.post(
+        "/hermes/discover",
+        json={"apply": True, "allow_web": True, "allow_download": False},
+    )
     assert resp.status_code == 200
     data = resp.json()
     assert data.get("status") in ("ok", "error")

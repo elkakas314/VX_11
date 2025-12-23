@@ -123,6 +123,7 @@ class ExecuteRequest(BaseModel):
 class DiscoverRequest(BaseModel):
     apply: bool = False
     allow_web: bool = False
+    allow_download: bool = False
 
 
 def _audit_base() -> str:
@@ -867,6 +868,7 @@ async def discover(req: DiscoverRequest, _: bool = Depends(_token_guard)):
     catalog_models = _load_catalog()
 
     download_enabled = os.getenv("VX11_HERMES_DOWNLOAD_ENABLED", "0") == "1"
+    allow_download = bool(req.allow_download) and download_enabled
     hf_models: List[Dict[str, Any]] = []
     if req.allow_web:
         hf_scanner = get_hf_scanner()
@@ -892,7 +894,7 @@ async def discover(req: DiscoverRequest, _: bool = Depends(_token_guard)):
     plan = {
         "apply": req.apply,
         "allow_web": req.allow_web,
-        "download_enabled": download_enabled,
+        "download_enabled": allow_download,
         "tiers": {
             "local": {"enabled": True, "count": len(local_models)},
             "catalog": {"enabled": True, "count": len(catalog_models)},
@@ -997,7 +999,7 @@ async def discover(req: DiscoverRequest, _: bool = Depends(_token_guard)):
                 except Exception as exc:
                     write_log("hermes", f"discover_hf_upsert_error:{exc}", level="WARNING")
 
-        if req.allow_web and download_enabled:
+        if req.allow_web and allow_download:
             results["download_attempted"] = True
 
         session.commit()

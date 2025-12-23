@@ -55,9 +55,13 @@
         "sources": ["local", "catalog", "huggingface"],
         "max_model_size_gb": 2.5,
         "max_models": 30,
-        "download_default": "off",
+        "download_default": "off (allow_download=false)",
         "metadata_registered": ["download_url", "model_id", "size", "task_domain", "origin"],
-        "openrouter": "pending"
+        "openrouter": "pending",
+        "request_flags": {
+          "allow_web": "default false",
+          "allow_download": "default false"
+        }
       },
       "cli_registry": {
         "discovery": "allowed",

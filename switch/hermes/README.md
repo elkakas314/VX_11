@@ -20,7 +20,7 @@ Gestor de modelos locales ligeros (<2GB) y CLI externos para VX11.
 - `/hermes/discover` propone candidatos HF <2.5GB.
 - Registra metadata: `download_url`, `model_id`, tamaño y dominio.
 - NO descarga nada por defecto.
-- Solo descarga si `VX11_HERMES_DOWNLOAD_ENABLED=1`.
+- Solo descarga si `allow_download=true` y `VX11_HERMES_DOWNLOAD_ENABLED=1`.
 - `allow_web=true` habilita búsqueda web (OFF por defecto).
 - Playwright/MCP solo si `VX11_HERMES_PLAYWRIGHT_ENABLED=1`.
 - Sin red por defecto; fallback determinista offline.
@@ -33,7 +33,7 @@ Ejemplo offline (sin descarga):
 ```
 curl -s http://localhost:8003/hermes/discover \\
   -H 'Content-Type: application/json' \\
-  -d '{"apply":true,"allow_web":false}'
+  -d '{"apply":true,"allow_web":false,"allow_download":false}'
 ```
 
 ## Endpoints
