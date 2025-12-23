@@ -1,0 +1,163 @@
+{
+    "canonical_version": "7.1.0",
+    "module": "manifestator",
+    "generated_at": "2025-12-23T02:05:00Z",
+    "description": "Manifestator: VX11 drift validation and patch plan generation (NO execution)",
+    "role": {
+        "description": "Manifestator is the validation and planning layer for filesystem drift patches. It validates drift evidence and generates non-executable patchplans for Madre's decision engine. Manifestator does NOT execute patches; it only proposes them.",
+        "responsibilities": [
+            "Validate drift evidence from Hormiguero",
+            "Generate non-executable patchplans",
+            "Provide risk assessment for proposed changes",
+            "Support Hormiguero fs_drift → patchplan collaboration"
+        ],
+        "out_of_scope": [
+            "Building/compiling files (external builder responsibility)",
+            "Executing or applying patches (Madre + spawner only)",
+            "Docker socket access",
+            "Direct repo modifications",
+            "Modifying canonical maps"
+        ]
+    },
+    "service": {
+        "name": "manifestator",
+        "port": 8005,
+        "image": "vx11-manifestator:v7",
+        "docker_compose_service": "manifestator",
+        "profile": "optional",
+        "enabled_by_default": false,
+        "healthcheck": {
+            "endpoint": "GET /health",
+            "expected_status": 200,
+            "expected_body": {
+                "status": "ok",
+                "service": "manifestator",
+                "version": "v7"
+            }
+        }
+    },
+    "endpoints_canonical_minimum": {
+        "health": {
+            "method": "GET",
+            "path": "/health",
+            "description": "Service health check",
+            "response": {
+                "status": "ok",
+                "service": "manifestator",
+                "version": "v7"
+            }
+        },
+        "validate": {
+            "method": "POST",
+            "path": "/manifestator/validate",
+            "description": "Validate drift evidence or state snapshot",
+            "request": {
+                "drift_evidence": {
+                    "missing": [
+                        "list of missing files"
+                    ],
+                    "extra": [
+                        "list of extra files"
+                    ]
+                },
+                "state": "optional dict"
+            },
+            "response": {
+                "valid": "bool",
+                "issues": [
+                    "list of issue strings"
+                ],
+                "risk": "low|mid|high",
+                "hash": "sha256 hash of request"
+            }
+        },
+        "patchplan": {
+            "method": "POST",
+            "path": "/manifestator/patchplan",
+            "description": "Generate patchplan from drift evidence (NO execution)",
+            "request": {
+                "drift_evidence": {
+                    "missing": [
+                        "list of missing files"
+                    ],
+                    "extra": [
+                        "list of extra files"
+                    ]
+                },
+                "scope": "local|global (optional)"
+            },
+            "response": {
+                "plan_id": "uuid",
+                "actions": [
+                    {
+                        "action": "add|remove|verify",
+                        "target": "file path",
+                        "reason": "explanation"
+                    }
+                ],
+                "risk": "low|mid|high",
+                "estimated_time_sec": "int",
+                "notes": "summary"
+            }
+        }
+    },
+    "integration": {
+        "hormiguero_collaboration": {
+            "trigger": "fs_drift incident detected",
+            "call_pattern": "POST /manifestator/patchplan",
+            "cpu_gate": {
+                "condition": "Hormiguero skips if cpu_sustained_high=true",
+                "reason": "Prevent Manifestator overload during CPU pressure"
+            },
+            "timeout": "5.0 seconds",
+            "failure_handling": "Silent fail; fs_drift incident still created"
+        }
+    },
+    "data_contracts": {
+        "patchplan_action": {
+            "required_fields": [
+                "action",
+                "target"
+            ],
+            "optional_fields": [
+                "reason",
+                "checksum",
+                "mode"
+            ]
+        },
+        "patchplan_response": {
+            "required_fields": [
+                "plan_id",
+                "actions",
+                "risk",
+                "estimated_time_sec"
+            ]
+        }
+    },
+    "no_execute_contract": {
+        "description": "Manifestator NEVER executes patches. All patch actions are proposals only.",
+        "enforcement": [
+            "No shell exec in patchplan endpoint",
+            "No file writes outside of plans",
+            "No systemd service management",
+            "No git operations"
+        ],
+        "verification": "All patchplan actions have action='add|remove|verify' (no exec markers)"
+    },
+    "environment_variables": {
+        "MANIFESTATOR_DB_PATH": {
+            "type": "string",
+            "default": "data/runtime/manifestator.db",
+            "description": "SQLite database path"
+        }
+    },
+    "references": {
+        "source_code": "manifestator/",
+        "tests": "tests/test_manifestator_*.py",
+        "sister_modules": [
+            "hormiguero (fs_drift detection)",
+            "madre (orchestration + execution decision)",
+            "spawner (patch executor)"
+        ]
+    }
+}

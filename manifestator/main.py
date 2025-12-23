@@ -140,6 +140,107 @@ def port_for_module(module: str) -> Optional[int]:
     return mapping.get(module)
 
 
+# ============ CANONICAL MINIMUM CONTRACT ENDPOINTS ============
+
+
+@app.post("/manifestator/validate")
+async def manifestator_validate(body: Dict[str, Any] = None):
+    """
+    Validate drift evidence or state snapshot (CANONICAL minimal contract).
+
+    Request:
+    {
+        "drift_evidence": {"missing": [...], "extra": [...]},
+        "state": {...}
+    }
+
+    Response:
+    {
+        "valid": bool,
+        "issues": [],
+        "risk": "low|mid|high",
+        "hash": "sha256"
+    }
+    """
+    if not body:
+        body = {}
+
+    drift = body.get("drift_evidence", {})
+    state = body.get("state", {})
+
+    issues = []
+    if drift.get("missing"):
+        issues.append(f"Missing {len(drift['missing'])} files")
+    if drift.get("extra"):
+        issues.append(f"Extra {len(drift['extra'])} files")
+
+    risk = "low" if not issues else ("mid" if len(issues) < 3 else "high")
+    h = hashlib.sha256(json.dumps(body, sort_keys=True).encode()).hexdigest()[:12]
+
+    return {
+        "valid": len(issues) == 0,
+        "issues": issues,
+        "risk": risk,
+        "hash": h,
+    }
+
+
+@app.post("/manifestator/patchplan")
+async def manifestator_patchplan(body: Dict[str, Any] = None):
+    """
+    Generate minimal patchplan from drift evidence (CANONICAL minimal contract).
+
+    Request:
+    {
+        "drift_evidence": {"missing": [...], "extra": [...]},
+        "scope": "local|global" (optional)
+    }
+
+    Response:
+    {
+        "plan_id": "uuid",
+        "actions": [
+            {"action": "add|remove|verify", "target": "path", "reason": "..."}
+        ],
+        "risk": "low|mid|high",
+        "estimated_time_sec": int,
+        "notes": "..."
+    }
+    """
+    if not body:
+        body = {}
+
+    import uuid
+
+    plan_id = str(uuid.uuid4())
+    drift = body.get("drift_evidence", {})
+    scope = body.get("scope", "local")
+
+    actions = []
+
+    # Build actions from drift
+    for missing in drift.get("missing", []):
+        actions.append(
+            {"action": "add", "target": missing, "reason": "missing_from_canonical"}
+        )
+
+    for extra in drift.get("extra", []):
+        actions.append(
+            {"action": "remove", "target": extra, "reason": "extra_not_in_canonical"}
+        )
+
+    risk = "low" if len(actions) < 3 else ("mid" if len(actions) < 10 else "high")
+    estimated_time = len(actions) * 2  # rough estimate
+
+    return {
+        "plan_id": plan_id,
+        "actions": actions,
+        "risk": risk,
+        "estimated_time_sec": estimated_time,
+        "notes": f"Plan for {scope} scope with {len(actions)} actions",
+    }
+
+
 @app.get("/health", dependencies=[])
 def health():
     return {"status": "healthy", "service": "manifestator"}

@@ -142,6 +142,10 @@ class Queen:
                     )
                     created.append(incident_id)
                     self._consult_switch(incident_id, result)
+                    # FASE 2: Consult Manifestator for patchplan (with CPU gate)
+                    self._consult_manifestator(
+                        incident_id, {"missing": missing, "extra": extra}
+                    )
                     self._notify_madre_intent(incident_id, result)
         elif name == "health":
             for svc, payload in result.items():
@@ -196,6 +200,37 @@ class Queen:
             if resp.status_code == 200:
                 repo.set_incident_suggestions(incident_id, resp.json())
         except Exception:
+            pass
+
+    def _consult_manifestator(
+        self, incident_id: str, drift_evidence: Dict[str, object]
+    ) -> None:
+        """
+        Consult Manifestator for patchplan on fs_drift, if CPU is not sustained-high.
+        CPU gate: skip if we just throttled (prevents overload).
+        """
+        # CPU gate: skip if sustained high (backoff from Manifestator)
+        if self.cpu_sustained_high:
+            return
+
+        try:
+            resp = requests.post(
+                f"{settings.manifestator_url.rstrip('/')}/manifestator/patchplan",
+                json={"drift_evidence": drift_evidence, "scope": "local"},
+                timeout=5.0,  # shorter timeout for patchplan
+            )
+            if resp.status_code == 200:
+                patchplan = resp.json()
+                repo.set_incident_suggestions(
+                    incident_id,
+                    {
+                        "plan_id": patchplan.get("plan_id"),
+                        "actions": patchplan.get("actions", []),
+                        "risk": patchplan.get("risk", "mid"),
+                    },
+                )
+        except Exception:
+            # Silent fail: Manifestator optional, don't block fs_drift flow
             pass
 
     def _notify_madre_intent(
