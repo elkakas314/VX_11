@@ -14,6 +14,7 @@ try:
     from hormiguero.core.scanners.db_sanity import scan_db_sanity
     from hormiguero.core.scanners.fs_drift import scan_fs_drift
     from hormiguero.core.scanners.health import scan_health
+    from hormiguero.core.scanners.cpu_pressure import scan_cpu_pressure
 except ModuleNotFoundError:
     from config import settings
     from core.ants import Ant
@@ -21,6 +22,7 @@ except ModuleNotFoundError:
     from core.scanners.db_sanity import scan_db_sanity
     from core.scanners.fs_drift import scan_fs_drift
     from core.scanners.health import scan_health
+    from core.scanners.cpu_pressure import scan_cpu_pressure
 
 
 class Queen:
@@ -29,10 +31,12 @@ class Queen:
         self.rotation_index = 0
         self.last_scan: Dict[str, object] = {}
         self.backoff_sec = 0
+        self.cpu_sustained_high = False  # Track CPU state for throttle logic
         self.ants = [
             Ant("ant_fs", "fs_drift", "scanner", lambda: scan_fs_drift(root_path)),
             Ant("ant_health", "health", "scanner", scan_health),
             Ant("ant_db", "db_sanity", "scanner", scan_db_sanity),
+            Ant("ant_cpu", "cpu_pressure", "scanner", scan_cpu_pressure),
         ]
 
     def _select_ants(self, all_checks: bool) -> List[Ant]:
@@ -41,6 +45,26 @@ class Queen:
         ant = self.ants[self.rotation_index % len(self.ants)]
         self.rotation_index += 1
         return [ant]
+
+    async def _run_ant_with_timeout(self, ant: Ant) -> Dict[str, object]:
+        """Run ant scanner with timeout wrapper. Returns result or error dict."""
+        try:
+            timeout = settings.ant_timeout_sec
+            # CPU ant gets longer timeout (more I/O)
+            if ant.name == "cpu_pressure":
+                timeout = settings.ant_timeout_sec * 2
+            # All scanners are sync functions, wrap in thread
+            result = await asyncio.wait_for(
+                asyncio.to_thread(ant.scanner), timeout=timeout
+            )
+            return result
+        except asyncio.TimeoutError:
+            return {
+                "status": "timeout",
+                "error": f"Ant {ant.name} exceeded timeout",
+            }
+        except Exception as exc:
+            return {"status": "error", "error": str(exc)}
 
     def scan_once(self, all_checks: bool = True) -> Dict[str, object]:
         results: Dict[str, object] = {}
@@ -64,6 +88,11 @@ class Queen:
                     stats_json=result,
                 )
                 incidents_created.extend(self._handle_results(ant.name, result))
+
+                # Check CPU pressure after scan
+                if ant.name == "cpu_pressure" and result.get("sustained_high"):
+                    self.cpu_sustained_high = True
+                    self._notify_madre_intent_cpu_pressure(result)
             except Exception as exc:
                 results[ant.name] = {"error": str(exc)}
                 now = datetime.utcnow().isoformat() + "Z"
@@ -158,7 +187,10 @@ class Queen:
         try:
             resp = requests.post(
                 f"{settings.switch_url.rstrip('/')}/switch/advice",
-                json={"incident_summary": payload, "context": {"incident_id": incident_id}},
+                json={
+                    "incident_summary": payload,
+                    "context": {"incident_id": incident_id},
+                },
                 timeout=settings.http_timeout_sec,
             )
             if resp.status_code == 200:
@@ -166,13 +198,40 @@ class Queen:
         except Exception:
             pass
 
-    def _notify_madre_intent(self, incident_id: str, payload: Dict[str, object]) -> None:
+    def _notify_madre_intent(
+        self, incident_id: str, payload: Dict[str, object]
+    ) -> None:
         try:
             requests.post(
                 f"{settings.madre_url.rstrip('/')}/madre/intent",
                 json={
                     "type": "organize",
                     "payload": payload,
+                    "correlation_id": incident_id,
+                    "source": "hormiguero",
+                },
+                timeout=settings.http_timeout_sec,
+            )
+        except Exception:
+            pass
+
+    def _notify_madre_intent_cpu_pressure(self, payload: Dict[str, object]) -> None:
+        """Notify Madre of sustained high CPU pressure."""
+        try:
+            import uuid
+
+            incident_id = str(uuid.uuid4())
+            requests.post(
+                f"{settings.madre_url.rstrip('/')}/madre/intent",
+                json={
+                    "type": "stabilize_cpu",
+                    "payload": {
+                        "cpu_usage_pct": payload.get("cpu_usage_pct", 0),
+                        "load_avg_1m": payload.get("load_avg_1m", 0),
+                        "sustained_high": True,
+                        "threshold_pct": payload.get("threshold_pct", 80),
+                        "window_sec": payload.get("window_sec", 30),
+                    },
                     "correlation_id": incident_id,
                     "source": "hormiguero",
                 },
@@ -190,9 +249,19 @@ class Queen:
                 self.backoff_sec = min(
                     max(self.backoff_sec * 2, 5), settings.scan_backoff_max_sec
                 )
+
+            # Calculate sleep interval with CPU throttle logic
             sleep_for = settings.scan_interval_sec + random.randint(
                 -settings.scan_jitter_sec, settings.scan_jitter_sec
             )
+
+            # Apply CPU throttle multiplier if sustained high
+            if self.cpu_sustained_high:
+                sleep_for = int(sleep_for * settings.scan_interval_multiplier_cpu_high)
+                # After throttling, reset the flag for next cycle
+                self.cpu_sustained_high = False
+
             if self.backoff_sec:
                 sleep_for = max(sleep_for, self.backoff_sec)
+
             await asyncio.sleep(max(5, sleep_for))
