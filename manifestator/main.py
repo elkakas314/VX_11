@@ -51,6 +51,12 @@ PATCHES_DIR.mkdir(parents=True, exist_ok=True)
 # DSL instance
 dsl = ManifestatorDSL(storage_dir=str(PATCHES_DIR.parent))
 
+# Global state for metrics tracking
+_GLOBAL_STATE = {
+    "active_patches": [],
+    "patches_applied": 0,
+}
+
 
 def parse_blueprint_modules(blueprint_path: Path) -> List[str]:
     """Parse blueprint to extract expected modules."""
@@ -463,6 +469,9 @@ async def apply_patch(patch_id: str):
 
         with patch_file.open("w") as f:
             json.dump(patch_data, f, indent=2)
+
+        # Update global state
+        _GLOBAL_STATE["patches_applied"] += 1
 
         write_log("manifestator", f"patch_applied:{patch_id}")
 
@@ -951,6 +960,128 @@ async def repair_endpoint(module: Optional[str] = None):
         "patches_count": len(patches),
         "patches": patches,
         "drift": drift,
+    }
+
+
+@app.post("/manifestator/builder/spec")
+async def manifestator_builder_spec(body: Dict[str, Any] = None):
+    """
+    Generate builder specification (CANONICAL planning-only endpoint).
+
+    Request:
+    {
+        "module": "string",
+        "canonical_manifest": {...} | null,
+        "patchplan": {...} | null,
+        "constraints": {
+            "max_cpu_pct": 5,
+            "max_mem_mb": 256,
+            "concurrency": 1,
+            "background_only": true
+        },
+        "context": {"correlation_id": "..."}
+    }
+
+    Response:
+    {
+        "builder_id": "uuid-or-stable-id",
+        "module": "...",
+        "actions": [...],  # Recipe steps (NO execution)
+        "artifacts": [...],  # Suggested paths (NO writes)
+        "risk": "low|mid|high",
+        "estimated_time_sec": int,
+        "notes": [...],
+        "hash": "sha256-of-response"
+    }
+    """
+    if not body:
+        body = {}
+
+    import uuid
+
+    builder_id = str(uuid.uuid4())
+    module = body.get("module", "unknown")
+    constraints = body.get("constraints", {})
+    patchplan = body.get("patchplan", {})
+    context = body.get("context", {})
+    correlation_id = context.get("correlation_id", "N/A")
+
+    # Generate recipe from patchplan (if present)
+    actions = []
+    if patchplan and patchplan.get("actions"):
+        for patch_action in patchplan["actions"]:
+            action_type = patch_action.get("action", "unknown")
+            target = patch_action.get("target", "")
+
+            # Map patch actions to builder recipe steps
+            if action_type == "add":
+                actions.append(
+                    {
+                        "step": f"create_{len(actions)}",
+                        "type": "add",
+                        "target": target,
+                        "reason": patch_action.get("reason", ""),
+                        "executable": False,
+                    }
+                )
+            elif action_type == "remove":
+                actions.append(
+                    {
+                        "step": f"remove_{len(actions)}",
+                        "type": "remove",
+                        "target": target,
+                        "reason": patch_action.get("reason", ""),
+                        "executable": False,
+                    }
+                )
+
+    # Proposed artifacts (sandbox, not written unless explicitly approved by Madre)
+    artifacts = [
+        f"/tmp/vx11_builder/{module}/artifacts",
+        f"/tmp/vx11_builder/{module}/logs",
+    ]
+
+    # Risk assessment
+    risk = "low"
+    if len(actions) > 5:
+        risk = "mid"
+    if len(actions) > 10 or constraints.get("concurrency", 1) > 1:
+        risk = "high"
+
+    # Estimated time based on action count
+    estimated_time = len(actions) * 2 + 5  # base 5s + 2s per action
+
+    notes = [
+        f"Recipe for module: {module}",
+        f"Constraints: {constraints}",
+        f"Correlation ID: {correlation_id}",
+        "Action list is PLANNING ONLY; no writes to filesystem unless explicitly approved by Madre",
+        f"Artifacts directory (NOT CREATED unless builder is executed): {artifacts[0]}",
+    ]
+
+    # Hash of response (stable, deterministic)
+    response_dict = {
+        "builder_id": builder_id,
+        "module": module,
+        "actions": actions,
+        "artifacts": artifacts,
+        "risk": risk,
+        "estimated_time_sec": estimated_time,
+        "notes": notes,
+    }
+    response_hash = hashlib.sha256(
+        json.dumps(response_dict, sort_keys=True).encode()
+    ).hexdigest()[:16]
+
+    return {
+        "builder_id": builder_id,
+        "module": module,
+        "actions": actions,
+        "artifacts": artifacts,
+        "risk": risk,
+        "estimated_time_sec": estimated_time,
+        "notes": notes,
+        "hash": response_hash,
     }
 
 

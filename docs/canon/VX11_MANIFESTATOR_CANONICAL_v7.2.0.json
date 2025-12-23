@@ -1,0 +1,256 @@
+{
+    "canonical_version": "7.2.0",
+    "module": "manifestator",
+    "generated_at": "2025-12-23T03:00:00Z",
+    "description": "Manifestator: VX11 drift validation, patch planning, and builder spec generation (NO execution, planning-only)",
+    "role": {
+        "description": "Manifestator is the validation and planning layer for filesystem drift patches and module builds. It validates drift evidence, generates non-executable patchplans, and produces builder specifications for preparation. Manifestator does NOT execute patches or builds; it only proposes them with risk assessment.",
+        "responsibilities": [
+            "Validate drift evidence from Hormiguero",
+            "Generate non-executable patchplans",
+            "Generate builder specifications (recipe/cooking plan for builders)",
+            "Provide risk assessment for proposed changes",
+            "Support Hormiguero fs_drift → patchplan + builder_spec collaboration"
+        ],
+        "out_of_scope": [
+            "Building/compiling files (external builder executor responsibility)",
+            "Executing or applying patches (Madre + spawner only)",
+            "Executing builder recipes (builder_executor + spawner responsibility)",
+            "Docker socket access",
+            "Direct repo modifications",
+            "Modifying canonical maps"
+        ]
+    },
+    "service": {
+        "name": "manifestator",
+        "port": 8005,
+        "image": "vx11-manifestator:v7",
+        "docker_compose_service": "manifestator",
+        "profile": "optional",
+        "enabled_by_default": false,
+        "healthcheck": {
+            "endpoint": "GET /health",
+            "expected_status": 200,
+            "expected_body": {
+                "status": "ok",
+                "service": "manifestator",
+                "version": "v7"
+            }
+        }
+    },
+    "endpoints_canonical_minimum": {
+        "health": {
+            "method": "GET",
+            "path": "/health",
+            "description": "Service health check",
+            "response": {
+                "status": "ok",
+                "service": "manifestator",
+                "version": "v7"
+            }
+        },
+        "validate": {
+            "method": "POST",
+            "path": "/manifestator/validate",
+            "description": "Validate drift evidence or state snapshot",
+            "request": {
+                "drift_evidence": {
+                    "missing": ["list of missing files"],
+                    "extra": ["list of extra files"]
+                },
+                "state": "optional dict"
+            },
+            "response": {
+                "valid": "bool",
+                "issues": ["list of issue strings"],
+                "risk": "low|mid|high",
+                "hash": "sha256 hash of request"
+            }
+        },
+        "patchplan": {
+            "method": "POST",
+            "path": "/manifestator/patchplan",
+            "description": "Generate patchplan from drift evidence (NO execution)",
+            "request": {
+                "drift_evidence": {
+                    "missing": ["list of missing files"],
+                    "extra": ["list of extra files"]
+                },
+                "scope": "local|global (optional)"
+            },
+            "response": {
+                "plan_id": "uuid",
+                "actions": [
+                    {
+                        "action": "add|remove|verify",
+                        "target": "file path",
+                        "reason": "explanation"
+                    }
+                ],
+                "risk": "low|mid|high",
+                "estimated_time_sec": "int",
+                "notes": "summary"
+            }
+        },
+        "builder_spec": {
+            "method": "POST",
+            "path": "/manifestator/builder/spec",
+            "description": "Generate builder specification (recipe for module building)",
+            "request": {
+                "module": "string",
+                "canonical_manifest": "dict | null",
+                "patchplan": "dict | null (from /manifestator/patchplan)",
+                "constraints": {
+                    "max_cpu_pct": "float (0-100)",
+                    "max_mem_mb": "int",
+                    "concurrency": "int",
+                    "background_only": "bool"
+                },
+                "context": {
+                    "correlation_id": "string"
+                }
+            },
+            "response": {
+                "builder_id": "uuid-or-stable-id",
+                "module": "string",
+                "actions": [
+                    {
+                        "step": "step_name",
+                        "type": "add|remove|verify",
+                        "target": "path",
+                        "executable": false
+                    }
+                ],
+                "artifacts": [
+                    "list of suggested artifact paths (sandbox, NOT created unless approved)"
+                ],
+                "risk": "low|mid|high",
+                "estimated_time_sec": "int",
+                "notes": [
+                    "list of notes/warnings"
+                ],
+                "hash": "sha256 hash (stable, deterministic)"
+            }
+        }
+    },
+    "integration": {
+        "hormiguero_collaboration": {
+            "patchplan_trigger": "fs_drift incident detected",
+            "patchplan_call_pattern": "POST /manifestator/patchplan",
+            "builder_spec_trigger": "fs_drift on module-relevant files OR module_missing incident",
+            "builder_spec_call_pattern": "POST /manifestator/builder/spec (optional, if HORMIGUERO_BUILDERS_ENABLED=1)",
+            "cpu_gate": {
+                "condition": "Hormiguero skips if cpu_sustained_high=true",
+                "reason": "Prevent Manifestator overload during CPU pressure",
+                "blocked_endpoints": ["/manifestator/patchplan", "/manifestator/builder/spec"],
+                "incident_type": "skipped_due_to_pressure"
+            },
+            "timeout": "5.0 seconds",
+            "failure_handling": "Silent fail; fs_drift incident still created; INTENT still sent to Madre",
+            "circuit_breaker": {
+                "pattern": "3 failures → backoff N cycles",
+                "max_backoff_sec": 900
+            }
+        }
+    },
+    "planning_only_contract": {
+        "description": "All Manifestator endpoints are PLANNING ONLY. No changes are persisted unless explicitly approved and executed by Madre.",
+        "enforcement": [
+            "All actions have executable=false",
+            "No file writes to filesystem",
+            "No git operations",
+            "No systemd management",
+            "Artifact paths are SUGGESTED, NOT created"
+        ],
+        "verification": [
+            "Response schema includes 'executable: false' field",
+            "Hash field proves response integrity",
+            "No side effects on Manifestator service or host"
+        ]
+    },
+    "builder_spec_contract": {
+        "description": "builder_spec is a planning-only endpoint that generates recipes for building modules",
+        "artifacts_handling": {
+            "suggested_paths": [
+                "/tmp/vx11_builder/{module}/artifacts",
+                "/tmp/vx11_builder/{module}/logs"
+            ],
+            "creation_policy": "NOT CREATED by Manifestator; only SUGGESTED in response",
+            "actual_creation": "Only happens if Madre approves and spawns builder_executor"
+        },
+        "recipe_format": {
+            "step": "step identifier (e.g., create_0, remove_1)",
+            "type": "add|remove|verify (no exec markers)",
+            "target": "file or module path",
+            "executable": false,
+            "reason": "why this step is needed"
+        }
+    },
+    "data_contracts": {
+        "patchplan_action": {
+            "required_fields": [
+                "action",
+                "target"
+            ],
+            "optional_fields": [
+                "reason",
+                "checksum",
+                "mode"
+            ]
+        },
+        "builder_action": {
+            "required_fields": [
+                "step",
+                "type",
+                "target",
+                "executable"
+            ],
+            "optional_fields": [
+                "reason",
+                "checksum",
+                "artifact_path"
+            ],
+            "executable_always_false": true
+        },
+        "patchplan_response": {
+            "required_fields": [
+                "plan_id",
+                "actions",
+                "risk",
+                "estimated_time_sec"
+            ]
+        },
+        "builder_spec_response": {
+            "required_fields": [
+                "builder_id",
+                "module",
+                "actions",
+                "artifacts",
+                "risk",
+                "estimated_time_sec",
+                "hash"
+            ]
+        }
+    },
+    "environment_variables": {
+        "MANIFESTATOR_DB_PATH": {
+            "type": "string",
+            "default": "data/runtime/manifestator.db",
+            "description": "SQLite database path (optional, for caching)"
+        },
+        "MANIFESTATOR_BUILDERS_ENABLED": {
+            "type": "bool",
+            "default": false,
+            "description": "Enable builder/spec endpoint (OFF by default; must be explicitly enabled)"
+        }
+    },
+    "references": {
+        "source_code": "manifestator/",
+        "tests": "tests/test_manifestator_*.py",
+        "sister_modules": [
+            "hormiguero (fs_drift detection + patchplan request)",
+            "madre (orchestration + execution authority)",
+            "spawner (executor for approved patchplans + builder recipes)"
+        ]
+    }
+}

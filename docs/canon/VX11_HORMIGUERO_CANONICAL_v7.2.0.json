@@ -1,0 +1,472 @@
+{
+    "canonical_version": "7.2.0",
+    "module": "hormiguero",
+    "generated_at": "2025-12-23T03:00:00Z",
+    "description": "Hormiguero: VX11 incident detection, scanning, CPU stabilization with suggested actions (planning-only)",
+    "role": {
+        "description": "Hormiguero (spanish for 'ant colony') is the distributed scanning and incident detection layer with CPU stabilization capabilities. It runs lightweight ants to detect system drift, health issues, resource pressure, and proposes non-executable remedial actions to Madre. On CPU pressure, it emits INTENT with constraints ensuring no host PIDs are killed.",
+        "responsibilities": [
+            "Scan filesystem for drift vs canonical map",
+            "Monitor database integrity",
+            "Health-check core services",
+            "Detect CPU pressure and sustained high CPU",
+            "Generate incidents and pheromones (queen-only)",
+            "Generate suggested_actions for stabilization (proposals, NO execution)",
+            "Consult Manifestator for patchplan (with CPU gate)",
+            "Notify Madre via INTENT protocol with constraints",
+            "Emit 'skipped_due_to_pressure' incidents when gates block calls"
+        ],
+        "out_of_scope": [
+            "Building/compiling modules (that is Manifestator + builder)",
+            "Docker socket access or killing processes on host",
+            "Modifying repo directly (git push, rm -rf, etc.)",
+            "Authorizing action execution (only proposal + evidence)",
+            "Executing patches or builder recipes (Madre decides + spawner executes)"
+        ]
+    },
+    "service": {
+        "name": "hormiguero",
+        "port": 8004,
+        "image": "vx11-hormiguero:v6.7",
+        "docker_compose_service": "hormiguero",
+        "profile": "default",
+        "healthcheck": {
+            "endpoint": "GET /health",
+            "expected_status": 200,
+            "expected_body": {
+                "status": "ok",
+                "service": "hormiguero",
+                "version": "v7"
+            }
+        }
+    },
+    "endpoints": {
+        "health": {
+            "method": "GET",
+            "path": "/health",
+            "description": "Service health check",
+            "response": {
+                "status": "ok",
+                "service": "hormiguero",
+                "version": "v7"
+            }
+        },
+        "status": {
+            "method": "GET",
+            "path": "/status",
+            "description": "Queen orchestrator status",
+            "response": {
+                "last_scan": {},
+                "backoff_sec": "int",
+                "cpu_sustained_high": "bool"
+            }
+        },
+        "scan_once": {
+            "method": "GET",
+            "path": "/scan/once",
+            "description": "Run all ants (all_checks=true)",
+            "response": {
+                "results": {},
+                "incidents": [
+                    "list"
+                ]
+            }
+        },
+        "incidents": {
+            "method": "GET",
+            "path": "/incidents",
+            "description": "Fetch incidents from DB",
+            "response": {
+                "incidents": [
+                    "list"
+                ],
+                "total": "int"
+            }
+        },
+        "pheromones": {
+            "method": "GET",
+            "path": "/pheromones",
+            "description": "Fetch pheromone events from DB",
+            "response": {
+                "pheromones": [
+                    "list"
+                ],
+                "total": "int"
+            }
+        },
+        "actions_preview": {
+            "method": "POST",
+            "path": "/actions/preview",
+            "description": "Preview incident's suggested actions",
+            "request": {
+                "incident_id": "str"
+            },
+            "response": {
+                "actions": [
+                    "list"
+                ],
+                "risk": "str"
+            }
+        },
+        "actions_apply": {
+            "method": "POST",
+            "path": "/actions/apply",
+            "description": "Apply actions (requires HORMIGUERO_ACTIONS_ENABLED=1)",
+            "request": {
+                "incident_id": "str"
+            },
+            "response": {
+                "status": "applied|skipped",
+                "reason": "str"
+            }
+        }
+    },
+    "ants": {
+        "fs_drift": {
+            "ant_id": "ant_fs",
+            "role": "scanner",
+            "description": "Filesystem drift detection vs canonical map",
+            "scan_fn": "scan_fs_drift(root_path)",
+            "integrations": [
+                "manifestator_patchplan (CPU gate: skip if cpu_sustained_high)",
+                "manifestator_builder_spec (CPU gate: skip if cpu_sustained_high)"
+            ],
+            "output": {
+                "status": "ok|no_canon|error",
+                "missing": [
+                    "list"
+                ],
+                "extra": [
+                    "list"
+                ]
+            }
+        },
+        "health": {
+            "ant_id": "ant_health",
+            "role": "scanner",
+            "description": "Health-check core services (Madre, Switch, Tentaculo, Manifestator)",
+            "scan_fn": "scan_health()",
+            "output": {
+                "service_name": {
+                    "ok": "bool",
+                    "status": "str",
+                    "response_time_ms": "int"
+                }
+            }
+        },
+        "db_sanity": {
+            "ant_id": "ant_db",
+            "role": "scanner",
+            "description": "Database integrity checks (pragma, foreign keys, hijas runtime errors)",
+            "scan_fn": "scan_db_sanity()",
+            "output": {
+                "integrity_check": "ok|error_string",
+                "hijas_errors": [
+                    "list"
+                ]
+            }
+        },
+        "cpu_pressure": {
+            "ant_id": "ant_cpu",
+            "role": "scanner",
+            "description": "CPU usage and sustained high pressure detection (cgroup v2 + /proc/stat fallback)",
+            "scan_fn": "scan_cpu_pressure()",
+            "timeout_multiplier": 2.0,
+            "output": {
+                "cpu_usage_pct": "float [0-100]",
+                "load_avg_1m": "float",
+                "load_avg_5m": "float",
+                "load_avg_15m": "float",
+                "sustained_high": "bool",
+                "threshold_pct": "float",
+                "window_sec": "int"
+            }
+        }
+    },
+    "cpu_stabilization": {
+        "trigger": "cpu_sustained_high=true over window_sec",
+        "incident_kind": "cpu_pressure",
+        "suggested_actions": [
+            {
+                "type": "pause_builders",
+                "description": "Pause optional builder jobs",
+                "executable": false
+            },
+            {
+                "type": "stop_optional_module",
+                "description": "Stop non-core module (e.g., operador_ui)",
+                "executable": false
+            },
+            {
+                "type": "restart_flapping_service",
+                "description": "Restart service showing high restart count",
+                "executable": false
+            }
+        ],
+        "no_kills_contract": {
+            "description": "Suggested actions NEVER include host PID kills",
+            "enforcement": "All actions have executable=false; Madre is sole authority for execution",
+            "allowed_targets": [
+                "vx11_services_only",
+                "non_core_modules"
+            ],
+            "forbidden_targets": [
+                "host_pids",
+                "arbitrary_processes",
+                "repo"
+            ]
+        },
+        "cpu_gate": {
+            "condition": "cpu_sustained_high=true",
+            "effect": "Block ALL calls to Manifestator (patchplan + builder_spec)",
+            "incident_type": "skipped_due_to_pressure",
+            "reason": "Prevent Manifestator overload during CPU pressure; allow stabilization window"
+        },
+        "intent_enrichment": {
+            "type": "stabilize_cpu",
+            "payload": {
+                "cpu_usage_pct": "float",
+                "load_avg_1m": "float",
+                "sustained_high": "bool",
+                "suggested_actions": [
+                    "list of action_objects"
+                ],
+                "constraints": {
+                    "no_kill_host_pids": true,
+                    "only_vx11_services": true,
+                    "max_actions": 3
+                }
+            },
+            "correlation_id": "str",
+            "source": "hormiguero"
+        }
+    },
+    "collaboration": {
+        "manifestator_integration": {
+            "trigger": "fs_drift incident with missing or extra files",
+            "cpu_gate": {
+                "condition": "skip if cpu_sustained_high=true",
+                "reason": "Prevent Manifestator overload during CPU pressure"
+            },
+            "endpoints_called": [
+                "POST /manifestator/patchplan (with drift_evidence + scope)",
+                "POST /manifestator/builder/spec (with patchplan + constraints, if applicable)"
+            ],
+            "timeout": "5.0 seconds per endpoint",
+            "failure_mode": "Silent fail: fs_drift still creates incident, INTENT still sent to Madre",
+            "circuit_breaker": {
+                "pattern": "3 failures → backoff N cycles → retry",
+                "backoff_multiplier": 2.0,
+                "max_backoff_sec": 900
+            },
+            "response_handling": {
+                "success": "responses stored in incident.suggested_actions_json",
+                "timeout": "Skip; no responses added",
+                "error": "Skip; no responses added"
+            }
+        }
+    },
+    "cpu_guardian": {
+        "scanner": "scan_cpu_pressure()",
+        "detection_methods": [
+            {
+                "name": "cgroup_v2",
+                "priority": "1 (preferred)",
+                "path": "/sys/fs/cgroup/cpu.stat",
+                "accuracy": "Best in modern containers"
+            },
+            {
+                "name": "proc_stat",
+                "priority": "2 (fallback)",
+                "path": "/proc/stat",
+                "accuracy": "Approximate, but portable"
+            }
+        ],
+        "throttle_logic": {
+            "condition": "sustained_high=true over window_sec with avg CPU > threshold_pct",
+            "effect": "scan_interval *= SCAN_INTERVAL_MULTIPLIER_CPU_HIGH (default 3.0)",
+            "duration": "One cycle (flag reset after sleep)",
+            "side_effects": "Pheromone 'slowdown' emitted; Manifestator calls blocked; actions paused"
+        },
+        "ant_timeout": {
+            "enabled": true,
+            "default_timeout_sec": "HORMIGUERO_ANT_TIMEOUT_SEC (default 5.0)",
+            "cpu_ant_timeout_sec": "2x default (more I/O)",
+            "on_timeout": "Incident kind='ant_timeout' created; ant degraded with backoff"
+        }
+    },
+    "energy_profiles": {
+        "default": {
+            "scan_interval_sec": 120,
+            "scan_jitter_sec": 20,
+            "scan_backoff_max_sec": 600,
+            "http_timeout_sec": 2.5,
+            "ant_timeout_sec": 5.0,
+            "cpu_threshold_pct": 80.0,
+            "cpu_window_sec": 30,
+            "manifestator_timeout_sec": 5.0,
+            "circuit_breaker_max_backoff_sec": 900,
+            "actions_enabled": false,
+            "builders_enabled": false
+        },
+        "low_power": {
+            "scan_interval_sec": 300,
+            "scan_jitter_sec": 60,
+            "scan_backoff_max_sec": 1800,
+            "http_timeout_sec": 5.0,
+            "ant_timeout_sec": 10.0,
+            "cpu_threshold_pct": 90.0,
+            "cpu_window_sec": 60,
+            "manifestator_timeout_sec": 10.0,
+            "circuit_breaker_max_backoff_sec": 1800,
+            "actions_enabled": false,
+            "builders_enabled": false
+        }
+    },
+    "environment_variables": {
+        "db": {
+            "HORMIGUERO_DB_PATH": {
+                "type": "string",
+                "default": "data/runtime/vx11.db",
+                "description": "SQLite database path"
+            }
+        },
+        "urls": {
+            "HORMIGUERO_TENTACULO_URL": {
+                "default": "http://127.0.0.1:8000",
+                "type": "string"
+            },
+            "HORMIGUERO_MADRE_URL": {
+                "default": "http://127.0.0.1:8001",
+                "type": "string"
+            },
+            "HORMIGUERO_SWITCH_URL": {
+                "default": "http://127.0.0.1:8002",
+                "type": "string"
+            },
+            "HORMIGUERO_SPAWNER_URL": {
+                "default": "http://127.0.0.1:8008",
+                "type": "string"
+            },
+            "HORMIGUERO_MANIFESTATOR_URL": {
+                "default": "http://127.0.0.1:8005",
+                "type": "string",
+                "description": "Manifestator endpoint for patchplan + builder_spec calls"
+            }
+        },
+        "scanning": {
+            "HORMIGUERO_SCAN_INTERVAL_SEC": {
+                "type": "int",
+                "default": 120
+            },
+            "HORMIGUERO_SCAN_JITTER_SEC": {
+                "type": "int",
+                "default": 20
+            },
+            "HORMIGUERO_SCAN_BACKOFF_MAX_SEC": {
+                "type": "int",
+                "default": 600
+            },
+            "HORMIGUERO_HTTP_TIMEOUT_SEC": {
+                "type": "float",
+                "default": 2.5
+            }
+        },
+        "cpu_guardian": {
+            "HORMIGUERO_CPU_PRESSURE_THRESHOLD_PCT": {
+                "type": "float",
+                "default": 80.0,
+                "range": [
+                    0,
+                    100
+                ]
+            },
+            "HORMIGUERO_CPU_PRESSURE_WINDOW_SEC": {
+                "type": "int",
+                "default": 30,
+                "description": "Window to detect sustained high"
+            },
+            "HORMIGUERO_ANT_TIMEOUT_SEC": {
+                "type": "float",
+                "default": 5.0
+            },
+            "HORMIGUERO_SCAN_INTERVAL_MULTIPLIER_CPU_HIGH": {
+                "type": "float",
+                "default": 3.0
+            }
+        },
+        "stabilization": {
+            "HORMIGUERO_BUILDERS_ENABLED": {
+                "type": "bool",
+                "default": false,
+                "description": "Enable builder_spec calls (OFF by default)"
+            },
+            "HORMIGUERO_CIRCUIT_BREAKER_MAX_BACKOFF_SEC": {
+                "type": "int",
+                "default": 900,
+                "description": "Max backoff on Manifestator failures"
+            }
+        },
+        "actions": {
+            "HORMIGUERO_ACTIONS_ENABLED": {
+                "type": "bool",
+                "default": false,
+                "description": "0=disabled, 1=enabled (requires explicit approval)"
+            }
+        }
+    },
+    "contracts": {
+        "incident": {
+            "required_fields": [
+                "incident_id",
+                "kind",
+                "severity",
+                "status",
+                "title",
+                "description",
+                "source",
+                "detected_at"
+            ],
+            "optional_fields": [
+                "evidence_json",
+                "correlation_id",
+                "suggested_actions_json",
+                "execution_plan_json"
+            ]
+        },
+        "pheromone": {
+            "required_fields": [
+                "kind",
+                "scope",
+                "payload_json",
+                "source",
+                "created_at"
+            ]
+        },
+        "madre_intent": {
+            "required_fields": [
+                "type",
+                "source"
+            ],
+            "optional_fields": [
+                "payload",
+                "correlation_id"
+            ],
+            "types": [
+                "organize",
+                "stabilize_cpu",
+                "build_module_prepared"
+            ]
+        }
+    },
+    "references": {
+        "source_code": "hormiguero/",
+        "tests": "tests/test_hormiguero_*.py",
+        "audit": "docs/audit/FASE2_*.md",
+        "sister_modules": [
+            "manifestator (drift validation + patchplan + builder_spec)",
+            "madre (orchestration + authority)",
+            "switch (advisory)"
+        ]
+    }
+}
