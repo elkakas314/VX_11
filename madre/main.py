@@ -9,6 +9,7 @@ import subprocess
 from typing import Optional, Dict, Any
 from datetime import datetime
 import asyncio
+import os
 
 from . import power_saver as power_saver_module
 from . import power_manager as power_manager_module
@@ -32,6 +33,7 @@ from .core import (
     Runner,
     DelegationClient,
 )
+from . import rails_router
 
 log = logging.getLogger("vx11.madre")
 logger = log
@@ -325,6 +327,35 @@ async def madre_intent(req: MadreIntentRequest):
         },
         result_status="planned",
     )
+    routing_decision = None
+    routing_enabled = os.getenv("VX11_RAILS_ROUTING_ENABLED", "false").lower() in (
+        "1",
+        "true",
+        "yes",
+        "on",
+    )
+    if routing_enabled:
+        domain = req.payload.get("domain")
+        intent_type = req.payload.get("intent_type") or req.type
+        if domain and intent_type:
+            routing_decision = rails_router.resolve_lane(
+                domain=domain,
+                intent_type=intent_type,
+                correlation_id=intent_id,
+                details={"source": req.source},
+            )
+            if not routing_decision:
+                MadreDB.close_intent_log(
+                    intent_log_id,
+                    result_status="lane_missing",
+                    notes=f"lane_missing:{domain}:{intent_type}",
+                )
+                return {
+                    "status": "lane_missing",
+                    "intent_id": intent_id,
+                    "intent_log_id": intent_log_id,
+                    "routing_decision": None,
+                }
     task_id = str(uuid.uuid4())
     MadreDB.create_task(
         task_id=task_id,
@@ -341,6 +372,7 @@ async def madre_intent(req: MadreIntentRequest):
         "intent_id": intent_id,
         "task_id": task_id,
         "intent_log_id": intent_log_id,
+        "routing_decision": routing_decision,
     }
 
 
