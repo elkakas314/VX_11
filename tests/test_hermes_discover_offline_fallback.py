@@ -1,4 +1,3 @@
-import pytest
 import httpx
 from fastapi.testclient import TestClient
 
@@ -6,7 +5,6 @@ from switch.hermes.main import app as hermes_app
 from config.db_schema import ModelRegistry, get_session
 
 
-@pytest.mark.integration
 def test_hermes_discover_offline_fallback(monkeypatch):
     async def fake_get(*args, **kwargs):
         raise httpx.ConnectError("offline")

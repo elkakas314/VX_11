@@ -1,10 +1,7 @@
-import pytest
-
 from switch.cli_concentrator.providers.copilot_cli import CopilotCLIProvider
 from switch.cli_concentrator.schemas import ProviderConfig
 
 
-@pytest.mark.integration
 def test_copilot_provider_exec_mock(monkeypatch):
     monkeypatch.setenv("VX11_MOCK_PROVIDERS", "1")
     config = ProviderConfig(

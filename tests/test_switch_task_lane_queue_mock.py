@@ -1,13 +1,10 @@
 import hashlib
 import time
 
-import pytest
-
 from config.db_schema import SwitchQueueV2, get_session
 from switch.workers.queue_consumer import QueueConsumer
 
 
-@pytest.mark.integration
 def test_queue_consumer_processes_mock_batch(monkeypatch):
     monkeypatch.setenv("VX11_MOCK_PROVIDERS", "1")
 
