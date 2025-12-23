@@ -1,0 +1,373 @@
+{
+    "canonical_version": "7.3.0",
+    "module": "hormiguero",
+    "generated_at": "2025-12-23T04:00:00Z",
+    "description": "Hormiguero: VX11 incident detection, scanning, CPU stabilization with optional INEE submódulo integration",
+    "note": "v7.3.0 adds optional INEE submódulo (OFF by default via VX11_INEE_ENABLED=0). All v7.2.0 features preserved.",
+    "role": {
+        "description": "Hormiguero (spanish for 'ant colony') is the distributed scanning and incident detection layer with CPU stabilization and optional remote colony coordination (INEE). It runs lightweight ants to detect system drift, health issues, resource pressure, and proposes non-executable remedial actions to Madre. On CPU pressure, it emits INTENT with constraints ensuring no host PIDs are killed. INEE integration allows coordination with remote colonies via tentaculo_link.",
+        "responsibilities": [
+            "Scan filesystem for drift vs canonical map",
+            "Monitor database integrity",
+            "Health-check core services",
+            "Detect CPU pressure and sustained high CPU",
+            "Generate incidents and pheromones (queen-only)",
+            "Generate suggested_actions for stabilization (proposals, NO execution)",
+            "Consult Manifestator for patchplan (with CPU gate)",
+            "Notify Madre via INTENT protocol with constraints",
+            "Emit 'skipped_due_to_pressure' incidents when gates block calls",
+            "[OPTIONAL] Manage remote INEE colonies (when VX11_INEE_ENABLED=1)",
+            "[OPTIONAL] Receive/forward INEE intents to Madre (CPU gated)"
+        ],
+        "out_of_scope": [
+            "Building/compiling modules (that is Manifestator + builder)",
+            "Docker socket access or killing processes on host",
+            "Modifying repo directly (git push, rm -rf, etc.)",
+            "Authorizing action execution (only proposal + evidence)",
+            "Executing patches or builder recipes (Madre decides + spawner executes)",
+            "Accepting remote INEE requests directly (must route via tentaculo_link -> Madre)"
+        ]
+    },
+    "service": {
+        "name": "hormiguero",
+        "port": 8004,
+        "image": "vx11-hormiguero:v6.7",
+        "docker_compose_service": "hormiguero",
+        "profile": "default",
+        "healthcheck": {
+            "endpoint": "GET /health",
+            "expected_status": 200,
+            "expected_body": {
+                "status": "ok",
+                "service": "hormiguero",
+                "version": "v7"
+            }
+        }
+    },
+    "core_endpoints": {
+        "health": {
+            "method": "GET",
+            "path": "/health",
+            "description": "Service health check",
+            "response_example": {
+                "status": "ok",
+                "service": "hormiguero",
+                "version": "v7"
+            }
+        },
+        "status": {
+            "method": "GET",
+            "path": "/hormiguero/status",
+            "description": "Hormiguero operational status",
+            "response_example": {
+                "actions_enabled": true,
+                "last_scan": "2025-12-23T04:00:00Z"
+            }
+        },
+        "scan_once": {
+            "method": "POST",
+            "path": "/hormiguero/scan/once",
+            "description": "Trigger immediate scan (all checks)",
+            "response_example": {
+                "status": "ok",
+                "correlation_id": "uuid",
+                "results": {}
+            }
+        },
+        "incidents": {
+            "method": "GET",
+            "path": "/hormiguero/incidents",
+            "description": "List incidents (filtered by status, limit 100 default)",
+            "query_params": {
+                "status": "string|null",
+                "limit": "int"
+            },
+            "response_example": {
+                "incidents": [
+                    {
+                        "id": "uuid",
+                        "type": "cpu_pressure",
+                        "status": "open"
+                    }
+                ]
+            }
+        },
+        "pheromones": {
+            "method": "GET",
+            "path": "/hormiguero/pheromones",
+            "description": "List pheromones (async signals)",
+            "query_params": {
+                "limit": "int"
+            },
+            "response_example": {
+                "pheromones": [
+                    {
+                        "id": "uuid",
+                        "type": "pressure",
+                        "ttl_sec": 300
+                    }
+                ]
+            }
+        },
+        "actions_preview": {
+            "method": "POST",
+            "path": "/hormiguero/actions/preview",
+            "description": "Preview proposed actions (dry-run)",
+            "request": {
+                "actions": [
+                    {
+                        "action": "string",
+                        "target": "string"
+                    }
+                ]
+            },
+            "response_example": {
+                "status": "ok",
+                "preview": []
+            }
+        },
+        "actions_apply": {
+            "method": "POST",
+            "path": "/hormiguero/actions/apply",
+            "description": "Apply actions (controlled by executor policy)",
+            "request": {
+                "actions": [
+                    {
+                        "action": "string",
+                        "target": "string"
+                    }
+                ],
+                "approval_id": "string|null",
+                "correlation_id": "string|null"
+            },
+            "response_example": {
+                "status": "ok|denied|executed"
+            }
+        }
+    },
+    "optional_inee_endpoints": {
+        "availability": "When VX11_INEE_ENABLED=1",
+        "prefix": "/hormiguero/inee/",
+        "endpoints": {
+            "colonies_register": {
+                "method": "POST",
+                "path": "/hormiguero/inee/colonies/register",
+                "description": "Register remote INEE colony",
+                "request": {
+                    "colony_id": "string",
+                    "remote_url": "string|null"
+                },
+                "cpu_gated": false
+            },
+            "colonies_list": {
+                "method": "GET",
+                "path": "/hormiguero/inee/colonies",
+                "description": "List registered colonies",
+                "cpu_gated": false
+            },
+            "agents_register": {
+                "method": "POST",
+                "path": "/hormiguero/inee/agents/register",
+                "description": "Register agent in colony",
+                "cpu_gated": false
+            },
+            "intents_submit": {
+                "method": "POST",
+                "path": "/hormiguero/inee/intents/submit",
+                "description": "Submit INEE intent (forwarded to Madre)",
+                "cpu_gated": true,
+                "blocks_on": "cpu_sustained_high=true (returns 429)"
+            },
+            "audit_trail": {
+                "method": "GET",
+                "path": "/hormiguero/inee/audit",
+                "description": "List INEE audit events",
+                "cpu_gated": false
+            },
+            "heartbeat": {
+                "method": "POST",
+                "path": "/hormiguero/inee/heartbeat",
+                "description": "Heartbeat from colony",
+                "query_params": {
+                    "colony_id": "string"
+                },
+                "cpu_gated": false
+            }
+        },
+        "documentation": "See VX11_INEE_OPTIONAL_CANONICAL_v1.0.0.json for full INEE contract"
+    },
+    "feature_flags": {
+        "VX11_INEE_ENABLED": {
+            "default": "0",
+            "type": "string (0|1)",
+            "description": "Enable optional INEE submódulo (routes + registry)",
+            "note": "INEE requires explicit opt-in; OFF by default for safety"
+        },
+        "HORMIGUERO_CPU_PRESSURE_THRESHOLD_PCT": {
+            "default": "80",
+            "description": "CPU % threshold for 'sustained_high' detection (in cpu_pressure ant)"
+        },
+        "HORMIGUERO_CIRCUIT_BREAKER_MAX_BACKOFF_SEC": {
+            "default": "900",
+            "description": "Max backoff (seconds) for circuit breaker on repeated Manifestator failures (15 min default)"
+        }
+    },
+    "cpu_gate_logic": {
+        "condition": "queen.cpu_sustained_high = true (detected by cpu_pressure ant)",
+        "blocked_endpoints": [
+            "/hormiguero/manifestator/patchplan",
+            "/hormiguero/inee/intents/submit"
+        ],
+        "response_on_block": {
+            "status_code": 429,
+            "body": {
+                "detail": "CPU sustained high; request temporarily blocked"
+            }
+        },
+        "audit_event": "skipped_due_to_pressure",
+        "rationale": "Prevent overload of Manifestator or INEE during CPU stabilization window"
+    },
+    "ants": {
+        "description": "4 lightweight ants + Queen orchestrator (v7.2+)",
+        "fs_drift_ant": {
+            "interval_sec": 120,
+            "timeout_sec": 5,
+            "checks": [
+                "filesystem drift vs canonical_fs_vx11.json"
+            ]
+        },
+        "health_ant": {
+            "interval_sec": 120,
+            "timeout_sec": 5,
+            "checks": [
+                "core services: health endpoints",
+                "docker stats",
+                "systemd units"
+            ]
+        },
+        "db_sanity_ant": {
+            "interval_sec": 120,
+            "timeout_sec": 5,
+            "checks": [
+                "DB integrity (PRAGMA quick_check)",
+                "schema consistency",
+                "foreign keys"
+            ]
+        },
+        "cpu_pressure_ant": {
+            "interval_sec": 120,
+            "timeout_sec": 5,
+            "checks": [
+                "CPU %, memory, disk I/O",
+                "detects sustained high CPU",
+                "triggers suggested_actions + CPU gate"
+            ]
+        },
+        "queen": {
+            "role": "Orchestrate ants, correlate incidents, consult Manifestator (with CPU gate), emit INTENT to Madre",
+            "protocol": "INTENT v7 (correlation_id, source=hormiguero, operation, constraints)"
+        }
+    },
+    "cpu_stabilization": {
+        "phase": "FASE 2 EXTENDED (v7.2+)",
+        "trigger": "cpu_sustained_high = true (detected by cpu_pressure ant)",
+        "suggested_actions": {
+            "type": "planning-only (executable=false)",
+            "actions": [
+                {
+                    "action": "pause_builders",
+                    "rationale": "Reduce background compilation load"
+                },
+                {
+                    "action": "stop_optional_module",
+                    "modules": [
+                        "shubniggurath",
+                        "manifestator"
+                    ],
+                    "rationale": "Shed non-critical services"
+                },
+                {
+                    "action": "restart_flapping_service",
+                    "rationale": "Stabilize oscillating services"
+                }
+            ],
+            "constraints": {
+                "no_kill_host_pids": true,
+                "only_vx11_services": true,
+                "no_repo_modifications": true,
+                "no_docker_socket_access": true
+            }
+        },
+        "intent_enrichment": {
+            "INTENT.constraints": "Enriched with no_kill_host_pids=true, only_vx11_services=true",
+            "INTENT.suggested_actions": "Included in intent payload for Madre awareness",
+            "Madre_authority": "Final decision on action execution; Hormiguero only proposes"
+        }
+    },
+    "collaboration_manifestator": {
+        "dependency": "Optional: Manifestator v7.2+ for patchplan generation",
+        "call": "GET /manifestator/patchplan?canonical_manifest=...",
+        "cpu_gate": "Blocked if cpu_sustained_high=true",
+        "fallback": "Continue without patchplan if blocked or Manifestator unavailable",
+        "builder_spec_integration": {
+            "available_when": "VX11_INEE_ENABLED=1 (future)",
+            "endpoint": "POST /manifestator/builder/spec",
+            "trigger": "fs_drift on module files + builder_spec proposed in INTENT"
+        },
+        "circuit_breaker": {
+            "max_consecutive_failures": 3,
+            "backoff_sec": 900,
+            "recovery": "After backoff expires, retry with single request"
+        }
+    },
+    "database": {
+        "schema_location": "docs/audit/DB_SCHEMA_v7_FINAL.json",
+        "core_tables": [
+            "incidents (primary: incident detection)",
+            "pheromone_log (async signals)",
+            "hormiga_state (ant lifecycle + scan results)"
+        ],
+        "optional_inee_tables": {
+            "availability": "When VX11_INEE_ENABLED=1",
+            "tables": [
+                "inee_colonies",
+                "inee_agents",
+                "inee_intents",
+                "inee_pheromones",
+                "inee_audit_events"
+            ],
+            "additive_only": true
+        }
+    },
+    "testing": {
+        "baseline_tests": "tests/test_hormiguero_*.py (24 tests, all PASS v7.2.0)",
+        "cpu_stabilization_tests": "tests/test_hormiguero_cpu_stabilization_p0.py (12 tests, v7.2.0+)",
+        "inee_tests": {
+            "availability": "When VX11_INEE_ENABLED=1",
+            "test_files": [
+                "tests/test_inee_disabled_by_default_p0.py",
+                "tests/test_inee_registry_forwarding_unit.py",
+                "tests/test_inee_cpu_gate_unit.py"
+            ]
+        },
+        "harness": "scripts/vx11_stability_p0.py (P0 stability validation)",
+        "expected_result": "36+ tests PASS; harness completes without crash"
+    },
+    "deployment": {
+        "default_state": "Core Hormiguero v7.2 active; INEE OFF (VX11_INEE_ENABLED=0)",
+        "optional_activation": "Set VX11_INEE_ENABLED=1 to enable INEE routes + registry (requires tentaculo_link in place)",
+        "no_breaking_changes": "INEE integration is fully backward-compatible; safe to deploy with flag OFF"
+    },
+    "rails": [
+        "NO Docker socket access (Hormiguero cannot kill host processes)",
+        "NO repo modifications (git operations forbidden)",
+        "NO direct external access (remote requests route via tentaculo_link -> Madre)",
+        "All suggested_actions have executable=false (Madre authorizes execution)",
+        "INEE tables are additive-only (no schema deletions)",
+        "Feature flags OFF by default (explicit enablement required)",
+        "CPU gate blocks high-load endpoints under pressure (CPU sustained high)"
+    ],
+    "version": "7.3.0",
+    "backward_compatibility": "Fully compatible with v7.2.0; INEE is optional add-on",
+    "next_versions": "v7.4: Advanced energy profiles | v8.0: Madre execution enforcement"
+}
