@@ -1,0 +1,81 @@
+{
+  "version": "1.0.0",
+  "generated_at": "2025-12-23T15:04:10Z",
+  "domains": [
+    "execution",
+    "communication",
+    "intelligence",
+    "architecture",
+    "structure",
+    "db",
+    "security",
+    "audio"
+  ],
+  "lanes": [
+    {
+      "lane_id": "lane_execution_stabilize_cpu",
+      "domain": "execution",
+      "intent_type": "stabilize_cpu",
+      "owner_module": "madre",
+      "escalation_rule": "madre_only",
+      "constraints": {
+        "requires_madre": true
+      }
+    },
+    {
+      "lane_id": "lane_structure_fs_drift",
+      "domain": "structure",
+      "intent_type": "fs_drift",
+      "owner_module": "madre",
+      "escalation_rule": "manifestator_plan_only",
+      "constraints": {
+        "planning_only": true
+      }
+    },
+    {
+      "lane_id": "lane_comm_notify",
+      "domain": "communication",
+      "intent_type": "notify",
+      "owner_module": "switch",
+      "escalation_rule": "switch_notify",
+      "constraints": {
+        "rate_limit": "standard"
+      }
+    },
+    {
+      "lane_id": "lane_db_sanity",
+      "domain": "db",
+      "intent_type": "db_sanity",
+      "owner_module": "madre",
+      "escalation_rule": "madre_only",
+      "constraints": {
+        "read_only": true
+      }
+    },
+    {
+      "lane_id": "lane_security_audit",
+      "domain": "security",
+      "intent_type": "audit",
+      "owner_module": "madre",
+      "escalation_rule": "madre_only",
+      "constraints": {
+        "requires_confirmation": true
+      }
+    },
+    {
+      "lane_id": "lane_audio_shub",
+      "domain": "audio",
+      "intent_type": "shub_task",
+      "owner_module": "shubniggurath",
+      "escalation_rule": "audio_pipeline",
+      "constraints": {
+        "requires_madre": true
+      }
+    }
+  ],
+  "invariants": [
+    "manifestator_planning_only",
+    "madre_executes_only",
+    "rails_map_db_first"
+  ]
+}

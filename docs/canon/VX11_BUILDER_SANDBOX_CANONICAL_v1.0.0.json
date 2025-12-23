@@ -1,0 +1,46 @@
+{
+  "version": "1.0.0",
+  "generated_at": "2025-12-23T15:04:10Z",
+  "sandbox_policy": {
+    "network_mode": "none",
+    "read_only_root": true,
+    "cap_drop": [
+      "ALL"
+    ],
+    "no_new_privileges": true,
+    "allow_docker_sock": false
+  },
+  "io_contract": {
+    "input": "/jobs/<job_id>/input.json",
+    "output_dir": "/jobs/<job_id>/output",
+    "outputs": [
+      "intent.json",
+      "module_canonical.json",
+      "CANONICAL.json",
+      "SPEC.json",
+      "README.md"
+    ]
+  },
+  "limits": {
+    "cpu_limit_millicores": 500,
+    "mem_limit_mb": 512,
+    "ttl_sec": 300
+  },
+  "mounts": [
+    {
+      "source": "/jobs",
+      "target": "/jobs",
+      "mode": "rw"
+    },
+    {
+      "source": "/canon",
+      "target": "/canon",
+      "mode": "ro"
+    }
+  ],
+  "notes": [
+    "No network access",
+    "Root filesystem read-only",
+    "All I/O confined to /jobs/<job_id>"
+  ]
+}
