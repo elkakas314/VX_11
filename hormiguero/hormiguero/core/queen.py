@@ -1,7 +1,10 @@
 """Queen orchestrator for Hormiguero."""
 
 import asyncio
+import json
 import random
+import sqlite3
+import time
 from datetime import datetime
 from typing import Dict, List, Optional
 
@@ -233,22 +236,88 @@ class Queen:
             # Silent fail: Manifestator optional, don't block fs_drift flow
             pass
 
+    def _record_rails_event(
+        self,
+        what: str,
+        correlation_id: Optional[str],
+        payload: Dict[str, object],
+    ) -> None:
+        try:
+            conn = sqlite3.connect(settings.db_path, timeout=5)
+            conn.execute("PRAGMA foreign_keys=ON;")
+            conn.execute(
+                """
+                INSERT INTO rails_events (who, what, why, result_json, correlation_id)
+                VALUES (?, ?, ?, ?, ?)
+                """,
+                (
+                    "reina",
+                    what,
+                    "madre_intent_escalation",
+                    json.dumps(payload),
+                    correlation_id,
+                ),
+            )
+            conn.commit()
+        except Exception:
+            pass
+        finally:
+            try:
+                conn.close()
+            except Exception:
+                pass
+
+    def _emit_intent_to_madre(
+        self,
+        intent_type: str,
+        intent_payload: Dict[str, object],
+        correlation_id: str,
+    ) -> None:
+        self._record_rails_event(
+            "reina_escalation",
+            correlation_id=correlation_id,
+            payload=intent_payload,
+        )
+        url = f"{settings.madre_url.rstrip('/')}/madre/intent"
+        attempts = 2
+        for attempt in range(attempts):
+            try:
+                resp = requests.post(
+                    url,
+                    json={
+                        "type": intent_type,
+                        "payload": intent_payload,
+                        "correlation_id": correlation_id,
+                        "source": "hormiguero",
+                    },
+                    timeout=settings.http_timeout_sec,
+                )
+                if resp.status_code < 400:
+                    return
+            except Exception:
+                if attempt == attempts - 1:
+                    break
+                time.sleep(0.1)
+        self._record_rails_event(
+            "reina_escalation_failed",
+            correlation_id=correlation_id,
+            payload={"intent_type": intent_type, "payload": intent_payload},
+        )
+
     def _notify_madre_intent(
         self, incident_id: str, payload: Dict[str, object]
     ) -> None:
-        try:
-            requests.post(
-                f"{settings.madre_url.rstrip('/')}/madre/intent",
-                json={
-                    "type": "organize",
-                    "payload": payload,
-                    "correlation_id": incident_id,
-                    "source": "hormiguero",
-                },
-                timeout=settings.http_timeout_sec,
-            )
-        except Exception:
-            pass
+        intent_payload = {
+            "domain": "structure",
+            "intent_type": "fs_drift",
+            "summary": "FS drift detected by hormiguero",
+            "details": payload,
+            "correlation_id": incident_id,
+            "urgency": "medium",
+            "maintenance_ok": True,
+            "requester": "reina",
+        }
+        self._emit_intent_to_madre("fs_drift", intent_payload, incident_id)
 
     def _notify_madre_intent_cpu_pressure(self, payload: Dict[str, object]) -> None:
         """Notify Madre of sustained high CPU pressure."""
@@ -256,22 +325,22 @@ class Queen:
             import uuid
 
             incident_id = str(uuid.uuid4())
-            requests.post(
-                f"{settings.madre_url.rstrip('/')}/madre/intent",
-                json={
-                    "type": "stabilize_cpu",
-                    "payload": {
-                        "cpu_usage_pct": payload.get("cpu_usage_pct", 0),
-                        "load_avg_1m": payload.get("load_avg_1m", 0),
-                        "sustained_high": True,
-                        "threshold_pct": payload.get("threshold_pct", 80),
-                        "window_sec": payload.get("window_sec", 30),
-                    },
-                    "correlation_id": incident_id,
-                    "source": "hormiguero",
-                },
-                timeout=settings.http_timeout_sec,
-            )
+            intent_payload = {
+                "domain": "execution",
+                "intent_type": "stabilize_cpu",
+                "summary": "Sustained high CPU pressure detected",
+                "details": payload,
+                "correlation_id": incident_id,
+                "urgency": "high",
+                "maintenance_ok": True,
+                "requester": "reina",
+                "cpu_usage_pct": payload.get("cpu_usage_pct", 0),
+                "load_avg_1m": payload.get("load_avg_1m", 0),
+                "sustained_high": True,
+                "threshold_pct": payload.get("threshold_pct", 80),
+                "window_sec": payload.get("window_sec", 30),
+            }
+            self._emit_intent_to_madre("stabilize_cpu", intent_payload, incident_id)
         except Exception:
             pass
 
