@@ -1138,3 +1138,12 @@ async def apply_patch_endpoint(patch_id: str):
         "applied": True,
         "message": "Patch applied (mock)",
     }
+
+
+# ========== RAILS ORCHESTRATOR ENDPOINTS ==========
+# New endpoints for RailsMap planning (added FASE 3)
+
+from .rails import create_rails_router
+
+rails_router = create_rails_router()
+app.include_router(rails_router)
