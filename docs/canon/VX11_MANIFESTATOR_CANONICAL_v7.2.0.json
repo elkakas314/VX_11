@@ -55,14 +55,20 @@
             "description": "Validate drift evidence or state snapshot",
             "request": {
                 "drift_evidence": {
-                    "missing": ["list of missing files"],
-                    "extra": ["list of extra files"]
+                    "missing": [
+                        "list of missing files"
+                    ],
+                    "extra": [
+                        "list of extra files"
+                    ]
                 },
                 "state": "optional dict"
             },
             "response": {
                 "valid": "bool",
-                "issues": ["list of issue strings"],
+                "issues": [
+                    "list of issue strings"
+                ],
                 "risk": "low|mid|high",
                 "hash": "sha256 hash of request"
             }
@@ -73,8 +79,12 @@
             "description": "Generate patchplan from drift evidence (NO execution)",
             "request": {
                 "drift_evidence": {
-                    "missing": ["list of missing files"],
-                    "extra": ["list of extra files"]
+                    "missing": [
+                        "list of missing files"
+                    ],
+                    "extra": [
+                        "list of extra files"
+                    ]
                 },
                 "scope": "local|global (optional)"
             },
@@ -142,7 +152,10 @@
             "cpu_gate": {
                 "condition": "Hormiguero skips if cpu_sustained_high=true",
                 "reason": "Prevent Manifestator overload during CPU pressure",
-                "blocked_endpoints": ["/manifestator/patchplan", "/manifestator/builder/spec"],
+                "blocked_endpoints": [
+                    "/manifestator/patchplan",
+                    "/manifestator/builder/spec"
+                ],
                 "incident_type": "skipped_due_to_pressure"
             },
             "timeout": "5.0 seconds",
