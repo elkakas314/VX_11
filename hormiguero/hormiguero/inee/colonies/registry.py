@@ -3,10 +3,20 @@ INEE colonies registry: in-memory + DAO.
 Stores remote colony registration, agent status, heartbeats.
 """
 
+from __future__ import annotations
+
 from typing import Dict, List, Optional
 from datetime import datetime
-from .types import INEEColony, INEEAgent
-from .dao import INEERegistryDAO
+
+# Simple imports: INEE modules at same level
+try:
+    from ..intents.types import INEEColony, INEEAgent
+    from .dao import INEERegistryDAO
+except ImportError:
+    # Fallback: assume imports work when package is properly installed
+    raise ImportError(
+        "Failed to import INEE types and DAO; ensure inee package structure is correct"
+    )
 
 
 class INEERegistry:
@@ -15,7 +25,7 @@ class INEERegistry:
     Thread-safe (basic, no lock yet; upgradeable).
     """
 
-    def __init__(self, dao: Optional[INEERegistryDAO] = None):
+    def __init__(self, dao: Optional["INEERegistryDAO"] = None):
         self.dao = dao or INEERegistryDAO()
         self._colonies: Dict[str, INEEColony] = {}
         self._agents: Dict[str, INEEAgent] = {}

@@ -1,0 +1,334 @@
+{
+    "title": "VX11 Hormiguero Subsystem — Canonical Module Index",
+    "version": "1.0.0",
+    "description": "Central index for Hormiguero core + extensions (Manifestator, Builder, INEE). Defines module boundaries, feature flags, dependencies, and cross-references.",
+    "last_updated": "2025-12-23",
+    "modules": [
+        {
+            "id": "hormiguero-core",
+            "name": "Hormiguero Core",
+            "version": "7.3.0",
+            "status": "stable-always-on",
+            "port": 8004,
+            "canonical": "docs/canon/VX11_HORMIGUERO_CANONICAL_v7.3.0.json",
+            "description": "Lightweight scanning engine for filesystem drift, health, database sanity, CPU pressure. Queen orchestrator. Lightweight incident logging. INTENT protocol to Madre.",
+            "features": [
+                "4 scanning ants (fs_drift, health, db_sanity, cpu_pressure)",
+                "Queen orchestrator",
+                "CPU pressure monitoring (cpu_sustained_high flag)",
+                "Incident & pheromone persistence (SQLite)",
+                "INTENT protocol (no execution)",
+                "Throttle mechanism for high-activity scenarios"
+            ],
+            "feature_flags": [],
+            "endpoints": [
+                {
+                    "method": "GET",
+                    "path": "/health",
+                    "description": "Simple health check"
+                },
+                {
+                    "method": "GET",
+                    "path": "/hormiguero/status",
+                    "description": "Queen status + CPU state"
+                },
+                {
+                    "method": "POST",
+                    "path": "/hormiguero/scan/once",
+                    "description": "Trigger single scan cycle"
+                },
+                {
+                    "method": "GET",
+                    "path": "/hormiguero/incidents",
+                    "description": "List recent incidents"
+                },
+                {
+                    "method": "GET",
+                    "path": "/hormiguero/pheromones",
+                    "description": "List pheromones (signals)"
+                },
+                {
+                    "method": "POST",
+                    "path": "/hormiguero/actions/preview",
+                    "description": "Preview action (no execution)"
+                },
+                {
+                    "method": "POST",
+                    "path": "/hormiguero/actions/apply",
+                    "description": "Apply action (allowlist only)"
+                }
+            ],
+            "dependencies": [
+                "sqlite3",
+                "asyncio",
+                "pydantic"
+            ],
+            "safe_for_production": true,
+            "no_side_effects": true,
+            "no_execution": "Docker socket, git ops, system kills not allowed"
+        },
+        {
+            "id": "hormiguero-inee",
+            "name": "INEE (Independent NEuroBehavioral EnginE)",
+            "version": "1.0.0",
+            "status": "optional-off-by-default",
+            "parent_module": "hormiguero-core",
+            "port": "8004 (same as core)",
+            "canonical": "docs/canon/VX11_INEE_OPTIONAL_CANONICAL_v1.0.0.json",
+            "description": "Optional submódulo for remote colony coordination. Translates INEE intents to VX11 actions. CPU gate prevents submission when system is under pressure.",
+            "activation": "VX11_INEE_ENABLED=1 (default: 0)",
+            "features": [
+                "Remote colony registration & agent tracking",
+                "Intent translation (INEE→VX11 mapping)",
+                "CPU gate on intent submission (returns 429)",
+                "Audit event logging (SQLite)",
+                "Heartbeat monitoring",
+                "Integration with tentaculo_link for remote API"
+            ],
+            "feature_flags": [
+                {
+                    "name": "VX11_INEE_ENABLED",
+                    "default": "0",
+                    "effect": "Router NOT mounted if 0"
+                },
+                {
+                    "name": "VX11_INEE_REMOTE_PLANE_ENABLED",
+                    "default": "0",
+                    "effect": "tentaculo_link remote gateway NOT active if 0"
+                },
+                {
+                    "name": "VX11_INEE_EXECUTION_ENABLED",
+                    "default": "0",
+                    "effect": "Actions NOT executed if 0"
+                }
+            ],
+            "endpoints": [
+                {
+                    "method": "POST",
+                    "path": "/hormiguero/inee/colonies/register",
+                    "description": "Register remote colony"
+                },
+                {
+                    "method": "GET",
+                    "path": "/hormiguero/inee/colonies",
+                    "description": "List registered colonies"
+                },
+                {
+                    "method": "POST",
+                    "path": "/hormiguero/inee/agents/register",
+                    "description": "Register remote agent"
+                },
+                {
+                    "method": "POST",
+                    "path": "/hormiguero/inee/intents/submit",
+                    "description": "Submit intent to Madre (CPU gate: 429 if high pressure)",
+                    "cpu_gate": true
+                },
+                {
+                    "method": "GET",
+                    "path": "/hormiguero/inee/audit",
+                    "description": "Audit trail"
+                },
+                {
+                    "method": "POST",
+                    "path": "/hormiguero/inee/heartbeat",
+                    "description": "Health check for remote colony"
+                }
+            ],
+            "dependencies": [
+                "hormiguero-core (Queen for cpu_sustained_high state)",
+                "fastapi",
+                "pydantic"
+            ],
+            "cpu_gate": {
+                "endpoint": "/hormiguero/inee/intents/submit",
+                "blocks_on": "cpu_sustained_high=true",
+                "returns": "429 Too Many Requests",
+                "audit_event": "inee_router/intent_blocked_cpu_high"
+            },
+            "integration_points": [
+                "Hormiguero Queen (reads cpu_sustained_high)",
+                "tentaculo_link (remote API gateway)",
+                "Madre (INTENT protocol, never direct)",
+                "SQLite (audit + colonies + intents tables)"
+            ]
+        },
+        {
+            "id": "manifestator",
+            "name": "Manifestator",
+            "version": "7.2.0",
+            "status": "stable-planning-only",
+            "port": 8005,
+            "canonical": "docs/canon/VX11_MANIFESTATOR_CANONICAL_v7.2.json",
+            "description": "Drift detection + validation + patch plan generation. Planning-only (no execution). CPU gate prevents writes when system is under pressure.",
+            "features": [
+                "Filesystem drift detection",
+                "Manifest validation",
+                "Patchplan generation (non-executable)",
+                "Builder specification (planning-only)",
+                "DSL for plan definition",
+                "CPU gate on planning operations"
+            ],
+            "feature_flags": [],
+            "cpu_gate": {
+                "endpoints": [
+                    "/manifestator/patchplan",
+                    "/manifestator/builder/spec"
+                ],
+                "blocks_on": "cpu_sustained_high=true",
+                "returns": "429 Too Many Requests",
+                "env_var": "MANIFESTATOR_CPU_SUSTAINED_HIGH=1"
+            },
+            "endpoints": [
+                {
+                    "method": "POST",
+                    "path": "/manifestator/patchplan",
+                    "description": "Generate patchplan (planning-only, CPU gate)",
+                    "cpu_gate": true
+                },
+                {
+                    "method": "POST",
+                    "path": "/manifestator/builder/spec",
+                    "description": "Generate builder spec (planning-only, CPU gate)",
+                    "cpu_gate": true
+                },
+                {
+                    "method": "GET",
+                    "path": "/health",
+                    "description": "Health check"
+                },
+                {
+                    "method": "POST",
+                    "path": "/manifestator/validate",
+                    "description": "Validate specification"
+                },
+                {
+                    "method": "POST",
+                    "path": "/manifestator/dsl/plan",
+                    "description": "DSL plan generation"
+                }
+            ],
+            "dependencies": [
+                "fastapi",
+                "pydantic",
+                "pathlib",
+                "httpx (optional)"
+            ],
+            "safe_for_production": true,
+            "no_execution": "All operations are planning/validation only. No file writes, no commands executed."
+        },
+        {
+            "id": "builder-colony",
+            "name": "Builder Colony (Manifestator Extension)",
+            "version": "7.2.0",
+            "status": "stable-planning-only",
+            "parent_module": "manifestator",
+            "description": "Recipe generation for structured deployments. No execution, only planning. Integrated via /manifestator/builder/spec endpoint.",
+            "features": [
+                "Builder specification from patchplan",
+                "Recipe generation (non-executable)",
+                "Constraint satisfaction (max CPU%, max mem, concurrency)",
+                "Risk assessment"
+            ],
+            "feature_flags": [],
+            "cpu_gate": {
+                "affects": "/manifestator/builder/spec",
+                "inherited_from": "manifestator"
+            }
+        },
+        {
+            "id": "tentaculo-link-inee",
+            "name": "Tentaculo_link INEE Remote Gateway",
+            "version": "1.0.0",
+            "status": "optional-off-by-default",
+            "port": 8000,
+            "parent_module": "tentaculo_link",
+            "description": "External API gateway for remote INEE colony requests. Routes to Hormiguero INEE endpoints.",
+            "activation": "VX11_INEE_REMOTE_PLANE_ENABLED=1 (default: 0)",
+            "features": [
+                "HTTP gateway for INEE colony registration",
+                "Token-based authentication (X-VX11-Token header)",
+                "Circuit breaker integration",
+                "Request routing to internal INEE endpoints"
+            ],
+            "feature_flags": [
+                {
+                    "name": "VX11_INEE_REMOTE_PLANE_ENABLED",
+                    "default": "0",
+                    "effect": "Routes NOT mounted if 0"
+                }
+            ],
+            "file": "tentaculo_link/inee_remote_routes.py",
+            "endpoints": [
+                {
+                    "method": "POST",
+                    "path": "/api/v1/inee/colonies/register",
+                    "description": "External colony registration"
+                },
+                {
+                    "method": "GET",
+                    "path": "/api/v1/inee/colonies",
+                    "description": "List colonies"
+                },
+                {
+                    "method": "POST",
+                    "path": "/api/v1/inee/intents/submit",
+                    "description": "Submit intent (routes to Hormiguero INEE, subject to CPU gate)"
+                }
+            ]
+        }
+    ],
+    "shared_patterns": {
+        "cpu_gate": {
+            "description": "Centralized CPU pressure blocking mechanism",
+            "implementations": [
+                {
+                    "module": "hormiguero-inee",
+                    "endpoint": "/hormiguero/inee/intents/submit",
+                    "blocks_on": "queen.cpu_sustained_high=true",
+                    "returns": 429
+                },
+                {
+                    "module": "manifestator",
+                    "endpoints": [
+                        "/manifestator/patchplan",
+                        "/manifestator/builder/spec"
+                    ],
+                    "blocks_on": "get_cpu_sustained_high()=true",
+                    "returns": 429
+                }
+            ]
+        },
+        "circuit_breaker": {
+            "description": "Fault tolerance for inter-module routing",
+            "location": "tentaculo_link/clients.py (ModuleClient)",
+            "pattern": "3 consecutive failures → OPEN → 900s backoff → HALF_OPEN → retry",
+            "configuration": "HORMIGUERO_CIRCUIT_BREAKER_MAX_BACKOFF_SEC=900"
+        },
+        "intent_protocol": {
+            "description": "Lightweight signal from Hormiguero to Madre (never direct execution)",
+            "source": "Hormiguero (Queen)",
+            "destination": "Madre (via tentaculo_link INTENT routing)",
+            "constraints": "No docker socket, no git ops, no system kills"
+        }
+    },
+    "architecture_principles": [
+        "Core Hormiguero: ALWAYS-ON, lightweight, safe, no side-effects",
+        "Extensions (INEE, Builder, Manifestator): OFF-by-default, gated by feature flags",
+        "CPU Gate: Reusable pattern, centralized decision point, returns 429 on pressure",
+        "Circuit Breaker: Fault tolerance for inter-module communication",
+        "Planning-only: Manifestator/Builder generate plans but never execute",
+        "No execution from Hormiguero: Queue to Madre, never direct action",
+        "SQLite persistence: Additive-only schema for extensions (core tables immutable)",
+        "Simple imports: Relative paths + explicit __init__.py exports (no importlib robustification)"
+    ],
+    "deployment_checklist": [
+        "✅ Core Hormiguero always runs (no flag needed)",
+        "✅ INEE: Set VX11_INEE_ENABLED=1 to enable (default: 0)",
+        "✅ Manifestator CPU gate: Set MANIFESTATOR_CPU_SUSTAINED_HIGH=1 for testing (default: 0)",
+        "✅ Remote INEE plane: Set VX11_INEE_REMOTE_PLANE_ENABLED=1 to enable (default: 0)",
+        "✅ All CPU gates default to OFF (safe mode)",
+        "✅ All tests PASS (58 total: 36 core + 13 INEE + 9 Manifestator)",
+        "✅ Harness P0 PASS (all modules health OK)"
+    ]
+}

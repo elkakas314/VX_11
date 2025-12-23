@@ -36,6 +36,31 @@ def check_token(x_vx11_token: str = Header(None)):
     return True
 
 
+# CPU gate: shared state with Hormiguero (ALWAYS-OFF by default)
+# Can be updated by Hormiguero via callback or polled from env var
+_cpu_sustained_high = False
+
+
+def set_cpu_sustained_high(state: bool) -> None:
+    """
+    Called by Hormiguero to update CPU pressure state.
+    If True, /patchplan and /builder/spec return 429 (Too Many Requests).
+    """
+    global _cpu_sustained_high
+    _cpu_sustained_high = state
+
+
+def get_cpu_sustained_high() -> bool:
+    """Check if CPU is sustained high. Polls env var or internal state."""
+    import os
+
+    # Env var takes precedence (for mocking/testing)
+    env_val = os.getenv("MANIFESTATOR_CPU_SUSTAINED_HIGH", "0")
+    if env_val == "1":
+        return True
+    return _cpu_sustained_high
+
+
 app = FastAPI(title="VX11 manifestator")
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -196,6 +221,8 @@ async def manifestator_patchplan(body: Dict[str, Any] = None):
     """
     Generate minimal patchplan from drift evidence (CANONICAL minimal contract).
 
+    **CPU Gate:** Returns 429 if CPU is sustained high.
+
     Request:
     {
         "drift_evidence": {"missing": [...], "extra": [...]},
@@ -213,6 +240,13 @@ async def manifestator_patchplan(body: Dict[str, Any] = None):
         "notes": "..."
     }
     """
+    # CPU gate: block if sustained high
+    if get_cpu_sustained_high():
+        raise HTTPException(
+            status_code=429,
+            detail="CPU sustained high; patchplan generation temporarily blocked",
+        )
+
     if not body:
         body = {}
 
@@ -968,6 +1002,8 @@ async def manifestator_builder_spec(body: Dict[str, Any] = None):
     """
     Generate builder specification (CANONICAL planning-only endpoint).
 
+    **CPU Gate:** Returns 429 if CPU is sustained high.
+
     Request:
     {
         "module": "string",
@@ -994,6 +1030,13 @@ async def manifestator_builder_spec(body: Dict[str, Any] = None):
         "hash": "sha256-of-response"
     }
     """
+    # CPU gate: block if sustained high
+    if get_cpu_sustained_high():
+        raise HTTPException(
+            status_code=429,
+            detail="CPU sustained high; builder spec generation temporarily blocked",
+        )
+
     if not body:
         body = {}
 
