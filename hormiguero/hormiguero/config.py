@@ -38,6 +38,16 @@ class Settings:
     http_timeout_sec = _get_float("HORMIGUERO_HTTP_TIMEOUT_SEC", 2.5)
     actions_enabled = os.getenv("HORMIGUERO_ACTIONS_ENABLED", "0") == "1"
 
+    # CPU Guardian settings
+    cpu_pressure_threshold_pct = _get_float(
+        "HORMIGUERO_CPU_PRESSURE_THRESHOLD_PCT", 80.0
+    )
+    cpu_pressure_window_sec = _get_int("HORMIGUERO_CPU_PRESSURE_WINDOW_SEC", 30)
+    ant_timeout_sec = _get_float("HORMIGUERO_ANT_TIMEOUT_SEC", 5.0)
+    scan_interval_multiplier_cpu_high = _get_float(
+        "HORMIGUERO_SCAN_INTERVAL_MULTIPLIER_CPU_HIGH", 3.0
+    )
+
     fs_ignore_dirs = {
         ".git",
         "node_modules",

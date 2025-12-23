@@ -1,0 +1,71 @@
+[
+  {
+    "name": "Flow A: Gateway \u2192 Switch \u2192 Hermes \u2192 Madre",
+    "steps": [
+      {
+        "step": "tentaculo_link health",
+        "success": true,
+        "url": "http://localhost:8000/health"
+      },
+      {
+        "step": "switch health",
+        "success": true,
+        "url": "http://localhost:8002/health"
+      },
+      {
+        "step": "hermes health",
+        "success": true,
+        "url": "http://localhost:8003/health"
+      },
+      {
+        "step": "madre health",
+        "success": true,
+        "url": "http://localhost:8001/health"
+      }
+    ],
+    "overall_success": true
+  },
+  {
+    "name": "Flow B: Madre \u2192 Daughter \u2192 Action \u2192 DB",
+    "steps": [
+      {
+        "step": "madre health",
+        "success": true
+      },
+      {
+        "step": "spawner daughter tables check",
+        "success": true,
+        "tables": [
+          "daughter_tasks",
+          "daughter_state"
+        ]
+      },
+      {
+        "step": "DB write action",
+        "success": true
+      }
+    ],
+    "overall_success": true
+  },
+  {
+    "name": "Flow C: Hormiguero + Manifestator (Scan \u2192 Patch \u2192 Pheromones)",
+    "steps": [
+      {
+        "step": "hormiguero health",
+        "success": true,
+        "url": "http://localhost:8004/health"
+      },
+      {
+        "step": "manifestator health",
+        "success": true,
+        "url": "http://localhost:8005/health"
+      },
+      {
+        "step": "scan DB for incidents",
+        "success": true,
+        "count": 1126461
+      }
+    ],
+    "overall_success": true
+  }
+]

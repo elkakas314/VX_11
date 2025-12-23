@@ -1,0 +1,47 @@
+{
+  "tentaculo_link": {
+    "port": 8000,
+    "status": "ok",
+    "returncode": 0
+  },
+  "madre": {
+    "port": 8001,
+    "status": "ok",
+    "returncode": 0
+  },
+  "switch": {
+    "port": 8002,
+    "status": "ok",
+    "returncode": 0
+  },
+  "hermes": {
+    "port": 8003,
+    "status": "ok",
+    "returncode": 0
+  },
+  "hormiguero": {
+    "port": 8004,
+    "status": "ok",
+    "returncode": 0
+  },
+  "mcp": {
+    "port": 8006,
+    "status": "ok",
+    "returncode": 0
+  },
+  "shubniggurath": {
+    "port": 8007,
+    "status": "ok",
+    "returncode": 0
+  },
+  "spawner": {
+    "port": 8008,
+    "status": "ok",
+    "returncode": 0
+  },
+  "operator-backend": {
+    "port": 8011,
+    "status": "ok",
+    "returncode": 0
+  }
+}

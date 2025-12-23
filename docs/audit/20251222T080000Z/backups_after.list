@@ -1,0 +1,6 @@
+total 1248788
+drwxrwxr-x 2 elkakas314 elkakas314      4096 dic 22 05:57 archived
+-rw-rw-r-- 1 elkakas314 elkakas314 619356160 dic 21 02:06 vx11.db.backup.20251221T010603Z
+-rw-rw-r-- 1 elkakas314 elkakas314 619356160 dic 21 02:07 vx11.db.backup.20251221T010720Z
+-rw-r--r-- 1 elkakas314 elkakas314     32768 dic 18 21:06 vx11.db-shm.pre_swap_20251218T200200Z
+-rw-r--r-- 1 elkakas314 elkakas314  40001112 dic 18 21:03 vx11.db-wal.pre_swap_20251218T200200Z

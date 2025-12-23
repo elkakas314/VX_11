@@ -1,35 +1,57 @@
 {
-  "version": "vx11_semantic_v1",
-  "generated_at_utc": "2025-12-20T18:07:51Z",
+  "version": "vx11_semantic_v2_with_operational_roles",
+  "generated_at_utc": "2025-12-22T02:40:00Z",
+  "description": "Semantic roles aligned with runtime modes (low_power / operative_core / full)",
   "roles": [
     {
-      "role": "core",
-      "description": "Always-on operational modules",
+      "role": "core_essential",
+      "description": "Always-on in ALL modes (even low_power)",
       "modules": [
-        "madre",
-        "switch",
-        "switch/hermes",
+        "madre"
+      ],
+      "mode_availability": [
+        "low_power",
+        "operative_core",
+        "full"
+      ]
+    },
+    {
+      "role": "core_operative",
+      "description": "Required for operative_core and full modes (user requirement: always-on 4)",
+      "modules": [
         "tentaculo_link",
-        "mcp",
-        "data/runtime"
+        "switch",
+        "spawner",
+        "mcp"
+      ],
+      "mode_availability": [
+        "operative_core",
+        "full"
       ]
     },
     {
       "role": "support",
-      "description": "Operational support services and tooling",
+      "description": "Support services (hermes/hormiguero) in operative_core and full",
       "modules": [
         "hormiguero",
-        "spawner"
+        "switch/hermes"
+      ],
+      "mode_availability": [
+        "operative_core",
+        "full"
       ]
     },
     {
       "role": "full_profile",
-      "description": "Profile full or disabled by default",
+      "description": "Optional (OFF by default unless --profile full)",
       "modules": [
         "manifestator",
         "shubniggurath",
         "operator",
         "operator_backend"
+      ],
+      "mode_availability": [
+        "full"
       ]
     }
   ],
@@ -39,9 +61,11 @@
       "responsibilities": [
         "coordination",
         "context registry",
-        "core orchestration"
+        "core orchestration",
+        "power management"
       ],
-      "status": "core"
+      "role": "core_essential",
+      "mode_availability": ["low_power", "operative_core", "full"]
     },
     {
       "name": "switch",
@@ -50,7 +74,8 @@
         "provider switching",
         "hermes integration"
       ],
-      "status": "core"
+      "role": "core_operative",
+      "mode_availability": ["operative_core", "full"]
     },
     {
       "name": "switch/hermes",
@@ -58,7 +83,8 @@
         "provider adapters",
         "cli providers"
       ],
-      "status": "core"
+      "role": "support",
+      "mode_availability": ["operative_core", "full"]
     },
     {
       "name": "tentaculo_link",
@@ -66,7 +92,8 @@
         "health aggregation",
         "core entrypoint"
       ],
-      "status": "core"
+      "role": "core_operative",
+      "mode_availability": ["operative_core", "full"]
     },
     {
       "name": "mcp",
@@ -74,7 +101,17 @@
         "tooling bridge",
         "copilot integration"
       ],
-      "status": "core"
+      "role": "core_operative",
+      "mode_availability": ["operative_core", "full"]
+    },
+    {
+      "name": "spawner",
+      "responsibilities": [
+        "process spawning",
+        "genealogy"
+      ],
+      "role": "core_operative",
+      "mode_availability": ["operative_core", "full"]
     },
     {
       "name": "hormiguero",
@@ -83,15 +120,8 @@
         "fs drift",
         "audit support"
       ],
-      "status": "support"
-    },
-    {
-      "name": "spawner",
-      "responsibilities": [
-        "process spawning",
-        "genealogy"
-      ],
-      "status": "support"
+      "role": "support",
+      "mode_availability": ["operative_core", "full"]
     },
     {
       "name": "manifestator",
@@ -99,7 +129,8 @@
         "profile full only",
         "disabled by default"
       ],
-      "status": "full_profile"
+      "role": "full_profile",
+      "mode_availability": ["full"]
     },
     {
       "name": "shubniggurath",
@@ -107,21 +138,24 @@
         "profile full only",
         "disabled by default"
       ],
-      "status": "full_profile"
+      "role": "full_profile",
+      "mode_availability": ["full"]
     },
     {
       "name": "operator",
       "responsibilities": [
         "archived UI/operator logic"
       ],
-      "status": "full_profile"
+      "role": "full_profile",
+      "mode_availability": ["full"]
     },
     {
       "name": "operator_backend",
       "responsibilities": [
         "archived backend/frontend"
       ],
-      "status": "full_profile"
+      "role": "full_profile",
+      "mode_availability": ["full"]
     }
   ]
 }

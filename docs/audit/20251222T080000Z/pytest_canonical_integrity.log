@@ -1,0 +1,19 @@
+============================= test session starts ==============================
+platform linux -- Python 3.10.12, pytest-7.4.3, pluggy-1.6.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+rootdir: /home/elkakas314/vx11
+configfile: pytest.ini
+plugins: cov-7.0.0, asyncio-0.21.1, anyio-3.7.1
+asyncio: mode=auto
+collecting ... collected 8 items
+
+tests/test_canonical_integrity.py::test_canonical_master_integrity PASSED [ 12%]
+tests/test_canonical_integrity.py::test_policy_default_off PASSED        [ 25%]
+tests/test_canonical_integrity.py::test_semantic_module_states PASSED    [ 37%]
+tests/test_canonical_integrity.py::test_hermes_no_root_duplicate PASSED  [ 50%]
+tests/test_canonical_integrity.py::test_master_sha256_matches_files PASSED [ 62%]
+tests/test_canonical_integrity.py::test_attic_files_listed_in_fs_snapshot PASSED [ 75%]
+tests/test_canonical_integrity.py::test_fs_paths_case_insensitive_unique PASSED [ 87%]
+tests/test_canonical_integrity.py::test_target_allowed_roots_exist PASSED [100%]
+
+============================== 8 passed in 0.05s ===============================

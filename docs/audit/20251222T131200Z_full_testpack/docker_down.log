@@ -1,0 +1,36 @@
+time="2025-12-22T14:17:25+01:00" level=warning msg="/home/elkakas314/vx11/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+time="2025-12-22T14:17:25+01:00" level=warning msg="/home/elkakas314/vx11/docker-compose.override.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+ Container vx11-hormiguero  Stopping
+ Container vx11-madre  Stopping
+ Container vx11-hermes  Stopping
+ Container vx11-switch  Stopping
+ Container vx11-mcp  Stopping
+ Container vx11-shubniggurath  Stopping
+ Container vx11-spawner  Stopping
+ Container vx11-hormiguero  Stopped
+ Container vx11-hormiguero  Removing
+ Container vx11-hormiguero  Removed
+ Container vx11-switch  Stopped
+ Container vx11-switch  Removing
+ Container vx11-switch  Removed
+ Container vx11-mcp  Stopped
+ Container vx11-mcp  Removing
+ Container vx11-mcp  Removed
+ Container vx11-shubniggurath  Stopped
+ Container vx11-shubniggurath  Removing
+ Container vx11-shubniggurath  Removed
+ Container vx11-spawner  Stopped
+ Container vx11-spawner  Removing
+ Container vx11-spawner  Removed
+ Container vx11-hermes  Stopped
+ Container vx11-hermes  Removing
+ Container vx11-hermes  Removed
+ Container vx11-madre  Stopped
+ Container vx11-madre  Removing
+ Container vx11-madre  Removed
+ Container vx11-tentaculo-link  Stopping
+ Container vx11-tentaculo-link  Stopped
+ Container vx11-tentaculo-link  Removing
+ Container vx11-tentaculo-link  Removed
+ Network vx11-network  Removing
+ Network vx11-network  Resource is still in use

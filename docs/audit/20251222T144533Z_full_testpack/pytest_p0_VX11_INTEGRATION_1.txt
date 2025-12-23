@@ -1,0 +1,11 @@
+============================= test session starts ==============================
+platform linux -- Python 3.10.12, pytest-7.4.3, pluggy-1.6.0
+rootdir: /home/elkakas314/vx11
+configfile: pytest.ini
+plugins: cov-7.0.0, asyncio-0.21.1, anyio-3.7.1
+asyncio: mode=auto
+collected 4 items
+
+tests/test_integration_flows_e2e.py ....                                 [100%]
+
+============================== 4 passed in 2.38s ===============================

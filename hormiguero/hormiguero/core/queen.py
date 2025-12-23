@@ -1,7 +1,10 @@
 """Queen orchestrator for Hormiguero."""
 
 import asyncio
+import json
 import random
+import sqlite3
+import time
 from datetime import datetime
 from typing import Dict, List, Optional
 
@@ -14,6 +17,7 @@ try:
     from hormiguero.core.scanners.db_sanity import scan_db_sanity
     from hormiguero.core.scanners.fs_drift import scan_fs_drift
     from hormiguero.core.scanners.health import scan_health
+    from hormiguero.core.scanners.cpu_pressure import scan_cpu_pressure
 except ModuleNotFoundError:
     from config import settings
     from core.ants import Ant
@@ -21,6 +25,7 @@ except ModuleNotFoundError:
     from core.scanners.db_sanity import scan_db_sanity
     from core.scanners.fs_drift import scan_fs_drift
     from core.scanners.health import scan_health
+    from core.scanners.cpu_pressure import scan_cpu_pressure
 
 
 class Queen:
@@ -29,10 +34,12 @@ class Queen:
         self.rotation_index = 0
         self.last_scan: Dict[str, object] = {}
         self.backoff_sec = 0
+        self.cpu_sustained_high = False  # Track CPU state for throttle logic
         self.ants = [
             Ant("ant_fs", "fs_drift", "scanner", lambda: scan_fs_drift(root_path)),
             Ant("ant_health", "health", "scanner", scan_health),
             Ant("ant_db", "db_sanity", "scanner", scan_db_sanity),
+            Ant("ant_cpu", "cpu_pressure", "scanner", scan_cpu_pressure),
         ]
 
     def _select_ants(self, all_checks: bool) -> List[Ant]:
@@ -41,6 +48,26 @@ class Queen:
         ant = self.ants[self.rotation_index % len(self.ants)]
         self.rotation_index += 1
         return [ant]
+
+    async def _run_ant_with_timeout(self, ant: Ant) -> Dict[str, object]:
+        """Run ant scanner with timeout wrapper. Returns result or error dict."""
+        try:
+            timeout = settings.ant_timeout_sec
+            # CPU ant gets longer timeout (more I/O)
+            if ant.name == "cpu_pressure":
+                timeout = settings.ant_timeout_sec * 2
+            # All scanners are sync functions, wrap in thread
+            result = await asyncio.wait_for(
+                asyncio.to_thread(ant.scanner), timeout=timeout
+            )
+            return result
+        except asyncio.TimeoutError:
+            return {
+                "status": "timeout",
+                "error": f"Ant {ant.name} exceeded timeout",
+            }
+        except Exception as exc:
+            return {"status": "error", "error": str(exc)}
 
     def scan_once(self, all_checks: bool = True) -> Dict[str, object]:
         results: Dict[str, object] = {}
@@ -64,6 +91,11 @@ class Queen:
                     stats_json=result,
                 )
                 incidents_created.extend(self._handle_results(ant.name, result))
+
+                # Check CPU pressure after scan
+                if ant.name == "cpu_pressure" and result.get("sustained_high"):
+                    self.cpu_sustained_high = True
+                    self._notify_madre_intent_cpu_pressure(result)
             except Exception as exc:
                 results[ant.name] = {"error": str(exc)}
                 now = datetime.utcnow().isoformat() + "Z"
@@ -113,6 +145,10 @@ class Queen:
                     )
                     created.append(incident_id)
                     self._consult_switch(incident_id, result)
+                    # FASE 2: Consult Manifestator for patchplan (with CPU gate)
+                    self._consult_manifestator(
+                        incident_id, {"missing": missing, "extra": extra}
+                    )
                     self._notify_madre_intent(incident_id, result)
         elif name == "health":
             for svc, payload in result.items():
@@ -158,7 +194,10 @@ class Queen:
         try:
             resp = requests.post(
                 f"{settings.switch_url.rstrip('/')}/switch/advice",
-                json={"incident_summary": payload, "context": {"incident_id": incident_id}},
+                json={
+                    "incident_summary": payload,
+                    "context": {"incident_id": incident_id},
+                },
                 timeout=settings.http_timeout_sec,
             )
             if resp.status_code == 200:
@@ -166,18 +205,142 @@ class Queen:
         except Exception:
             pass
 
-    def _notify_madre_intent(self, incident_id: str, payload: Dict[str, object]) -> None:
+    def _consult_manifestator(
+        self, incident_id: str, drift_evidence: Dict[str, object]
+    ) -> None:
+        """
+        Consult Manifestator for patchplan on fs_drift, if CPU is not sustained-high.
+        CPU gate: skip if we just throttled (prevents overload).
+        """
+        # CPU gate: skip if sustained high (backoff from Manifestator)
+        if self.cpu_sustained_high:
+            return
+
         try:
-            requests.post(
-                f"{settings.madre_url.rstrip('/')}/madre/intent",
-                json={
-                    "type": "organize",
-                    "payload": payload,
-                    "correlation_id": incident_id,
-                    "source": "hormiguero",
-                },
-                timeout=settings.http_timeout_sec,
+            resp = requests.post(
+                f"{settings.manifestator_url.rstrip('/')}/manifestator/patchplan",
+                json={"drift_evidence": drift_evidence, "scope": "local"},
+                timeout=5.0,  # shorter timeout for patchplan
             )
+            if resp.status_code == 200:
+                patchplan = resp.json()
+                repo.set_incident_suggestions(
+                    incident_id,
+                    {
+                        "plan_id": patchplan.get("plan_id"),
+                        "actions": patchplan.get("actions", []),
+                        "risk": patchplan.get("risk", "mid"),
+                    },
+                )
+        except Exception:
+            # Silent fail: Manifestator optional, don't block fs_drift flow
+            pass
+
+    def _record_rails_event(
+        self,
+        what: str,
+        correlation_id: Optional[str],
+        payload: Dict[str, object],
+    ) -> None:
+        try:
+            conn = sqlite3.connect(settings.db_path, timeout=5)
+            conn.execute("PRAGMA foreign_keys=ON;")
+            conn.execute(
+                """
+                INSERT INTO rails_events (who, what, why, result_json, correlation_id)
+                VALUES (?, ?, ?, ?, ?)
+                """,
+                (
+                    "reina",
+                    what,
+                    "madre_intent_escalation",
+                    json.dumps(payload),
+                    correlation_id,
+                ),
+            )
+            conn.commit()
+        except Exception:
+            pass
+        finally:
+            try:
+                conn.close()
+            except Exception:
+                pass
+
+    def _emit_intent_to_madre(
+        self,
+        intent_type: str,
+        intent_payload: Dict[str, object],
+        correlation_id: str,
+    ) -> None:
+        self._record_rails_event(
+            "reina_escalation",
+            correlation_id=correlation_id,
+            payload=intent_payload,
+        )
+        url = f"{settings.madre_url.rstrip('/')}/madre/intent"
+        attempts = 2
+        for attempt in range(attempts):
+            try:
+                resp = requests.post(
+                    url,
+                    json={
+                        "type": intent_type,
+                        "payload": intent_payload,
+                        "correlation_id": correlation_id,
+                        "source": "hormiguero",
+                    },
+                    timeout=settings.http_timeout_sec,
+                )
+                if resp.status_code < 400:
+                    return
+            except Exception:
+                if attempt == attempts - 1:
+                    break
+                time.sleep(0.1)
+        self._record_rails_event(
+            "reina_escalation_failed",
+            correlation_id=correlation_id,
+            payload={"intent_type": intent_type, "payload": intent_payload},
+        )
+
+    def _notify_madre_intent(
+        self, incident_id: str, payload: Dict[str, object]
+    ) -> None:
+        intent_payload = {
+            "domain": "structure",
+            "intent_type": "fs_drift",
+            "summary": "FS drift detected by hormiguero",
+            "details": payload,
+            "correlation_id": incident_id,
+            "urgency": "medium",
+            "maintenance_ok": True,
+            "requester": "reina",
+        }
+        self._emit_intent_to_madre("fs_drift", intent_payload, incident_id)
+
+    def _notify_madre_intent_cpu_pressure(self, payload: Dict[str, object]) -> None:
+        """Notify Madre of sustained high CPU pressure."""
+        try:
+            import uuid
+
+            incident_id = str(uuid.uuid4())
+            intent_payload = {
+                "domain": "execution",
+                "intent_type": "stabilize_cpu",
+                "summary": "Sustained high CPU pressure detected",
+                "details": payload,
+                "correlation_id": incident_id,
+                "urgency": "high",
+                "maintenance_ok": True,
+                "requester": "reina",
+                "cpu_usage_pct": payload.get("cpu_usage_pct", 0),
+                "load_avg_1m": payload.get("load_avg_1m", 0),
+                "sustained_high": True,
+                "threshold_pct": payload.get("threshold_pct", 80),
+                "window_sec": payload.get("window_sec", 30),
+            }
+            self._emit_intent_to_madre("stabilize_cpu", intent_payload, incident_id)
         except Exception:
             pass
 
@@ -190,9 +353,19 @@ class Queen:
                 self.backoff_sec = min(
                     max(self.backoff_sec * 2, 5), settings.scan_backoff_max_sec
                 )
+
+            # Calculate sleep interval with CPU throttle logic
             sleep_for = settings.scan_interval_sec + random.randint(
                 -settings.scan_jitter_sec, settings.scan_jitter_sec
             )
+
+            # Apply CPU throttle multiplier if sustained high
+            if self.cpu_sustained_high:
+                sleep_for = int(sleep_for * settings.scan_interval_multiplier_cpu_high)
+                # After throttling, reset the flag for next cycle
+                self.cpu_sustained_high = False
+
             if self.backoff_sec:
                 sleep_for = max(sleep_for, self.backoff_sec)
+
             await asyncio.sleep(max(5, sleep_for))

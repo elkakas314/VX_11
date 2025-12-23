@@ -1,0 +1,83 @@
+{
+  "timestamp": "2025-12-22T13:51:22Z",
+  "modules": {
+    "tentaculo_link": {
+      "health": true,
+      "tests": true,
+      "e2e_flow_a": true,
+      "db_interaction": false,
+      "score_pct": 75.0
+    },
+    "madre": {
+      "health": true,
+      "tests": true,
+      "e2e_flow_b": true,
+      "db_interaction": true,
+      "score_pct": 100.0
+    },
+    "switch": {
+      "health": true,
+      "tests": true,
+      "e2e_flow_a": true,
+      "db_interaction": false,
+      "score_pct": 75.0
+    },
+    "hermes": {
+      "health": true,
+      "tests": true,
+      "e2e_flow_a": true,
+      "db_interaction": true,
+      "score_pct": 100.0
+    },
+    "hormiguero": {
+      "health": true,
+      "tests": true,
+      "e2e_flow_c": true,
+      "db_interaction": true,
+      "score_pct": 100.0
+    },
+    "manifestator": {
+      "health": true,
+      "tests": false,
+      "e2e_flow_c": true,
+      "db_interaction": true,
+      "score_pct": 75.0
+    },
+    "mcp": {
+      "health": true,
+      "tests": true,
+      "e2e_flow_a": false,
+      "db_interaction": false,
+      "score_pct": 50.0
+    },
+    "shubniggurath": {
+      "health": true,
+      "tests": true,
+      "e2e_flow_a": false,
+      "db_interaction": true,
+      "score_pct": 75.0
+    },
+    "spawner": {
+      "health": true,
+      "tests": true,
+      "e2e_flow_b": true,
+      "db_interaction": true,
+      "score_pct": 100.0
+    },
+    "operator-backend": {
+      "health": true,
+      "tests": true,
+      "e2e_flow_a": false,
+      "db_interaction": false,
+      "score_pct": 50.0
+    }
+  },
+  "overall_score": 87.5,
+  "methodology": {
+    "health": "Module health endpoint responds 200",
+    "tests": "Module has unit tests in tests/",
+    "e2e_flow": "Module participates in E2E flows A/B/C",
+    "db_interaction": "Module writes/reads from vx11.db",
+    "scoring": "True checks / total applicable = percentage"
+  }
+}

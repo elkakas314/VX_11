@@ -1,0 +1,22 @@
+{
+    "format_version": "vx11_module_config_v1",
+    "module": "tentaculo_link",
+    "canonical_version": "vx11_canon_v7",
+    "module_version": "1.0.0",
+    "role": "Secure Relay & External Link",
+    "generated_at_utc": "2025-12-22T08:00:00Z",
+    "description": "Tentaculo Link provides a secure relay for external communications, ensuring that internal services are not directly exposed.",
+    "owners": [
+        "vx11_core"
+    ],
+    "invariants": [
+        "Relay-only access; no direct execution of internal commands.",
+        "Strict IP filtering and token validation.",
+        "Logs all external traffic."
+    ],
+    "default_state": "enabled",
+    "default_state_description": "Active for external connectivity.",
+    "dependencies": [
+        "madre"
+    ]
+}

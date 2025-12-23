@@ -1,0 +1,30 @@
+=== ROUND 2 FINAL EVIDENCE ===
+
+Date: lun 22 dic 2025 14:35:46 CET
+Branch: qa/full-testpack_20251222T131200Z
+
+=== FIXES APPLIED ===
+✓ Fix P0: Forensic write permissions (docker exec chmod -R 777 forensic/ en todos los contenedores)
+✓ Fix P1a: Hormiguero DB upsert_hormiga_state (agregado parámetro ant_id opcional)
+⏳ Fix P1b: operator_backend httpx mock (DEFER - requiere refactoring de tests)
+
+=== TEST RESULTS ===
+Round 1: 82 PASSED, 17 FAILED, 11 SKIPPED (P0 blocker: forensic perms)
+Round 2 v1: 102 PASSED, 8 FAILED, 0 SKIPPED (forensic fix + operator-frontend UP)
+Round 2 v2: 98 PASSED, 0 FAILED (excluding operator_production_phase5)
+
+=== REMAINING ISSUES ===
+P1: operator_production_phase5 tests (7 failures) - httpx mock import error
+  Solution: Refactor tests to use patch.object instead of patch string path
+
+=== DEEP FLOW TESTING ===
+Daughter Lifecycle: Not tested yet (requires integration with spawner/madre)
+Switch Query: Not tested yet (requires registry + routing verification)
+Hermes Communication: Not tested yet (requires broadcast + multi-recipient test)
+
+=== NEXT STEPS ===
+1. Fix operator_production_phase5 mock imports (refactor to patch.object)
+2. Run complete suite with all 110 tests passing (goal: rc=0)
+3. Deep flow testing for daughter/switch/hermes autonomy
+4. Regenerate PERCENTAGES v9 with actual test results
+5. Final commit with comprehensive evidence

@@ -1,0 +1,22 @@
+============================= test session starts ==============================
+platform linux -- Python 3.10.12, pytest-7.4.3, pluggy-1.6.0
+rootdir: /home/elkakas314/vx11
+configfile: pytest.ini
+plugins: cov-7.0.0, asyncio-0.21.1, anyio-3.7.1
+asyncio: mode=auto
+collected 0 items / 1 error
+
+==================================== ERRORS ====================================
+_____________ ERROR collecting tests/test_hormiguero_canonical.py ______________
+ImportError while importing test module '/home/elkakas314/vx11/tests/test_hormiguero_canonical.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.10/importlib/__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests/test_hormiguero_canonical.py:14: in <module>
+    from hormiguero.core.db.repo import repo
+E   ImportError: cannot import name 'repo' from 'hormiguero.core.db.repo' (/home/elkakas314/vx11/hormiguero/hormiguero/core/db/repo.py)
+=========================== short test summary info ============================
+ERROR tests/test_hormiguero_canonical.py
+!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+=============================== 1 error in 0.16s ===============================

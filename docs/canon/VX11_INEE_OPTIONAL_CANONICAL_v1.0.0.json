@@ -1,0 +1,342 @@
+{
+    "title": "VX11 INEE Optional Integration Canonical v1.0.0",
+    "phase": "FASE 2 EXTENDED",
+    "status": "PRODUCTION-READY (OFF by default)",
+    "generated_at": "2025-12-23T04:00:00Z",
+    "description": "Independent NEuroBehavioral EnginE (INEE) optional submódulo within Hormiguero. Enables remote colony coordination via tentaculo_link. OFF by default with explicit feature flags.",
+    "architecture": {
+        "submódule": "hormiguero/inee/",
+        "packages": [
+            "api/ - FastAPI router + routes",
+            "intents/ - INEE -> VX11 intent translation",
+            "colonies/ - Remote colony registry (in-memory + DAO)",
+            "db/ - Schema + DAO for persistence"
+        ],
+        "activation": "VX11_INEE_ENABLED=1 (defaults to 0)",
+        "remote_plane": "tentaculo_link/inee_remote_routes.py (VX11_INEE_REMOTE_PLANE_ENABLED=1)",
+        "data_flow": "remote INEE -> tentaculo_link (external API) -> Madre (orchestration) OR Hormiguero (internal)",
+        "direct_to_hormiguero": "NEVER - all remote requests route through Madre first"
+    },
+    "feature_flags": {
+        "VX11_INEE_ENABLED": {
+            "default": "0",
+            "description": "Enable INEE submódule in Hormiguero (mounts /hormiguero/inee/* routes)",
+            "when_enabled": "Registry, routing, audit logging initialized; DB schema ensured"
+        },
+        "VX11_INEE_REMOTE_PLANE_ENABLED": {
+            "default": "0",
+            "description": "Enable external INEE API in tentaculo_link (mounts /api/v1/inee/* routes)",
+            "when_enabled": "Remote colonies can submit intents/register without direct access to Hormiguero"
+        },
+        "VX11_INEE_EXECUTION_ENABLED": {
+            "default": "0",
+            "description": "Enable Madre-authorized execution of INEE suggested actions",
+            "when_enabled": "Madre can spawn INEE builders/executors (future phase)"
+        }
+    },
+    "endpoints": {
+        "internal_hormiguero": {
+            "prefix": "/hormiguero/inee/",
+            "availability": "When VX11_INEE_ENABLED=1",
+            "routes": [
+                {
+                    "method": "POST",
+                    "path": "/colonies/register",
+                    "description": "Register remote colony",
+                    "request": {
+                        "colony_id": "string",
+                        "remote_url": "string|null"
+                    },
+                    "response": {
+                        "status": "ok",
+                        "colony_id": "string",
+                        "message": "string"
+                    },
+                    "cpu_gated": false
+                },
+                {
+                    "method": "GET",
+                    "path": "/colonies",
+                    "description": "List registered colonies",
+                    "response": {
+                        "status": "ok",
+                        "colonies": [
+                            {
+                                "colony_id": "string",
+                                "status": "string"
+                            }
+                        ],
+                        "count": "int"
+                    },
+                    "cpu_gated": false
+                },
+                {
+                    "method": "POST",
+                    "path": "/agents/register",
+                    "description": "Register agent in colony",
+                    "request": {
+                        "agent_id": "string",
+                        "colony_id": "string",
+                        "agent_type": "string"
+                    },
+                    "response": {
+                        "status": "ok",
+                        "agent_id": "string",
+                        "message": "string"
+                    },
+                    "cpu_gated": false
+                },
+                {
+                    "method": "POST",
+                    "path": "/intents/submit",
+                    "description": "Submit INEE intent (forwarded to Madre)",
+                    "request": {
+                        "intent_type": "diagnose|propose|apply",
+                        "payload": "dict",
+                        "remote_colony_id": "string",
+                        "correlation_id": "string|null"
+                    },
+                    "response": {
+                        "status": "ok",
+                        "intent_id": "string",
+                        "correlation_id": "string",
+                        "operation": "string",
+                        "message": "string"
+                    },
+                    "cpu_gated": true,
+                    "cpu_gate_blocks": "When cpu_sustained_high=true, returns 429 Too Many Requests"
+                },
+                {
+                    "method": "GET",
+                    "path": "/audit",
+                    "description": "List audit events",
+                    "query_params": {
+                        "limit": "int (default 50)"
+                    },
+                    "response": {
+                        "status": "ok",
+                        "events": [
+                            {
+                                "event_id": "string",
+                                "component": "string",
+                                "event_type": "string",
+                                "created_at": "string"
+                            }
+                        ],
+                        "count": "int"
+                    },
+                    "cpu_gated": false
+                },
+                {
+                    "method": "POST",
+                    "path": "/heartbeat",
+                    "description": "Heartbeat from colony",
+                    "query_params": {
+                        "colony_id": "string"
+                    },
+                    "response": {
+                        "status": "ok",
+                        "message": "Heartbeat recorded"
+                    },
+                    "cpu_gated": false
+                }
+            ]
+        },
+        "external_tentaculo_link": {
+            "prefix": "/api/v1/inee/",
+            "availability": "When VX11_INEE_REMOTE_PLANE_ENABLED=1",
+            "routes": [
+                {
+                    "method": "POST",
+                    "path": "/register/colonies",
+                    "description": "External: Register remote colony (forwards to Madre)",
+                    "forwarding": "POST /madre/inee/colonies/register"
+                },
+                {
+                    "method": "POST",
+                    "path": "/intents/submit",
+                    "description": "External: Submit intent (forwards to Madre)",
+                    "forwarding": "POST /madre/intents/submit"
+                },
+                {
+                    "method": "POST",
+                    "path": "/heartbeat",
+                    "description": "External: Heartbeat (forwards to Hormiguero)",
+                    "forwarding": "POST /hormiguero/inee/heartbeat"
+                }
+            ]
+        }
+    },
+    "intent_translation": {
+        "mapping": {
+            "diagnose": {
+                "vx11_operation": "scan",
+                "description": "Remote diagnostic -> VX11 scan"
+            },
+            "propose": {
+                "vx11_operation": "notify_incident",
+                "description": "Remote proposal -> VX11 incident notification"
+            },
+            "apply": {
+                "vx11_operation": "propose_action",
+                "description": "Remote apply request -> VX11 action proposal"
+            }
+        },
+        "context_preservation": {
+            "correlation_id": "preserved through all layers",
+            "remote_colony_id": "stored in VX11Intent.context",
+            "original_payload": "preserved in context for audit"
+        }
+    },
+    "cpu_gate_contract": {
+        "trigger": "cpu_sustained_high=true in Queen",
+        "blocked_endpoints": [
+            "/hormiguero/inee/intents/submit"
+        ],
+        "response_code": 429,
+        "audit_event": "intent_blocked_cpu_high",
+        "rationale": "Prevent Manifestator/INEE overload during CPU pressure; queue intents until pressure normalizes"
+    },
+    "database_schema": {
+        "additive_only": true,
+        "tables": [
+            {
+                "name": "inee_colonies",
+                "purpose": "Remote colony registration and status",
+                "columns": {
+                    "colony_id": "TEXT PRIMARY KEY",
+                    "remote_url": "TEXT",
+                    "status": "TEXT (pending|active|failed|disabled)",
+                    "last_heartbeat": "TEXT (ISO8601)",
+                    "agent_count": "INTEGER",
+                    "created_at": "TEXT (ISO8601)",
+                    "updated_at": "TEXT (ISO8601)"
+                }
+            },
+            {
+                "name": "inee_agents",
+                "purpose": "Agents within colonies",
+                "columns": {
+                    "agent_id": "TEXT PRIMARY KEY",
+                    "colony_id": "TEXT FK → inee_colonies",
+                    "agent_type": "TEXT (scanner|planner|executor)",
+                    "status": "TEXT (idle|working|failed)",
+                    "last_seen": "TEXT (ISO8601)",
+                    "created_at": "TEXT (ISO8601)"
+                }
+            },
+            {
+                "name": "inee_intents",
+                "purpose": "Intent history (INEE -> VX11)",
+                "columns": {
+                    "intent_id": "TEXT PRIMARY KEY",
+                    "correlation_id": "TEXT",
+                    "source": "TEXT (always 'inee')",
+                    "operation": "TEXT (scan|notify_incident|propose_action)",
+                    "remote_colony_id": "TEXT FK → inee_colonies",
+                    "context_json": "TEXT",
+                    "created_at": "TEXT (ISO8601)"
+                }
+            },
+            {
+                "name": "inee_pheromones",
+                "purpose": "Async signals (pressure, alerts)",
+                "columns": {
+                    "pheromone_id": "TEXT PRIMARY KEY",
+                    "colony_id": "TEXT FK → inee_colonies",
+                    "signal_type": "TEXT (pressure|alert|coordination)",
+                    "payload_json": "TEXT",
+                    "ttl_seconds": "INTEGER",
+                    "created_at": "TEXT (ISO8601)"
+                }
+            },
+            {
+                "name": "inee_audit_events",
+                "purpose": "Audit trail for INEE operations",
+                "columns": {
+                    "event_id": "TEXT PRIMARY KEY",
+                    "component": "TEXT (inee_registry|inee_router)",
+                    "event_type": "TEXT (colony_registered|intent_submitted|intent_blocked_cpu_high)",
+                    "detail_json": "TEXT",
+                    "created_at": "TEXT (ISO8601)"
+                }
+            }
+        ]
+    },
+    "integration_points": {
+        "hormiguero_queen": {
+            "dependency": "cpu_sustained_high flag from Queen",
+            "injection": "CPU gate function passed via init_inee_router()",
+            "check_before_submitting_intent": "if queen.cpu_sustained_high => return 429"
+        },
+        "tentaculo_link": {
+            "role": "External API gateway for remote INEE colonies",
+            "forwarding_rules": {
+                "register/colonies": "-> Madre (orchestration point)",
+                "intents/submit": "-> Madre (orchestration point)",
+                "heartbeat": "-> Hormiguero (internal state)"
+            }
+        },
+        "madre": {
+            "role": "Orchestration authority for INEE suggested actions",
+            "not_in_scope_yet": "Execution authorization, circuit breaker implementation, metrics collection"
+        }
+    },
+    "rails_no_break": [
+        "INEE can ONLY be accessed via tentaculo_link (never direct to Hormiguero from untrusted remotes)",
+        "All suggested actions from INEE have executable=false; Madre decides execution",
+        "No Docker socket access, no container kills, no repo modifications",
+        "Tablas DB son additive-only; no schema deletions or refactors",
+        "Feature flags OFF by default; explicit enablement required",
+        "CPU gate blocks high-load endpoints to protect Hormiguero during pressure"
+    ],
+    "testing": {
+        "test_inee_disabled_by_default_p0.py": {
+            "tests": [
+                "Routes not mounted without flags",
+                "Normal Hormiguero endpoints work when INEE off",
+                "Feature flags default to OFF"
+            ]
+        },
+        "test_inee_registry_forwarding_unit.py": {
+            "tests": [
+                "Registry CRUD (colonies, agents)",
+                "Intent translation (INEE -> VX11)",
+                "Audit event logging",
+                "Forwarding logic (mocked)"
+            ]
+        },
+        "test_inee_cpu_gate_unit.py": {
+            "tests": [
+                "CPU gate blocks on cpu_sustained_high",
+                "Audit event on block",
+                "Different endpoints respect gate"
+            ]
+        }
+    },
+    "deployment_checklist": {
+        "pre_deployment": [
+            "Verify VX11_INEE_ENABLED defaults to 0",
+            "Verify VX11_INEE_REMOTE_PLANE_ENABLED defaults to 0",
+            "Run tests: pytest tests/test_inee_*.py -q",
+            "Run harness: python3 scripts/vx11_stability_p0.py --cycles 1 --modules hormiguero,manifestator,shubniggurath --keep-core",
+            "Verify 36+ tests PASS (baseline + INEE)"
+        ],
+        "post_deployment": [
+            "Monitor /hormiguero/health returns 200",
+            "Verify flags OFF by default (no INEE endpoints accessible)",
+            "Optional: Enable with VX11_INEE_ENABLED=1 for testing",
+            "Optional: Enable remote plane with VX11_INEE_REMOTE_PLANE_ENABLED=1",
+            "Monitor inee_audit_events table for activity"
+        ]
+    },
+    "future_phases": {
+        "INEE-1": "Implement Madre execution logic for INEE suggested actions",
+        "INEE-2": "Implement circuit breaker for repeated INEE failures",
+        "INEE-3": "Metrics/telemetry (intent latency, success rate, CPU correlation)",
+        "INEE-4": "Advanced auth for remote INEE colonies (mTLS, API keys)"
+    },
+    "version": "1.0.0",
+    "compatibility": "VX11 Hormiguero v7.3.0, Manifestator v7.2.0, tentaculo_link v7.0",
+    "author": "VX11 Copilot"
+}

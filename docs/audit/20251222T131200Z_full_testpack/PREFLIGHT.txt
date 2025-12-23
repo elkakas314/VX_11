@@ -1,0 +1,10 @@
+=== GIT ===
+## qa/full-testpack_20251222T131200Z
+
+=== PYTHON ===
+Python 3.10.12
+Executable: /usr/bin/python3
+
+=== DOCKER ===
+Docker version 28.2.2, build 28.2.2-0ubuntu1~22.04.1
+Docker Compose version v2.30.3

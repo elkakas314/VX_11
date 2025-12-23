@@ -1,0 +1,8 @@
+{
+  "returncode": 0,
+  "passed": 4,
+  "failed": 0,
+  "skipped": 0,
+  "total": 4,
+  "summary_line": "============================= test session starts ==============================\nplatform linux -- Python 3.10.12, pytest-7.4.3, pluggy-1.6.0 -- /usr/bin/python3\ncachedir: .pytest_cache\nrootdir: /home/elkakas314/vx11\nconfigfile: pytest.ini\nplugins: cov-7.0.0, asyncio-0.21.1, anyio-3.7.1\nasyncio: mode=auto\ncollecting ... collected 4 items\n\ntests/test_integration_flows_e2e.py::TestFlowA::test_flow_a_gateway_routing PASSED [ 25%]\ntests/test_integration_flows_e2e.py::TestFlowB::test_flow_b_daughter_"
+}

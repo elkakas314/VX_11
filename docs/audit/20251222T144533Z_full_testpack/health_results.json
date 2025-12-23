@@ -1,0 +1,70 @@
+{
+  "timestamp": "2025-12-22T13:46:40Z",
+  "health_checks": {
+    "tentaculo_link": {
+      "port": 8000,
+      "status": "ok",
+      "endpoint": "http://localhost:8000/health",
+      "response_sample": "{\"status\":\"ok\",\"module\":\"tentaculo_link\",\"version\":\"7.0\"}"
+    },
+    "madre": {
+      "port": 8001,
+      "status": "fail",
+      "endpoint": "http://localhost:8001/health",
+      "error": "Command 'curl -s -m 3 http://localhost:8001/health' returned non-zero exit status 52."
+    },
+    "switch": {
+      "port": 8002,
+      "status": "ok",
+      "endpoint": "http://localhost:8002/health",
+      "response_sample": "{\"status\":\"ok\",\"module\":\"switch\",\"active_model\":\"general-7b\",\"warm_model\":\"audio-engineering\",\"queue"
+    },
+    "hermes": {
+      "port": 8003,
+      "status": "ok",
+      "endpoint": "http://localhost:8003/health",
+      "response_sample": "{\"status\":\"ok\",\"module\":\"hermes\",\"version\":\"minimal\"}"
+    },
+    "hormiguero": {
+      "port": 8004,
+      "status": "ok",
+      "endpoint": "http://localhost:8004/health",
+      "response_sample": "{\"status\":\"ok\",\"service\":\"hormiguero\",\"version\":\"v7\"}"
+    },
+    "manifestator": {
+      "port": 8005,
+      "status": "ok",
+      "endpoint": "http://localhost:8005/health",
+      "response_sample": "{\"status\":\"healthy\",\"service\":\"manifestator\"}"
+    },
+    "mcp": {
+      "port": 8006,
+      "status": "ok",
+      "endpoint": "http://localhost:8006/health",
+      "response_sample": "{\"status\":\"ok\"}"
+    },
+    "shubniggurath": {
+      "port": 8007,
+      "status": "ok",
+      "endpoint": "http://localhost:8007/health",
+      "response_sample": "{\"status\":\"ok\",\"module\":\"shubniggurath\",\"version\":\"7.0-FASE1\"}"
+    },
+    "spawner": {
+      "port": 8008,
+      "status": "ok",
+      "endpoint": "http://localhost:8008/health",
+      "response_sample": "{\"status\":\"ok\",\"service\":\"spawner\",\"version\":\"v7.0\"}"
+    },
+    "operator-backend": {
+      "port": 8011,
+      "status": "ok",
+      "endpoint": "http://localhost:8011/health",
+      "response_sample": "{\"status\":\"ok\",\"module\":\"operator\",\"version\":\"7.0\"}"
+    }
+  },
+  "summary": {
+    "ok_count": 9,
+    "total_count": 10
+  },
+  "health_core_pct": 90.0
+}

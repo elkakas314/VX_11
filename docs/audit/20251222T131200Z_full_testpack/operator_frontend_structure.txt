@@ -1,0 +1,10 @@
+=== Estructura operator/ ===
+
+=== Listing operator/ ===
+total 24
+drwxrwxr-x  4 elkakas314 elkakas314 4096 dic 18 22:49 .
+drwxr-xr-x 37 elkakas314 elkakas314 4096 dic 22 07:12 ..
+drwxrwxr-x  3 elkakas314 elkakas314 4096 dic 17 02:06 backend
+-rw-rw-r--  1 elkakas314 elkakas314 1653 dic 17 09:32 __init__.py.disabled.20251217T144725Z
+drwxrwxr-x  2 elkakas314 elkakas314 4096 dic 17 10:42 __pycache__
+-rw-rw-r--  1 elkakas314 elkakas314  551 dic 18 23:40 README.md

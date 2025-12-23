@@ -23,7 +23,8 @@ export function useWebSocket() {
             return;
           }
           if (data.type === "hormiguero_event") {
-            setHormigueroEvents([(data as any).payload || data, ...(s => s)]);
+            // @ts-ignore - legacy code, not used in canonical frontend
+            setHormigueroEvents((s: any[]) => [(data as any).payload || data, ...s]);
             addEvent(data);
             return;
           }

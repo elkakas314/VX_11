@@ -1,0 +1,30 @@
+operator/ directory exists
+operator/__init__.py.disabled.20251217T144725Z
+operator/backend/__init__.py
+operator/backend/__pycache__/__init__.cpython-310.pyc
+operator/backend/__pycache__/browser.cpython-310.pyc
+operator/backend/__pycache__/main.cpython-310.pyc
+operator/backend/main.py
+operator/backend/browser.py
+operator/README.md
+operator/__pycache__/__init__.cpython-310.pyc
+
+operator_backend/ directory exists
+operator_backend/backend/services/health_aggregator.py
+operator_backend/backend/services/clients.py
+operator_backend/backend/services/model_rotator.py
+operator_backend/backend/services/__init__.py
+operator_backend/backend/services/operator_brain.py
+operator_backend/backend/services/intent_parser.py
+operator_backend/backend/services/job_queue.py
+operator_backend/backend/operator_shub_prompts.py
+operator_backend/backend/main_v7.py
+operator_backend/backend/feedback_loop.py
+operator_backend/backend/switch_integration.py
+operator_backend/backend/shub_api.py
+operator_backend/backend/__init__.py
+operator_backend/backend/main.py
+operator_backend/backend/browser.py
+operator_backend/disabled/__init__.py
+operator_backend/__init__.py
+

@@ -1,0 +1,4 @@
+=== operator-backend smoke test ===
+{"status":"ok","module":"operator","version":"7.0"}
+=== operator-backend /status (si existe) ===
+{"detail":"Not Found"}

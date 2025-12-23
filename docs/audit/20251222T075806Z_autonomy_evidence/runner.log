@@ -1,0 +1,46 @@
+[2025-12-22T07:58:06.337291Z] [INFO] OUTDIR: /home/elkakas314/vx11/docs/audit/20251222T075806Z_autonomy_evidence
+[2025-12-22T07:58:06.337963Z] [INFO] PHASE: Health Endpoint Checks
+[2025-12-22T07:58:06.338361Z] [CMD] Running: curl -s -m 7 http://localhost:8000/health
+[2025-12-22T07:58:06.363701Z] [INFO]   tentaculo_link:8000 -> ok
+[2025-12-22T07:58:06.363910Z] [CMD] Running: curl -s -m 7 http://localhost:8001/health
+[2025-12-22T07:58:06.483848Z] [INFO]   madre:8001 -> ok
+[2025-12-22T07:58:06.484267Z] [CMD] Running: curl -s -m 7 http://localhost:8002/health
+[2025-12-22T07:58:06.500126Z] [INFO]   switch:8002 -> ok
+[2025-12-22T07:58:06.500380Z] [CMD] Running: curl -s -m 7 http://localhost:8003/health
+[2025-12-22T07:58:06.518592Z] [INFO]   hermes:8003 -> ok
+[2025-12-22T07:58:06.518809Z] [CMD] Running: curl -s -m 7 http://localhost:8004/health
+[2025-12-22T07:58:06.533754Z] [INFO]   hormiguero:8004 -> ok
+[2025-12-22T07:58:06.533954Z] [CMD] Running: curl -s -m 7 http://localhost:8006/health
+[2025-12-22T07:58:06.551592Z] [INFO]   mcp:8006 -> ok
+[2025-12-22T07:58:06.551786Z] [CMD] Running: curl -s -m 7 http://localhost:8007/health
+[2025-12-22T07:58:06.573885Z] [INFO]   shubniggurath:8007 -> ok
+[2025-12-22T07:58:06.574116Z] [CMD] Running: curl -s -m 7 http://localhost:8008/health
+[2025-12-22T07:58:06.591779Z] [INFO]   spawner:8008 -> ok
+[2025-12-22T07:58:06.592622Z] [CMD] Running: curl -s -m 7 http://localhost:8011/health
+[2025-12-22T07:58:06.610281Z] [INFO]   operator-backend:8011 -> ok
+[2025-12-22T07:58:06.611085Z] [INFO] PHASE: Pytest Baseline
+[2025-12-22T07:58:06.611242Z] [CMD] Running: pytest -v --tb=short --json-report --json-report-file=/home/elkakas314/vx11/docs/audit/20251222T075806Z_autonomy_evidence/pytest_report.json
+[2025-12-22T07:58:07.816190Z] [CMD] Running: pytest -v --tb=short
+[2025-12-22T07:58:15.426213Z] [INFO]   Pytest result: tests skipped by default. Set VX11_INTEGRATION=1 to run.)                [  0%]
+[2025-12-22T07:58:15.426586Z] [INFO] STARTING E2E FLOWS (A/B/C)
+[2025-12-22T07:58:15.426719Z] [INFO] PHASE: E2E Flow A - Gateway→Switch→Hermes→Madre (localhost edition for host runner)
+[2025-12-22T07:58:15.426829Z] [CMD] Running: curl -s -m 7 http://localhost:8000/health
+[2025-12-22T07:58:15.434887Z] [CMD] Running: curl -s -m 7 http://localhost:8002/health
+[2025-12-22T07:58:15.444307Z] [CMD] Running: curl -s -m 7 http://localhost:8003/health
+[2025-12-22T07:58:15.452228Z] [CMD] Running: curl -s -m 7 http://localhost:8001/health
+[2025-12-22T07:58:15.498715Z] [INFO]   Flow A result: True (4/4 health checks passed)
+[2025-12-22T07:58:15.498864Z] [INFO] PHASE: E2E Flow B - Madre→Daughter→Action→DB→Cleanup
+[2025-12-22T07:58:15.500215Z] [INFO]   Flow B result: True
+[2025-12-22T07:58:15.500333Z] [INFO] PHASE: E2E Flow C - Hormiguero+Manifestator (Scan→Patch→Pheromones→Actions)
+[2025-12-22T07:58:15.500422Z] [CMD] Running: curl -s -m 7 http://localhost:8004/health
+[2025-12-22T07:58:15.508949Z] [CMD] Running: curl -s -m 7 http://localhost:8005/health
+[2025-12-22T07:58:15.535157Z] [INFO]   Flow C result: True
+[2025-12-22T07:58:15.535648Z] [INFO] PHASE: Generate SCORECARD
+[2025-12-22T07:58:15.535916Z] [INFO]   SCORECARD loaded from existing
+[2025-12-22T07:58:15.537066Z] [INFO] PHASE: Generate PERCENTAGES
+[2025-12-22T07:58:15.537212Z] [INFO]   health_core_pct: 100.00%
+[2025-12-22T07:58:15.537288Z] [INFO]   tests_p0_pct: 0.00%
+[2025-12-22T07:58:15.537350Z] [INFO]   contract_coherence_pct: 100.00%
+[2025-12-22T07:58:15.537408Z] [INFO]   Estabilidad_operativa_pct: 70.00%
+[2025-12-22T07:58:15.537636Z] [INFO] PHASE: Generate EVIDENCE_INDEX.md
+[2025-12-22T07:58:15.537847Z] [SUCCESS] PHASE 3 COMPLETE

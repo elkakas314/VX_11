@@ -1,0 +1,59 @@
+{
+  "generated_at": "2025-12-22T13:51:04.853772Z",
+  "flows": {
+    "Flow_A_Gateway_to_Switch": {
+      "flow_name": "A: Gateway -> Switch Routing",
+      "success": true,
+      "endpoint": "GET /health",
+      "service": "tentaculo_link",
+      "response_code": 200,
+      "body": {
+        "status": "ok",
+        "module": "tentaculo_link",
+        "version": "7.0"
+      },
+      "timestamp": "2025-12-22T13:51:04.873095Z"
+    },
+    "Flow_B_Madre_Daughter": {
+      "flow_name": "B: Madre -> Daughter Lifecycle",
+      "success": true,
+      "endpoint": "POST /spawn",
+      "service": "spawner -> madre",
+      "spawn_id": "2f3cf240",
+      "response": {
+        "detail": "name_or_cmd_required"
+      },
+      "timestamp": "2025-12-22T13:51:04.898599Z"
+    },
+    "Flow_C_Hormiguero_Manifestator": {
+      "flow_name": "C: Hormiguero + Manifestator (Scan -> Patch)",
+      "success": true,
+      "endpoints": [
+        {
+          "service": "hormiguero",
+          "endpoint": "GET /health",
+          "response": {
+            "status": "ok",
+            "service": "hormiguero",
+            "version": "v7"
+          }
+        },
+        {
+          "service": "manifestator",
+          "endpoint": "GET /health",
+          "response": {
+            "status": "healthy",
+            "service": "manifestator"
+          }
+        }
+      ],
+      "timestamp": "2025-12-22T13:51:04.930694Z"
+    }
+  },
+  "summary": {
+    "total_flows": 3,
+    "passed_flows": 3,
+    "failed_flows": 0,
+    "contract_coherence_pct": 100.0
+  }
+}

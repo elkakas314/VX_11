@@ -1,0 +1,11 @@
+=== PRAGMA checks ===
+quick_check:
+5000
+ok
+
+integrity_check:
+5000
+ok
+
+foreign_key_check:
+5000

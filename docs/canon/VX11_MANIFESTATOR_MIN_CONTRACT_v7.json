@@ -1,0 +1,192 @@
+{
+    "canonical_version": "7.0.0",
+    "module": "manifestator",
+    "generated_at": "2025-12-23T01:06:00Z",
+    "description": "Manifestator: Drift validation, patch generation, and DSL planning (minimal contract)",
+    "role": {
+        "description": "Manifestator is the validation and planning layer for VX11. It receives drift reports from Hormiguero, generates patch plans (DSL), and validates changes before execution. It does NOT build modules or execute strong actions (those are Madre's responsibility).",
+        "responsibilities": [
+            "Validate drift reports from Hormiguero",
+            "Generate patch plans (declarative, not imperative)",
+            "Simulate patch impact (dry-run)",
+            "Check semantic validity of proposed changes",
+            "Provide DSL for reproducible patches"
+        ],
+        "out_of_scope": [
+            "Building/compiling modules (external builder responsibility if needed)",
+            "Killing processes or restarting services (Madre's responsibility)",
+            "Taking authorization decisions (Madre's responsibility)",
+            "Direct execution of patches (only dry-run simulation)"
+        ]
+    },
+    "service": {
+        "name": "manifestator",
+        "port": 8005,
+        "image": "vx11-manifestator:latest",
+        "docker_compose_service": "manifestator",
+        "profile": "disabled",
+        "note": "Disabled by default in docker-compose.yml. Enable via profile or override if needed.",
+        "healthcheck": {
+            "endpoint": "GET /health",
+            "expected_status": 200,
+            "expected_body": "JSON object with status and metrics"
+        }
+    },
+    "endpoints_required": {
+        "health": {
+            "method": "GET",
+            "path": "/health",
+            "description": "Service health and metrics",
+            "response": {
+                "status": "ok|degraded",
+                "metrics": {
+                    "cpu_pct": "number",
+                    "memory_mb": "number",
+                    "queue_depth": "number",
+                    "throughput": "number"
+                }
+            }
+        }
+    },
+    "endpoints_optional_but_canonical": {
+        "validate": {
+            "method": "POST",
+            "path": "/manifestator/validate",
+            "description": "Validate a drift report or patch (if endpoint exists)",
+            "request_body": {
+                "drift": {
+                    "missing": [
+                        "file1.txt"
+                    ],
+                    "extra": [
+                        "file.bak"
+                    ]
+                }
+            },
+            "response": {
+                "status": "valid|invalid",
+                "errors": []
+            }
+        },
+        "patchplan": {
+            "method": "POST",
+            "path": "/manifestator/patchplan",
+            "description": "Generate a patch plan from drift (if endpoint exists)",
+            "request_body": {
+                "drift": {
+                    "missing": [
+                        "file1.txt"
+                    ],
+                    "extra": [
+                        "file.bak"
+                    ]
+                },
+                "scope": "optional scope (default: local)"
+            },
+            "response": {
+                "plan_id": "uuid",
+                "steps": [
+                    {
+                        "action": "add",
+                        "target": "file1.txt",
+                        "source": "canonical"
+                    },
+                    {
+                        "action": "remove",
+                        "target": "file.bak",
+                        "reason": "extra"
+                    }
+                ],
+                "dry_run_result": "OK|FAILED"
+            }
+        }
+    },
+    "endpoints_extended": {
+        "note": "Full endpoint list at manifestator/main.py (~15 endpoints). These are exploratory and not required for minimal contract.",
+        "dsl_plan": "POST /manifestator/dsl/plan — Create DSL plan",
+        "dsl_simulate": "POST /manifestator/dsl/simulate/{plan_id} — Dry-run simulation",
+        "dsl_apply": "POST /manifestator/dsl/apply/{plan_id} — Apply plan (gated by Madre approval)",
+        "dsl_rollback": "POST /manifestator/dsl/rollback/{plan_id} — Rollback patch",
+        "generate_patch": "POST /generate-patch — Generate patch with DeepSeek",
+        "validate_patch": "POST /validate-patch — Validate patch semantics"
+    },
+    "integration_with_hormiguero": {
+        "flow": [
+            "1. Hormiguero detects fs_drift incident",
+            "2. Hormiguero calls Switch for advice (optional)",
+            "3. Hormiguero notifies Madre with INTENT (kind='organize' or similar)",
+            "4. Madre may consult Manifestator for patchplan (optional, async)",
+            "5. Manifestator returns plan (or validation)",
+            "6. Madre decides and executes via Spawner"
+        ],
+        "minimal_requirement": "Manifestator responds to /health checks; other endpoints optional",
+        "recommendation": "Keep Manifestator disabled by default unless builder is deployed"
+    },
+    "data_model": {
+        "patch": {
+            "required_fields": [
+                "plan_id",
+                "status",
+                "steps"
+            ],
+            "optional_fields": [
+                "dry_run_result",
+                "execution_log",
+                "rollback_plan"
+            ]
+        },
+        "step": {
+            "required_fields": [
+                "action",
+                "target"
+            ],
+            "optional_fields": [
+                "source",
+                "reason",
+                "validation_result"
+            ]
+        }
+    },
+    "contract": {
+        "NO_KILLS": "Manifestator never kills processes on host",
+        "NO_DOCKER_SOCKET": "Manifestator never accesses Docker socket",
+        "NO_DIRECT_EXECUTION": "Patches are generated and validated, never executed directly by Manifestator",
+        "MADRE_DECIDES": "All strong actions (kill/restart/rebuild) are decided and executed by Madre",
+        "OPTIONAL_BUILDER": "If Manifestator includes a builder, it must be background-only, pausable on high CPU, and gated by Madre"
+    },
+    "environment_variables": {
+        "VX11_TOKEN": {
+            "type": "string",
+            "default": "loaded from tokens.env (if available)",
+            "description": "API token for authorization (if enable_auth=true)"
+        },
+        "MANIFESTATOR_ENABLE_AUTH": {
+            "type": "bool",
+            "default": false,
+            "description": "Require X-VX11-Token header"
+        },
+        "MANIFESTATOR_DEEPSEEK_URL": {
+            "type": "string",
+            "default": "http://127.0.0.1:8003",
+            "description": "DeepSeek service URL (for patch generation)"
+        }
+    },
+    "deployment_notes": {
+        "default_profile": "disabled",
+        "enable_in_compose": [
+            "Add to docker-compose.override.yml:",
+            "services:",
+            "  manifestator:",
+            "    profiles: ['default']"
+        ],
+        "resource_constraints": "If builder is deployed, set CPU/memory limits to prevent runaway",
+        "startup_check": "Wait for /health endpoint to return 200 before declaring service ready"
+    },
+    "references": {
+        "source_code": "manifestator/",
+        "tests": "tests/ (search for manifestator)",
+        "audit": "docs/audit/HORMIGUERO_MANIFESTATOR_AUDIT_*.md",
+        "sister_module": "hormiguero (drift detection + incident generation)",
+        "downstream": "madre (orchestration + execution)"
+    }
+}

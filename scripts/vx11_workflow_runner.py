@@ -4,10 +4,17 @@ vx11_workflow_runner.py — Ejecutor de workflows (validate/ci/autosync/status).
 Genera reportes MD + snapshots canónicos.
 NUNCA toca tablas legacy; usa copilot_* solo.
 """
+
+# Bootstrap: asegurar que REPO_ROOT esté en sys.path (permite imports como 'from scripts.X import Y')
+import os
+import sys
+
+REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if REPO_ROOT not in sys.path:
+    sys.path.insert(0, REPO_ROOT)
+
 from scripts.cleanup_guard import safe_move_py, safe_rm_py
 
-import sys
-import os
 import subprocess
 import json
 from datetime import datetime

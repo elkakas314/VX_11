@@ -1,0 +1,27 @@
+version: "3.8"
+
+services:
+  builder:
+    image: python:3.10-slim
+    working_dir: /app
+    command:
+      [
+        "python3",
+        "/app/builder/runner.py",
+        "/jobs/${JOB_ID}/input.json",
+        "/jobs/${JOB_ID}/output",
+      ]
+    environment:
+      - PYTHONDONTWRITEBYTECODE=1
+    volumes:
+      - ./builder:/app/builder:ro
+      - ./data/runtime/builder_jobs:/jobs:rw
+      - ./docs/canon:/canon:ro
+    read_only: true
+    network_mode: "none"
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp

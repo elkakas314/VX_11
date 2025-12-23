@@ -1,0 +1,152 @@
+version: "3.8"
+
+# ============================================================================
+# Shub-Niggurath Ultimate v3.0 — Cluster Interno (NO TOCA VX11)
+# ============================================================================
+# Este archivo es INDEPENDIENTE del docker-compose de VX11
+# Se levanta por separado con: docker-compose -f docker/shub_compose.yml up -d
+
+services:
+  # ========== CORE PROCESSING ==========
+
+  shub-api:
+    build:
+      context: ..
+      dockerfile: shub/docker/Dockerfile.api
+    ports:
+      - "9000:9000"
+    environment:
+      - SHUB_MODE=api
+      - SHUB_DB=sqlite:////app/data/shub_niggurath.db
+      - LOG_LEVEL=INFO
+    volumes:
+      - shub_data:/app/data
+      - shub_logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/v1/maintenance/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    depends_on:
+      - shub-db
+    networks:
+      - shub_internal
+
+  shub-conversational-engine:
+    build:
+      context: ..
+      dockerfile: shub/docker/Dockerfile.engine
+    environment:
+      - SHUB_ENGINE_TYPE=conversational
+      - SHUB_DB=sqlite:////app/data/shub_niggurath.db
+      - LOG_LEVEL=INFO
+    volumes:
+      - shub_data:/app/data
+      - shub_logs:/app/logs
+    depends_on:
+      - shub-db
+    networks:
+      - shub_internal
+
+  shub-spectral-analyzer:
+    build:
+      context: ..
+      dockerfile: shub/docker/Dockerfile.engine
+    environment:
+      - SHUB_ENGINE_TYPE=spectral_analyzer
+      - SHUB_DB=sqlite:////app/data/shub_niggurath.db
+      - LOG_LEVEL=INFO
+    volumes:
+      - shub_data:/app/data
+      - shub_logs:/app/logs
+    depends_on:
+      - shub-db
+    networks:
+      - shub_internal
+
+  shub-headphone-engine:
+    build:
+      context: ..
+      dockerfile: shub/docker/Dockerfile.engine
+    environment:
+      - SHUB_ENGINE_TYPE=headphone
+      - SHUB_DB=sqlite:////app/data/shub_niggurath.db
+      - LOG_LEVEL=INFO
+    volumes:
+      - shub_data:/app/data
+      - shub_logs:/app/logs
+    depends_on:
+      - shub-db
+    networks:
+      - shub_internal
+
+  shub-maintenance-agent:
+    build:
+      context: ..
+      dockerfile: shub/docker/Dockerfile.engine
+    environment:
+      - SHUB_ENGINE_TYPE=maintenance
+      - SHUB_DB=sqlite:////app/data/shub_niggurath.db
+      - LOG_LEVEL=INFO
+    volumes:
+      - shub_data:/app/data
+      - shub_logs:/app/logs
+    depends_on:
+      - shub-db
+    networks:
+      - shub_internal
+
+  shub-ai-processor:
+    build:
+      context: ..
+      dockerfile: shub/docker/Dockerfile.engine
+    environment:
+      - SHUB_ENGINE_TYPE=ai_processor
+      - SHUB_DB=sqlite:////app/data/shub_niggurath.db
+      - LOG_LEVEL=INFO
+    volumes:
+      - shub_data:/app/data
+      - shub_logs:/app/logs
+    depends_on:
+      - shub-db
+    networks:
+      - shub_internal
+
+  shub-drum-doctor:
+    build:
+      context: ..
+      dockerfile: shub/docker/Dockerfile.engine
+    environment:
+      - SHUB_ENGINE_TYPE=drum_doctor
+      - SHUB_DB=sqlite:////app/data/shub_niggurath.db
+      - LOG_LEVEL=INFO
+    volumes:
+      - shub_data:/app/data
+      - shub_logs:/app/logs
+    depends_on:
+      - shub-db
+    networks:
+      - shub_internal
+
+  # ========== STORAGE ==========
+
+  shub-db:
+    image: sqlite:latest
+    volumes:
+      - shub_data:/app/data
+    networks:
+      - shub_internal
+
+# ============================================================================
+# VOLUMENES Y REDES
+# ============================================================================
+
+volumes:
+  shub_data:
+    driver: local
+  shub_logs:
+    driver: local
+
+networks:
+  shub_internal:
+    driver: bridge

@@ -88,7 +88,9 @@ def _matches_ignore(path: str, ignore_globs: List[str]) -> bool:
     return False
 
 
-def _actual_paths(root: str, ignore_globs: List[str]) -> Set[str]:
+def _actual_paths(root: str, ignore_globs: List[str] = None) -> Set[str]:
+    if ignore_globs is None:
+        ignore_globs = []
     paths: Set[str] = set()
     for dirpath, dirnames, filenames in os.walk(root):
         rel_dir = os.path.relpath(dirpath, root)

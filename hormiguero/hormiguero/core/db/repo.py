@@ -26,6 +26,7 @@ def upsert_hormiga_state(
     enabled: bool,
     aggression_level: int,
     scan_interval_sec: int,
+    ant_id: Optional[str] = None,
     last_scan_at: Optional[str] = None,
     last_ok_at: Optional[str] = None,
     last_error_at: Optional[str] = None,
@@ -38,10 +39,11 @@ def upsert_hormiga_state(
         conn.execute(
             """
             INSERT INTO hormiga_state (
-                hormiga_id, name, role, enabled, aggression_level, scan_interval_sec,
+                hormiga_id, ant_id, name, role, enabled, aggression_level, scan_interval_sec,
                 last_scan_at, last_ok_at, last_error_at, last_error, stats_json, created_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(hormiga_id) DO UPDATE SET
+                ant_id=excluded.ant_id,
                 name=excluded.name,
                 role=excluded.role,
                 enabled=excluded.enabled,
@@ -56,6 +58,7 @@ def upsert_hormiga_state(
             """,
             (
                 hormiga_id,
+                ant_id or hormiga_id,
                 name,
                 role,
                 int(enabled),
@@ -148,7 +151,9 @@ def upsert_incident(
     return incident_id
 
 
-def set_incident_suggestions(incident_id: str, suggested_actions: Dict[str, Any]) -> None:
+def set_incident_suggestions(
+    incident_id: str, suggested_actions: Dict[str, Any]
+) -> None:
     now = _now()
     with get_connection() as conn:
         conn.execute(
@@ -227,7 +232,9 @@ def approval_status(correlation_id: str) -> Optional[str]:
     return row["status"] if row else None
 
 
-def record_feromona_event(kind: str, scope: str, payload: Dict[str, Any], source: str) -> None:
+def record_feromona_event(
+    kind: str, scope: str, payload: Dict[str, Any], source: str
+) -> None:
     now = _now()
     with get_connection() as conn:
         conn.execute(

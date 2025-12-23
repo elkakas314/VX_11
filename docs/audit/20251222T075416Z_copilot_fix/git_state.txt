@@ -1,0 +1,13 @@
+On branch audit/20251222T080000Z_canonical_hardening
+Your branch is up to date with 'vx_11_remote/audit/20251222T080000Z_canonical_hardening'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   madre/power_manager.py
+	modified:   operator_backend/backend/main_v7.py
+	modified:   tests/test_madre_power_manager_phase4.py
+	modified:   tests/test_operator_production_phase5.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
+15abb31022f14596f382558ab8433e6a7c0184f8

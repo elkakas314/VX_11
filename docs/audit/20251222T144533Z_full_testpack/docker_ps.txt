@@ -1,0 +1,12 @@
+NAMES                                STATUS                            PORTS
+vx11-spawner                         Up 6 seconds (health: starting)   0.0.0.0:8008->8008/tcp, [::]:8008->8008/tcp
+vx11-shubniggurath                   Up 6 seconds (health: starting)   0.0.0.0:8007->8007/tcp, [::]:8007->8007/tcp
+vx11-hermes                          Up 6 seconds (health: starting)   0.0.0.0:8003->8003/tcp, [::]:8003->8003/tcp
+vx11-madre                           Up 6 seconds (health: starting)   0.0.0.0:8001->8001/tcp, [::]:8001->8001/tcp
+vx11-hormiguero                      Up 6 seconds (health: starting)   0.0.0.0:8004->8004/tcp, [::]:8004->8004/tcp
+vx11-mcp                             Up 6 seconds (health: starting)   0.0.0.0:8006->8006/tcp, [::]:8006->8006/tcp
+vx11-operator-frontend               Up 16 minutes (healthy)           5173/tcp, 0.0.0.0:8020->8020/tcp, [::]:8020->8020/tcp
+vx11-switch                          Up 18 minutes (healthy)           0.0.0.0:8002->8002/tcp, [::]:8002->8002/tcp
+vx11-tentaculo-link                  Up 18 minutes (healthy)           0.0.0.0:8000->8000/tcp, [::]:8000->8000/tcp
+vx11-manifestator                    Up 10 hours (healthy)             0.0.0.0:8005->8005/tcp, [::]:8005->8005/tcp
+c71b0daa2e54_vx11-operator-backend   Up 17 minutes (healthy)           0.0.0.0:8011->8011/tcp, [::]:8011->8011/tcp

@@ -3,10 +3,18 @@
 validate_prompts.py — Valida agentes, prompts y instrucciones de Copilot.
 Estado: AUTO-GENERATED (safe).
 """
+
+# Bootstrap: asegurar que REPO_ROOT esté en sys.path
+import os
+import sys
+
+REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if REPO_ROOT not in sys.path:
+    sys.path.insert(0, REPO_ROOT)
+
 from scripts.cleanup_guard import safe_move_py, safe_rm_py
 
 
-import sys
 import re
 from pathlib import Path
 
@@ -17,26 +25,45 @@ INSTRUCTIONS_FILE = REPO_ROOT / ".github" / "copilot-instructions.md"
 
 # Frontmatter keys válidas para agents (VS Code standard)
 VALID_KEYS = {
-    "name", "description", "argument-hint", "target", "infer",
-    "tools", "handoffs", "model", "version", "updated"
+    "name",
+    "description",
+    "argument-hint",
+    "target",
+    "infer",
+    "tools",
+    "handoffs",
+    "model",
+    "version",
+    "updated",
 }
 
 # Tools válidas actualizadas (no usar runSubagent, fetch obsoleto, etc)
 VALID_TOOLS = {
-    "search/usages", "read/problems", "search/changes",
-    "execute/testFailure", "web/fetch", "web/githubRepo",
-    "agent"
+    "search/usages",
+    "read/problems",
+    "search/changes",
+    "execute/testFailure",
+    "web/fetch",
+    "web/githubRepo",
+    "agent",
 }
 
 # Tools OBSOLETAS (deben ser migradas)
 OBSOLETE_TOOLS = {
-    "runSubagent", "fetch", "githubRepo", "usages", "problems",
-    "changes", "testFailure", "terminal",
+    "runSubagent",
+    "fetch",
+    "githubRepo",
+    "usages",
+    "problems",
+    "changes",
+    "testFailure",
+    "terminal",
     "github/github-mcp-server/get_issue",
     "github/github-mcp-server/get_issue_comments",
     "github.vscode-pull-request-github/issue_fetch",
-    "github.vscode-pull-request-github/activePullRequest"
+    "github.vscode-pull-request-github/activePullRequest",
 }
+
 
 def validate_agent_file(path):
     """Valida frontmatter de un .agent.md."""
@@ -45,7 +72,7 @@ def validate_agent_file(path):
     if path.name == "Plan.agent.md":
         print(f"  ⊘ {path.name} (VS Code example, skipped)")
         return errors
-    
+
     try:
         content = path.read_text(encoding="utf-8")
         # Buscar frontmatter (líneas entre --- y ---)
@@ -53,9 +80,9 @@ def validate_agent_file(path):
         if not match:
             errors.append(f"  ✗ {path.name}: Sin frontmatter válido")
             return errors
-        
+
         frontmatter = match.group(1)
-        
+
         # Detectar keys inválidas (ignorar keys dentro de handoffs)
         in_handoffs = False
         for line in frontmatter.split("\n"):
@@ -70,8 +97,10 @@ def validate_agent_file(path):
                 continue
             key = line.split(":")[0].strip()
             if key not in VALID_KEYS and not key.startswith("-"):
-                errors.append(f"  ⚠ {path.name}: Key no estándar '{key}' (vs Code no reconoce)")
-        
+                errors.append(
+                    f"  ⚠ {path.name}: Key no estándar '{key}' (vs Code no reconoce)"
+                )
+
         # Detectar tools obsoletas
         if "tools:" in frontmatter:
             tools_match = re.search(r"tools:\s*\[(.*?)\]", frontmatter)
@@ -79,44 +108,51 @@ def validate_agent_file(path):
                 tools_str = tools_match.group(1)
                 for obsolete in OBSOLETE_TOOLS:
                     if obsolete in tools_str:
-                        errors.append(f"  ⚠ {path.name}: Tool OBSOLETA '{obsolete}' (migrar a válida)")
-        
+                        errors.append(
+                            f"  ⚠ {path.name}: Tool OBSOLETA '{obsolete}' (migrar a válida)"
+                        )
+
         # Check: infer o model (no ambos)
         has_infer = "infer:" in frontmatter
         has_model = "model:" in frontmatter
         if has_infer and has_model:
-            errors.append(f"  ⚠ {path.name}: Tiene AMBOS 'infer' y 'model' (VS Code usará infer)")
-        
+            errors.append(
+                f"  ⚠ {path.name}: Tiene AMBOS 'infer' y 'model' (VS Code usará infer)"
+            )
+
         # Check: model = gpt-5-mini (inválido, VS Code no lo reconoce)
         if 'model: "gpt-5-mini"' in frontmatter or "model: 'gpt-5-mini'" in frontmatter:
-            errors.append(f"  ✗ {path.name}: model 'gpt-5-mini' no existe en VS Code (usar infer: true)")
-        
+            errors.append(
+                f"  ✗ {path.name}: model 'gpt-5-mini' no existe en VS Code (usar infer: true)"
+            )
+
         if not errors:
             print(f"  ✓ {path.name}")
     except Exception as e:
         errors.append(f"  ✗ {path.name}: Error reading ({e})")
-    
+
     return errors
+
 
 def check_instructions_links():
     """Valida que los links en copilot-instructions.md existan."""
     errors = []
     try:
         content = INSTRUCTIONS_FILE.read_text(encoding="utf-8")
-        
+
         # Buscar patrones [path](path) y [file](path)
         pattern = r"\[([^\]]+)\]\(([^\)]+)\)"
         for match in re.finditer(pattern, content):
             link_text, link_path = match.groups()
-            
+
             # Si es URL (http/https), ignorar
             if link_path.startswith("http"):
                 continue
-            
+
             # Si es fragmento (#), ignorar
             if link_path.startswith("#"):
                 continue
-            
+
             # Resolver ruta (relativa a REPO_ROOT, no a .github/)
             # Soportar: ../../docs/file.md, ../docs/file.md
             if link_path.startswith("../../"):
@@ -125,22 +161,25 @@ def check_instructions_links():
                 resolved = REPO_ROOT / link_path[3:]  # Quitar "../"
             else:
                 resolved = REPO_ROOT / link_path
-            
+
             # Chequear si archivo existe
             if not resolved.exists():
-                errors.append(f"  ✗ Link roto en copilot-instructions.md: [{link_text}]({link_path})")
+                errors.append(
+                    f"  ✗ Link roto en copilot-instructions.md: [{link_text}]({link_path})"
+                )
     except Exception as e:
         errors.append(f"  ✗ Error reading copilot-instructions.md: {e}")
-    
+
     return errors
+
 
 def main():
     print("=" * 70)
     print("VALIDACIÓN: Agentes, Prompts e Instrucciones de Copilot")
     print("=" * 70)
-    
+
     all_errors = []
-    
+
     # Validar .agent.md files
     print("\n1. Validando .github/agents/*.agent.md...")
     if AGENTS_DIR.exists():
@@ -149,7 +188,7 @@ def main():
             all_errors.extend(errors)
     else:
         print(f"  ⚠ Directorio {AGENTS_DIR} no existe")
-    
+
     # Validar .prompt.md files (estructura básica)
     print("\n2. Validando .github/copilot-agents/*.prompt.md...")
     if COPILOT_AGENTS_DIR.exists():
@@ -165,7 +204,7 @@ def main():
                 all_errors.append(f"  ✗ {prompt_file.name}: Error ({e})")
     else:
         print(f"  ⚠ Directorio {COPILOT_AGENTS_DIR} no existe")
-    
+
     # Validar links en copilot-instructions.md
     print("\n3. Validando links en .github/copilot-instructions.md...")
     link_errors = check_instructions_links()
@@ -173,7 +212,7 @@ def main():
         all_errors.extend(link_errors)
     else:
         print("  ✓ Todos los links existen")
-    
+
     # Resumen
     print("\n" + "=" * 70)
     if all_errors:
@@ -184,6 +223,7 @@ def main():
     else:
         print("✅ VALIDACIÓN OK: 0 errores detectados")
         return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())

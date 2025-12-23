@@ -1,0 +1,30 @@
+=== PREFLIGHT INFO ===
+Timestamp: 2025-12-22T13:45:33Z
+
+=== GIT INFO ===
+## qa/full-testpack_20251222T131200Z
+ M docs/audit/PERCENTAGES.json
+ M hormiguero/hormiguero/core/db/sqlite.py
+ M tests/test_operator_production_phase5.py
+
+qa/full-testpack_20251222T131200Z
+80c8c38733f8ce73bda797d506231aac40f111a7
+
+=== PYTHON ===
+Python 3.10.12
+
+=== DOCKER ===
+Docker version 28.2.2, build 28.2.2-0ubuntu1~22.04.1
+Docker Compose version v2.30.3
+
+=== NODE (si existe) ===
+v20.19.6
+10.8.2
+
+=== SQLITE3 ===
+3.37.2 2022-01-06 13:25:41 872ba256cbf61d9290b571c0e6d82a20c224ca3ad82971edc46b29818d5dalt1
+
+=== OUTDIR ===
+OUTDIR: docs/audit/20251222T144533Z_full_testpack
+BRANCH: qa/full-testpack_20251222T144533Z
+Switched to a new branch 'qa/full-testpack_20251222T144533Z'

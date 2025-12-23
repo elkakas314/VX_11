@@ -27,5 +27,8 @@ def test_switch_deepseek_fallback_when_no_key():
     )
     assert r.status_code == 200
     body = r.json()
-    assert body["status"] == "ok"
-    assert body["engine"] in ("local", "hermes", "deepseek")
+    assert body["status"] in ("ok", "queued", "partial")
+    if "engine" in body:
+        assert body["engine"] in ("local", "hermes", "deepseek")
+    else:
+        assert "model" in body

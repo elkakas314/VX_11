@@ -1,0 +1,22 @@
+{
+    "format_version": "vx11_module_config_v1",
+    "module": "operator_backend",
+    "canonical_version": "vx11_canon_v7",
+    "module_version": "1.0.0",
+    "role": "Web UI Backend/Frontend",
+    "generated_at_utc": "2025-12-22T08:00:00Z",
+    "description": "Operator Backend provides the web-based interface for remote or advanced management of VX11.",
+    "owners": [
+        "vx11_core"
+    ],
+    "invariants": [
+        "Secure WebSocket/HTTP communication.",
+        "Role-based access control.",
+        "Decoupled frontend/backend architecture."
+    ],
+    "default_state": "disabled",
+    "default_state_description": "Disabled by default; enable for web access.",
+    "dependencies": [
+        "madre"
+    ]
+}

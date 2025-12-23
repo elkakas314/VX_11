@@ -1,0 +1,22 @@
+{
+    "format_version": "vx11_module_config_v1",
+    "module": "mcp",
+    "canonical_version": "vx11_canon_v7",
+    "module_version": "1.0.0",
+    "role": "Model Context Protocol server",
+    "generated_at_utc": "2025-12-22T08:00:00Z",
+    "description": "MCP provides a standardized interface for LLMs to interact with VX11 tools and data sources.",
+    "owners": [
+        "vx11_core"
+    ],
+    "invariants": [
+        "Strict adherence to the MCP specification.",
+        "Read-only access by default unless explicitly configured.",
+        "Exposes only authorized tools."
+    ],
+    "default_state": "enabled",
+    "default_state_description": "Active for agentic interactions.",
+    "dependencies": [
+        "madre"
+    ]
+}

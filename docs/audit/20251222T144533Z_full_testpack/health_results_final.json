@@ -1,0 +1,50 @@
+{
+  "timestamp": "2025-12-22T13:47:23Z",
+  "health_checks": {
+    "tentaculo_link": {
+      "port": 8000,
+      "status": "ok"
+    },
+    "madre": {
+      "port": 8001,
+      "status": "ok"
+    },
+    "switch": {
+      "port": 8002,
+      "status": "ok"
+    },
+    "hermes": {
+      "port": 8003,
+      "status": "ok"
+    },
+    "hormiguero": {
+      "port": 8004,
+      "status": "ok"
+    },
+    "manifestator": {
+      "port": 8005,
+      "status": "ok"
+    },
+    "mcp": {
+      "port": 8006,
+      "status": "ok"
+    },
+    "shubniggurath": {
+      "port": 8007,
+      "status": "ok"
+    },
+    "spawner": {
+      "port": 8008,
+      "status": "ok"
+    },
+    "operator-backend": {
+      "port": 8011,
+      "status": "ok"
+    }
+  },
+  "summary": {
+    "ok_count": 10,
+    "total_count": 10
+  },
+  "health_core_pct": 100.0
+}

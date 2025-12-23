@@ -1,0 +1,33 @@
+{
+  "generated_at": "2025-12-22T13:45:33Z",
+  "test_phase": "P0 Integration Tests (FULL GATING)",
+  "vx11_integration_flag": 1,
+  "vx11_test_mode": 1,
+  "vx11_mock_providers": 1,
+  "results": {
+    "VX11_INTEGRATION_0": {
+      "status": "skipped_clean",
+      "passed": 0,
+      "skipped": 4,
+      "failed": 0,
+      "total": 4,
+      "return_code": 0,
+      "interpretation": "Tests correctly skipped when flag not set (rc=0, PASS)"
+    },
+    "VX11_INTEGRATION_1": {
+      "status": "passed",
+      "passed": 4,
+      "skipped": 0,
+      "failed": 0,
+      "total": 4,
+      "return_code": 0,
+      "interpretation": "All P0 integration tests PASS (rc=0)"
+    }
+  },
+  "summary": {
+    "tests_p0_status": "OK",
+    "tests_p0_pct": 100.0,
+    "gating_correct": true,
+    "reason": "VX11_INTEGRATION=0 => skip clean (rc=0), VX11_INTEGRATION=1 => all pass (rc=0)"
+  }
+}

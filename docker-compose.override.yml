@@ -4,10 +4,27 @@ version: "3.9"
 # Adds build instructions for services that were image-only.
 
 services:
+  madre:
+    volumes:
+      - .:/app
+      - /var/run/docker.sock:/var/run/docker.sock
+    entrypoint:
+      [
+        "sh",
+        "-c",
+        "apt-get update && apt-get install -y docker-compose sqlite3 && python -m uvicorn madre.main:app --host 0.0.0.0 --port 8001",
+      ]
+
   hermes:
     build:
       context: .
       dockerfile: switch/hermes/Dockerfile
+    volumes:
+      - .:/app
+
+  switch:
+    volumes:
+      - .:/app
 
   hormiguero:
     build:
@@ -18,4 +35,16 @@ services:
     build:
       context: .
       dockerfile: shubniggurath/Dockerfile
+    volumes:
+      - .:/app
 
+  manifestator:
+    build:
+      context: .
+      dockerfile: manifestator/Dockerfile
+    volumes:
+      - .:/app
+
+  tentaculo_link:
+    volumes:
+      - .:/app

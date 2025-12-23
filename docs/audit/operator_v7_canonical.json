@@ -1,0 +1,289 @@
+{
+    "component": "operator_backend",
+    "version": "7.0",
+    "spec": {
+        "module": "operator_backend.backend.main_v7",
+        "contracts": [
+            {
+                "endpoint": "/health",
+                "method": "GET",
+                "auth_required": false,
+                "description": "Simple health check for operator backend",
+                "response_schema": {
+                    "status": "ok",
+                    "module": "operator",
+                    "version": "7.0"
+                },
+                "response_codes": {
+                    "200": "Healthy"
+                }
+            },
+            {
+                "endpoint": "/operator/vx11/overview",
+                "method": "GET",
+                "auth_required": true,
+                "description": "Get VX11 system overview by querying all modules",
+                "upstream_dependencies": [
+                    "http://localhost:8000/health (Tentáculo Link)"
+                ],
+                "response_schema": {
+                    "status": "ok|degraded|partial",
+                    "healthy_modules": "int",
+                    "total_modules": "int",
+                    "modules": {
+                        "tentaculo_link": {
+                            "status": "ok|offline"
+                        },
+                        "madre": {
+                            "status": "ok|offline"
+                        },
+                        "switch": {
+                            "status": "ok|offline"
+                        },
+                        "hermes": {
+                            "status": "ok|offline"
+                        },
+                        "hormiguero": {
+                            "status": "ok|offline"
+                        },
+                        "spawner": {
+                            "status": "ok|offline"
+                        },
+                        "manifestator": {
+                            "status": "ok|offline"
+                        },
+                        "mcp": {
+                            "status": "ok|offline"
+                        },
+                        "shub": {
+                            "status": "ok|offline"
+                        },
+                        "operator": {
+                            "status": "ok",
+                            "version": "7.0"
+                        }
+                    }
+                },
+                "fallback": "If upstream services offline, queries return offline status; healthy_modules count adjusts; status becomes degraded/partial",
+                "timeout": 3.0,
+                "response_codes": {
+                    "200": "OK",
+                    "401": "Missing auth token",
+                    "403": "Invalid auth token"
+                }
+            },
+            {
+                "endpoint": "/operator/shub/dashboard",
+                "method": "GET",
+                "auth_required": true,
+                "description": "Get Shubniggurath dashboard with health and metrics",
+                "upstream_dependencies": [
+                    "GET http://localhost:8007/health (Shubniggurath)",
+                    "POST http://localhost:8007/metrics (Shubniggurath)"
+                ],
+                "request_body_for_metrics": {
+                    "include": [
+                        "sessions",
+                        "resources",
+                        "queue"
+                    ]
+                },
+                "response_schema": {
+                    "status": "ok|offline",
+                    "shub_health": "ok|offline",
+                    "active_sessions": "int",
+                    "projects": [
+                        {
+                            "id": "string",
+                            "name": "string"
+                        }
+                    ],
+                    "resources": {
+                        "cpu_percent": "float",
+                        "memory_mb": "int"
+                    }
+                },
+                "fallback": "If services offline, returns status=offline with default values (active_sessions=0, projects=[], resources={})",
+                "timeout": 3.0,
+                "response_codes": {
+                    "200": "OK",
+                    "401": "Missing auth token",
+                    "403": "Invalid auth token"
+                }
+            },
+            {
+                "endpoint": "/operator/resources",
+                "method": "GET",
+                "auth_required": true,
+                "description": "Get available resources (CLI tools and models) from Hermes",
+                "upstream_dependencies": [
+                    "GET http://localhost:8003/health (Hermes)",
+                    "GET http://localhost:8003/tools (Hermes)"
+                ],
+                "response_schema": {
+                    "status": "ok|offline",
+                    "cli_tools": [
+                        {
+                            "name": "string",
+                            "available": "bool",
+                            "version": "string"
+                        }
+                    ],
+                    "local_models": [
+                        {
+                            "name": "string",
+                            "size": "string",
+                            "loaded": "bool"
+                        }
+                    ],
+                    "max_tokens": "int",
+                    "available_tokens": "int"
+                },
+                "fallback": "If Hermes offline, returns status=offline with placeholder tools=[{name:deepseek_r1, available:false, version:1.0}]",
+                "timeout": 3.0,
+                "response_codes": {
+                    "200": "OK",
+                    "401": "Missing auth token",
+                    "403": "Invalid auth token"
+                }
+            },
+            {
+                "endpoint": "/ws/{session_id}",
+                "method": "WebSocket",
+                "auth_required": false,
+                "description": "WebSocket for canonical VX11 events streaming",
+                "path_params": {
+                    "session_id": "required string"
+                },
+                "incoming_message_format": {
+                    "event_type": "string (see supported types below)",
+                    "data": "dict with event-specific fields"
+                },
+                "supported_event_types": [
+                    "message_received",
+                    "tool_call_requested",
+                    "tool_result_received",
+                    "plan_updated",
+                    "status_changed",
+                    "error_reported"
+                ],
+                "outgoing_canonical_event_format": {
+                    "type": "string (event_type from supported list)",
+                    "session_id": "string (from path)",
+                    "timestamp": "ISO8601 timestamp",
+                    "data": "dict with event-specific fields"
+                },
+                "fallback_on_unknown_event_type": "Converts to 'status_changed' with note field",
+                "error_handling": "Invalid JSON sends error_reported event with error field",
+                "response_codes": {
+                    "101": "WebSocket Upgrade",
+                    "1000": "Normal close",
+                    "1006": "Abnormal close"
+                }
+            }
+        ],
+        "dependencies": {
+            "external_packages": [
+                "fastapi",
+                "pydantic",
+                "httpx",
+                "uvicorn",
+                "sqlalchemy"
+            ],
+            "internal_modules": [
+                "config.settings",
+                "config.tokens",
+                "config.forensics",
+                "config.db_schema",
+                "operator_backend.backend.browser",
+                "operator_backend.backend.switch_integration"
+            ],
+            "upstream_services": [
+                {
+                    "name": "Tentáculo Link",
+                    "port": 8000,
+                    "endpoints": [
+                        "/health"
+                    ],
+                    "protocol": "HTTP",
+                    "timeout": 3.0
+                },
+                {
+                    "name": "Shubniggurath",
+                    "port": 8007,
+                    "endpoints": [
+                        "/health",
+                        "/metrics"
+                    ],
+                    "protocol": "HTTP",
+                    "timeout": 3.0
+                },
+                {
+                    "name": "Hermes",
+                    "port": 8003,
+                    "endpoints": [
+                        "/health",
+                        "/tools"
+                    ],
+                    "protocol": "HTTP",
+                    "timeout": 3.0
+                }
+            ]
+        },
+        "ports": [
+            8011
+        ],
+        "server_config": {
+            "host": "0.0.0.0",
+            "port": 8011,
+            "cors_enabled": true
+        },
+        "health_check": {
+            "endpoint": "GET /health",
+            "interval_seconds": 30,
+            "expected_response": {
+                "status": "ok",
+                "module": "operator",
+                "version": "7.0"
+            }
+        },
+        "logging": {
+            "system": "config.forensics.write_log",
+            "format": "write_log(component, message, level='INFO'|'WARNING'|'ERROR')",
+            "events_logged": [
+                "startup:v7_initialized",
+                "shutdown:v7_closed",
+                "vx11_overview:requested",
+                "shub_dashboard:requested",
+                "resources:requested",
+                "ws_connect:{session_id}",
+                "ws_event:{session_id}:{event_type}",
+                "ws_disconnect:{session_id}"
+            ]
+        },
+        "auth_policy": {
+            "type": "Header-based token validation",
+            "header_name": "X-VX11-Token",
+            "enabled_endpoints": [
+                "/operator/*"
+            ],
+            "exempt_endpoints": [
+                "/health",
+                "/ws"
+            ]
+        },
+        "canonical_status": "production_ready",
+        "maturity_level": "stable",
+        "last_updated": "2025-12-22T06:30:00Z",
+        "production_checklist": {
+            "All endpoints have timeout handling": true,
+            "Fallbacks implemented for offline services": true,
+            "WebSocket canonical event formatting": true,
+            "Authentication policy enforced": true,
+            "Error logging via config.forensics.write_log": true,
+            "Health endpoint responsive": true,
+            "Upstream queries use httpx.AsyncClient": true,
+            "Self-contained tests with mocks": true
+        }
+    }
+}

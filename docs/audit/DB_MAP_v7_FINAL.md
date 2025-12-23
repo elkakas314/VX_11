@@ -1,15 +1,15 @@
 # VX11 Database Map (generated)
 
-Generated at: 2025-12-20T11:57:55.991441Z
+Generated at: 2025-12-22T06:33:49.896886Z
 
 Database file: data/runtime/vx11.db
 
 ## Tables
 
-### audit_logs — EMPTY (READY)
+### audit_logs — ACTIVE
 
 - Module: madre
-- Rows: 0
+- Rows: 1
 - Columns:
   - id (INTEGER) PK NOT NULL
   - component (VARCHAR(64)) NOT NULL
@@ -17,10 +17,75 @@ Database file: data/runtime/vx11.db
   - message (TEXT) NOT NULL
   - created_at (DATETIME)
 
-### chat_providers_stats — EMPTY (READY)
+### canonical_docs — ACTIVE
+
+- Rows: 6
+- Columns:
+  - doc_type (TEXT) PK
+  - version (TEXT)
+  - sha256 (TEXT)
+  - content_json (TEXT)
+  - source_path (TEXT)
+  - created_at_utc (TEXT)
+  - git_head (TEXT)
+
+### canonical_docs_legacy_20251220T212937Z — LEGACY - preserved
+
+- Rows: 12
+- Columns:
+  - canonical_version (TEXT) PK
+  - doc_path (TEXT) PK
+  - sha256 (TEXT)
+  - size_bytes (INTEGER)
+  - created_at_utc (TEXT)
+  - doc_type (TEXT)
+  - version (TEXT)
+  - json (TEXT)
+  - source_path (TEXT)
+  - content_json (TEXT)
+  - git_head (TEXT)
+
+### canonical_kv — ACTIVE
+
+- Rows: 18
+- Columns:
+  - key (TEXT) PK
+  - value (TEXT)
+  - updated_at_utc (TEXT)
+
+### canonical_registry — ACTIVE
+
+- Rows: 1
+- Columns:
+  - canonical_version (TEXT) PK
+  - git_commit (TEXT)
+  - git_branch (TEXT)
+  - master_path (TEXT)
+  - master_sha256 (TEXT)
+  - created_at_utc (TEXT)
+
+### canonical_runs — ACTIVE
+
+- Rows: 8
+- Columns:
+  - run_id (TEXT) PK
+  - canonical_version (TEXT)
+  - outdir (TEXT)
+  - started_at_utc (TEXT)
+  - ended_at_utc (TEXT)
+  - coverage_pct (REAL)
+  - global_parcial_pct (REAL)
+  - global_ponderado_pct (REAL)
+  - metrics_json (TEXT)
+  - git_head (TEXT)
+  - results_json (TEXT)
+  - finished_at_utc (TEXT)
+  - percentages_json (TEXT)
+
+### chat_providers_stats — ACTIVE
 
 - Module: switch
-- Rows: 0
+- Rows: 1
 - Columns:
   - provider (TEXT) PK
   - success_count (INTEGER)
@@ -79,7 +144,7 @@ Database file: data/runtime/vx11.db
 ### cli_usage_stats — ACTIVE
 
 - Module: hermes
-- Rows: 272
+- Rows: 305
 - Columns:
   - id (INTEGER) PK NOT NULL
   - provider_id (VARCHAR(128)) NOT NULL
@@ -93,7 +158,7 @@ Database file: data/runtime/vx11.db
 ### context — ACTIVE
 
 - Module: madre
-- Rows: 12
+- Rows: 36
 - Columns:
   - id (INTEGER) PK NOT NULL
   - task_id (VARCHAR(36)) NOT NULL
@@ -168,7 +233,7 @@ Database file: data/runtime/vx11.db
 ### daughter_attempts — ACTIVE
 
 - Module: spawner
-- Rows: 139
+- Rows: 160
 - Columns:
   - id (INTEGER) PK NOT NULL
   - daughter_id (INTEGER) NOT NULL
@@ -188,7 +253,7 @@ Database file: data/runtime/vx11.db
 ### daughter_tasks — ACTIVE
 
 - Module: spawner
-- Rows: 90
+- Rows: 111
 - Columns:
   - id (INTEGER) PK NOT NULL
   - intent_id (VARCHAR(36))
@@ -208,7 +273,7 @@ Database file: data/runtime/vx11.db
 ### daughters — ACTIVE
 
 - Module: spawner
-- Rows: 139
+- Rows: 160
 - Columns:
   - id (INTEGER) PK NOT NULL
   - task_id (INTEGER) NOT NULL
@@ -325,7 +390,7 @@ Database file: data/runtime/vx11.db
 ### hijas_runtime — ACTIVE
 
 - Module: hormiguero
-- Rows: 15
+- Rows: 35
 - Columns:
   - id (INTEGER) PK NOT NULL
   - name (VARCHAR(128)) NOT NULL
@@ -346,7 +411,7 @@ Database file: data/runtime/vx11.db
 ### hijas_state — ACTIVE
 
 - Module: hormiguero
-- Rows: 3
+- Rows: 23
 - Columns:
   - id (INTEGER) PK NOT NULL
   - hija_id (VARCHAR(64)) NOT NULL
@@ -386,7 +451,7 @@ Database file: data/runtime/vx11.db
 ### ia_decisions — ACTIVE
 
 - Module: switch
-- Rows: 10217
+- Rows: 10218
 - Columns:
   - id (INTEGER) PK NOT NULL
   - prompt_hash (VARCHAR(64)) NOT NULL
@@ -433,7 +498,7 @@ Database file: data/runtime/vx11.db
 ### intents_log — ACTIVE
 
 - Module: madre
-- Rows: 91
+- Rows: 121
 - Columns:
   - id (INTEGER) PK NOT NULL
   - source (VARCHAR(64)) NOT NULL
@@ -466,7 +531,7 @@ Database file: data/runtime/vx11.db
 ### madre_actions — ACTIVE
 
 - Module: madre
-- Rows: 52
+- Rows: 82
 - Columns:
   - id (INTEGER) PK NOT NULL
   - module (VARCHAR(64)) NOT NULL
@@ -509,7 +574,7 @@ Database file: data/runtime/vx11.db
 ### model_usage_stats — ACTIVE
 
 - Module: hermes
-- Rows: 10217
+- Rows: 10218
 - Columns:
   - id (INTEGER) PK NOT NULL
   - model_or_cli_name (VARCHAR(255)) NOT NULL
@@ -584,7 +649,7 @@ Database file: data/runtime/vx11.db
 ### operator_browser_task — ACTIVE
 
 - Module: operator
-- Rows: 41
+- Rows: 47
 - Columns:
   - id (INTEGER) PK NOT NULL
   - session_id (VARCHAR(64)) NOT NULL
@@ -615,7 +680,7 @@ Database file: data/runtime/vx11.db
 ### operator_message — ACTIVE
 
 - Module: operator
-- Rows: 116
+- Rows: 128
 - Columns:
   - id (INTEGER) PK NOT NULL
   - session_id (VARCHAR(64)) NOT NULL
@@ -629,7 +694,7 @@ Database file: data/runtime/vx11.db
 ### operator_session — ACTIVE
 
 - Module: operator
-- Rows: 113
+- Rows: 143
 - Columns:
   - id (INTEGER) PK NOT NULL
   - session_id (VARCHAR(64)) NOT NULL
@@ -641,7 +706,7 @@ Database file: data/runtime/vx11.db
 ### operator_switch_adjustment — ACTIVE
 
 - Module: operator
-- Rows: 41
+- Rows: 47
 - Columns:
   - id (INTEGER) PK NOT NULL
   - session_id (VARCHAR(64)) NOT NULL
@@ -659,7 +724,7 @@ Database file: data/runtime/vx11.db
 ### operator_tool_call — ACTIVE
 
 - Module: operator
-- Rows: 41
+- Rows: 47
 - Columns:
   - id (INTEGER) PK NOT NULL
   - message_id (INTEGER) NOT NULL
@@ -728,7 +793,7 @@ Database file: data/runtime/vx11.db
 ### routing_events — ACTIVE
 
 - Module: switch
-- Rows: 62
+- Rows: 70
 - Columns:
   - id (INTEGER) PK NOT NULL
   - timestamp (DATETIME)
@@ -753,7 +818,7 @@ Database file: data/runtime/vx11.db
 ### scheduler_history — ACTIVE
 
 - Module: madre
-- Rows: 40037
+- Rows: 46277
 - Columns:
   - id (INTEGER) PK NOT NULL
   - timestamp (DATETIME)
@@ -835,7 +900,7 @@ Database file: data/runtime/vx11.db
 ### spawns — ACTIVE
 
 - Module: spawner
-- Rows: 28
+- Rows: 48
 - Columns:
   - id (INTEGER) PK NOT NULL
   - uuid (VARCHAR(36)) NOT NULL
@@ -856,7 +921,7 @@ Database file: data/runtime/vx11.db
 ### switch_queue_v2 — ACTIVE
 
 - Module: switch
-- Rows: 10217
+- Rows: 10218
 - Columns:
   - id (INTEGER) PK NOT NULL
   - source (VARCHAR(64)) NOT NULL
@@ -908,7 +973,7 @@ Database file: data/runtime/vx11.db
 ### task_queue — ACTIVE
 
 - Module: madre
-- Rows: 25
+- Rows: 98
 - Columns:
   - id (INTEGER) PK NOT NULL
   - source (VARCHAR(64)) NOT NULL
@@ -917,11 +982,13 @@ Database file: data/runtime/vx11.db
   - status (VARCHAR(32))
   - enqueued_at (DATETIME)
   - dequeued_at (DATETIME)
+  - result (TEXT)
+  - updated_at (DATETIME)
 
 ### tasks — ACTIVE
 
 - Module: madre
-- Rows: 23
+- Rows: 31
 - Columns:
   - id (INTEGER) PK NOT NULL
   - uuid (VARCHAR(36)) NOT NULL

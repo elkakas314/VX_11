@@ -1,0 +1,29 @@
+=== Generar PERCENTAGES v9 ===
+    "Estabilidad_operativa_pct": 70.0,
+    "evidence_coverage_pct": 80.0
+  },
+  "autonomy_verdict": {
+    "status": "DEGRADED",
+    "decision_logic": {
+      "Estabilidad_value": 70.0,
+      "Estabilidad_threshold": "70.0 >= 75.0? \u2192 False",
+      "coverage_strict_check": "60.0 >= 50%? \u2192 True",
+      "health_services_check": "100.0% healthy \u2192 True",
+      "all_flows_pass": true,
+      "db_integrity_status": "ok"
+    }
+  },
+  "validation_checksums": {
+    "invariant_check_100_0_100_100": "70.0 (should be 70.0)",
+    "weights_sum": "1.0 (0.35 + 0.30 + 0.25 + 0.10)",
+    "p0_metrics_count": 6
+  }
+}
+
+{
+    "version": "9.0",
+    "generated_at": "2025-12-22T13:15:37.046161+00:00",
+    "outdir": "/home/elkakas314/vx11/docs/audit/20251222T113034Z_autonomy_evidence",
+    "audit_context": {
+...
+✓ Copia guardada en docs/audit/20251222T131200Z_full_testpack/

@@ -17,6 +17,16 @@ from core.db import repo
 from core.queen import Queen
 from core.actions import executor
 
+# INEE imports (optional)
+try:
+    from inee.api import router as inee_router, init_inee_router
+    from inee.colonies import INEERegistry, INEERegistryDAO
+    from inee.db import INEEDBManager
+
+    INEE_AVAILABLE = True
+except ImportError:
+    INEE_AVAILABLE = False
+
 ROOT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
 
@@ -43,6 +53,21 @@ queen = Queen(root_path=ROOT_PATH)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     ensure_schema()
+
+    # Initialize INEE if enabled
+    if INEE_AVAILABLE and os.getenv("VX11_INEE_ENABLED", "0") == "1":
+        try:
+            inee_db_manager = INEEDBManager()
+            inee_registry = INEERegistry(INEERegistryDAO())
+
+            # CPU gate function: check if CPU is sustained high
+            def cpu_gate_high() -> bool:
+                return getattr(queen, "cpu_sustained_high", False)
+
+            init_inee_router(inee_registry, inee_db_manager, cpu_gate_high)
+        except Exception as e:
+            print(f"Warning: failed to initialize INEE: {e}")
+
     task = asyncio.create_task(queen.run_loop())
     try:
         yield
@@ -51,6 +76,10 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="VX11 Hormiguero", lifespan=lifespan)
+
+# Mount INEE routes if enabled
+if INEE_AVAILABLE and os.getenv("VX11_INEE_ENABLED", "0") == "1":
+    app.include_router(inee_router)
 
 
 @app.get("/health")

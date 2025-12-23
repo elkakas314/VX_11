@@ -37,7 +37,9 @@ def _columns(conn: sqlite3.Connection, table: str) -> List[str]:
     return [row["name"] for row in cur.fetchall()]
 
 
-def _ensure_columns(conn: sqlite3.Connection, table: str, columns: Dict[str, str]) -> None:
+def _ensure_columns(
+    conn: sqlite3.Connection, table: str, columns: Dict[str, str]
+) -> None:
     existing = set(_columns(conn, table))
     for name, col_type in columns.items():
         if name in existing:
@@ -49,6 +51,7 @@ def ensure_schema() -> None:
     schema = {
         "hormiga_state": {
             "hormiga_id": "TEXT",
+            "ant_id": "TEXT",
             "name": "TEXT",
             "role": "TEXT",
             "enabled": "INTEGER",

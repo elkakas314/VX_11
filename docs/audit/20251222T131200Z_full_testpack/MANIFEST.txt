@@ -1,0 +1,22 @@
+total 108K
+-rw-rw-r-- 1 elkakas314 elkakas314   94 dic 22 14:14 db_pragma.txt
+-rw-rw-r-- 1 elkakas314 elkakas314 1,6K dic 22 14:17 docker_down.log
+-rw-rw-r-- 1 elkakas314 elkakas314 3,9K dic 22 14:12 docker_ps.txt
+-rw-rw-r-- 1 elkakas314 elkakas314 1,6K dic 22 14:14 e2e_flows.json
+-rw-rw-r-- 1 elkakas314 elkakas314 5,5K dic 22 14:16 FULL_TESTPACK_REPORT.md
+-rw-rw-r-- 1 elkakas314 elkakas314  906 dic 22 14:15 generate_percentages_run.txt
+-rw-rw-r-- 1 elkakas314 elkakas314 2,2K dic 22 14:12 health_check.txt
+-rw-rw-r-- 1 elkakas314 elkakas314  805 dic 22 14:12 health_results.json
+-rw-rw-r-- 1 elkakas314 elkakas314    0 dic 22 14:17 MANIFEST.txt
+-rw-rw-r-- 1 elkakas314 elkakas314  155 dic 22 14:15 operator_backend_smoke.txt
+-rw-rw-r-- 1 elkakas314 elkakas314  462 dic 22 14:15 operator_frontend_structure.txt
+-rw-rw-r-- 1 elkakas314 elkakas314 3,9K dic 22 14:15 PERCENTAGES.json
+-rw-rw-r-- 1 elkakas314 elkakas314  209 dic 22 14:12 PREFLIGHT.txt
+-rw-rw-r-- 1 elkakas314 elkakas314    2 dic 22 14:14 pytest_all.rc
+-rw-rw-r-- 1 elkakas314 elkakas314  107 dic 22 14:14 pytest_all_summary.json
+-rw-rw-r-- 1 elkakas314 elkakas314  26K dic 22 14:14 pytest_all.txt
+-rw-rw-r-- 1 elkakas314 elkakas314  614 dic 22 14:13 pytest_p0_summary.json
+-rw-rw-r-- 1 elkakas314 elkakas314    2 dic 22 14:12 pytest_p0_VX11_INTEGRATION_0.rc
+-rw-rw-r-- 1 elkakas314 elkakas314  927 dic 22 14:12 pytest_p0_VX11_INTEGRATION_0.txt
+-rw-rw-r-- 1 elkakas314 elkakas314    2 dic 22 14:13 pytest_p0_VX11_INTEGRATION_1.rc
+-rw-rw-r-- 1 elkakas314 elkakas314  798 dic 22 14:13 pytest_p0_VX11_INTEGRATION_1.txt

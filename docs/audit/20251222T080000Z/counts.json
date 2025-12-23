@@ -1,0 +1,267 @@
+{
+  "tables": [
+    {
+      "table": "tasks",
+      "rows": 26
+    },
+    {
+      "table": "ia_decisions",
+      "rows": 10217
+    },
+    {
+      "table": "module_health",
+      "rows": 1
+    },
+    {
+      "table": "model_registry",
+      "rows": 0
+    },
+    {
+      "table": "cli_registry",
+      "rows": 0
+    },
+    {
+      "table": "models_local",
+      "rows": 30
+    },
+    {
+      "table": "models_remote_cli",
+      "rows": 0
+    },
+    {
+      "table": "tokens_usage",
+      "rows": 0
+    },
+    {
+      "table": "task_queue",
+      "rows": 94
+    },
+    {
+      "table": "events",
+      "rows": 0
+    },
+    {
+      "table": "hijas_runtime",
+      "rows": 33
+    },
+    {
+      "table": "system_state",
+      "rows": 6
+    },
+    {
+      "table": "audit_logs",
+      "rows": 0
+    },
+    {
+      "table": "sandbox_exec",
+      "rows": 0
+    },
+    {
+      "table": "system_events",
+      "rows": 12
+    },
+    {
+      "table": "scheduler_history",
+      "rows": 46277
+    },
+    {
+      "table": "engines",
+      "rows": 0
+    },
+    {
+      "table": "shub_projects",
+      "rows": 0
+    },
+    {
+      "table": "operator_jobs",
+      "rows": 0
+    },
+    {
+      "table": "hermes_ingest",
+      "rows": 0
+    },
+    {
+      "table": "madre_policies",
+      "rows": 10
+    },
+    {
+      "table": "madre_actions",
+      "rows": 61
+    },
+    {
+      "table": "forensic_ledger",
+      "rows": 0
+    },
+    {
+      "table": "power_events",
+      "rows": 0
+    },
+    {
+      "table": "feromona_events",
+      "rows": 0
+    },
+    {
+      "table": "hijas_state",
+      "rows": 21
+    },
+    {
+      "table": "drift_reports",
+      "rows": 0
+    },
+    {
+      "table": "cli_providers",
+      "rows": 1
+    },
+    {
+      "table": "local_models_v2",
+      "rows": 0
+    },
+    {
+      "table": "model_usage_stats",
+      "rows": 10217
+    },
+    {
+      "table": "switch_queue_v2",
+      "rows": 10217
+    },
+    {
+      "table": "daughter_tasks",
+      "rows": 108
+    },
+    {
+      "table": "intents_log",
+      "rows": 112
+    },
+    {
+      "table": "hormiga_state",
+      "rows": 11
+    },
+    {
+      "table": "incidents",
+      "rows": 1126461
+    },
+    {
+      "table": "pheromone_log",
+      "rows": 1125692
+    },
+    {
+      "table": "operator_session",
+      "rows": 123
+    },
+    {
+      "table": "cli_usage_stats",
+      "rows": 287
+    },
+    {
+      "table": "cli_onboarding_state",
+      "rows": 0
+    },
+    {
+      "table": "fluzo_signals",
+      "rows": 0
+    },
+    {
+      "table": "routing_events",
+      "rows": 67
+    },
+    {
+      "table": "context",
+      "rows": 21
+    },
+    {
+      "table": "reports",
+      "rows": 0
+    },
+    {
+      "table": "spawns",
+      "rows": 46
+    },
+    {
+      "table": "shub_tracks",
+      "rows": 0
+    },
+    {
+      "table": "daughters",
+      "rows": 158
+    },
+    {
+      "table": "operator_message",
+      "rows": 120
+    },
+    {
+      "table": "operator_browser_task",
+      "rows": 43
+    },
+    {
+      "table": "shub_analysis",
+      "rows": 0
+    },
+    {
+      "table": "shub_fx_chains",
+      "rows": 0
+    },
+    {
+      "table": "daughter_attempts",
+      "rows": 158
+    },
+    {
+      "table": "operator_tool_call",
+      "rows": 43
+    },
+    {
+      "table": "operator_switch_adjustment",
+      "rows": 43
+    },
+    {
+      "table": "shub_presets",
+      "rows": 0
+    },
+    {
+      "table": "copilot_repo_map",
+      "rows": 983
+    },
+    {
+      "table": "copilot_runtime_services",
+      "rows": 12
+    },
+    {
+      "table": "copilot_actions_log",
+      "rows": 0
+    },
+    {
+      "table": "copilot_workflows_catalog",
+      "rows": 0
+    },
+    {
+      "table": "chat_providers_stats",
+      "rows": 1
+    },
+    {
+      "table": "module_status",
+      "rows": 11
+    },
+    {
+      "table": "canonical_registry",
+      "rows": 1
+    },
+    {
+      "table": "canonical_docs_legacy_20251220T212937Z",
+      "rows": 12
+    },
+    {
+      "table": "canonical_runs",
+      "rows": 8
+    },
+    {
+      "table": "canonical_kv",
+      "rows": 18
+    },
+    {
+      "table": "canonical_docs",
+      "rows": 6
+    }
+  ],
+  "total_tables": 65,
+  "total_rows": 2331768,
+  "ts": "20251222T062024Z"
+}
