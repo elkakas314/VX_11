@@ -410,6 +410,8 @@ import httpx
 from config.forensics import write_log
 from config.settings import settings
 from config.tokens import get_token, load_tokens
+from config.cache import get_cache, cache_startup, cache_shutdown
+from config.cache_config import get_ttl, cache_decorator
 from tentaculo_link.clients import get_clients
 from tentaculo_link.context7_middleware import get_context7_manager
 
@@ -490,12 +492,16 @@ async def lifespan(app: FastAPI):
     """Startup/shutdown lifecycle."""
     clients = get_clients()
     context7 = get_context7_manager()
+    cache = get_cache()
+
     await clients.startup()
+    await cache_startup()  # Initialize Redis cache
     FILES_DIR.mkdir(parents=True, exist_ok=True)
-    write_log("tentaculo_link", "startup:v7_initialized")
+    write_log("tentaculo_link", "startup:v7_initialized (with cache layer)")
     try:
         yield
     finally:
+        await cache_shutdown()  # Close Redis cache
         await clients.shutdown()
         write_log("tentaculo_link", "shutdown:v7_closed")
 
@@ -1344,6 +1350,98 @@ import time as time_module
 
 SHUB_UPSTREAM = os.environ.get("VX11_SHUB_UPSTREAM", "http://shubniggurath:8007")
 SHUB_GATEWAY_TOKEN = os.environ.get("VX11_GATEWAY_TOKEN", VX11_TOKEN)
+
+
+# ===== PHASE 3: CACHED ENDPOINTS =====
+
+
+@app.get("/shub/health")
+async def proxy_shub_health_cached(x_correlation_id: str = Header(None)):
+    """
+    Proxy /shub/health with Redis cache (TTL 60s).
+
+    Cache hit → 1ms latency
+    Cache miss → forward to Shub + cache result
+    """
+    cache = get_cache()
+    cache_key = "shub:health"
+    cache_ttl = get_ttl(cache_key)
+    correlation_id = x_correlation_id or str(uuid.uuid4())
+
+    # Try cache first
+    cached = await cache.get(cache_key)
+    if cached:
+        write_log(
+            "tentaculo_link",
+            f"shub_proxy_cache_hit:path=/shub/health:correlation_id={correlation_id}",
+        )
+        # Add correlation_id to cached response
+        if isinstance(cached, dict):
+            cached["correlation_id"] = correlation_id
+        return cached
+
+    # Cache miss: forward to Shub
+    try:
+        upstream_url = f"{SHUB_UPSTREAM}/health"
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.get(upstream_url)
+
+        result = response.json()
+
+        # Cache the result
+        await cache.set(cache_key, result, ttl=cache_ttl)
+
+        write_log(
+            "tentaculo_link",
+            f"shub_proxy_cache_miss:path=/shub/health:status={response.status_code}:correlation_id={correlation_id}",
+        )
+
+        if isinstance(result, dict):
+            result["correlation_id"] = correlation_id
+        return result
+
+    except (httpx.ConnectError, httpx.TimeoutException):
+        write_log(
+            "tentaculo_link",
+            f"shub_proxy_unavailable:path=/shub/health:correlation_id={correlation_id}",
+        )
+        return JSONResponse(
+            status_code=503,
+            content={
+                "error": "shub_unavailable",
+                "correlation_id": correlation_id,
+            },
+        )
+
+
+@app.post("/shub/cache/clear")
+async def cache_clear_handler(x_vx11_gw_token: str = Header(None)):
+    """
+    Manual cache invalidation endpoint.
+    Requires X-VX11-GW-TOKEN header.
+    """
+    if not x_vx11_gw_token or x_vx11_gw_token != SHUB_GATEWAY_TOKEN:
+        return JSONResponse(
+            status_code=403,
+            content={"error": "forbidden"},
+        )
+
+    cache = get_cache()
+    count = await cache.delete("shub:health", "shub:ready", "shub:openapi")
+
+    write_log(
+        "tentaculo_link",
+        f"cache_clear:keys_deleted={count}",
+    )
+
+    return {
+        "status": "cleared",
+        "keys_deleted": count,
+        "timestamp": time_module.time(),
+    }
+
+
+# ===== GENERIC PROXY HANDLER =====
 
 
 @app.api_route(

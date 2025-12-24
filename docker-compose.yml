@@ -32,7 +32,13 @@ services:
       - VX11_TENTACULO_LINK_TOKEN=vx11-local-token
       - VX11_OPERATOR_TOKEN=vx11-local-token
       - VX11_LOCAL_TOKEN=vx11-local-token
+      - VX11_REDIS_URL=redis://:vx11-redis-local@redis:6379/0
+      - VX11_CACHE_TTL_HEALTH=60
+      - VX11_CACHE_ENABLED=true
     mem_limit: 512m
+    depends_on:
+      redis:
+        condition: service_healthy
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
@@ -371,6 +377,31 @@ services:
       timeout: 10s
       retries: 5
       start_period: 120s
+
+  # ========== REDIS (CACHE LAYER - PORT 6379 INTERNAL) ==========
+  redis:
+    image: redis:7-alpine
+    container_name: vx11-redis
+    hostname: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./data/redis:/data
+    environment:
+      - REDIS_PASSWORD=vx11-redis-local
+    command: redis-server --appendonly yes --requirepass vx11-redis-local
+    mem_limit: 256m
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "vx11-redis-local", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      default:
+        aliases:
+          - redis
 
 volumes:
   logs:
