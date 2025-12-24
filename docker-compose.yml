@@ -77,6 +77,7 @@ services:
 
   # ========== SWITCH (PORT 8002) ==========
   switch:
+    profiles: ["core"]
     build:
       context: .
       dockerfile: switch/Dockerfile
@@ -110,6 +111,7 @@ services:
 
   # ========== HERMES (PORT 8003) ==========
   hermes:
+    profiles: ["core"]
     image: vx11-hermes:v6.7
     container_name: vx11-hermes
     ports:
@@ -140,6 +142,7 @@ services:
 
   # ========== HORMIGUERO (PORT 8004) ==========
   hormiguero:
+    profiles: ["core"]
     image: vx11-hormiguero:v6.7
     container_name: vx11-hormiguero
     ports:
@@ -179,7 +182,7 @@ services:
       dockerfile: manifestator/Dockerfile
     image: vx11-manifestator:v6.7
     container_name: vx11-manifestator
-    profiles: ["disabled"]
+    profiles: ["disabled", "maintenance"]
     ports:
       - "8005:8005"
     volumes:
@@ -208,6 +211,7 @@ services:
 
   # ========== MCP (PORT 8006) ==========
   mcp:
+    profiles: ["core"]
     build:
       context: .
       dockerfile: mcp/Dockerfile
@@ -240,6 +244,7 @@ services:
 
   # ========== SHUB NIGGURATH (PORT 8007) ==========
   shubniggurath:
+    profiles: ["audio"]
     image: vx11-shub:v6.7
     container_name: vx11-shubniggurath
     ports:
@@ -271,6 +276,7 @@ services:
 
   # ========== SPAWNER (PORT 8008) ==========
   spawner:
+    profiles: ["core"]
     build:
       context: .
       dockerfile: spawner/Dockerfile
