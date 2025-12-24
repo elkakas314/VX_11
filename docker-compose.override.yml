@@ -1,5 +1,3 @@
-version: "3.9"
-
 # Canonical override: make docker-compose plug-and-play without editing docker-compose.yml.
 # Adds build instructions for services that were image-only.
 

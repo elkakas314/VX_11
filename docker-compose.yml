@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   # ========== TENTACULO LINK (PORT 8000) ==========
   tentaculo_link:
