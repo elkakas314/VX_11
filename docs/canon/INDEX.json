@@ -154,6 +154,45 @@
             ]
         },
         {
+            "id": "tentaculo_link",
+            "name": "Tentaculo Link",
+            "version": "7.0",
+            "status": "optional-off-by-default",
+            "port": 8000,
+            "canonical": "docs/canon/VX11_TENTACULO_LINK_CANONICAL_v1.0.0.json",
+            "description": "Gateway HTTP que enruta operator chat/task a Switch; incorpora Context-7 TTL sessions, TokenGuard para auth y circuit-breaker para clientes.",
+            "endpoints": [
+                {
+                    "method": "GET",
+                    "path": "/health",
+                    "description": "Simple health check"
+                },
+                {
+                    "method": "GET",
+                    "path": "/vx11/status",
+                    "description": "Aggregated module status + version"
+                },
+                {
+                    "method": "GET",
+                    "path": "/vx11/circuit-breaker/status",
+                    "description": "Circuit breaker status"
+                },
+                {
+                    "method": "POST",
+                    "path": "/operator/chat",
+                    "description": "Route chat messages to Switch (protected)"
+                },
+                {
+                    "method": "POST",
+                    "path": "/operator/task",
+                    "description": "Route TASK/ANALYSIS requests to Switch (protected)"
+                }
+            ],
+            "feature_flags": [],
+            "safe_for_production": false,
+            "notes": "Default deployment is OFF/low_power; enable via orchestration when needed."
+        },
+        {
             "id": "manifestator",
             "name": "Manifestator",
             "version": "7.2.0",
@@ -297,10 +336,26 @@
                 "VX11_TESTING_MODE"
             ],
             "endpoints": [
-                {"method": "GET", "path": "/health", "description": "Health check"},
-                {"method": "POST", "path": "/switch/chat", "description": "Carril conversación"},
-                {"method": "POST", "path": "/switch/task", "description": "Carril tareas"},
-                {"method": "GET", "path": "/switch/queue/status", "description": "Estado de cola"}
+                {
+                    "method": "GET",
+                    "path": "/health",
+                    "description": "Health check"
+                },
+                {
+                    "method": "POST",
+                    "path": "/switch/chat",
+                    "description": "Carril conversación"
+                },
+                {
+                    "method": "POST",
+                    "path": "/switch/task",
+                    "description": "Carril tareas"
+                },
+                {
+                    "method": "GET",
+                    "path": "/switch/queue/status",
+                    "description": "Estado de cola"
+                }
             ]
         },
         {
@@ -323,9 +378,21 @@
                 "VX11_MOCK_PROVIDERS"
             ],
             "endpoints": [
-                {"method": "GET", "path": "/health", "description": "Health check"},
-                {"method": "POST", "path": "/hermes/discover", "description": "Discovery"},
-                {"method": "POST", "path": "/hermes/register_model", "description": "Registro manual"}
+                {
+                    "method": "GET",
+                    "path": "/health",
+                    "description": "Health check"
+                },
+                {
+                    "method": "POST",
+                    "path": "/hermes/discover",
+                    "description": "Discovery"
+                },
+                {
+                    "method": "POST",
+                    "path": "/hermes/register_model",
+                    "description": "Registro manual"
+                }
             ]
         }
     ],

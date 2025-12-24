@@ -1,0 +1,56 @@
+{
+    "module": "tentaculo_link",
+    "version": "7.0",
+    "description": "Gateway module that routes operator chat/tasks to Switch, with Context-7 TTL sessions, auth guard and circuit breaker clients.",
+    "endpoints": [
+        {
+            "path": "/health",
+            "method": "GET",
+            "desc": "Simple health check"
+        },
+        {
+            "path": "/vx11/status",
+            "method": "GET",
+            "desc": "Aggregated module status + version"
+        },
+        {
+            "path": "/vx11/circuit-breaker/status",
+            "method": "GET",
+            "desc": "Circuit breaker status for downstream modules"
+        },
+        {
+            "path": "/operator/chat",
+            "method": "POST",
+            "desc": "Route chat messages to Switch"
+        },
+        {
+            "path": "/operator/task",
+            "method": "POST",
+            "desc": "Route TASK/ANALYSIS requests to Switch"
+        },
+        {
+            "path": "/vx11/context-7/sessions",
+            "method": "GET",
+            "desc": "Context-7 session inspection (if enabled)"
+        }
+    ],
+    "auth": {
+        "header": "X-VX11-Token",
+        "notes": "Token-based guard; enable/disable via settings.enable_auth"
+    },
+    "clients": [
+        "switch",
+        "madre",
+        "hermes",
+        "hormiguero",
+        "spawner",
+        "mcp",
+        "shub",
+        "operator-backend"
+    ],
+    "tests_p0_offline": {
+        "file": "tentaculo_link/tests/test_p0_offline.py",
+        "result": "8 passed",
+        "notes": "Tests run with TestClient and mocks; forensics writes disabled during tests to avoid FS side-effects."
+    }
+}
