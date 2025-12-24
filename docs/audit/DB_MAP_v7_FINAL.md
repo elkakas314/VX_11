@@ -1,6 +1,6 @@
 # VX11 Database Map (generated)
 
-Generated at: 2025-12-22T06:33:49.896886Z
+Generated at: 2025-12-24T02:58:57.810875Z
 
 Database file: data/runtime/vx11.db
 
@@ -85,7 +85,7 @@ Database file: data/runtime/vx11.db
 ### chat_providers_stats — ACTIVE
 
 - Module: switch
-- Rows: 1
+- Rows: 4
 - Columns:
   - provider (TEXT) PK
   - success_count (INTEGER)
@@ -144,7 +144,7 @@ Database file: data/runtime/vx11.db
 ### cli_usage_stats — ACTIVE
 
 - Module: hermes
-- Rows: 305
+- Rows: 297
 - Columns:
   - id (INTEGER) PK NOT NULL
   - provider_id (VARCHAR(128)) NOT NULL
@@ -426,7 +426,7 @@ Database file: data/runtime/vx11.db
 ### hormiga_state — ACTIVE
 
 - Module: hormiguero
-- Rows: 11
+- Rows: 12
 - Columns:
   - id (INTEGER) PK NOT NULL
   - ant_id (VARCHAR(64)) NOT NULL
@@ -451,7 +451,7 @@ Database file: data/runtime/vx11.db
 ### ia_decisions — ACTIVE
 
 - Module: switch
-- Rows: 10218
+- Rows: 2
 - Columns:
   - id (INTEGER) PK NOT NULL
   - prompt_hash (VARCHAR(64)) NOT NULL
@@ -498,7 +498,7 @@ Database file: data/runtime/vx11.db
 ### intents_log — ACTIVE
 
 - Module: madre
-- Rows: 121
+- Rows: 41
 - Columns:
   - id (INTEGER) PK NOT NULL
   - source (VARCHAR(64)) NOT NULL
@@ -552,10 +552,10 @@ Database file: data/runtime/vx11.db
   - created_at (DATETIME)
   - updated_at (DATETIME)
 
-### model_registry — EMPTY (READY)
+### model_registry — ACTIVE
 
 - Module: hermes
-- Rows: 0
+- Rows: 1
 - Columns:
   - id (INTEGER) PK NOT NULL
   - name (VARCHAR(255)) NOT NULL
@@ -649,7 +649,7 @@ Database file: data/runtime/vx11.db
 ### operator_browser_task — ACTIVE
 
 - Module: operator
-- Rows: 47
+- Rows: 61
 - Columns:
   - id (INTEGER) PK NOT NULL
   - session_id (VARCHAR(64)) NOT NULL
@@ -680,7 +680,7 @@ Database file: data/runtime/vx11.db
 ### operator_message — ACTIVE
 
 - Module: operator
-- Rows: 128
+- Rows: 156
 - Columns:
   - id (INTEGER) PK NOT NULL
   - session_id (VARCHAR(64)) NOT NULL
@@ -694,7 +694,7 @@ Database file: data/runtime/vx11.db
 ### operator_session — ACTIVE
 
 - Module: operator
-- Rows: 143
+- Rows: 213
 - Columns:
   - id (INTEGER) PK NOT NULL
   - session_id (VARCHAR(64)) NOT NULL
@@ -706,7 +706,7 @@ Database file: data/runtime/vx11.db
 ### operator_switch_adjustment — ACTIVE
 
 - Module: operator
-- Rows: 47
+- Rows: 61
 - Columns:
   - id (INTEGER) PK NOT NULL
   - session_id (VARCHAR(64)) NOT NULL
@@ -724,7 +724,7 @@ Database file: data/runtime/vx11.db
 ### operator_tool_call — ACTIVE
 
 - Module: operator
-- Rows: 47
+- Rows: 61
 - Columns:
   - id (INTEGER) PK NOT NULL
   - message_id (INTEGER) NOT NULL
@@ -740,7 +740,7 @@ Database file: data/runtime/vx11.db
 ### pheromone_log — ACTIVE
 
 - Module: hormiguero
-- Rows: 1125692
+- Rows: 749057
 - Columns:
   - id (INTEGER) PK NOT NULL
   - pheromone_type (VARCHAR(64)) NOT NULL
@@ -775,6 +775,74 @@ Database file: data/runtime/vx11.db
   - activity_score (FLOAT)
   - timestamp (DATETIME)
 
+### rails_container_blueprints — EMPTY (READY)
+
+- Rows: 0
+- Columns:
+  - blueprint_id (TEXT) PK
+  - purpose (TEXT)
+  - sandbox_policy_json (TEXT)
+  - mounts_json (TEXT)
+  - network_config (TEXT)
+  - cpu_limit_millicores (INTEGER)
+  - mem_limit_mb (INTEGER)
+  - ttl_sec (INTEGER)
+  - map_version (TEXT) NOT NULL
+- Foreign keys:
+  - map_version -> rails_map_versions.version (on_update=NO ACTION, on_delete=NO ACTION)
+
+### rails_events — ACTIVE
+
+- Rows: 15
+- Columns:
+  - id (INTEGER) PK
+  - who (TEXT) NOT NULL
+  - what (TEXT) NOT NULL
+  - when_ts (DATETIME)
+  - why (TEXT)
+  - result_json (TEXT)
+  - correlation_id (TEXT)
+
+### rails_flow_templates — EMPTY (READY)
+
+- Rows: 0
+- Columns:
+  - flow_id (TEXT) PK
+  - domain (TEXT) NOT NULL
+  - triggers_json (TEXT)
+  - steps_json (TEXT)
+  - invariants_json (TEXT)
+  - map_version (TEXT) NOT NULL
+- Foreign keys:
+  - map_version -> rails_map_versions.version (on_update=NO ACTION, on_delete=NO ACTION)
+
+### rails_lanes — EMPTY (READY)
+
+- Rows: 0
+- Columns:
+  - lane_id (TEXT) PK
+  - domain (TEXT) NOT NULL
+  - intent_type (TEXT) NOT NULL
+  - owner_module (TEXT) NOT NULL
+  - escalation_rule (TEXT)
+  - constraints_json (TEXT)
+  - invariants_json (TEXT)
+  - map_version (TEXT) NOT NULL
+- Foreign keys:
+  - map_version -> rails_map_versions.version (on_update=NO ACTION, on_delete=NO ACTION)
+
+### rails_map_versions — ACTIVE
+
+- Rows: 1
+- Columns:
+  - id (INTEGER) PK
+  - version (TEXT) NOT NULL
+  - content_hash (TEXT) NOT NULL
+  - created_at (DATETIME)
+  - author (TEXT)
+  - notes (TEXT)
+  - source_canon_hash (TEXT)
+
 ### reports — EMPTY (READY)
 
 - Module: madre
@@ -793,7 +861,7 @@ Database file: data/runtime/vx11.db
 ### routing_events — ACTIVE
 
 - Module: switch
-- Rows: 70
+- Rows: 62
 - Columns:
   - id (INTEGER) PK NOT NULL
   - timestamp (DATETIME)
@@ -818,7 +886,7 @@ Database file: data/runtime/vx11.db
 ### scheduler_history — ACTIVE
 
 - Module: madre
-- Rows: 46277
+- Rows: 41052
 - Columns:
   - id (INTEGER) PK NOT NULL
   - timestamp (DATETIME)
@@ -938,7 +1006,7 @@ Database file: data/runtime/vx11.db
 ### system_events — ACTIVE
 
 - Module: madre
-- Rows: 12
+- Rows: 3
 - Columns:
   - id (INTEGER) PK NOT NULL
   - timestamp (DATETIME)
@@ -973,7 +1041,7 @@ Database file: data/runtime/vx11.db
 ### task_queue — ACTIVE
 
 - Module: madre
-- Rows: 98
+- Rows: 119
 - Columns:
   - id (INTEGER) PK NOT NULL
   - source (VARCHAR(64)) NOT NULL

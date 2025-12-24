@@ -3,12 +3,20 @@ from scripts.cleanup_guard import safe_move_py, safe_rm_py
 
 import sqlite3, json, os
 import sys
+import time
 from datetime import datetime
 
 DB = os.environ.get("VX11_DB_PATH") or (sys.argv[1] if len(sys.argv) > 1 else "data/runtime/vx11.db")
 if not os.path.exists(DB):
     raise SystemExit("DB not found: " + DB)
-conn = sqlite3.connect(DB)
+def connect_db(db_path):
+    uri = f"file:{db_path}?mode=ro"
+    try:
+        return sqlite3.connect(uri, uri=True)
+    except sqlite3.OperationalError:
+        return sqlite3.connect(db_path)
+
+conn = connect_db(DB)
 conn.row_factory = sqlite3.Row
 cur = conn.cursor()
 # get tables
@@ -168,14 +176,45 @@ with open("docs/audit/DB_MAP_v7_FINAL.md", "w", encoding="utf-8") as f:
         f.write("\n")
 
 print("Wrote docs/audit/DB_SCHEMA_v7_FINAL.json and docs/audit/DB_MAP_v7_FINAL.md")
-# integrity check and size
-try:
-    cur = conn.execute("PRAGMA integrity_check;")
-    integrity = cur.fetchone()[0]
-except Exception as e:
-    integrity = str(e)
+
+def env_flag(name, default=True):
+    raw = os.environ.get(name)
+    if raw is None:
+        return default
+    return raw.strip().lower() not in ("0", "false", "no", "off", "")
+
+
+def run_integrity_check(conn, timeout_secs):
+    start = time.monotonic()
+
+    def handler():
+        if timeout_secs <= 0:
+            return 1
+        if time.monotonic() - start > timeout_secs:
+            return 1
+        return 0
+
+    conn.set_progress_handler(handler, 10000)
+    try:
+        cur = conn.execute("PRAGMA integrity_check;")
+        return cur.fetchone()[0]
+    except Exception as e:
+        return f"ERROR: {e}"
+    finally:
+        conn.set_progress_handler(None, 0)
+
+
+skip_integrity = env_flag("VX11_DBMAP_SKIP_INTEGRITY", default=True)
+timeout_secs = int(os.environ.get("VX11_DBMAP_INTEGRITY_TIMEOUT_SECS", "10"))
+integrity = "SKIPPED"
+if not skip_integrity:
+    integrity = run_integrity_check(conn, timeout_secs)
+
 size = os.path.getsize(DB)
 with open("docs/audit/DB_MAP_v7_META.txt", "w") as f:
-    f.write(f"integrity:{integrity}\nsize_bytes:{size}\n")
+    f.write(f"integrity:{integrity}\n")
+    f.write(f"integrity_skipped:{1 if skip_integrity else 0}\n")
+    f.write(f"integrity_timeout_secs:{timeout_secs}\n")
+    f.write(f"size_bytes:{size}\n")
 print("integrity:", integrity, "size_bytes", size)
 conn.close()

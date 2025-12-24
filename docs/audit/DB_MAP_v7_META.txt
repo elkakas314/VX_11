@@ -1,2 +1,4 @@
-integrity:ok
-size_bytes:619589632
+integrity:SKIPPED
+integrity_skipped:1
+integrity_timeout_secs:10
+size_bytes:619692032

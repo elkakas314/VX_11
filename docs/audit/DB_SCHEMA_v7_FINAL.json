@@ -1,5 +1,5 @@
 {
-  "generated_at": "2025-12-22T06:33:49.706553Z",
+  "generated_at": "2025-12-24T02:58:57.699229Z",
   "database": "data/runtime/vx11.db",
   "tables": [
     {
@@ -453,7 +453,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 1,
+      "rows": 4,
       "status": "ACTIVE",
       "module": "switch"
     },
@@ -801,7 +801,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 305,
+      "rows": 297,
       "status": "ACTIVE",
       "module": "hermes"
     },
@@ -2428,7 +2428,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 11,
+      "rows": 12,
       "status": "ACTIVE",
       "module": "hormiguero"
     },
@@ -2525,7 +2525,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 10218,
+      "rows": 2,
       "status": "ACTIVE",
       "module": "switch"
     },
@@ -2791,7 +2791,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 121,
+      "rows": 41,
       "status": "ACTIVE",
       "module": "madre"
     },
@@ -3139,8 +3139,8 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 0,
-      "status": "EMPTY (READY)",
+      "rows": 1,
+      "status": "ACTIVE",
       "module": "hermes"
     },
     {
@@ -3636,7 +3636,7 @@
           "match": "NONE"
         }
       ],
-      "rows": 47,
+      "rows": 61,
       "status": "ACTIVE",
       "module": "operator"
     },
@@ -3777,7 +3777,7 @@
           "match": "NONE"
         }
       ],
-      "rows": 128,
+      "rows": 156,
       "status": "ACTIVE",
       "module": "operator"
     },
@@ -3834,7 +3834,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 143,
+      "rows": 213,
       "status": "ACTIVE",
       "module": "operator"
     },
@@ -3936,7 +3936,7 @@
           "match": "NONE"
         }
       ],
-      "rows": 47,
+      "rows": 61,
       "status": "ACTIVE",
       "module": "operator"
     },
@@ -4020,7 +4020,7 @@
           "match": "NONE"
         }
       ],
-      "rows": 47,
+      "rows": 61,
       "status": "ACTIVE",
       "module": "operator"
     },
@@ -4173,7 +4173,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 1125692,
+      "rows": 749057,
       "status": "ACTIVE",
       "module": "hormiguero"
     },
@@ -4249,6 +4249,380 @@
       "rows": 0,
       "status": "EMPTY (READY)",
       "module": "madre"
+    },
+    {
+      "table": "rails_container_blueprints",
+      "columns": [
+        {
+          "cid": 0,
+          "name": "blueprint_id",
+          "type": "TEXT",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": true
+        },
+        {
+          "cid": 1,
+          "name": "purpose",
+          "type": "TEXT",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 2,
+          "name": "sandbox_policy_json",
+          "type": "TEXT",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 3,
+          "name": "mounts_json",
+          "type": "TEXT",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 4,
+          "name": "network_config",
+          "type": "TEXT",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 5,
+          "name": "cpu_limit_millicores",
+          "type": "INTEGER",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 6,
+          "name": "mem_limit_mb",
+          "type": "INTEGER",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 7,
+          "name": "ttl_sec",
+          "type": "INTEGER",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 8,
+          "name": "map_version",
+          "type": "TEXT",
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
+        }
+      ],
+      "foreign_keys": [
+        {
+          "id": 0,
+          "seq": 0,
+          "table": "rails_map_versions",
+          "from": "map_version",
+          "to": "version",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION",
+          "match": "NONE"
+        }
+      ],
+      "rows": 0,
+      "status": "EMPTY (READY)",
+      "module": ""
+    },
+    {
+      "table": "rails_events",
+      "columns": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": true
+        },
+        {
+          "cid": 1,
+          "name": "who",
+          "type": "TEXT",
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 2,
+          "name": "what",
+          "type": "TEXT",
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 3,
+          "name": "when_ts",
+          "type": "DATETIME",
+          "notnull": false,
+          "dflt_value": "CURRENT_TIMESTAMP",
+          "pk": false
+        },
+        {
+          "cid": 4,
+          "name": "why",
+          "type": "TEXT",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 5,
+          "name": "result_json",
+          "type": "TEXT",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 6,
+          "name": "correlation_id",
+          "type": "TEXT",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        }
+      ],
+      "foreign_keys": [],
+      "rows": 15,
+      "status": "ACTIVE",
+      "module": ""
+    },
+    {
+      "table": "rails_flow_templates",
+      "columns": [
+        {
+          "cid": 0,
+          "name": "flow_id",
+          "type": "TEXT",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": true
+        },
+        {
+          "cid": 1,
+          "name": "domain",
+          "type": "TEXT",
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 2,
+          "name": "triggers_json",
+          "type": "TEXT",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 3,
+          "name": "steps_json",
+          "type": "TEXT",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 4,
+          "name": "invariants_json",
+          "type": "TEXT",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 5,
+          "name": "map_version",
+          "type": "TEXT",
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
+        }
+      ],
+      "foreign_keys": [
+        {
+          "id": 0,
+          "seq": 0,
+          "table": "rails_map_versions",
+          "from": "map_version",
+          "to": "version",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION",
+          "match": "NONE"
+        }
+      ],
+      "rows": 0,
+      "status": "EMPTY (READY)",
+      "module": ""
+    },
+    {
+      "table": "rails_lanes",
+      "columns": [
+        {
+          "cid": 0,
+          "name": "lane_id",
+          "type": "TEXT",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": true
+        },
+        {
+          "cid": 1,
+          "name": "domain",
+          "type": "TEXT",
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 2,
+          "name": "intent_type",
+          "type": "TEXT",
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 3,
+          "name": "owner_module",
+          "type": "TEXT",
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 4,
+          "name": "escalation_rule",
+          "type": "TEXT",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 5,
+          "name": "constraints_json",
+          "type": "TEXT",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 6,
+          "name": "invariants_json",
+          "type": "TEXT",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 7,
+          "name": "map_version",
+          "type": "TEXT",
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
+        }
+      ],
+      "foreign_keys": [
+        {
+          "id": 0,
+          "seq": 0,
+          "table": "rails_map_versions",
+          "from": "map_version",
+          "to": "version",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION",
+          "match": "NONE"
+        }
+      ],
+      "rows": 0,
+      "status": "EMPTY (READY)",
+      "module": ""
+    },
+    {
+      "table": "rails_map_versions",
+      "columns": [
+        {
+          "cid": 0,
+          "name": "id",
+          "type": "INTEGER",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": true
+        },
+        {
+          "cid": 1,
+          "name": "version",
+          "type": "TEXT",
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 2,
+          "name": "content_hash",
+          "type": "TEXT",
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 3,
+          "name": "created_at",
+          "type": "DATETIME",
+          "notnull": false,
+          "dflt_value": "CURRENT_TIMESTAMP",
+          "pk": false
+        },
+        {
+          "cid": 4,
+          "name": "author",
+          "type": "TEXT",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 5,
+          "name": "notes",
+          "type": "TEXT",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 6,
+          "name": "source_canon_hash",
+          "type": "TEXT",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        }
+      ],
+      "foreign_keys": [],
+      "rows": 1,
+      "status": "ACTIVE",
+      "module": ""
     },
     {
       "table": "reports",
@@ -4387,7 +4761,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 70,
+      "rows": 62,
       "status": "ACTIVE",
       "module": "switch"
     },
@@ -4493,7 +4867,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 46277,
+      "rows": 41052,
       "status": "ACTIVE",
       "module": "madre"
     },
@@ -5124,7 +5498,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 12,
+      "rows": 3,
       "status": "ACTIVE",
       "module": "madre"
     },
@@ -5350,7 +5724,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 98,
+      "rows": 119,
       "status": "ACTIVE",
       "module": "madre"
     },
