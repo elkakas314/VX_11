@@ -412,6 +412,8 @@ from config.settings import settings
 from config.tokens import get_token, load_tokens
 from config.cache import get_cache, cache_startup, cache_shutdown
 from config.cache_config import get_ttl, cache_decorator
+from config.rate_limit import get_rate_limiter, set_redis_for_limiter
+from config.metrics_prometheus import get_prometheus_metrics
 from tentaculo_link.clients import get_clients
 from tentaculo_link.context7_middleware import get_context7_manager
 
@@ -493,17 +495,20 @@ async def lifespan(app: FastAPI):
     clients = get_clients()
     context7 = get_context7_manager()
     cache = get_cache()
+    limiter = get_rate_limiter()
+    metrics = get_prometheus_metrics()
 
     await clients.startup()
     await cache_startup()  # Initialize Redis cache
+
+    # Link Redis to rate limiter
+    if cache.redis:
+        set_redis_for_limiter(cache.redis)
+
     FILES_DIR.mkdir(parents=True, exist_ok=True)
-    write_log("tentaculo_link", "startup:v7_initialized (with cache layer)")
-    try:
-        yield
-    finally:
-        await cache_shutdown()  # Close Redis cache
-        await clients.shutdown()
-        write_log("tentaculo_link", "shutdown:v7_closed")
+    write_log(
+        "tentaculo_link", "startup:v7_initialized (with cache+rate_limit+metrics)"
+    )
 
 
 # Create app
@@ -592,6 +597,33 @@ async def circuit_breaker_status(
     return {
         "status": "ok",
         "breakers": breakers,
+        "timestamp": time.time(),
+    }
+
+
+@app.get("/metrics")
+async def metrics():
+    """Export metrics in Prometheus text format."""
+    metrics_obj = get_prometheus_metrics()
+    export = metrics_obj.export_prometheus_format()
+    write_log("tentaculo_link", "metrics:exported")
+    return export
+
+
+@app.get("/shub/rate-limit/status")
+async def rate_limit_status(
+    token: str = Header(None, alias="X-VX11-GW-TOKEN"),
+):
+    """Get current rate limit status for the requesting user."""
+    if not token:
+        raise HTTPException(status_code=401, detail="Missing X-VX11-GW-TOKEN header")
+
+    limiter = get_rate_limiter()
+    status = limiter.get_status(token)
+    write_log("tentaculo_link", f"rate_limit_status:retrieved for {token[:8]}...")
+    return {
+        "status": "ok",
+        "rate_limit": status,
         "timestamp": time.time(),
     }
 
@@ -1459,6 +1491,7 @@ async def proxy_shub(
     Security:
     - /shub/health and /shub/openapi.json: allowed without token
     - Other endpoints: require X-VX11-GW-TOKEN header
+    - Rate limiting: Per-user 1000 req/min, per-IP 5000 req/min, protected 100 req/min
 
     Correlation ID:
     - If X-Correlation-ID provided, pass through
@@ -1466,12 +1499,17 @@ async def proxy_shub(
 
     Error Handling:
     - If shubniggurath unavailable: return 503
+    - If rate limited: return 429
 
     Logging:
     - Structured event with status_code, path, latency_ms, correlation_id
     """
 
     start_time = time_module.time()
+    
+    # Initialize limiter and metrics
+    limiter = get_rate_limiter()
+    metrics = get_prometheus_metrics()
 
     # Generate or use provided correlation_id
     correlation_id = x_correlation_id or str(uuid.uuid4())
@@ -1481,6 +1519,7 @@ async def proxy_shub(
     request_path = f"/shub/{path}" if path else "/shub/"
 
     # Token validation for protected endpoints
+    gw_token = None
     if request_path not in public_endpoints:
         gw_token = request.headers.get("X-VX11-GW-TOKEN")
         if not gw_token or gw_token != SHUB_GATEWAY_TOKEN:
@@ -1491,6 +1530,34 @@ async def proxy_shub(
             return JSONResponse(
                 status_code=403,
                 content={"error": "forbidden", "correlation_id": correlation_id},
+            )
+
+    # Rate limiting check
+    identifier = gw_token or request.client.host if request.client else "unknown"
+    is_protected = request_path not in public_endpoints
+    
+    if limiter:
+        limit_type = "protected" if is_protected else "default"
+        allowed, limit_info = await limiter.check_limit(identifier, limit_type)
+        
+        if not allowed:
+            latency_ms = (time_module.time() - start_time) * 1000
+            metrics.record_rate_limit_rejection()
+            
+            write_log(
+                "tentaculo_link",
+                f"shub_proxy_rate_limited:path={request_path}:identifier={identifier[:8]}:latency_ms={latency_ms:.1f}:correlation_id={correlation_id}",
+            )
+            
+            return JSONResponse(
+                status_code=429,
+                content={
+                    "error": "too_many_requests",
+                    "detail": f"Rate limit exceeded. Retry after {limit_info.get('retry_after', 60)}s",
+                    "retry_after": limit_info.get("retry_after", 60),
+                    "correlation_id": correlation_id,
+                },
+                headers={"Retry-After": str(limit_info.get("retry_after", 60))},
             )
 
     # Build upstream URL
@@ -1525,6 +1592,10 @@ async def proxy_shub(
             )
 
         latency_ms = (time_module.time() - start_time) * 1000
+        
+        # Record metrics
+        if metrics:
+            metrics.record_proxy_request(response.status_code, request_path, request.method, latency_ms)
 
         # Log successful proxy
         write_log(
@@ -1542,6 +1613,10 @@ async def proxy_shub(
 
     except (httpx.ConnectError, httpx.TimeoutException) as e:
         latency_ms = (time_module.time() - start_time) * 1000
+        
+        # Record error metrics
+        if metrics:
+            metrics.record_proxy_request(503, request_path, request.method, latency_ms)
 
         # Shubniggurath unavailable
         write_log(

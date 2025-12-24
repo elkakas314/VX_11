@@ -20,7 +20,52 @@
             "correlation_id": "X-Correlation-ID (generated if not provided)",
             "auth": "X-VX11-GW-TOKEN for protected endpoints",
             "public_endpoints": ["/shub/health", "/shub/ready", "/shub/openapi.json"],
-            "error_503": "Shub unavailable (with correlation_id)"
+            "error_503": "Shub unavailable (with correlation_id)",
+            "rate_limiting": {
+                "phase": "PHASE_3_2_IMPLEMENTED",
+                "per_user_limit": 1000,
+                "per_user_window_seconds": 60,
+                "per_ip_limit": 5000,
+                "per_ip_window_seconds": 60,
+                "protected_limit": 100,
+                "protected_window_seconds": 60,
+                "backend": "Redis token bucket",
+                "response_on_limit": "429 Too Many Requests with Retry-After header",
+                "identifier_user": "X-VX11-GW-TOKEN",
+                "identifier_ip": "client remote IP"
+            },
+            "metrics": {
+                "phase": "PHASE_3_3_IMPLEMENTED",
+                "endpoint": "/metrics",
+                "format": "Prometheus text format",
+                "metrics": [
+                    "shub_proxy_requests_total{status,path,method}",
+                    "shub_proxy_latency_ms{quantile}",
+                    "cache_hit_total",
+                    "cache_miss_total",
+                    "cache_hit_rate",
+                    "rate_limit_rejections",
+                    "vx11_uptime_seconds"
+                ],
+                "latency_percentiles": ["p50", "p95", "p99"],
+                "scrape_interval": "30s (standard Prometheus)",
+                "cache_metrics": "Tracked per proxy request"
+            },
+            "patterns_documentation": {
+                "phase": "PHASE_3_4_IMPLEMENTED",
+                "location": "docs/patterns/GATEWAY_PATTERNS.md",
+                "patterns": [
+                    "Circuit Breaker (5 failures, 60s recovery)",
+                    "Retry Backoff (100ms, 250ms, 625ms exponential)",
+                    "Backpressure Management (priority queue drop)",
+                    "Health Check Tuning (5s -> 1s adaptive)",
+                    "Timeout Strategy (2-120s per operation)",
+                    "Request Deduplication (X-Idempotency-Key)",
+                    "Correlation Tracing (X-Correlation-ID propagation)",
+                    "Prometheus Alerting Rules"
+                ],
+                "all_patterns_reference": "CANONICAL_FLOWS_VX11.json flows"
+            }
         },
         "auth_required": "X-VX11-Token header (VX11_GATEWAY_TOKEN)",
         "bypass_mitigation": "No published port 8007 = no direct external access possible"

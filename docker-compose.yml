@@ -35,6 +35,11 @@ services:
       - VX11_REDIS_URL=redis://:vx11-redis-local@redis:6379/0
       - VX11_CACHE_TTL_HEALTH=60
       - VX11_CACHE_ENABLED=true
+      - VX11_RATE_LIMIT_ENABLED=true
+      - VX11_RATE_LIMIT_USER=1000
+      - VX11_RATE_LIMIT_PROTECTED=100
+      - VX11_METRICS_ENABLED=true
+      - VX11_METRICS_PORT=9090
     mem_limit: 512m
     depends_on:
       redis:
