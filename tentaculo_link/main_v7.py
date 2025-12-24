@@ -403,7 +403,7 @@ from fastapi import (
     WebSocketDisconnect,
 )
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse, Response
 from pydantic import BaseModel, Field
 import httpx
 
@@ -510,6 +510,14 @@ async def lifespan(app: FastAPI):
         "tentaculo_link", "startup:v7_initialized (with cache+rate_limit+metrics)"
     )
 
+    # Yield to allow app to run
+    yield
+
+    # Shutdown
+    await clients.shutdown()
+    await cache_shutdown()
+    write_log("tentaculo_link", "shutdown:v7_complete")
+
 
 # Create app
 app = FastAPI(
@@ -607,7 +615,7 @@ async def metrics():
     metrics_obj = get_prometheus_metrics()
     export = metrics_obj.export_prometheus_format()
     write_log("tentaculo_link", "metrics:exported")
-    return export
+    return Response(content=export, media_type="text/plain; charset=utf-8")
 
 
 @app.get("/shub/rate-limit/status")
@@ -1506,7 +1514,7 @@ async def proxy_shub(
     """
 
     start_time = time_module.time()
-    
+
     # Initialize limiter and metrics
     limiter = get_rate_limiter()
     metrics = get_prometheus_metrics()
@@ -1535,20 +1543,20 @@ async def proxy_shub(
     # Rate limiting check
     identifier = gw_token or request.client.host if request.client else "unknown"
     is_protected = request_path not in public_endpoints
-    
+
     if limiter:
         limit_type = "protected" if is_protected else "default"
         allowed, limit_info = await limiter.check_limit(identifier, limit_type)
-        
+
         if not allowed:
             latency_ms = (time_module.time() - start_time) * 1000
             metrics.record_rate_limit_rejection()
-            
+
             write_log(
                 "tentaculo_link",
                 f"shub_proxy_rate_limited:path={request_path}:identifier={identifier[:8]}:latency_ms={latency_ms:.1f}:correlation_id={correlation_id}",
             )
-            
+
             return JSONResponse(
                 status_code=429,
                 content={
@@ -1592,10 +1600,12 @@ async def proxy_shub(
             )
 
         latency_ms = (time_module.time() - start_time) * 1000
-        
+
         # Record metrics
         if metrics:
-            metrics.record_proxy_request(response.status_code, request_path, request.method, latency_ms)
+            metrics.record_proxy_request(
+                response.status_code, request_path, request.method, latency_ms
+            )
 
         # Log successful proxy
         write_log(
@@ -1613,7 +1623,7 @@ async def proxy_shub(
 
     except (httpx.ConnectError, httpx.TimeoutException) as e:
         latency_ms = (time_module.time() - start_time) * 1000
-        
+
         # Record error metrics
         if metrics:
             metrics.record_proxy_request(503, request_path, request.method, latency_ms)

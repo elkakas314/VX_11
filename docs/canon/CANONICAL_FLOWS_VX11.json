@@ -114,26 +114,54 @@
       "expected_evidence": "docs/audit/vx11_shub_local_audit_<TS>/RISK_NOTES.md (P2 REAPER binary gap)"
     },
     {
-      "id": "SHUB_PROXY_PHASE2_READY",
-      "description": "Tentaculo_link proxies all /shub/* requests to internal shubniggurath",
+      "id": "GATEWAY_RATE_LIMIT_ENFORCED",
+      "description": "Phase 3.2: Rate limiting enforced on gateway with token bucket algorithm",
       "status": "IMPLEMENTED",
       "verification_steps": [
-        "Test: GET /shub/health -> 200 OK (proxied)",
-        "Test: Shub DOWN -> /shub/health returns 503",
-        "Test: curl localhost:8007 -> Connection refused"
+        "Verify config/rate_limit.py exists with RateLimiter class (token bucket, Redis backend)",
+        "Confirm per-user limit: 1000 req/min (X-VX11-GW-TOKEN)",
+        "Confirm per-IP limit: 5000 req/min (client IP)",
+        "Confirm protected limit: 100 req/min (strategic slowdown)",
+        "Test rate limit: curl 1001x to /shub/* endpoint, verify 429 on limit exceeded",
+        "Verify Retry-After header present in 429 response",
+        "Confirm rate limit status endpoint: GET /shub/rate-limit/status",
+        "Verify rate_limit initialization in tentaculo_link/main_v7.py lifespan"
       ],
-      "expected_evidence": "docs/audit/vx11_shub_phase2_<TS>/VERIFICATION_RESULTS.md"
+      "expected_evidence": "docs/audit/<TS>/phase_3_2_rate_limiting_verification.md"
     },
     {
-      "id": "TENTACULO_GATEWAY_SECURITY_ENFORCED",
-      "description": "Tentaculo_link enforces gateway token + correlation_id",
+      "id": "GATEWAY_METRICS_PROMETHEUS_READY",
+      "description": "Phase 3.3: Prometheus metrics export ready with cache + latency percentiles",
       "status": "IMPLEMENTED",
       "verification_steps": [
-        "Public endpoints: no token needed",
-        "Protected: require X-VX11-GW-TOKEN",
-        "Correlation_id: generated or passed through"
+        "Verify config/metrics_prometheus.py exists with PrometheusMetrics class",
+        "Confirm /metrics endpoint returns Prometheus text format (# HELP, # TYPE, metric lines)",
+        "Verify metrics include: shub_proxy_requests_total, shub_proxy_latency_p50/p95/p99",
+        "Verify cache_hit_rate and cache_miss_total metrics tracked",
+        "Verify rate_limit_rejections counter increments on 429",
+        "Test latency percentiles: confirm p50 < p95 < p99",
+        "Confirm vx11_uptime_seconds metric present",
+        "Verify no secrets exposed in /metrics output",
+        "Test Prometheus scrape: curl http://localhost:8000/metrics | grep shub_proxy"
       ],
-      "expected_evidence": "docs/audit/vx11_shub_phase2_<TS>/"
+      "expected_evidence": "docs/audit/<TS>/phase_3_3_metrics_prometheus_verification.md"
+    },
+    {
+      "id": "GATEWAY_PATTERNS_DOCUMENTED",
+      "description": "Phase 3.4: API gateway patterns fully documented with 8 patterns + Prometheus alerts",
+      "status": "IMPLEMENTED",
+      "verification_steps": [
+        "Verify docs/patterns/GATEWAY_PATTERNS.md exists with 8 patterns documented",
+        "Confirm patterns: Circuit Breaker, Retry Backoff, Backpressure, Health Check Tuning, Timeout Strategy, Deduplication, Correlation Tracing, Prometheus Alerts",
+        "Verify each pattern has problem/solution/implementation/thresholds/metrics sections",
+        "Confirm all patterns reference CANONICAL_FLOWS_VX11.json flows",
+        "Verify Prometheus alert rules documented (e.g., p95 latency > 500ms triggers alert)",
+        "Confirm deduplication uses X-Idempotency-Key header",
+        "Confirm correlation tracing uses X-Correlation-ID propagation",
+        "Verify circuit breaker config: 5 failures threshold, 60s recovery window",
+        "Verify retry backoff: exponential (100ms, 250ms, 625ms)"
+      ],
+      "expected_evidence": "docs/audit/<TS>/phase_3_4_gateway_patterns_verification.md"
     }
   ]
 }
