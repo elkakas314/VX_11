@@ -696,6 +696,15 @@ class Daughter(Base):
     )  # spawned|running|restarting|finished|failed|killed|expired|mutated
     mutation_level = Column(Integer, default=0)  # Nivel de mutación/adaptación
     error_last = Column(Text, nullable=True)  # Último error
+    spawn_uuid = Column(
+        String(36), unique=True, nullable=True
+    )  # UUID único de spawn para genealogía
+    parent_id = Column(
+        Integer, ForeignKey("daughters.id"), nullable=True
+    )  # Daughter padre (si aplica)
+    spawner_service = Column(
+        String(64), nullable=True
+    )  # Servicio spawner que creó ésta (ej. "spawner")
 
 
 class DaughterAttempt(Base):

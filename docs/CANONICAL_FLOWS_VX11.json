@@ -51,6 +51,28 @@
         "Capture docker ps output"
       ],
       "expected_evidence": "docs/audit/vx11_canon_master_<TS>/docker_ps_final.txt"
+    },
+    {
+      "id": "REAPER_TTL_PRODUCTION_READY",
+      "description": "P1-1: Reaper interval configurable via ENV, default 60s for production",
+      "verification_steps": [
+        "Check VX11_SPAWNER_REAPER_INTERVAL_SECONDS env var in spawner container",
+        "Verify default is 60 seconds (not 5s testing mode)",
+        "Confirm reaper background job runs every 60s",
+        "Test TTL expiration: spawn daughter with ttl_seconds=60, wait >60s, verify status='reaped'"
+      ],
+      "expected_evidence": "docs/audit/vx11_canon_master_<TS>/flow_REAPER_PRODUCTION.txt"
+    },
+    {
+      "id": "DEEPSEEK_R1_AUDIT_INTEGRATION",
+      "description": "DeepSeek R1 model available for canonical audit reasoning via Madre",
+      "verification_steps": [
+        "Verify deepseek_r1 registered in switch/hermes/models_catalog.json",
+        "Check api_key_env=DEEPSEEK_API_KEY (no hardcoded secrets)",
+        "Confirm feature-flag VX11_ENABLE_DEEPSEEK_R1 can be set",
+        "Test invocation: /madre/power/audit/deepseek_r1 (or equivalent)"
+      ],
+      "expected_evidence": "docs/audit/vx11_canon_master_<TS>/deepseek_r1_integration.md"
     }
   ]
 }

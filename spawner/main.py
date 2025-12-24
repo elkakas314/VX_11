@@ -3,6 +3,7 @@ import json
 import os
 import subprocess
 import uuid
+from contextlib import asynccontextmanager  # P1-1: Add for reaper job
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -22,6 +23,73 @@ from config.db_schema import (
 )
 
 app = FastAPI(title="VX11 Spawner - Advanced")
+
+# ============ P1-1: CONFIGURATION ============
+# Read reaper interval from ENV; default 60s for production (use 5s only in testing)
+REAPER_INTERVAL_SECONDS = int(
+    os.environ.get("VX11_SPAWNER_REAPER_INTERVAL_SECONDS", "60")
+)
+
+
+# ============ P1-1: TTL/REAPER BACKGROUND JOB ============
+async def _reaper_job():
+    """
+    P1-1: Background job that periodically cleans expired daughters.
+    Interval: VX11_SPAWNER_REAPER_INTERVAL_SECONDS env var (default: 60s production, 5s testing).
+    """
+    while True:
+        try:
+            await asyncio.sleep(REAPER_INTERVAL_SECONDS)  # Configurable interval
+            session = get_session("vx11")
+            try:
+                now = _now()
+                from datetime import timedelta
+
+                # Find daughters past their TTL (started_at + ttl_seconds < now)
+                # Only process daughters that are not yet marked as reaped/killed
+                expired = (
+                    session.query(Daughter)
+                    .filter(
+                        Daughter.status.in_(
+                            ["spawned", "running", "completed", "expired"]
+                        ),
+                        Daughter.started_at != None,
+                        Daughter.started_at + timedelta(seconds=Daughter.ttl_seconds)
+                        < now,
+                    )
+                    .all()
+                )
+
+                if expired:
+                    for daughter in expired:
+                        daughter.status = "reaped"
+                        session.add(daughter)
+                    session.commit()
+            except Exception:
+                session.rollback()
+            finally:
+                session.close()
+        except Exception:
+            # Swallow exceptions in reaper to keep it running
+            await asyncio.sleep(5)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Startup/shutdown: start reaper background task."""
+    # Start reaper job
+    reaper_task = asyncio.create_task(_reaper_job())
+    try:
+        yield
+    finally:
+        reaper_task.cancel()
+        try:
+            await reaper_task
+        except asyncio.CancelledError:
+            pass
+
+
+app = FastAPI(title="VX11 Spawner - Advanced", lifespan=lifespan)
 
 
 class SpawnRequest(BaseModel):
@@ -62,7 +130,11 @@ def _now() -> datetime:
 
 
 def _madre_url() -> str:
-    return os.environ.get("VX11_MADRE_URL") or os.environ.get("MADRE_URL") or "http://localhost:8001"
+    return (
+        os.environ.get("VX11_MADRE_URL")
+        or os.environ.get("MADRE_URL")
+        or "http://localhost:8001"
+    )
 
 
 def _serialize(obj: Any) -> str:
@@ -93,7 +165,9 @@ def _register_intent(session, req: SpawnRequest) -> None:
     session.add(entry)
 
 
-def _create_task_and_daughter(session, req: SpawnRequest) -> Tuple[DaughterTask, Daughter]:
+def _create_task_and_daughter(
+    session, req: SpawnRequest, spawn_uuid: str
+) -> Tuple[DaughterTask, Daughter]:
     metadata = dict(req.metadata or {})
     metadata.update(
         {
@@ -102,6 +176,7 @@ def _create_task_and_daughter(session, req: SpawnRequest) -> Tuple[DaughterTask,
             "trace_id": req.trace_id,
             "parent_task_id": req.parent_task_id,
             "task_id": req.task_id,
+            "spawn_uuid": spawn_uuid,  # P0-1: Persist spawn_uuid in metadata
         }
     )
     task = DaughterTask(
@@ -132,6 +207,7 @@ def _create_task_and_daughter(session, req: SpawnRequest) -> Tuple[DaughterTask,
         status="spawned",
         mutation_level=req.mutation_level,
         error_last=None,
+        spawn_uuid=spawn_uuid,  # P0-1: Persist spawn_uuid directly to column
     )
     session.add(daughter)
     session.flush()
@@ -216,7 +292,9 @@ def _init_hijas_records(
         )
         session.add(runtime)
 
-    existing_state = session.query(HijasState).filter_by(hija_id=str(daughter.id)).first()
+    existing_state = (
+        session.query(HijasState).filter_by(hija_id=str(daughter.id)).first()
+    )
     if not existing_state:
         state = HijasState(
             hija_id=str(daughter.id),
@@ -330,12 +408,18 @@ def _spawn_subtasks(req: SpawnRequest, parent_task_id: int) -> int:
                 subtasks=None,
             )
             _register_intent(session, sub_req)
-            task, daughter = _create_task_and_daughter(session, sub_req)
-            spawn_uuid = str(uuid.uuid4())
+            spawn_uuid = str(
+                uuid.uuid4()
+            )  # P0-1: Generate UUID before creating daughter
+            task, daughter = _create_task_and_daughter(
+                session, sub_req, spawn_uuid
+            )  # P0-1: Pass spawn_uuid
             _create_spawn(session, sub_req, spawn_uuid)
             attempt = _create_attempt(session, daughter.id, 1)
             _update_status(session, task.id, daughter.id, "running")
-            _init_hijas_records(session, sub_req, task, daughter, spawn_uuid, attempt.id)
+            _init_hijas_records(
+                session, sub_req, task, daughter, spawn_uuid, attempt.id
+            )
             created += 1
         session.commit()
     except Exception:
@@ -381,7 +465,9 @@ async def _run_spawn_lifecycle(
             if spawn:
                 spawn.pid = None
                 spawn.status = (
-                    "completed" if status == "success" else "failed" if status == "error" else "timeout"
+                    "completed"
+                    if status == "success"
+                    else "failed" if status == "error" else "timeout"
                 )
                 spawn.started_at = spawn.started_at or _now()
                 spawn.ended_at = _now()
@@ -403,7 +489,11 @@ async def _run_spawn_lifecycle(
                     session,
                     daughter_id,
                     "completed",
-                    {"exit_code": exit_code, "stdout": stdout[:500], "stderr": stderr[:500]},
+                    {
+                        "exit_code": exit_code,
+                        "stdout": stdout[:500],
+                        "stderr": stderr[:500],
+                    },
                 )
                 session.commit()
                 _notify_madre(
@@ -420,13 +510,21 @@ async def _run_spawn_lifecycle(
                     session,
                     daughter_id,
                     final_state,
-                    {"exit_code": exit_code, "stdout": stdout[:500], "stderr": stderr[:500]},
+                    {
+                        "exit_code": exit_code,
+                        "stdout": stdout[:500],
+                        "stderr": stderr[:500],
+                    },
                 )
                 session.commit()
                 _notify_madre(
                     daughter_id,
                     final_state,
-                    {"status": "error", "exit_code": exit_code, "spawn_uuid": spawn_uuid},
+                    {
+                        "status": "error",
+                        "exit_code": exit_code,
+                        "spawn_uuid": spawn_uuid,
+                    },
                 )
                 return
 
@@ -467,6 +565,140 @@ def health():
     return {"status": "ok", "service": "spawner", "version": "v7.0"}
 
 
+# P0-2: Process management endpoints
+@app.get("/process/{daughter_id}")
+async def query_process(daughter_id: int):
+    """Query status of a spawned daughter process."""
+    session = get_session("vx11")
+    try:
+        daughter = session.query(Daughter).filter(Daughter.id == daughter_id).first()
+        if not daughter:
+            raise HTTPException(
+                status_code=404, detail=f"Daughter {daughter_id} not found"
+            )
+
+        task = (
+            session.query(DaughterTask)
+            .filter(DaughterTask.id == daughter.task_id)
+            .first()
+        )
+        return {
+            "status": "ok",
+            "daughter_id": daughter.id,
+            "spawn_uuid": daughter.spawn_uuid,
+            "name": daughter.name,
+            "purpose": daughter.purpose,
+            "status": daughter.status,
+            "started_at": (
+                daughter.started_at.isoformat() if daughter.started_at else None
+            ),
+            "ended_at": daughter.ended_at.isoformat() if daughter.ended_at else None,
+            "last_heartbeat_at": (
+                daughter.last_heartbeat_at.isoformat()
+                if daughter.last_heartbeat_at
+                else None
+            ),
+            "ttl_seconds": daughter.ttl_seconds,
+            "task_type": task.task_type if task else None,
+        }
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+    finally:
+        session.close()
+
+
+@app.get("/process/uuid/{spawn_uuid}")
+async def query_by_uuid(spawn_uuid: str):
+    """Query daughter by spawn_uuid."""
+    session = get_session("vx11")
+    try:
+        daughter = (
+            session.query(Daughter).filter(Daughter.spawn_uuid == spawn_uuid).first()
+        )
+        if not daughter:
+            raise HTTPException(
+                status_code=404, detail=f"spawn_uuid {spawn_uuid} not found"
+            )
+
+        task = (
+            session.query(DaughterTask)
+            .filter(DaughterTask.id == daughter.task_id)
+            .first()
+        )
+        return {
+            "status": "ok",
+            "daughter_id": daughter.id,
+            "spawn_uuid": daughter.spawn_uuid,
+            "name": daughter.name,
+            "purpose": daughter.purpose,
+            "status": daughter.status,
+            "started_at": (
+                daughter.started_at.isoformat() if daughter.started_at else None
+            ),
+            "ended_at": daughter.ended_at.isoformat() if daughter.ended_at else None,
+            "ttl_seconds": daughter.ttl_seconds,
+            "task_type": task.task_type if task else None,
+        }
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+    finally:
+        session.close()
+
+
+@app.delete("/kill/{daughter_id}")
+async def kill_daughter(daughter_id: int):
+    """Kill/terminate a spawned daughter process."""
+    session = get_session("vx11")
+    try:
+        daughter = session.query(Daughter).filter(Daughter.id == daughter_id).first()
+        if not daughter:
+            raise HTTPException(
+                status_code=404, detail=f"Daughter {daughter_id} not found"
+            )
+
+        # Mark as killed if still running
+        if daughter.status in ["spawned", "running", "retrying", "mutated"]:
+            daughter.status = "killed"
+            daughter.ended_at = _now()
+            session.add(daughter)
+
+            # Also update task
+            task = (
+                session.query(DaughterTask)
+                .filter(DaughterTask.id == daughter.task_id)
+                .first()
+            )
+            if task:
+                task.status = "killed"
+                task.finished_at = _now()
+                session.add(task)
+
+            # Update hijas records
+            _update_hijas_records(
+                session, daughter_id, "killed", {"killed_by": "api_endpoint"}
+            )
+            session.commit()
+
+        return {
+            "status": "ok",
+            "action": "kill",
+            "daughter_id": daughter_id,
+            "new_status": daughter.status,
+            "timestamp": _now().isoformat(),
+        }
+    except HTTPException:
+        raise
+    except Exception as exc:
+        session.rollback()
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+    finally:
+        session.close()
+
+
 @app.post("/spawn", response_model=SpawnResponse)
 async def spawn(req: SpawnRequest, background_tasks: BackgroundTasks):
     if not req.name and not req.cmd:
@@ -474,11 +706,13 @@ async def spawn(req: SpawnRequest, background_tasks: BackgroundTasks):
     if req.cmd is None:
         req.cmd = ""
 
-    spawn_uuid = str(uuid.uuid4())
+    spawn_uuid = str(uuid.uuid4())  # P0-1: Generate UUID early
     session = get_session("vx11")
     try:
         _register_intent(session, req)
-        task, daughter = _create_task_and_daughter(session, req)
+        task, daughter = _create_task_and_daughter(
+            session, req, spawn_uuid
+        )  # P0-1: Pass spawn_uuid
         _create_spawn(session, req, spawn_uuid)
         attempt = _create_attempt(session, daughter.id, 1)
         _update_status(session, task.id, daughter.id, "running")

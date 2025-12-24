@@ -48,3 +48,8 @@ services:
   tentaculo_link:
     volumes:
       - .:/app
+
+  spawner:
+    environment:
+      # P1-1: Reaper interval (seconds). Default 60s for production; testing can override to 5s
+      VX11_SPAWNER_REAPER_INTERVAL_SECONDS: "60"

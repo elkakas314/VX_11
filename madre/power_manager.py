@@ -48,8 +48,12 @@ CANONICAL_SERVICES = [
 ]
 
 # VX11 Service Control Policy: guardrails for autonomy
-VX11_ALLOW_SERVICE_CONTROL = os.environ.get("VX11_ALLOW_SERVICE_CONTROL", "0").lower() in ("1", "true", "yes")
-MAINTENANCE_WINDOW_ENABLED = os.environ.get("VX11_MAINTENANCE_WINDOW_ENABLED", "1").lower() in ("1", "true", "yes")
+VX11_ALLOW_SERVICE_CONTROL = os.environ.get(
+    "VX11_ALLOW_SERVICE_CONTROL", "0"
+).lower() in ("1", "true", "yes")
+MAINTENANCE_WINDOW_ENABLED = os.environ.get(
+    "VX11_MAINTENANCE_WINDOW_ENABLED", "1"
+).lower() in ("1", "true", "yes")
 
 _TOKENS: Dict[str, Dict[str, Any]] = {}
 _RATE: Dict[str, Dict[str, Any]] = {}
@@ -595,6 +599,16 @@ async def power_idle_min(
     x_vx11_power_key: Optional[str] = Header(None),
     x_vx11_power_token: Optional[str] = Header(None),
 ):
+    """
+    P0-3 SECURITY: POST /madre/power/mode/idle_min
+
+    Idle-min power mode requires THREE security checks (same as hard_off):
+    1. Header X-VX11-POWER-KEY (must match env VX11_POWER_KEY)
+    2. Header X-VX11-POWER-TOKEN (must be valid)
+    3. Request body field: confirm="I_UNDERSTAND_THIS_STOPS_SERVICES"
+
+    Idle-min is slightly safer: only stops tentaculo_link, keeps madre + core running.
+    """
     return await _power_mode(
         "idle_min", req, request, x_vx11_power_key, x_vx11_power_token
     )
@@ -607,6 +621,25 @@ async def power_hard_off(
     x_vx11_power_key: Optional[str] = Header(None),
     x_vx11_power_token: Optional[str] = Header(None),
 ):
+    """
+    P0-3 SECURITY: POST /madre/power/mode/hard_off
+    
+    Hard-off power mode requires THREE security checks:
+    1. Header X-VX11-POWER-KEY (must match env VX11_POWER_KEY)
+    2. Header X-VX11-POWER-TOKEN (must be valid and match IP/UA in rate-limit whitelist)
+    3. Request body field: confirm="I_UNDERSTAND_THIS_STOPS_SERVICES"
+    
+    If any check fails:
+    - apply=false: returns plan without executing
+    - apply=true: returns 400 error (security_flags show what failed)
+    
+    Example (with ?apply=false to get plan first):
+    curl -X POST http://localhost:8001/madre/power/mode/hard_off \
+      -H "X-VX11-POWER-KEY: $(echo $VX11_POWER_KEY)" \
+      -H "X-VX11-POWER-TOKEN: $(cat /etc/vx11/tokens.env | grep TOKEN)" \
+      -H "Content-Type: application/json" \
+      -d '{"apply": false, "confirm": "I_UNDERSTAND_THIS_STOPS_SERVICES"}'
+    """
     return await _power_mode(
         "hard_off", req, request, x_vx11_power_key, x_vx11_power_token
     )
@@ -854,9 +887,9 @@ async def start_service_simple(req: ServiceRequest):
     if not VX11_ALLOW_SERVICE_CONTROL:
         raise HTTPException(
             status_code=403,
-            detail="Service control disabled. Set VX11_ALLOW_SERVICE_CONTROL=1 to enable."
+            detail="Service control disabled. Set VX11_ALLOW_SERVICE_CONTROL=1 to enable.",
         )
-    
+
     allowlist, _ = _allowlist()
     svc = req.service
     if svc not in allowlist:
@@ -879,9 +912,9 @@ async def stop_service_simple(req: ServiceRequest):
     if not VX11_ALLOW_SERVICE_CONTROL:
         raise HTTPException(
             status_code=403,
-            detail="Service control disabled. Set VX11_ALLOW_SERVICE_CONTROL=1 to enable."
+            detail="Service control disabled. Set VX11_ALLOW_SERVICE_CONTROL=1 to enable.",
         )
-    
+
     allowlist, _ = _allowlist()
     svc = req.service
     if svc not in allowlist:
@@ -890,6 +923,7 @@ async def stop_service_simple(req: ServiceRequest):
     plan = _plan_for_service("stop", svc)
     executed = _execute_plan(out_dir, plan)
     return {"status": "ok", "service": svc, "executed": executed, "out_dir": out_dir}
+
 
 @router.get("/madre/power/status")
 async def get_power_status_simple():
