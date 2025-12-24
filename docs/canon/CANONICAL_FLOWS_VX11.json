@@ -1,0 +1,117 @@
+{
+  "version": "vx11_flows_v1",
+  "generated_at_utc": "2025-12-20T18:07:51Z",
+  "flows": [
+    {
+      "id": "CORE_HEALTH",
+      "description": "Core services health endpoint reachable",
+      "verification_steps": [
+        "Confirm core services are running (docker compose ps)",
+        "Request /health from core entrypoint",
+        "Record status codes and timestamps"
+      ],
+      "expected_evidence": "docs/audit/vx11_canon_master_<TS>/flow_CORE_HEALTH.txt"
+    },
+    {
+      "id": "SPAWN_GENEALOGY_MIN",
+      "description": "Spawner creates minimal genealogy with madre coordination",
+      "verification_steps": [
+        "Run spawner minimal workflow",
+        "Verify madre registry updated",
+        "Capture logs showing genealogy chain"
+      ],
+      "expected_evidence": "docs/audit/vx11_canon_master_<TS>/flow_SPAWN_GENEALOGY_MIN.txt"
+    },
+    {
+      "id": "CONTRACTS_17of17",
+      "description": "All canonical contracts pass (17 of 17)",
+      "verification_steps": [
+        "Execute contracts validation suite",
+        "Ensure 17/17 pass",
+        "Capture contract report output"
+      ],
+      "expected_evidence": "docs/audit/vx11_canon_master_<TS>/flow_CONTRACTS_17of17.txt"
+    },
+    {
+      "id": "P0_8of8",
+      "description": "P0 test suite passes (8 of 8)",
+      "verification_steps": [
+        "Run P0 test suite",
+        "Ensure 8/8 pass",
+        "Capture test report output"
+      ],
+      "expected_evidence": "docs/audit/vx11_canon_master_<TS>/flow_P0_8of8.txt"
+    },
+    {
+      "id": "SOLO_MADRE_FINAL_STATE",
+      "description": "Final state enforces solo madre arriba",
+      "verification_steps": [
+        "Inspect docker ps for running services",
+        "Ensure only madre (and allowed temporal window if active)",
+        "Capture docker ps output"
+      ],
+      "expected_evidence": "docs/audit/vx11_canon_master_<TS>/docker_ps_final.txt"
+    },
+    {
+      "id": "REAPER_TTL_PRODUCTION_READY",
+      "description": "P1-1: Reaper interval configurable via ENV, default 60s for production",
+      "verification_steps": [
+        "Check VX11_SPAWNER_REAPER_INTERVAL_SECONDS env var in spawner container",
+        "Verify default is 60 seconds (not 5s testing mode)",
+        "Confirm reaper background job runs every 60s",
+        "Test TTL expiration: spawn daughter with ttl_seconds=60, wait >60s, verify status='reaped'"
+      ],
+      "expected_evidence": "docs/audit/vx11_canon_master_<TS>/flow_REAPER_PRODUCTION.txt"
+    },
+    {
+      "id": "DEEPSEEK_R1_AUDIT_INTEGRATION",
+      "description": "DeepSeek R1 model available for canonical audit reasoning via Madre",
+      "verification_steps": [
+        "Verify deepseek_r1 registered in switch/hermes/models_catalog.json",
+        "Check api_key_env=DEEPSEEK_API_KEY (no hardcoded secrets)",
+        "Confirm feature-flag VX11_ENABLE_DEEPSEEK_R1 can be set",
+        "Test invocation: /madre/power/audit/deepseek_r1 (or equivalent)"
+      ],
+      "expected_evidence": "docs/audit/vx11_canon_master_<TS>/deepseek_r1_integration.md"
+    },
+    {
+      "id": "SHUB_AUDIO_PROFILE_INTERNAL_ONLY",
+      "description": "Shubniggurath starts only via --profile audio; no public port exposed",
+      "verification_steps": [
+        "Verify docker-compose.yml has profiles=[\"audio\"] for shubniggurath",
+        "Verify port 8007 NOT in published ports (removed from docker-compose.yml)",
+        "Start with default compose up: Shub should NOT start",
+        "Start with docker compose --profile audio up: Shub starts but port 8007 not published",
+        "Verify docker ps | grep shubniggurath shows NO published port in PORTS column",
+        "Verify curl http://localhost:8007/health times out (external access blocked)",
+        "Verify internal access works: docker compose exec tentaculo_link curl http://shubniggurath:8007/health"
+      ],
+      "expected_evidence": "docs/audit/vx11_shub_local_audit_<TS>/VERIFICATION_RESULTS.md + PATCHLOG.md"
+    },
+    {
+      "id": "TENTACULO_PROXY_GATEWAY_READINESS",
+      "description": "Tentaculo link can proxy /shub/* to internal shubniggurath (Phase 2 readiness)",
+      "status": "PARTIAL (proxy not yet implemented; /shub/dashboard endpoint exists)",
+      "verification_steps": [
+        "Confirm tentaculo_link running on port 8000",
+        "Verify /shub/dashboard endpoint responds (existing implementation)",
+        "Document gap: /shub/* generic proxy needed for transparent routing",
+        "When proxy implemented: test curl http://localhost:8000/shub/health routes to internal 8007",
+        "Verify no direct 8007 bypass needed"
+      ],
+      "expected_evidence": "docs/canon/CANONICAL_SHUB_VX11.json (known_gaps section)"
+    },
+    {
+      "id": "SHUB_REAPER_PRESENCE_REALISTIC",
+      "description": "Shubniggurath REAPER support: DSP-based analysis + file export (not binary inclusion)",
+      "status": "BY_DESIGN (Dockerfile does not include REAPER binary)",
+      "verification_steps": [
+        "Verify shubniggurath/Dockerfile: FROM python:3.11-slim (no REAPER install)",
+        "Confirm /api/reaper/projects endpoint returns REAPER presets (generated, not from REAPER binary)",
+        "Confirm /api/reaper/apply-preset returns .rpp files (REAPER project XML format)",
+        "Document: Live REAPER integration requires extended build (out of scope for v7.0)"
+      ],
+      "expected_evidence": "docs/audit/vx11_shub_local_audit_<TS>/RISK_NOTES.md (P2 REAPER binary gap)"
+    }
+  ]
+}

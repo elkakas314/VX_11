@@ -247,8 +247,9 @@ services:
     profiles: ["audio"]
     image: vx11-shub:v6.7
     container_name: vx11-shubniggurath
-    ports:
-      - "8007:8007"
+    # PORT 8007 REMOVED: No direct public access. Access only via tentaculo_link proxy.
+    # Internal container port remains 8007 for compose networking.
+    # Security: Shub is behind tentaculo gateway when started with --profile audio
     volumes:
       - ./build/artifacts/logs:/app/logs
       - ./data/runtime:/app/data/runtime

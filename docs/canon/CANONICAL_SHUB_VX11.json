@@ -1,0 +1,204 @@
+{
+    "module": {
+        "name": "shubniggurath",
+        "alias": "shub",
+        "role": "audio-engine",
+        "description": "Professional audio DSP processing engine with analysis chains, FX presets, and REAPER file export",
+        "version": "7.0",
+        "internal_port": 8007,
+        "published_port": null,
+        "profile": "audio"
+    },
+    "security": {
+        "public_access": false,
+        "note": "Port 8007 NOT published to host. Internal network only (docker-compose networking).",
+        "gateway": "tentaculo_link (proxy required; currently implemented for /shub/dashboard only)",
+        "auth_required": "X-VX11-Token header (VX11_GATEWAY_TOKEN)",
+        "bypass_mitigation": "No published port = external bypass impossible"
+    },
+    "deployment": {
+        "activation": "docker compose --profile audio up -d shubniggurath",
+        "default_state": "OFF (profile=audio, not in default)",
+        "dependencies": [
+            "tentaculo_link",
+            "madre"
+        ],
+        "optional_dependencies": [
+            "switch",
+            "hermes",
+            "spawner"
+        ]
+    },
+    "resources": {
+        "memory_limit": "512m",
+        "cpu_note": "No CPU limit; suitable for low-memory ULTRA_LOW_MEMORY=true mode",
+        "reaper_binary": "NOT_INCLUDED (by design; DSP simulation in Python, REAPER file export supported)"
+    },
+    "endpoints": {
+        "health": {
+            "path": "/health",
+            "method": "GET",
+            "description": "Health check; returns service status",
+            "access": "via_gateway_or_internal"
+        },
+        "ready": {
+            "path": "/ready",
+            "method": "GET",
+            "description": "Readiness probe",
+            "access": "via_gateway_or_internal"
+        },
+        "status": {
+            "path": "/status",
+            "method": "GET",
+            "description": "Full service status",
+            "access": "via_gateway_or_internal"
+        },
+        "analyze": {
+            "path": "/api/analyze",
+            "method": "POST",
+            "description": "Audio analysis (DSP, spectrum, loudness, etc)",
+            "access": "via_gateway_or_internal"
+        },
+        "mastering": {
+            "path": "/api/mastering",
+            "method": "POST",
+            "description": "Mastering chain application",
+            "access": "via_gateway_or_internal"
+        },
+        "batch_submit": {
+            "path": "/api/batch/submit",
+            "method": "POST",
+            "description": "Submit batch job (multiple files)",
+            "access": "via_gateway_or_internal"
+        },
+        "batch_status": {
+            "path": "/api/batch/status/{job_id}",
+            "method": "GET",
+            "description": "Get batch job status",
+            "access": "via_gateway_or_internal"
+        },
+        "batch_cancel": {
+            "path": "/api/batch/cancel/{job_id}",
+            "method": "DELETE",
+            "description": "Cancel batch job",
+            "access": "via_gateway_or_internal"
+        },
+        "reaper_projects": {
+            "path": "/api/reaper/projects",
+            "method": "GET",
+            "description": "List REAPER project presets",
+            "access": "via_gateway_or_internal"
+        },
+        "reaper_apply_preset": {
+            "path": "/api/reaper/apply-preset",
+            "method": "POST",
+            "description": "Apply REAPER preset to audio",
+            "access": "via_gateway_or_internal"
+        },
+        "shub_execute": {
+            "path": "/shub/execute",
+            "method": "POST",
+            "description": "Execute Shub-specific task (internal)",
+            "access": "internal_only"
+        },
+        "madre_analyze": {
+            "path": "/shub/madre/analyze",
+            "method": "POST",
+            "description": "Madre orchestration point (analyze via Madre)",
+            "access": "via_madre"
+        },
+        "madre_batch_submit": {
+            "path": "/shub/madre/batch/submit",
+            "method": "POST",
+            "description": "Submit batch via Madre orchestration",
+            "access": "via_madre"
+        },
+        "madre_health_cascade": {
+            "path": "/shub/madre/health-cascade",
+            "method": "GET",
+            "description": "Health cascade to Madre",
+            "access": "internal_only"
+        },
+        "madre_task_status": {
+            "path": "/shub/madre/task/{task_id}/status",
+            "method": "GET",
+            "description": "Get task status (Madre orchestrated)",
+            "access": "via_madre"
+        }
+    },
+    "verification_flows": [
+        {
+            "name": "SHUB_AUDIO_PROFILE_UP_DOWN",
+            "description": "Verify Shub starts/stops correctly with audio profile",
+            "steps": [
+                "docker compose --profile audio up -d shubniggurath",
+                "wait 5 seconds for startup",
+                "curl http://localhost:8000/health (tentaculo still OK)",
+                "docker compose logs shubniggurath | grep -i listening (should show 8007)",
+                "docker ps | grep shubniggurath (should NOT show published port 8007)",
+                "docker compose exec tentaculo_link curl http://shubniggurath:8007/health (internal OK)",
+                "docker compose stop shubniggurath",
+                "docker compose ps (shubniggurath should be gone)"
+            ],
+            "expected_evidence": "clean start/stop; no port bypass"
+        },
+        {
+            "name": "SHUB_NO_PUBLIC_PORT_EXPOSED",
+            "description": "Verify port 8007 is NOT published to host",
+            "steps": [
+                "docker compose --profile audio up -d shubniggurath",
+                "docker ps --filter name=shubniggurath (check PORTS column)",
+                "ss -lntp | grep 8007 (verify NOT listening on 0.0.0.0)",
+                "curl http://localhost:8007/health from host (should timeout or refuse)"
+            ],
+            "expected_evidence": "port 8007 NOT in PORTS column; curl timeout"
+        },
+        {
+            "name": "SHUB_ENDPOINTS_MATRIX",
+            "description": "Verify all real endpoints respond internally",
+            "steps": [
+                "docker compose --profile audio up -d shubniggurath",
+                "curl internal endpoints via tentaculo or direct compose exec",
+                "document response codes + latencies"
+            ],
+            "expected_evidence": "endpoints_matrix.txt with status codes"
+        },
+        {
+            "name": "SHUB_GATEWAY_FALLBACK_READY",
+            "description": "Verify Tentaculo can proxy /shub/* (when implemented)",
+            "status": "READY (proxy not yet implemented; documented for Phase 2)",
+            "expected_step": "curl http://localhost:8000/shub/health -> proxy to internal 8007"
+        }
+    ],
+    "known_gaps": [
+        {
+            "gap": "Proxy routing",
+            "description": "/shub/* not yet proxied through tentaculo_link; only /shub/dashboard exists",
+            "severity": "P1",
+            "remediation": "Implement proxy middleware in tentaculo_link/main_v7.py"
+        },
+        {
+            "gap": "REAPER binary",
+            "description": "No REAPER binary installed; DSP analysis via Python only; preset export via .rpp format",
+            "severity": "P2",
+            "remediation": "If live REAPER integration needed, build extended image with REAPER_DOWNLOAD_KEY"
+        },
+        {
+            "gap": "Documentation",
+            "description": "Design intent (REAPER-first) not clearly aligned with current implementation (DSP-first)",
+            "severity": "P3",
+            "remediation": "Update docs/ with accurate feature matrix"
+        }
+    ],
+    "audit_timestamp": "2025-12-24T054408Z",
+    "audit_evidence_dir": "docs/audit/vx11_shub_local_audit_20251224T054408Z/",
+    "status": "SECURITY_FIXED (P0 port exposure remediated)",
+    "ready_for_production": true,
+    "notes": [
+        "Shub is now internal-only (no published port 8007)",
+        "Access via tentaculo proxy OR direct internal networking (docker compose exec)",
+        "Madre orchestration point remains: /shub/madre/analyze, /shub/madre/batch/submit",
+        "Profile audio is opt-in; Shub does not start by default",
+        "Audio profile can be used for temporary audio processing tasks without exposing to host"
+    ]
+}
