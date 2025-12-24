@@ -1,6 +1,6 @@
 # VX11 Database Map (generated)
 
-Generated at: 2025-12-24T02:58:57.810875Z
+Generated at: 2025-12-24T23:12:02.934958Z
 
 Database file: data/runtime/vx11.db
 
@@ -144,7 +144,7 @@ Database file: data/runtime/vx11.db
 ### cli_usage_stats — ACTIVE
 
 - Module: hermes
-- Rows: 297
+- Rows: 252
 - Columns:
   - id (INTEGER) PK NOT NULL
   - provider_id (VARCHAR(128)) NOT NULL
@@ -233,7 +233,7 @@ Database file: data/runtime/vx11.db
 ### daughter_attempts — ACTIVE
 
 - Module: spawner
-- Rows: 160
+- Rows: 180
 - Columns:
   - id (INTEGER) PK NOT NULL
   - daughter_id (INTEGER) NOT NULL
@@ -253,7 +253,7 @@ Database file: data/runtime/vx11.db
 ### daughter_tasks — ACTIVE
 
 - Module: spawner
-- Rows: 111
+- Rows: 131
 - Columns:
   - id (INTEGER) PK NOT NULL
   - intent_id (VARCHAR(36))
@@ -269,11 +269,14 @@ Database file: data/runtime/vx11.db
   - current_retry (INTEGER)
   - metadata_json (TEXT)
   - plan_json (TEXT)
+  - parent_task_id_fk (INTEGER)
+- Foreign keys:
+  - parent_task_id_fk -> daughter_tasks.id (on_update=NO ACTION, on_delete=NO ACTION)
 
 ### daughters — ACTIVE
 
 - Module: spawner
-- Rows: 160
+- Rows: 180
 - Columns:
   - id (INTEGER) PK NOT NULL
   - task_id (INTEGER) NOT NULL
@@ -287,8 +290,12 @@ Database file: data/runtime/vx11.db
   - status (VARCHAR(32))
   - mutation_level (INTEGER)
   - error_last (TEXT)
+  - spawn_uuid (VARCHAR(36))
+  - parent_id (INTEGER)
+  - spawner_service (VARCHAR(64))
 - Foreign keys:
   - task_id -> daughter_tasks.id (on_update=NO ACTION, on_delete=NO ACTION)
+  - parent_id -> daughters.id (on_update=NO ACTION, on_delete=NO ACTION)
 
 ### drift_reports — EMPTY (READY)
 
@@ -390,7 +397,7 @@ Database file: data/runtime/vx11.db
 ### hijas_runtime — ACTIVE
 
 - Module: hormiguero
-- Rows: 35
+- Rows: 55
 - Columns:
   - id (INTEGER) PK NOT NULL
   - name (VARCHAR(128)) NOT NULL
@@ -411,7 +418,7 @@ Database file: data/runtime/vx11.db
 ### hijas_state — ACTIVE
 
 - Module: hormiguero
-- Rows: 23
+- Rows: 43
 - Columns:
   - id (INTEGER) PK NOT NULL
   - hija_id (VARCHAR(64)) NOT NULL
@@ -498,7 +505,7 @@ Database file: data/runtime/vx11.db
 ### intents_log — ACTIVE
 
 - Module: madre
-- Rows: 41
+- Rows: 58
 - Columns:
   - id (INTEGER) PK NOT NULL
   - source (VARCHAR(64)) NOT NULL
@@ -531,7 +538,7 @@ Database file: data/runtime/vx11.db
 ### madre_actions — ACTIVE
 
 - Module: madre
-- Rows: 82
+- Rows: 84
 - Columns:
   - id (INTEGER) PK NOT NULL
   - module (VARCHAR(64)) NOT NULL
@@ -740,7 +747,7 @@ Database file: data/runtime/vx11.db
 ### pheromone_log — ACTIVE
 
 - Module: hormiguero
-- Rows: 749057
+- Rows: 92784
 - Columns:
   - id (INTEGER) PK NOT NULL
   - pheromone_type (VARCHAR(64)) NOT NULL
@@ -861,7 +868,7 @@ Database file: data/runtime/vx11.db
 ### routing_events — ACTIVE
 
 - Module: switch
-- Rows: 62
+- Rows: 47
 - Columns:
   - id (INTEGER) PK NOT NULL
   - timestamp (DATETIME)
@@ -968,7 +975,7 @@ Database file: data/runtime/vx11.db
 ### spawns — ACTIVE
 
 - Module: spawner
-- Rows: 48
+- Rows: 68
 - Columns:
   - id (INTEGER) PK NOT NULL
   - uuid (VARCHAR(36)) NOT NULL
@@ -1003,10 +1010,10 @@ Database file: data/runtime/vx11.db
   - result_size (INTEGER)
   - error_message (VARCHAR(500))
 
-### system_events — ACTIVE
+### system_events — EMPTY (READY)
 
 - Module: madre
-- Rows: 3
+- Rows: 0
 - Columns:
   - id (INTEGER) PK NOT NULL
   - timestamp (DATETIME)

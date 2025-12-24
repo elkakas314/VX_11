@@ -1,5 +1,5 @@
 {
-  "generated_at": "2025-12-24T02:58:57.699229Z",
+  "generated_at": "2025-12-24T23:12:02.859920Z",
   "database": "data/runtime/vx11.db",
   "tables": [
     {
@@ -801,7 +801,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 297,
+      "rows": 252,
       "status": "ACTIVE",
       "module": "hermes"
     },
@@ -1317,7 +1317,7 @@
           "match": "NONE"
         }
       ],
-      "rows": 160,
+      "rows": 180,
       "status": "ACTIVE",
       "module": "spawner"
     },
@@ -1435,10 +1435,29 @@
           "notnull": false,
           "dflt_value": null,
           "pk": false
+        },
+        {
+          "cid": 14,
+          "name": "parent_task_id_fk",
+          "type": "INTEGER",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         }
       ],
-      "foreign_keys": [],
-      "rows": 111,
+      "foreign_keys": [
+        {
+          "id": 0,
+          "seq": 0,
+          "table": "daughter_tasks",
+          "from": "parent_task_id_fk",
+          "to": "id",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION",
+          "match": "NONE"
+        }
+      ],
+      "rows": 131,
       "status": "ACTIVE",
       "module": "spawner"
     },
@@ -1540,6 +1559,30 @@
           "notnull": false,
           "dflt_value": null,
           "pk": false
+        },
+        {
+          "cid": 12,
+          "name": "spawn_uuid",
+          "type": "VARCHAR(36)",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 13,
+          "name": "parent_id",
+          "type": "INTEGER",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 14,
+          "name": "spawner_service",
+          "type": "VARCHAR(64)",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
         }
       ],
       "foreign_keys": [
@@ -1552,9 +1595,19 @@
           "on_update": "NO ACTION",
           "on_delete": "NO ACTION",
           "match": "NONE"
+        },
+        {
+          "id": 1,
+          "seq": 0,
+          "table": "daughters",
+          "from": "parent_id",
+          "to": "id",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION",
+          "match": "NONE"
         }
       ],
-      "rows": 160,
+      "rows": 180,
       "status": "ACTIVE",
       "module": "spawner"
     },
@@ -2186,7 +2239,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 35,
+      "rows": 55,
       "status": "ACTIVE",
       "module": "hormiguero"
     },
@@ -2267,7 +2320,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 23,
+      "rows": 43,
       "status": "ACTIVE",
       "module": "hormiguero"
     },
@@ -2791,7 +2844,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 41,
+      "rows": 58,
       "status": "ACTIVE",
       "module": "madre"
     },
@@ -2961,7 +3014,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 82,
+      "rows": 84,
       "status": "ACTIVE",
       "module": "madre"
     },
@@ -4173,7 +4226,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 749057,
+      "rows": 92784,
       "status": "ACTIVE",
       "module": "hormiguero"
     },
@@ -4761,7 +4814,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 62,
+      "rows": 47,
       "status": "ACTIVE",
       "module": "switch"
     },
@@ -5344,7 +5397,7 @@
           "match": "NONE"
         }
       ],
-      "rows": 48,
+      "rows": 68,
       "status": "ACTIVE",
       "module": "spawner"
     },
@@ -5498,8 +5551,8 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 3,
-      "status": "ACTIVE",
+      "rows": 0,
+      "status": "EMPTY (READY)",
       "module": "madre"
     },
     {

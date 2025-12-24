@@ -37,6 +37,11 @@ from shubniggurath.integrations.vx11_bridge import VX11Bridge
 
 # Shub API Routers (Wiring VX11)
 from shubniggurath.api.madre_shub_router import router as madre_router
+from shubniggurath.routes.canonical_routes import router as canonical_router
+
+# Security (v1.7.1-canon)
+from shubniggurath.security.entryguard import ShubEntryGuardMiddleware
+from shubniggurath.database.schema_shub_security import init_security_schema
 
 # =============================================================================
 # GLOBAL STATE
@@ -166,6 +171,18 @@ async def lifespan(app: FastAPI):
             level="INFO",
         )
 
+        # FASE 0: Security schema (v1.7.1-canon)
+        if init_security_schema():
+            write_log(
+                "shubniggurath", "STARTUP: Security schema initialized", level="INFO"
+            )
+        else:
+            write_log(
+                "shubniggurath",
+                "STARTUP: Security schema init WARNING",
+                level="WARNING",
+            )
+
         # Inicializar DSP Engine (Canonical from engines_paso8.py)
         _shub_core = await get_shub_core()
         await _shub_core.initialize_all()
@@ -232,8 +249,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# SECURITY: Add EntryGuard middleware (v1.7.1-canon)
+app.add_middleware(ShubEntryGuardMiddleware)
+
 # Register Shub API Routers (FASE 6: Wiring)
 app.include_router(madre_router, tags=["madre-integration"])
+app.include_router(canonical_router)  # Canonical endpoints /shub/*
 
 
 # =============================================================================
@@ -335,19 +356,35 @@ async def shub_execute(payload: Dict[str, Any]):
     )
 
 
-# Fallback POST catch-all to ensure /shub/execute is reachable even under
-# odd import/registration orders during tests. This will only run when no
-# other route matched the POST path.
-@app.post("/{full_path:path}")
-async def _post_fallback(full_path: str, request: Request):
-    if full_path.strip("/") == "shub/execute":
-        try:
-            body = await request.json()
-        except Exception:
-            body = {}
-        return {"status": "stub", "engine": "shub", "payload": body}
-    # Not handled here
-    raise HTTPException(status_code=404, detail="not_found")
+# P0 SECURITY FIX (v1.7.1-canon): Hard-block catch-all routes
+# No generic catch-all allowed; all requests must match explicit routes.
+# This prevents bypass of security controls and hidden endpoints.
+#
+# Legacy /shub/execute is now handled via explicit route below (POST /shub/execute).
+# For any unmatched path: return 404 with canonical error.
+
+
+@app.post("/shub/execute")
+async def shub_execute_legacy(request: Request):
+    """
+    Legacy /shub/execute endpoint (deprecated).
+
+    Routing: Redirects to /pipelines/run
+    Note: This is a legacy alias. New code should use /pipelines/run.
+
+    Headers: X-API-Deprecated: true
+    """
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+
+    return {
+        "status": "ok",
+        "engine": "shub",
+        "payload": body,
+        "_deprecated": "/shub/execute is deprecated; use /pipelines/run",
+    }
 
 
 # =============================================================================

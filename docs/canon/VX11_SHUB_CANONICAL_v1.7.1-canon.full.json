@@ -1,0 +1,271 @@
+{
+    "schema": {
+        "name": "VX11_SHUB_CANONICAL",
+        "module_id": "shubniggurath",
+        "schema_version": "vx11_shub_canonical_v1",
+        "version": "1.7.1-canon",
+        "minimum_vx11_canon": "vx11_canon_v7",
+        "description": "Shub-Niggurath is the VX11 audio/REAPER orchestration module. It stays disabled by default under solo_madre and must be reachable only via tentaculo_link. Mutators require a Madre window-token. The module provides job-based pipelines, REAPER bridge (filesystem queue), plugin/script/action indexing, and DB-backed artifacts/logging.",
+        "created_at": "2024-01-15T00:00:00Z",
+        "updated_at": "2025-12-25T00:00:00Z",
+        "license": "VX11-Internal",
+        "maintainer": "madre-managed",
+        "profile": "studio_complete_reaper_first",
+        "runtime_default": "solo_madre",
+        "default_state": "disabled",
+        "audited_repo": "vx11_main@HEAD",
+        "source_inputs_merged": [
+            "deepseek_web_shub_json_v1.0.0",
+            "user_shub_json_v1.1.0",
+            "shubniggurath_module_zip_snapshot",
+            "docx_auditoria_cierre_shub_vx11",
+            "shub*.txt_notes",
+            "deepseek_dkjson_advice"
+        ]
+    },
+    "vx11_invariants": {
+        "single_entrypoint": {
+            "enforced": true,
+            "mechanism": "tentaculo_link_only",
+            "bypass_prohibited": true,
+            "required_headers": {
+                "X-VX11-Entry": "tentaculo_link",
+                "X-VX11-Request-Id": "uuid",
+                "X-VX11-Correlation-Id": "uuid"
+            },
+            "reject_if_missing": true
+        },
+        "runtime_default": "solo_madre",
+        "security_model": "window_guard_required_for_mutators",
+        "no_autostart_under_solo_madre": true
+    },
+    "runtime_policy": {
+        "startup_state": "disabled",
+        "enable_condition": "madre_window_token_valid",
+        "disable_conditions": [
+            "idle_timeout_exceeded",
+            "madre_window_closed",
+            "error_rate_threshold"
+        ],
+        "idle_timeout_seconds": 1800,
+        "max_concurrent_jobs": 3,
+        "resource_limits": {
+            "max_cpu_percent": 75,
+            "max_memory_mb": 512
+        },
+        "health_behavior_when_disabled": {
+            "health_returns_200": true,
+            "mutators_rejected": true,
+            "disabled_by_policy_flag": true
+        }
+    },
+    "networking": {
+        "service_name": "vx11-shubniggurath",
+        "container_port": 8007,
+        "base_path": "/shub",
+        "internal_only": true,
+        "allowed_ingress": [
+            "tentaculo_link"
+        ],
+        "forbidden_direct_ingress": [
+            "operator",
+            "public",
+            "localhost_bypass"
+        ]
+    },
+    "entrypoint_guard": {
+        "mode": "strict",
+        "allow_direct_access": false,
+        "trusted_reverse_proxy_only": true,
+        "trusted_proxy_headers": [
+            "X-Forwarded-For",
+            "X-Forwarded-Proto",
+            "X-Forwarded-Host"
+        ],
+        "shared_secret_env": "VX11_TENTACULO_LINK_SHARED_SECRET",
+        "signature_header": "X-VX11-Signature",
+        "signature_algorithm": "HMAC-SHA256",
+        "signing_string_spec": {
+            "canonical_string_v1": "METHOD\nPATH\nX-VX11-Timestamp\nX-VX11-Nonce\nSHA256(body)\nX-VX11-Request-Id\nX-VX11-Correlation-Id",
+            "body_hash": "hex(sha256(raw_body_bytes))",
+            "signature": "hex(hmac_sha256(shared_secret, canonical_string_v1))",
+            "verify_rules": [
+                "reject if timestamp skew > max_skew_seconds",
+                "reject if nonce already seen within max_skew_seconds window",
+                "reject if required headers missing"
+            ]
+        },
+        "replay_protection": {
+            "enabled": true,
+            "max_skew_seconds": 30,
+            "nonce_header": "X-VX11-Nonce",
+            "timestamp_header": "X-VX11-Timestamp"
+        }
+    },
+    "window_guard": {
+        "issuer": "madre",
+        "token_type": "vx11_window_token",
+        "token_transport": "Authorization: Bearer <token>",
+        "required_for_mutators": true,
+        "scope_model": {
+            "scopes": [
+                "shub:mutate",
+                "shub:jobs:submit",
+                "shub:reaper:control",
+                "shub:reaper:index:rebuild"
+            ],
+            "default_scope": "shub:mutate"
+        },
+        "claims_required": [
+            "sub",
+            "aud",
+            "iat",
+            "exp",
+            "vx11_window_id",
+            "vx11_allowed_endpoints"
+        ],
+        "audience": "shubniggurath",
+        "expiry_seconds_default": 900
+    },
+    "dependencies": {
+        "apt_required_minimal": [
+            "python3",
+            "python3-pip",
+            "ffmpeg",
+            "sox",
+            "libsndfile1",
+            "jq",
+            "curl"
+        ],
+        "apt_recommended_audio": [
+            "pavucontrol",
+            "jackd2",
+            "alsa-utils"
+        ],
+        "python_packages_required_minimal": [
+            "fastapi",
+            "uvicorn",
+            "pydantic",
+            "requests"
+        ],
+        "python_packages_recommended_audio": [
+            "numpy",
+            "scipy",
+            "soundfile",
+            "librosa"
+        ],
+        "notes": {
+            "reaper_resource_path_linux": "~/.config/REAPER/",
+            "plugin_scan_paths_default": [
+                "/usr/lib/lv2",
+                "/usr/lib/vst3",
+                "~/.config/REAPER/Effects"
+            ]
+        }
+    },
+    "api_contract": {
+        "base_path": "/shub",
+        "entrypoint": "tentaculo_link",
+        "endpoints": {
+            "health": {
+                "path": "/health",
+                "method": "GET",
+                "always_available": true
+            },
+            "ready": {
+                "path": "/ready",
+                "method": "GET",
+                "always_available": true
+            },
+            "jobs_submit": {
+                "path": "/jobs",
+                "method": "POST",
+                "window_guard_required": true
+            },
+            "jobs_status": {
+                "path": "/jobs/{job_id}",
+                "method": "GET"
+            },
+            "jobs_events": {
+                "path": "/jobs/{job_id}/events",
+                "method": "GET",
+                "transport": "Server-Sent Events"
+            },
+            "jobs_artifacts": {
+                "path": "/jobs/{job_id}/artifacts",
+                "method": "GET"
+            },
+            "jobs_actions": {
+                "path": "/jobs/{job_id}/actions",
+                "method": "POST",
+                "window_guard_required": true
+            },
+            "pipelines_list": {
+                "path": "/pipelines",
+                "method": "GET"
+            },
+            "pipelines_run": {
+                "path": "/pipelines/run",
+                "method": "POST",
+                "window_guard_required": true
+            },
+            "engines_list": {
+                "path": "/engines",
+                "method": "GET"
+            },
+            "metrics": {
+                "path": "/metrics",
+                "method": "GET"
+            },
+            "reaper_index_rebuild": {
+                "path": "/reaper/index/rebuild",
+                "method": "POST",
+                "window_guard_required": true
+            },
+            "reaper_search": {
+                "path": "/reaper/search",
+                "method": "GET"
+            }
+        },
+        "legacy_aliases": {
+            "enabled": true,
+            "deprecation_header": "X-API-Deprecated",
+            "aliases": [
+                {
+                    "from_path": "/api/analyze",
+                    "to_path": "/pipelines/run"
+                },
+                {
+                    "from_path": "/api/process",
+                    "to_path": "/jobs"
+                },
+                {
+                    "from_path": "/api/jobs",
+                    "to_path": "/jobs"
+                },
+                {
+                    "from_path": "/shub/execute",
+                    "to_path": "/pipelines/run"
+                },
+                {
+                    "from_path": "/api/reaper/{subpath}",
+                    "to_path": "/reaper/{subpath}"
+                }
+            ]
+        }
+    },
+    "audit_findings": {
+        "p0": [
+            {
+                "id": "SHUB-P0-ENTRYPOINT-BYPASS-RISK",
+                "issue": "Direct access risk if Shub is reachable without strict entrypoint guard.",
+                "required_fix_in_impl": "Reject any request missing X-VX11-Entry=tentaculo_link and valid signature."
+            },
+            {
+                "id": "SHUB-P0-CATCHALL-ROUTE",
+                "issue": "Catch-all route observed in snapshot can hide unexpected behavior and bypass contract controls.",
+                "required_fix_in_impl": "Remove or hard-block it; allow only explicit endpoints."
+            }
+        ]
+    }
+}

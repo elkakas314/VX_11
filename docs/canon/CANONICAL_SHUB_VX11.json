@@ -4,22 +4,64 @@
         "alias": "shub",
         "role": "audio-engine",
         "description": "Professional audio DSP processing engine with analysis chains, FX presets, and REAPER file export",
-        "version": "7.0",
+        "version": "1.7.1-canon",
         "internal_port": 8007,
         "published_port": null,
         "profile": "audio"
+    },
+    "canon_version": "1.7.1-canon",
+    "canon_references": {
+        "full_spec": "docs/canon/VX11_SHUB_CANONICAL_v1.7.1-canon.full.json",
+        "flows": "docs/canon/CANONICAL_FLOWS_VX11.json",
+        "last_audit": "docs/audit/vx11_shub_integration_20251224T231925Z"
     },
     "security": {
         "public_access": false,
         "note": "Port 8007 NOT published to host. Internal network only (docker-compose networking).",
         "gateway": "tentaculo_link (proxy COMPLETE: all /shub/* routed via tentaculo:8000)",
         "proxy_status": "PHASE2_COMPLETE - Full /shub/{path} proxy implemented",
+        "entry_guard": {
+            "mode": "strict",
+            "required_headers": {
+                "X-VX11-Entry": "tentaculo_link",
+                "X-VX11-Request-Id": "uuid",
+                "X-VX11-Correlation-Id": "uuid",
+                "X-VX11-Timestamp": "unix_seconds",
+                "X-VX11-Nonce": "unique_identifier",
+                "X-VX11-Signature": "HMAC-SHA256"
+            },
+            "algorithm": "HMAC-SHA256",
+            "replay_protection": {
+                "enabled": true,
+                "table": "shub_request_nonces",
+                "nonce_ttl_seconds": 120,
+                "max_skew_seconds": 30
+            }
+        },
+        "window_guard": {
+            "required_for_mutators": true,
+            "token_type": "vx11_window_token",
+            "token_transport": "Authorization: Bearer <token>",
+            "issuer": "madre",
+            "verify_endpoint": "POST /auth/window/verify",
+            "scopes": [
+                "shub:mutate",
+                "shub:jobs:submit",
+                "shub:reaper:control",
+                "shub:reaper:index:rebuild"
+            ],
+            "default_scope": "shub:mutate"
+        },
         "proxy_details": {
             "route": "@app.api_route('/shub/{path:path}', methods=[GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD])",
             "upstream": "http://shubniggurath:8007",
             "correlation_id": "X-Correlation-ID (generated if not provided)",
             "auth": "X-VX11-GW-TOKEN for protected endpoints",
-            "public_endpoints": ["/shub/health", "/shub/ready", "/shub/openapi.json"],
+            "public_endpoints": [
+                "/shub/health",
+                "/shub/ready",
+                "/shub/openapi.json"
+            ],
             "error_503": "Shub unavailable (with correlation_id)",
             "rate_limiting": {
                 "phase": "PHASE_3_2_IMPLEMENTED",
@@ -47,7 +89,11 @@
                     "rate_limit_rejections",
                     "vx11_uptime_seconds"
                 ],
-                "latency_percentiles": ["p50", "p95", "p99"],
+                "latency_percentiles": [
+                    "p50",
+                    "p95",
+                    "p99"
+                ],
                 "scrape_interval": "30s (standard Prometheus)",
                 "cache_metrics": "Tracked per proxy request"
             },
