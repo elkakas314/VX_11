@@ -12,9 +12,18 @@
     "security": {
         "public_access": false,
         "note": "Port 8007 NOT published to host. Internal network only (docker-compose networking).",
-        "gateway": "tentaculo_link (proxy required; currently implemented for /shub/dashboard only)",
+        "gateway": "tentaculo_link (proxy COMPLETE: all /shub/* routed via tentaculo:8000)",
+        "proxy_status": "PHASE2_COMPLETE - Full /shub/{path} proxy implemented",
+        "proxy_details": {
+            "route": "@app.api_route('/shub/{path:path}', methods=[GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD])",
+            "upstream": "http://shubniggurath:8007",
+            "correlation_id": "X-Correlation-ID (generated if not provided)",
+            "auth": "X-VX11-GW-TOKEN for protected endpoints",
+            "public_endpoints": ["/shub/health", "/shub/ready", "/shub/openapi.json"],
+            "error_503": "Shub unavailable (with correlation_id)"
+        },
         "auth_required": "X-VX11-Token header (VX11_GATEWAY_TOKEN)",
-        "bypass_mitigation": "No published port = external bypass impossible"
+        "bypass_mitigation": "No published port 8007 = no direct external access possible"
     },
     "deployment": {
         "activation": "docker compose --profile audio up -d shubniggurath",

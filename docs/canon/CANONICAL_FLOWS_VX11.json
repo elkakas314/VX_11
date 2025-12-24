@@ -112,6 +112,28 @@
         "Document: Live REAPER integration requires extended build (out of scope for v7.0)"
       ],
       "expected_evidence": "docs/audit/vx11_shub_local_audit_<TS>/RISK_NOTES.md (P2 REAPER binary gap)"
+    },
+    {
+      "id": "SHUB_PROXY_PHASE2_READY",
+      "description": "Tentaculo_link proxies all /shub/* requests to internal shubniggurath",
+      "status": "IMPLEMENTED",
+      "verification_steps": [
+        "Test: GET /shub/health -> 200 OK (proxied)",
+        "Test: Shub DOWN -> /shub/health returns 503",
+        "Test: curl localhost:8007 -> Connection refused"
+      ],
+      "expected_evidence": "docs/audit/vx11_shub_phase2_<TS>/VERIFICATION_RESULTS.md"
+    },
+    {
+      "id": "TENTACULO_GATEWAY_SECURITY_ENFORCED",
+      "description": "Tentaculo_link enforces gateway token + correlation_id",
+      "status": "IMPLEMENTED",
+      "verification_steps": [
+        "Public endpoints: no token needed",
+        "Protected: require X-VX11-GW-TOKEN",
+        "Correlation_id: generated or passed through"
+      ],
+      "expected_evidence": "docs/audit/vx11_shub_phase2_<TS>/"
     }
   ]
 }

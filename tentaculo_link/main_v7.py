@@ -398,12 +398,14 @@ from fastapi import (
     FastAPI,
     Header,
     HTTPException,
+    Request,
     WebSocket,
     WebSocketDisconnect,
 )
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field
+import httpx
 
 from config.forensics import write_log
 from config.settings import settings
@@ -1331,6 +1333,150 @@ async def websocket_endpoint(
     except WebSocketDisconnect:
         await manager.disconnect(client_id)
         write_log("tentaculo_link", f"ws_disconnect_normal:{client_id}")
+
+
+# ============================================================================
+# PHASE 2: SHUB PROXY — /shub/{path:path} -> http://shubniggurath:8007/{path}
+# ============================================================================
+
+import os
+import time as time_module
+
+SHUB_UPSTREAM = os.environ.get("VX11_SHUB_UPSTREAM", "http://shubniggurath:8007")
+SHUB_GATEWAY_TOKEN = os.environ.get("VX11_GATEWAY_TOKEN", VX11_TOKEN)
+
+
+@app.api_route(
+    "/shub/{path:path}",
+    methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"],
+)
+async def proxy_shub(
+    request: Request,
+    path: str,
+    x_correlation_id: str = Header(None),
+) -> StreamingResponse:
+    """
+    Proxy all /shub/* requests to internal shubniggurath service.
+
+    Security:
+    - /shub/health and /shub/openapi.json: allowed without token
+    - Other endpoints: require X-VX11-GW-TOKEN header
+
+    Correlation ID:
+    - If X-Correlation-ID provided, pass through
+    - Otherwise, generate new UUID
+
+    Error Handling:
+    - If shubniggurath unavailable: return 503
+
+    Logging:
+    - Structured event with status_code, path, latency_ms, correlation_id
+    """
+
+    start_time = time_module.time()
+
+    # Generate or use provided correlation_id
+    correlation_id = x_correlation_id or str(uuid.uuid4())
+
+    # Endpoints that don't require gateway token
+    public_endpoints = {"/shub/health", "/shub/openapi.json", "/shub/ready"}
+    request_path = f"/shub/{path}" if path else "/shub/"
+
+    # Token validation for protected endpoints
+    if request_path not in public_endpoints:
+        gw_token = request.headers.get("X-VX11-GW-TOKEN")
+        if not gw_token or gw_token != SHUB_GATEWAY_TOKEN:
+            write_log(
+                "tentaculo_link",
+                f"shub_proxy_auth_fail:path={request_path}:correlation_id={correlation_id}",
+            )
+            return JSONResponse(
+                status_code=403,
+                content={"error": "forbidden", "correlation_id": correlation_id},
+            )
+
+    # Build upstream URL
+    query_string = str(request.url.query) if request.url.query else ""
+    upstream_url = f"{SHUB_UPSTREAM}/{path}"
+    if query_string:
+        upstream_url = f"{upstream_url}?{query_string}"
+
+    # Prepare headers for upstream
+    upstream_headers = {}
+    for key, value in request.headers.items():
+        if key.lower() not in ["host", "connection"]:
+            upstream_headers[key] = value
+
+    # Add/update correlation_id header
+    upstream_headers["X-Correlation-ID"] = correlation_id
+    upstream_headers["X-Forwarded-By"] = "tentaculo_link"
+
+    try:
+        # Forward request to shubniggurath
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.request(
+                method=request.method,
+                url=upstream_url,
+                headers=upstream_headers,
+                content=(
+                    await request.body()
+                    if request.method in ["POST", "PUT", "PATCH"]
+                    else None
+                ),
+                follow_redirects=True,
+            )
+
+        latency_ms = (time_module.time() - start_time) * 1000
+
+        # Log successful proxy
+        write_log(
+            "tentaculo_link",
+            f"shub_proxy:status={response.status_code}:path={request_path}:latency_ms={latency_ms:.1f}:correlation_id={correlation_id}",
+        )
+
+        # Return proxied response
+        return StreamingResponse(
+            iter([response.content]),
+            status_code=response.status_code,
+            headers=dict(response.headers),
+            media_type=response.headers.get("content-type", "application/json"),
+        )
+
+    except (httpx.ConnectError, httpx.TimeoutException) as e:
+        latency_ms = (time_module.time() - start_time) * 1000
+
+        # Shubniggurath unavailable
+        write_log(
+            "tentaculo_link",
+            f"shub_proxy_unavailable:path={request_path}:error={type(e).__name__}:latency_ms={latency_ms:.1f}:correlation_id={correlation_id}",
+        )
+
+        return JSONResponse(
+            status_code=503,
+            content={
+                "error": "shub_unavailable",
+                "detail": "Audio engine service is temporarily unavailable",
+                "correlation_id": correlation_id,
+            },
+        )
+
+    except Exception as e:
+        latency_ms = (time_module.time() - start_time) * 1000
+
+        # Unexpected error
+        write_log(
+            "tentaculo_link",
+            f"shub_proxy_error:path={request_path}:error={type(e).__name__}:{str(e)[:50]}:correlation_id={correlation_id}",
+        )
+
+        return JSONResponse(
+            status_code=502,
+            content={
+                "error": "gateway_error",
+                "detail": "Error forwarding request to audio engine",
+                "correlation_id": correlation_id,
+            },
+        )
 
 
 if __name__ == "__main__":
