@@ -39,6 +39,7 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
+      start_period: 60s
 
   # ========== MADRE (PORT 8001) ==========
   madre:
@@ -72,6 +73,7 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
+      start_period: 60s
 
   # ========== SWITCH (PORT 8002) ==========
   switch:
@@ -104,6 +106,7 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
+      start_period: 60s
 
   # ========== HERMES (PORT 8003) ==========
   hermes:
@@ -133,6 +136,7 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
+      start_period: 60s
 
   # ========== HORMIGUERO (PORT 8004) ==========
   hormiguero:
@@ -166,6 +170,7 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
+      start_period: 60s
 
   # ========== MANIFESTATOR (PORT 8005) ==========
   manifestator:
@@ -199,6 +204,7 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
+      start_period: 60s
 
   # ========== MCP (PORT 8006) ==========
   mcp:
@@ -230,6 +236,7 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
+      start_period: 60s
 
   # ========== SHUB NIGGURATH (PORT 8007) ==========
   shubniggurath:
@@ -260,6 +267,7 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
+      start_period: 60s
 
   # ========== SPAWNER (PORT 8008) ==========
   spawner:
@@ -292,6 +300,7 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
+      start_period: 60s
 
   # ========== OPERATOR BACKEND (PORT 8011) ==========
   operator-backend:
@@ -321,16 +330,15 @@ services:
       - OPERATOR_TOKEN_SECRET=${OPERATOR_TOKEN_SECRET:-operator-secret-v7}
     mem_limit: 512m
     depends_on:
-      tentaculo_link:
-        condition: service_healthy
-      switch:
-        condition: service_healthy
+      - tentaculo_link
+      - switch
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8011/health"]
       interval: 60s
       timeout: 10s
       retries: 5
+      start_period: 120s
 
   # ========== OPERATOR FRONTEND (PORT 8020) ==========
   operator-frontend:
@@ -342,8 +350,7 @@ services:
     ports:
       - "8020:8020"
     depends_on:
-      operator-backend:
-        condition: service_healthy
+      - operator-backend
     restart: unless-stopped
     environment:
       - API_TOKEN=vx11-local-token
@@ -356,6 +363,7 @@ services:
       interval: 60s
       timeout: 10s
       retries: 5
+      start_period: 120s
 
 volumes:
   logs:
