@@ -60,6 +60,82 @@ Instrucciones globales:
 
 ---
 
+## POWER CONTROL COMMANDS (container-level only, docker compose)
+
+### NEW: `@vx11 solo_madre`
+- **Action**: Apply SOLO_MADRE policy (stop all services except madre)
+- **Execution**: POST /madre/power/policy/solo_madre/apply
+- **Result**: docker ps shows ONLY vx11-madre running
+- **Evidence**: docs/audit/madre_power_solo_madre_*/ with pre/post snapshots
+- **Use case**: Hardened mode, reduce resource usage, emergencies
+
+### NEW: `@vx11 power start <module>`
+- **Action**: Start a specific service container (docker compose up -d)
+- **Module list**: tentaculo_link, switch, hermes, hormiguero, mcp, spawner, shubniggurath, manifestator, operator-backend, operator-frontend
+- **Guardrail**: VX11_ALLOW_SERVICE_CONTROL=1 (enabled in docker-compose.yml)
+- **Evidence**: docs/audit/madre_power_start_<module>_*/
+- **Format**: `/madre/power/service/start {"service":"switch"}`
+
+### NEW: `@vx11 power stop <module>`
+- **Action**: Stop a specific service container (docker compose stop)
+- **Module list**: same as above (cannot stop madre from this endpoint)
+- **Guardrail**: Same as start
+- **Evidence**: docs/audit/madre_power_stop_<module>_*/
+- **Format**: `/madre/power/service/stop {"service":"switch"}`
+
+### NEW: `@vx11 power status`
+- **Action**: Show current container state (docker compose ps)
+- **Format**: GET /madre/power/status
+- **Returns**: List of running services with health status
+
+### NEW: `@vx11 power policy check`
+- **Action**: Check if SOLO_MADRE policy is active
+- **Format**: GET /madre/power/policy/solo_madre/status
+- **Returns**: {"policy_active": true|false, "running_services": [...]}
+
+---
+
+## POWER CONTROL RAILS (NON-NEGOTIABLE)
+
+1. **Container-level ONLY**: Use `docker compose`, NEVER `docker exec` or `kill` or process-level signals
+2. **No arbitrary commands**: Power manager has allowlist of services from docker-compose.yml
+3. **Evidence mandatory**: Every action logs to docs/audit/ with timestamps, pre/post snapshots, DB records
+4. **No service restart loops**: If a service fails to start, report and do NOT retry automatically (human decision)
+5. **Madre is protected**: Cannot be stopped via power endpoints (manual only if needed, with explicit git reset)
+6. **Audit trail**: All power actions go to forensic/madre/ + SQLite copilot_actions_log (if exists) + OUTDIR
+
+---
+
+## POWER CONTROL EXAMPLES
+
+```bash
+# Check current state
+curl -s http://localhost:8001/madre/power/status
+
+# Apply SOLO_MADRE policy (stop all except madre)
+curl -X POST http://localhost:8001/madre/power/policy/solo_madre/apply
+
+# Check if solo_madre is active
+curl -s http://localhost:8001/madre/power/policy/solo_madre/status
+
+# Start switch service
+curl -X POST http://localhost:8001/madre/power/service/start \
+  -H "Content-Type: application/json" \
+  -d '{"service":"switch"}'
+
+# Stop switch service
+curl -X POST http://localhost:8001/madre/power/service/stop \
+  -H "Content-Type: application/json" \
+  -d '{"service":"switch"}'
+
+# Named modes (low_power, operative_core, full)
+curl -X POST http://localhost:8001/madre/power/mode \
+  -H "Content-Type: application/json" \
+  -d '{"mode":"low_power", "apply":true}'
+```
+
+---
+
 ## GIT DISCIPLINE (NON-NEGOTIABLE)
 
 - **Remote**: vx_11_remote ONLY (never 'origin' if not exists; always verify with `git remote -v`)

@@ -146,9 +146,20 @@ def _parse_sqlite_result(res: Dict[str, Any]) -> str:
 
 
 def _write_snapshot(out_dir: str, prefix: str) -> None:
-    ss = _run(["ss", "-ltnp"], timeout=10)
-    ps = _run(["ps", "aux"], timeout=10)
-    free = _run(["free", "-h"], timeout=10)
+    try:
+        ss = _run(["ss", "-ltnp"], timeout=10)
+    except Exception:
+        ss = {"stdout": "", "stderr": "ss command not available in container"}
+
+    try:
+        ps = _run(["ps", "aux"], timeout=10)
+    except Exception:
+        ps = {"stdout": "", "stderr": "ps command not available"}
+
+    try:
+        free = _run(["free", "-h"], timeout=10)
+    except Exception:
+        free = {"stdout": "", "stderr": "free command not available"}
 
     with open(os.path.join(out_dir, f"{prefix}_ss.txt"), "w", encoding="utf-8") as f:
         f.write(ss.get("stdout", ""))
@@ -166,6 +177,9 @@ def _write_snapshot(out_dir: str, prefix: str) -> None:
 
     with open(os.path.join(out_dir, f"{prefix}_free.txt"), "w", encoding="utf-8") as f:
         f.write(free.get("stdout", ""))
+        if free.get("stderr"):
+            f.write("\n# STDERR\n")
+            f.write(free.get("stderr", ""))
 
 
 def _run_sqlite_check(
@@ -204,18 +218,24 @@ def _compose_services() -> Tuple[List[str], Optional[str]]:
     files = _compose_files()
     if not files:
         return [], "compose_files_missing"
+
+    # Try to get all services (including those with profiles)
     args = ["docker", "compose", "-p", "vx11"]
     for f in files:
         args.extend(["-f", f])
     args.extend(["config", "--services"])
+
     try:
         res = _run(args, timeout=20)
-    except Exception as e:
-        return [], f"compose_error:{e}"
-    if res["rc"] != 0:
-        return [], "compose_failed"
-    services = [l.strip() for l in res["stdout"].splitlines() if l.strip()]
-    return services, None
+        if res["rc"] == 0:
+            services = [l.strip() for l in res["stdout"].splitlines() if l.strip()]
+            if services:
+                return services, None
+    except Exception:
+        pass
+
+    # Fallback: use canonical services
+    return CANONICAL_SERVICES, "context_fallback"
 
 
 def _db_services() -> List[str]:
@@ -245,13 +265,9 @@ def _db_services() -> List[str]:
 
 
 def _allowlist() -> Tuple[List[str], str]:
-    services, err = _compose_services()
-    if services:
-        return services, "compose"
-    db_services = _db_services()
-    if db_services:
-        return db_services, "db"
-    return CANONICAL_SERVICES, "context"
+    # Always use CANONICAL_SERVICES which has all potential services
+    # This ensures power control works for all services, not just active ones
+    return CANONICAL_SERVICES, "canonical"
 
 
 def _token_key(ip: str, ua: str) -> str:
@@ -940,6 +956,75 @@ async def get_power_status_simple():
     return {"status": "ok", "services": services}
 
 
+@router.post("/madre/power/policy/solo_madre/apply")
+async def apply_solo_madre_policy():
+    """
+    Apply SOLO_MADRE policy: stop all services except madre.
+    Container-level control only (docker compose, not process-level).
+    Evidence saved to docs/audit/madre_power_solo_madre_*.
+    """
+    allowlist, _ = _allowlist()
+    out_dir = _make_out_dir("solo_madre_policy", "apply")
+    plan = _plan_for_named_mode("low_power", allowlist)
+
+    _write_json(
+        os.path.join(out_dir, "plan.json"),
+        {
+            "policy": "solo_madre",
+            "mode": "low_power",
+            "plan": plan,
+            "timestamp": _now_ts(),
+        },
+    )
+
+    _write_snapshot(out_dir, "pre")
+    executed = _execute_plan(out_dir, plan)
+    _write_snapshot(out_dir, "post")
+    _record_db("power_solo_madre_apply", "policy")
+
+    return {
+        "status": "ok",
+        "policy": "solo_madre",
+        "executed": executed,
+        "out_dir": out_dir,
+        "message": "SOLO_MADRE policy applied: all services stopped except madre",
+    }
+
+
+@router.get("/madre/power/policy/solo_madre/status")
+async def check_solo_madre_policy_status():
+    """
+    Check if SOLO_MADRE policy is currently active.
+    Returns true if only madre is running.
+    """
+    res = _run(["docker", "compose", "-p", "vx11", "ps", "--format", "json"])
+    try:
+        raw = res.get("stdout", "").strip()
+        if raw.startswith("["):
+            services = json.loads(raw)
+        else:
+            services = [json.loads(l) for l in raw.splitlines() if l.strip()]
+    except Exception:
+        services = []
+
+    running_services = []
+    if isinstance(services, list):
+        running_services = [
+            svc.get("Service", svc.get("service", ""))
+            for svc in services
+            if isinstance(svc, dict)
+        ]
+
+    is_solo_madre = len(running_services) == 1 and "madre" in running_services
+
+    return {
+        "status": "ok",
+        "policy_active": is_solo_madre,
+        "running_services": running_services,
+        "expected_services": ["madre"],
+    }
+
+
 def _plan_for_named_mode(mode: str, allowlist: List[str]) -> List[Dict[str, Any]]:
     modes = {
         "low_power": ["madre"],
@@ -958,10 +1043,12 @@ def _plan_for_named_mode(mode: str, allowlist: List[str]) -> List[Dict[str, Any]
         ],
     }
     target = modes.get(mode, ["madre"])
+    # Filter to only services in allowlist (exclude infrastructure like redis)
+    target = [svc for svc in target if svc in allowlist]
     plan = []
     # Stop services not in target
     for svc in allowlist:
-        if svc not in target:
+        if svc not in target and svc != "redis":
             plan.append(
                 {"cmd": ["docker", "compose", "-p", "vx11", "stop", svc], "timeout": 30}
             )

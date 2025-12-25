@@ -64,6 +64,7 @@ services:
       - ./data/runtime:/app/data/runtime
       - ./build/artifacts/sandbox:/app/sandbox
       - ./models:/app/models
+      - /var/run/docker.sock:/var/run/docker.sock:rw
     environment:
       - ULTRA_LOW_MEMORY=true
       - LOG_LEVEL=INFO
@@ -73,6 +74,8 @@ services:
       - VX11_TENTACULO_LINK_TOKEN=vx11-local-token
       - VX11_OPERATOR_TOKEN=vx11-local-token
       - VX11_LOCAL_TOKEN=vx11-local-token
+      - VX11_ALLOW_SERVICE_CONTROL=1
+      - VX11_MAINTENANCE_WINDOW_ENABLED=1
     mem_limit: 512m
     depends_on:
       - tentaculo_link
