@@ -1,6 +1,6 @@
 # VX11 Database Map (generated)
 
-Generated at: 2025-12-25T01:46:19.904809Z
+Generated at: 2025-12-25T03:07:39.263256Z
 
 Database file: data/runtime/vx11.db
 
@@ -144,7 +144,7 @@ Database file: data/runtime/vx11.db
 ### cli_usage_stats — ACTIVE
 
 - Module: hermes
-- Rows: 246
+- Rows: 240
 - Columns:
   - id (INTEGER) PK NOT NULL
   - provider_id (VARCHAR(128)) NOT NULL
@@ -169,10 +169,10 @@ Database file: data/runtime/vx11.db
 - Foreign keys:
   - task_id -> tasks.uuid (on_update=NO ACTION, on_delete=NO ACTION)
 
-### copilot_actions_log — EMPTY (READY)
+### copilot_actions_log — ACTIVE
 
 - Module: mcp
-- Rows: 0
+- Rows: 3
 - Columns:
   - id (INTEGER) PK
   - session_id (TEXT)
@@ -538,7 +538,7 @@ Database file: data/runtime/vx11.db
 ### madre_actions — ACTIVE
 
 - Module: madre
-- Rows: 84
+- Rows: 86
 - Columns:
   - id (INTEGER) PK NOT NULL
   - module (VARCHAR(64)) NOT NULL
@@ -744,10 +744,10 @@ Database file: data/runtime/vx11.db
 - Foreign keys:
   - message_id -> operator_message.id (on_update=NO ACTION, on_delete=NO ACTION)
 
-### pheromone_log — ACTIVE
+### pheromone_log — EMPTY (READY)
 
 - Module: hormiguero
-- Rows: 23169
+- Rows: 0
 - Columns:
   - id (INTEGER) PK NOT NULL
   - pheromone_type (VARCHAR(64)) NOT NULL
@@ -868,7 +868,7 @@ Database file: data/runtime/vx11.db
 ### routing_events — ACTIVE
 
 - Module: switch
-- Rows: 46
+- Rows: 45
 - Columns:
   - id (INTEGER) PK NOT NULL
   - timestamp (DATETIME)
