@@ -20,16 +20,19 @@ Gating:
 import os
 import uuid
 import json
-import httpx
 from typing import Optional, Dict, Any
 from datetime import datetime, timedelta
 
-from fastapi import APIRouter, Depends, HTTPException, Header, status
+from fastapi import APIRouter, Depends, HTTPException, Header, Request, status
 from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel
 import jwt
+import httpx
 from sqlalchemy.orm import Session
 
+from config.settings import settings
+from config.tokens import get_token, load_tokens
+from config.rate_limit import get_rate_limiter
 from config.db_schema import (
     get_session,
     OperatorSession,
@@ -38,14 +41,25 @@ from config.db_schema import (
     OperatorJob,
     SystemEvents,
 )
+from ..switch_integration import TentaculoLinkClient
+
+# Load tokens (for tentaculo link auth headers)
+load_tokens()
+VX11_TOKEN = (
+    get_token("VX11_TENTACULO_LINK_TOKEN")
+    or get_token("VX11_GATEWAY_TOKEN")
+    or settings.api_token
+)
+AUTH_HEADERS = {settings.token_header: VX11_TOKEN}
 
 # Config
-VX11_MODE = os.getenv("VX11_MODE", "low_power")
 OPERATOR_ADMIN_PASSWORD = os.getenv("OPERATOR_ADMIN_PASSWORD", "admin")
 OPERATOR_TOKEN_SECRET = os.getenv("OPERATOR_TOKEN_SECRET", "operator-secret-v7")
 TOKEN_EXPIRE_HOURS = 24
+TESTING_MODE = os.getenv("VX11_TESTING_MODE", "false").lower() == "true" or settings.testing_mode
 
 router = APIRouter(prefix="", tags=["canonical_api"])
+rate_limiter = get_rate_limiter()
 
 
 # ============ MODELS ============
@@ -62,6 +76,7 @@ class LoginResponse(BaseModel):
     """Login response."""
 
     access_token: str
+    csrf_token: str
     token_type: str = "bearer"
     expires_in: int
 
@@ -88,12 +103,13 @@ def policy_check() -> Dict[str, str]:
 
     Raises HTTPException(409) if low_power mode.
     """
-    if VX11_MODE == "low_power":
+    mode = os.getenv("VX11_MODE", "low_power")
+    if mode == "low_power":
         raise HTTPException(
             status_code=409,
             detail="Operator disabled by policy (low_power mode). Set VX11_MODE=operative_core to enable.",
         )
-    return {"mode": VX11_MODE}
+    return {"mode": mode}
 
 
 def auth_check(authorization: Optional[str] = Header(None)) -> Dict[str, str]:
@@ -114,18 +130,104 @@ def auth_check(authorization: Optional[str] = Header(None)) -> Dict[str, str]:
             raise HTTPException(status_code=401, detail="Invalid auth scheme")
 
         payload = jwt.decode(token, OPERATOR_TOKEN_SECRET, algorithms=["HS256"])
-        return {"user_id": payload.get("sub", "unknown")}
+        return {
+            "user_id": payload.get("sub", "unknown"),
+            "csrf": payload.get("csrf"),
+        }
     except jwt.ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Token expired")
     except jwt.InvalidTokenError as e:
         raise HTTPException(status_code=401, detail=f"Invalid token: {str(e)}")
 
 
+def csrf_check(
+    user: Dict = Depends(auth_check),
+    x_csrf_token: Optional[str] = Header(None, alias="X-CSRF-Token"),
+) -> Dict[str, str]:
+    """
+    Validate CSRF token for mutating requests.
+    Requires X-CSRF-Token header to match JWT claim.
+    """
+    if not x_csrf_token or x_csrf_token != user.get("csrf"):
+        raise HTTPException(status_code=403, detail="Invalid or missing CSRF token")
+    return user
+
+
+async def rate_limit_guard(
+    request: Request,
+    user: Dict = Depends(auth_check),
+) -> Dict[str, Any]:
+    """
+    Rate limit guard for mutating endpoints.
+    Uses user_id when available, falls back to client IP.
+    """
+    identifier = None
+    if user:
+        identifier = f"user:{user.get('user_id', 'unknown')}"
+    if not identifier:
+        client_host = request.client.host if request.client else "unknown"
+        identifier = f"ip:{client_host}"
+
+    allowed, info = await rate_limiter.check_limit(
+        identifier, limit=rate_limiter.protected_limit
+    )
+    if not allowed:
+        raise HTTPException(
+            status_code=429,
+            detail="rate_limit_exceeded",
+            headers={"Retry-After": str(info.get("retry_after", 60))},
+        )
+    return info
+
+
+async def rate_limit_guard_public(request: Request) -> Dict[str, Any]:
+    """Rate limit guard for unauthenticated endpoints (login)."""
+    client_host = request.client.host if request.client else "unknown"
+    identifier = f"ip:{client_host}"
+    allowed, info = await rate_limiter.check_limit(
+        identifier, limit=rate_limiter.protected_limit
+    )
+    if not allowed:
+        raise HTTPException(
+            status_code=429,
+            detail="rate_limit_exceeded",
+            headers={"Retry-After": str(info.get("retry_after", 60))},
+        )
+    return info
+
+
+def append_audit(db: Session, component: str, message: str, level: str = "INFO") -> None:
+    """Persist audit log entry for powerful actions."""
+    entry = AuditLogs(component=component, level=level, message=message)
+    db.add(entry)
+    db.commit()
+
+
+async def tentaculo_power_action(path: str) -> Dict[str, Any]:
+    """Call Tentaculo Link power endpoint (single entrypoint)."""
+    if TESTING_MODE:
+        return {"status": "skipped", "reason": "testing_mode", "path": path}
+    url = f"{settings.tentaculo_link_url.rstrip('/')}{path}"
+    async with httpx.AsyncClient(timeout=5.0) as client:
+        resp = await client.post(url, headers=AUTH_HEADERS)
+        if resp.status_code >= 300:
+            raise HTTPException(
+                status_code=503,
+                detail=f"tentaculo_link power proxy failed ({resp.status_code})",
+            )
+        return resp.json()
+
+
 # ============ AUTH ENDPOINTS ============
 
 
 @router.post("/auth/login", response_model=LoginResponse)
-async def login(req: LoginRequest, _: Dict = Depends(policy_check)):
+async def login(
+    req: LoginRequest,
+    request: Request,
+    _: Dict = Depends(policy_check),
+    __: Dict = Depends(rate_limit_guard_public),
+):
     """
     Login endpoint.
 
@@ -152,10 +254,12 @@ async def login(req: LoginRequest, _: Dict = Depends(policy_check)):
     if req.username != "admin" or req.password != OPERATOR_ADMIN_PASSWORD:
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    # Generate JWT token
+    # Generate CSRF token and JWT token
+    csrf_token = str(uuid.uuid4())
     exp = datetime.utcnow() + timedelta(hours=TOKEN_EXPIRE_HOURS)
     payload = {
         "sub": req.username,
+        "csrf": csrf_token,
         "exp": exp,
         "iat": datetime.utcnow(),
     }
@@ -163,6 +267,7 @@ async def login(req: LoginRequest, _: Dict = Depends(policy_check)):
 
     return LoginResponse(
         access_token=token,
+        csrf_token=csrf_token,
         token_type="bearer",
         expires_in=TOKEN_EXPIRE_HOURS * 3600,
     )
@@ -170,8 +275,9 @@ async def login(req: LoginRequest, _: Dict = Depends(policy_check)):
 
 @router.post("/auth/logout", response_model=Dict[str, str])
 async def logout(
-    user: Dict = Depends(auth_check),
+    user: Dict = Depends(csrf_check),
     _: Dict = Depends(policy_check),
+    __: Dict = Depends(rate_limit_guard),
 ):
     """
     Logout endpoint.
@@ -198,7 +304,7 @@ async def logout(
 @router.post("/auth/verify", response_model=Dict[str, Any])
 async def verify(
     user: Dict = Depends(auth_check),
-    _: Dict = Depends(policy_check),
+    policy: Dict = Depends(policy_check),
 ):
     """
     Verify token endpoint.
@@ -219,7 +325,7 @@ async def verify(
     return {
         "valid": True,
         "user_id": user.get("user_id", "unknown"),
-        "mode": VX11_MODE,
+        "mode": policy.get("mode", "unknown"),
     }
 
 
@@ -228,7 +334,7 @@ async def verify(
 
 @router.get("/api/status", response_model=StatusResponse)
 async def get_status(
-    _: Dict = Depends(policy_check),
+    policy: Dict = Depends(policy_check),
     user: Dict = Depends(auth_check),
 ):
     """
@@ -254,7 +360,7 @@ async def get_status(
         module="operator",
         version="7.0",
         uptime=None,  # TODO: calculate from start time
-        mode=VX11_MODE,
+        mode=policy.get("mode", "unknown"),
     )
 
 
@@ -296,8 +402,9 @@ async def get_modules(
 async def post_chat(
     request: Dict[str, Any],
     _: Dict = Depends(policy_check),
-    user: Dict = Depends(auth_check),
+    user: Dict = Depends(csrf_check),
     db: Session = Depends(get_session),
+    __: Dict = Depends(rate_limit_guard),
 ):
     """
     Post chat message (canonical).
@@ -361,59 +468,27 @@ async def post_chat(
         db.add(user_msg)
         db.commit()
 
-        # PHASE 3: Fallback routing (tentáculo → madre → degraded)
+        # PHASE 3: Canonical routing via Tentaculo Link (no bypass)
         response_text = None
 
-        # Try Tentáculo Link first (if running on 8000)
-        try:
-            async with httpx.AsyncClient(timeout=2.0) as client:
-                r = await client.post(
-                    "http://localhost:8000/switch/chat",
-                    json={"message": message, "session_id": session_id},
-                    headers={"Authorization": f"Bearer {VX11_TOKEN}"},
-                )
-                if r.status_code == 200:
-                    try:
-                        response_text = r.json().get("response", None)
-                    except Exception as json_err:
-                        write_log(
-                            "operator_api",
-                            f"chat:{session_id}:tentaculo_json_error:{str(json_err)}",
-                            level="INFO",
-                        )
-                    if response_text:
-                        write_log("operator_api", f"chat:{session_id}:tentaculo_ok")
-        except Exception as e:
-            write_log(
-                "operator_api",
-                f"chat:{session_id}:tentaculo_failed:{str(e)}",
-                level="INFO",
-            )
-
-        # Fallback to Madre if tentáculo failed or unavailable
-        if not response_text:
+        if TESTING_MODE:
+            response_text = f"[TESTING_MODE] Received: {message}"
+        else:
             try:
-                async with httpx.AsyncClient(timeout=2.0) as client:
-                    r = await client.post(
-                        "http://localhost:8001/integrate/chat",
-                        json={"message": message, "session_id": session_id},
-                        headers={"Authorization": f"Bearer {VX11_TOKEN}"},
-                    )
-                    if r.status_code == 200:
-                        try:
-                            response_text = r.json().get("response", None)
-                        except Exception as json_err:
-                            write_log(
-                                "operator_api",
-                                f"chat:{session_id}:madre_json_error:{str(json_err)}",
-                                level="INFO",
-                            )
-                        if response_text:
-                            write_log("operator_api", f"chat:{session_id}:madre_ok")
+                tentaculo_client = TentaculoLinkClient()
+                result = await tentaculo_client.query_chat(
+                    message=message,
+                    session_id=session_id,
+                    user_id=user_id,
+                    metadata=request.get("metadata") or {},
+                )
+                response_text = result.get("response") or result.get("message")
+                if response_text:
+                    write_log("operator_api", f"chat:{session_id}:tentaculo_ok")
             except Exception as e:
                 write_log(
                     "operator_api",
-                    f"chat:{session_id}:madre_failed:{str(e)}",
+                    f"chat:{session_id}:tentaculo_failed:{str(e)}",
                     level="INFO",
                 )
 
@@ -586,7 +661,9 @@ async def download_audit(
 async def restart_module(
     name: str,
     _: Dict = Depends(policy_check),
-    user: Dict = Depends(auth_check),
+    user: Dict = Depends(csrf_check),
+    db: Session = Depends(get_session),
+    __: Dict = Depends(rate_limit_guard),
 ):
     """
     Restart module (Phase 2 real implementation).
@@ -614,13 +691,13 @@ async def restart_module(
             detail=f"Invalid module: {name}. Valid: {', '.join(valid_modules)}",
         )
 
-    # TODO: Call docker-compose restart <name> or systemctl restart vx11-<name>
-    # For now, return simulated response
+    append_audit(db, "operator_api", f"module_restart:{name}", level="INFO")
+    result = await tentaculo_power_action(f"/operator/power/service/{name}/restart")
     return {
         "module": name,
         "status": "restarting",
         "timestamp": datetime.utcnow().isoformat() + "Z",
-        "message": f"Module {name} restart initiated (Phase 2 stub)",
+        "proxy": result,
     }
 
 
@@ -628,7 +705,9 @@ async def restart_module(
 async def power_up_module(
     name: str,
     _: Dict = Depends(policy_check),
-    user: Dict = Depends(auth_check),
+    user: Dict = Depends(csrf_check),
+    db: Session = Depends(get_session),
+    __: Dict = Depends(rate_limit_guard),
 ):
     """
     Power up module (Phase 2 real implementation).
@@ -653,11 +732,13 @@ async def power_up_module(
             detail=f"Invalid module: {name}. Valid: {', '.join(valid_modules)}",
         )
 
-    # TODO: Call docker-compose up <name> or systemctl start vx11-<name>
+    append_audit(db, "operator_api", f"module_power_up:{name}", level="INFO")
+    result = await tentaculo_power_action(f"/operator/power/service/{name}/start")
     return {
         "module": name,
         "status": "powering_up",
         "timestamp": datetime.utcnow().isoformat() + "Z",
+        "proxy": result,
     }
 
 
@@ -665,7 +746,9 @@ async def power_up_module(
 async def power_down_module(
     name: str,
     _: Dict = Depends(policy_check),
-    user: Dict = Depends(auth_check),
+    user: Dict = Depends(csrf_check),
+    db: Session = Depends(get_session),
+    __: Dict = Depends(rate_limit_guard),
 ):
     """
     Power down module (Phase 2 real implementation).
@@ -690,12 +773,55 @@ async def power_down_module(
             detail=f"Invalid module: {name}. Valid: {', '.join(valid_modules)}",
         )
 
-    # TODO: Call docker-compose down <name> or systemctl stop vx11-<name>
+    append_audit(db, "operator_api", f"module_power_down:{name}", level="INFO")
+    result = await tentaculo_power_action(f"/operator/power/service/{name}/stop")
     return {
         "module": name,
         "status": "powering_down",
         "timestamp": datetime.utcnow().isoformat() + "Z",
+        "proxy": result,
     }
+
+
+@router.get("/api/power/status")
+async def power_status(
+    _: Dict = Depends(policy_check),
+    user: Dict = Depends(auth_check),
+):
+    """Get power status via Tentaculo Link (canonical entrypoint)."""
+    url = f"{settings.tentaculo_link_url.rstrip('/')}/operator/power/status"
+    async with httpx.AsyncClient(timeout=5.0) as client:
+        resp = await client.get(url, headers=AUTH_HEADERS)
+        if resp.status_code >= 300:
+            raise HTTPException(status_code=503, detail="power_status_unavailable")
+        return resp.json()
+
+
+@router.get("/api/policy/solo_madre/status")
+async def solo_madre_status(
+    _: Dict = Depends(policy_check),
+    user: Dict = Depends(auth_check),
+):
+    """Get SOLO_MADRE policy status via Tentaculo Link."""
+    url = f"{settings.tentaculo_link_url.rstrip('/')}/operator/power/policy/solo_madre/status"
+    async with httpx.AsyncClient(timeout=5.0) as client:
+        resp = await client.get(url, headers=AUTH_HEADERS)
+        if resp.status_code >= 300:
+            raise HTTPException(status_code=503, detail="solo_madre_status_unavailable")
+        return resp.json()
+
+
+@router.post("/api/policy/solo_madre/apply")
+async def solo_madre_apply(
+    _: Dict = Depends(policy_check),
+    user: Dict = Depends(csrf_check),
+    db: Session = Depends(get_session),
+    __: Dict = Depends(rate_limit_guard),
+):
+    """Apply SOLO_MADRE policy via Tentaculo Link."""
+    append_audit(db, "operator_api", "policy_solo_madre_apply", level="INFO")
+    result = await tentaculo_power_action("/operator/power/policy/solo_madre/apply")
+    return result
 
 
 # ============ EVENTS (SSE) ============

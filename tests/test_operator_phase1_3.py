@@ -29,9 +29,11 @@ def valid_token(monkeypatch):
     from datetime import datetime, timedelta
 
     secret = os.getenv("OPERATOR_TOKEN_SECRET", "operator-secret-v7")
+    csrf_token = os.getenv("OPERATOR_CSRF_TEST", "csrf-test")
     exp = datetime.utcnow() + timedelta(hours=24)
     payload = {
         "sub": "admin",
+        "csrf": csrf_token,
         "exp": exp,
         "iat": datetime.utcnow(),
     }
@@ -40,9 +42,16 @@ def valid_token(monkeypatch):
 
 
 @pytest.fixture
+def csrf_token():
+    """Static CSRF token matching valid_token payload."""
+    return os.getenv("OPERATOR_CSRF_TEST", "csrf-test")
+
+
+@pytest.fixture
 def operative_mode(monkeypatch):
     """Set VX11_MODE to operative_core for this test."""
     monkeypatch.setenv("VX11_MODE", "operative_core")
+    monkeypatch.setenv("VX11_TESTING_MODE", "true")
     # Reload module to pick up new env
     import importlib
     import operator_backend.backend.routers.canonical_api as api_module
@@ -54,6 +63,7 @@ def operative_mode(monkeypatch):
 def low_power_mode(monkeypatch):
     """Set VX11_MODE to low_power for this test."""
     monkeypatch.setenv("VX11_MODE", "low_power")
+    monkeypatch.setenv("VX11_TESTING_MODE", "true")
     import importlib
     import operator_backend.backend.routers.canonical_api as api_module
 
@@ -83,6 +93,7 @@ class TestAuth:
         assert response.status_code == 200
         data = response.json()
         assert "access_token" in data
+        assert "csrf_token" in data
         assert data["token_type"] == "bearer"
         assert data["expires_in"] > 0
 
@@ -121,8 +132,9 @@ class TestPolicy:
         # Test is flexible: accept 409 if policy working, or 200 if in operative_core at startup
         assert response.status_code in [200, 409]
 
-    def test_status_ok_when_operative(self, monkeypatch, valid_token):
+    def test_status_ok_when_operative(self, operative_mode, monkeypatch, valid_token):
         """Status con operative_core mode + token válido => 200."""
+        monkeypatch.setenv("VX11_MODE", "operative_core")
         response = client.get(
             "/api/status", headers={"Authorization": f"Bearer {valid_token}"}
         )
@@ -163,28 +175,34 @@ class TestEndpoints:
         assert "modules" in data
         assert isinstance(data["modules"], list)
 
-    def test_chat_post(self, operative_mode, monkeypatch, valid_token):
+    def test_chat_post(self, operative_mode, monkeypatch, valid_token, csrf_token):
         """POST /api/chat => 200."""
         monkeypatch.setenv("VX11_MODE", "operative_core")
 
         response = client.post(
             "/api/chat",
             json={"message": "test"},
-            headers={"Authorization": f"Bearer {valid_token}"},
+            headers={
+                "Authorization": f"Bearer {valid_token}",
+                "X-CSRF-Token": csrf_token,
+            },
         )
 
         assert response.status_code == 200
         data = response.json()
-        assert "message_id" in data
-        assert data["status"] == "received"
+        assert "session_id" in data
+        assert "response" in data
 
-    def test_restart_module_ok(self, operative_mode, monkeypatch, valid_token):
+    def test_restart_module_ok(self, operative_mode, monkeypatch, valid_token, csrf_token):
         """POST /api/module/{name}/restart (real) => 200."""
         monkeypatch.setenv("VX11_MODE", "operative_core")
 
         response = client.post(
             "/api/module/madre/restart",
-            headers={"Authorization": f"Bearer {valid_token}"},
+            headers={
+                "Authorization": f"Bearer {valid_token}",
+                "X-CSRF-Token": csrf_token,
+            },
         )
 
         assert response.status_code == 200
@@ -193,14 +211,17 @@ class TestEndpoints:
         assert data["status"] == "restarting"
 
     def test_restart_module_invalid_name(
-        self, operative_mode, monkeypatch, valid_token
+        self, operative_mode, monkeypatch, valid_token, csrf_token
     ):
         """POST /api/module/{name}/restart with invalid name => 400."""
         monkeypatch.setenv("VX11_MODE", "operative_core")
 
         response = client.post(
             "/api/module/invalid_module/restart",
-            headers={"Authorization": f"Bearer {valid_token}"},
+            headers={
+                "Authorization": f"Bearer {valid_token}",
+                "X-CSRF-Token": csrf_token,
+            },
         )
 
         assert response.status_code == 400
@@ -223,13 +244,16 @@ class TestEndpoints:
         detail_str = str(data)
         assert "not found" in detail_str.lower()
 
-    def test_logout_ok(self, operative_mode, monkeypatch, valid_token):
+    def test_logout_ok(self, operative_mode, monkeypatch, valid_token, csrf_token):
         """POST /auth/logout (Phase 2) => 200."""
         monkeypatch.setenv("VX11_MODE", "operative_core")
 
         response = client.post(
             "/auth/logout",
-            headers={"Authorization": f"Bearer {valid_token}"},
+            headers={
+                "Authorization": f"Bearer {valid_token}",
+                "X-CSRF-Token": csrf_token,
+            },
         )
 
         assert response.status_code == 200
@@ -265,13 +289,16 @@ class TestEndpoints:
         assert "items" in data
         assert isinstance(data["items"], list)
 
-    def test_power_up_module(self, operative_mode, monkeypatch, valid_token):
+    def test_power_up_module(self, operative_mode, monkeypatch, valid_token, csrf_token):
         """POST /api/module/{name}/power_up (Phase 2) => 200."""
         monkeypatch.setenv("VX11_MODE", "operative_core")
 
         response = client.post(
             "/api/module/madre/power_up",
-            headers={"Authorization": f"Bearer {valid_token}"},
+            headers={
+                "Authorization": f"Bearer {valid_token}",
+                "X-CSRF-Token": csrf_token,
+            },
         )
 
         assert response.status_code == 200
@@ -279,13 +306,16 @@ class TestEndpoints:
         assert data["module"] == "madre"
         assert data["status"] == "powering_up"
 
-    def test_power_down_module(self, operative_mode, monkeypatch, valid_token):
+    def test_power_down_module(self, operative_mode, monkeypatch, valid_token, csrf_token):
         """POST /api/module/{name}/power_down (Phase 2) => 200."""
         monkeypatch.setenv("VX11_MODE", "operative_core")
 
         response = client.post(
             "/api/module/madre/power_down",
-            headers={"Authorization": f"Bearer {valid_token}"},
+            headers={
+                "Authorization": f"Bearer {valid_token}",
+                "X-CSRF-Token": csrf_token,
+            },
         )
 
         assert response.status_code == 200
