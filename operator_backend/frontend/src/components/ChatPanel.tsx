@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { sendChat } from "../services/api";
+import "./ChatPanel.css";
 
 type Message = {
   role: "user" | "assistant";
@@ -168,14 +169,14 @@ export function ChatPanel({ onSend, events }: Props) {
         {/* MESSAGES */}
         <div className="chat-messages">
           {messages.length === 0 && (
-            <div style={{ textAlign: "center", color: "#999", marginTop: "auto", marginBottom: "auto" }}>
+            <div className="chat-empty-state">
               <p>Inicia una conversación...</p>
             </div>
           )}
           {messages.map((msg, idx) => (
             <div key={idx} className={`message ${msg.role}`}>
               <div className="message-avatar">{msg.role === "user" ? "👤" : "🤖"}</div>
-              <div style={{ flex: 1 }}>
+              <div className="message-content">
                 <div className="message-bubble">{msg.content}</div>
                 <div className="message-timestamp">{formatTime(msg.timestamp)}</div>
               </div>
@@ -184,7 +185,7 @@ export function ChatPanel({ onSend, events }: Props) {
           {sending && (
             <div className="message assistant">
               <div className="message-avatar">🤖</div>
-              <div style={{ flex: 1 }}>
+              <div className="message-content">
                 <div className="message-bubble">
                   <div className="typing-indicator">
                     <div className="typing-dot"></div>

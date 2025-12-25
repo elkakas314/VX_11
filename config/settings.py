@@ -163,5 +163,45 @@ class VX11Settings(BaseSettings):
         }
 
 
-# Instancia global
-settings = VX11Settings()
+# Instancia global (lazy)
+# Avoid creating the VX11Settings() at import time because that may
+# execute network/system calls (default_factory lambdas) and can
+# cause language servers or import-time introspection to hang.
+# We expose `settings` as a lightweight proxy that instantiates the
+# real settings object on first attribute access.
+from typing import Any
+
+
+def _load_settings() -> VX11Settings:
+    return VX11Settings()
+
+
+class _SettingsProxy:
+    """Lazy proxy for VX11Settings.
+
+    Accessing any attribute will trigger real settings creation once.
+    This keeps module import cheap and avoids side-effects during static
+    analysis or language-server indexing.
+    """
+
+    __slots__ = ("_real",)
+
+    def __init__(self) -> None:
+        object.__setattr__(self, "_real", None)
+
+    def _ensure(self) -> VX11Settings:
+        real = object.__getattribute__(self, "_real")
+        if real is None:
+            real = _load_settings()
+            object.__setattr__(self, "_real", real)
+        return real
+
+    def __getattr__(self, name: str) -> Any:
+        return getattr(self._ensure(), name)
+
+    def __setattr__(self, name: str, value: Any) -> None:
+        return setattr(self._ensure(), name, value)
+
+
+# Public proxy instance used across the codebase
+settings: VX11Settings = _SettingsProxy()

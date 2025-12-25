@@ -1,8 +1,51 @@
 {
+  // Reduce VS Code CPU / memory usage for large monorepo
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/.git/**": true,
+    "**/build/**": true,
+    "**/dist/**": true,
+    "**/archive/**": true,
+    "**/attic/**": true,
+    "**/docs/audit/**": true,
+    "**/data/**": true,
+    "**/logs/**": true,
+    "**/operator/frontend/node_modules/**": true
+  },
+  "search.followSymlinks": false,
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/build": true,
+    "**/archive": true,
+    "**/attic": true,
+    "**/docs/audit": true,
+    "**/data": true,
+    "**/logs": true
+  },
+  "files.exclude": {
+    "**/node_modules": true,
+    "**/.git": true,
+    "**/dist": true,
+    "**/build": true,
+    "**/archive": true,
+    "**/attic": true,
+    "**/docs/audit": false
+  },
+  // Python / Pylance tuning
+  "python.analysis.diagnosticMode": "openFilesOnly",
+  "python.analysis.typeCheckingMode": "basic",
+  "python.analysis.autoSearchPaths": false,
+  "python.analysis.useLibraryCodeForTypes": false,
+  // TypeScript tuning
+  "typescript.tsserver.maxTsServerMemory": 3072,
+  "typescript.suggest.autoImports": false,
+  // Disable automatic extension recommendations (optional)
+  "extensions.ignoreRecommendations": true,
+  // Chat agent config
   "chat.agent.enabled": true,
   "chat.agent.maxRequests": 250,
   "chat.useAgentsMdFile": true,
-
   "chat.tools.global.autoApprove": false,
   "chat.tools.terminal.autoApprove": {
     "/^pwd\\b/": true,
@@ -13,21 +56,17 @@
     "/^cat\\b/": true,
     "/^rg\\b/": true,
     "/^grep\\b/": true,
-
     "/^git\\s+status\\b/": true,
     "/^git\\s+diff\\b/": true,
     "/^git\\s+log\\b/": true,
     "/^git\\s+show\\b/": true,
     "/^git\\s+grep\\b/": true,
     "/^git\\s+ls-files\\b/": true,
-
     "/^python\\b/": true,
     "/^python3\\b/": true,
     "/^pytest\\b/": true,
-
     "/^docker\\s+ps\\b/": true,
     "/^docker\\s+compose\\s+config\\b/": true,
-
     "/^rm\\b/": false,
     "/^rmdir\\b/": false,
     "/^mv\\b/": false,
