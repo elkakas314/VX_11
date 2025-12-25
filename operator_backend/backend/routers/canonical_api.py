@@ -19,6 +19,8 @@ Gating:
 
 import os
 import uuid
+import json
+import httpx
 from typing import Optional, Dict, Any
 from datetime import datetime, timedelta
 
@@ -31,6 +33,7 @@ from sqlalchemy.orm import Session
 from config.db_schema import (
     get_session,
     OperatorSession,
+    OperatorMessage,
     AuditLogs,
     OperatorJob,
     SystemEvents,
@@ -294,33 +297,156 @@ async def post_chat(
     request: Dict[str, Any],
     _: Dict = Depends(policy_check),
     user: Dict = Depends(auth_check),
+    db: Session = Depends(get_session),
 ):
     """
     Post chat message (canonical).
 
-    Alias para /operator/chat.
+    Alias para /operator/chat: persiste sesión + mensajes en BD.
 
     Request:
       {
-        "session_id": "optional",
-        "message": "Hola"
+        "session_id": "optional UUID",
+        "message": "Hola",
+        "user_id": "optional",
+        "context_summary": "optional",
+        "metadata": "optional dict"
       }
 
     Response (200):
       {
-        "message_id": "msg_...",
-        "status": "received"
+        "session_id": "uuid",
+        "response": "respuesta del sistema",
+        "tool_calls": null
       }
 
     Errors:
       - 401: auth required
       - 409: policy violation (low_power mode)
     """
-    # TODO: Forward to /operator/chat handler if exists
-    return {
-        "message_id": f"msg_{datetime.utcnow().timestamp()}",
-        "status": "received",
-    }
+    import uuid as uuid_lib
+    from config.forensics import write_log
+
+    try:
+        session_id = request.get("session_id") or str(uuid_lib.uuid4())
+        user_id = request.get("user_id") or "api_user"
+        message = request.get("message", "")
+        request_id = str(uuid_lib.uuid4())[:8]
+
+        if not message:
+            raise ValueError("message is required")
+
+        # HARDENING: Max message length 4KB
+        if len(message) > 4096:
+            raise ValueError(f"message too long (max 4KB, got {len(message)} bytes)")
+
+        # Create/get session
+        session = db.query(OperatorSession).filter_by(session_id=session_id).first()
+        if not session:
+            session = OperatorSession(
+                session_id=session_id,
+                user_id=user_id,
+                source="api",
+            )
+            db.add(session)
+            db.commit()
+
+        # Store user message
+        user_msg = OperatorMessage(
+            session_id=session_id,
+            role="user",
+            content=message,
+            message_metadata=json.dumps(request.get("metadata") or {}),
+        )
+        db.add(user_msg)
+        db.commit()
+
+        # PHASE 3: Fallback routing (tentáculo → madre → degraded)
+        response_text = None
+
+        # Try Tentáculo Link first (if running on 8000)
+        try:
+            async with httpx.AsyncClient(timeout=2.0) as client:
+                r = await client.post(
+                    "http://localhost:8000/switch/chat",
+                    json={"message": message, "session_id": session_id},
+                    headers={"Authorization": f"Bearer {VX11_TOKEN}"},
+                )
+                if r.status_code == 200:
+                    try:
+                        response_text = r.json().get("response", None)
+                    except Exception as json_err:
+                        write_log(
+                            "operator_api",
+                            f"chat:{session_id}:tentaculo_json_error:{str(json_err)}",
+                            level="INFO",
+                        )
+                    if response_text:
+                        write_log("operator_api", f"chat:{session_id}:tentaculo_ok")
+        except Exception as e:
+            write_log(
+                "operator_api",
+                f"chat:{session_id}:tentaculo_failed:{str(e)}",
+                level="INFO",
+            )
+
+        # Fallback to Madre if tentáculo failed or unavailable
+        if not response_text:
+            try:
+                async with httpx.AsyncClient(timeout=2.0) as client:
+                    r = await client.post(
+                        "http://localhost:8001/integrate/chat",
+                        json={"message": message, "session_id": session_id},
+                        headers={"Authorization": f"Bearer {VX11_TOKEN}"},
+                    )
+                    if r.status_code == 200:
+                        try:
+                            response_text = r.json().get("response", None)
+                        except Exception as json_err:
+                            write_log(
+                                "operator_api",
+                                f"chat:{session_id}:madre_json_error:{str(json_err)}",
+                                level="INFO",
+                            )
+                        if response_text:
+                            write_log("operator_api", f"chat:{session_id}:madre_ok")
+            except Exception as e:
+                write_log(
+                    "operator_api",
+                    f"chat:{session_id}:madre_failed:{str(e)}",
+                    level="INFO",
+                )
+
+        # Degraded mode: fallback to echo (but ALWAYS persist)
+        if not response_text:
+            response_text = (
+                f"[DEGRADED] Received: {message}. Services not fully available."
+            )
+            write_log(
+                "operator_api", f"chat:{session_id}:degraded_mode", level="WARNING"
+            )
+
+        # Store assistant response
+        assistant_msg = OperatorMessage(
+            session_id=session_id,
+            role="assistant",
+            content=response_text,
+        )
+        db.add(assistant_msg)
+        db.commit()
+
+        write_log("operator_api", f"chat:{session_id}:success")
+
+        return {
+            "session_id": session_id,
+            "request_id": request_id,
+            "response": response_text,
+            "tool_calls": None,
+        }
+
+    except Exception as exc:
+        write_log("operator_api", f"chat_error:{exc}", level="ERROR")
+        raise HTTPException(status_code=500, detail=str(exc))
 
 
 # ============ AUDIT ENDPOINTS ============
