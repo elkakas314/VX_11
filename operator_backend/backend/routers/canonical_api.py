@@ -20,7 +20,7 @@ Gating:
 import os
 import uuid
 import json
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from datetime import datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Header, Request, status
@@ -56,7 +56,9 @@ AUTH_HEADERS = {settings.token_header: VX11_TOKEN}
 OPERATOR_ADMIN_PASSWORD = os.getenv("OPERATOR_ADMIN_PASSWORD", "admin")
 OPERATOR_TOKEN_SECRET = os.getenv("OPERATOR_TOKEN_SECRET", "operator-secret-v7")
 TOKEN_EXPIRE_HOURS = 24
-TESTING_MODE = os.getenv("VX11_TESTING_MODE", "false").lower() == "true" or settings.testing_mode
+TESTING_MODE = (
+    os.getenv("VX11_TESTING_MODE", "false").lower() == "true" or settings.testing_mode
+)
 
 router = APIRouter(prefix="", tags=["canonical_api"])
 rate_limiter = get_rate_limiter()
@@ -89,6 +91,45 @@ class StatusResponse(BaseModel):
     version: str
     uptime: Optional[int] = None
     mode: str
+
+
+# ============ UNIFIED RESPONSE SCHEMA ============
+
+
+class ErrorInfo(BaseModel):
+    """Error information in unified response."""
+
+    step: str
+    hint: str
+
+
+class UnifiedResponse(BaseModel):
+    """
+    Canonical unified response envelope for all /api/* endpoints.
+
+    Ensures consistent error reporting, request tracking, and route introspection.
+    """
+
+    ok: bool
+    request_id: str
+    route_taken: str = (
+        "operator_backend"  # "operator_backend" | "tentaculo_link" | "madre" | "degraded"
+    )
+    degraded: bool = False
+    errors: List[ErrorInfo] = []
+    data: Optional[Dict[str, Any]] = None
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "ok": True,
+                "request_id": "abc123",
+                "route_taken": "operator_backend",
+                "degraded": False,
+                "errors": [],
+                "data": {"status": "ok"},
+            }
+        }
 
 
 # ============ DEPENDENCY: Policy Check ============
@@ -153,6 +194,19 @@ def csrf_check(
     return user
 
 
+def request_context(
+    request: Request,
+    _policy: Dict = Depends(policy_check),
+) -> Dict[str, str]:
+    """
+    Generate request tracking context.
+
+    Returns dict with request_id (for audit trail).
+    """
+    request_id = str(uuid.uuid4())[:12]
+    return {"request_id": request_id}
+
+
 async def rate_limit_guard(
     request: Request,
     user: Dict = Depends(auth_check),
@@ -196,7 +250,9 @@ async def rate_limit_guard_public(request: Request) -> Dict[str, Any]:
     return info
 
 
-def append_audit(db: Session, component: str, message: str, level: str = "INFO") -> None:
+def append_audit(
+    db: Session, component: str, message: str, level: str = "INFO"
+) -> None:
     """Persist audit log entry for powerful actions."""
     entry = AuditLogs(component=component, level=level, message=message)
     db.add(entry)
