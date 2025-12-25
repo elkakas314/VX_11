@@ -1,12 +1,12 @@
 {
   "version": "9.0",
-  "generated_at": "2025-12-25T02:24:54.666911+00:00",
-  "outdir": "docs/audit/20251222T075806Z_autonomy_evidence",
+  "generated_at": "2025-12-25T04:57:10.250599+00:00",
+  "outdir": "/home/elkakas314/vx11/docs/audit/20251222T113034Z_autonomy_evidence",
   "audit_context": {
     "input_sources": [
-      "docs/audit/20251222T075806Z_autonomy_evidence/health_results.json",
-      "docs/audit/20251222T075806Z_autonomy_evidence/e2e_flows.json",
-      "docs/audit/20251222T075806Z_autonomy_evidence/pytest_summary.json",
+      "/home/elkakas314/vx11/docs/audit/20251222T113034Z_autonomy_evidence/health_results.json",
+      "/home/elkakas314/vx11/docs/audit/20251222T113034Z_autonomy_evidence/e2e_flows.json",
+      "/home/elkakas314/vx11/docs/audit/20251222T113034Z_autonomy_evidence/pytest_summary.json",
       "/home/elkakas314/vx11/data/runtime/vx11.db"
     ],
     "evidence_complete": true,
@@ -17,7 +17,7 @@
       "value": 100.0,
       "status": "ok",
       "source": "health_results.json",
-      "evidence_path": "docs/audit/20251222T075806Z_autonomy_evidence/health_results.json",
+      "evidence_path": "/home/elkakas314/vx11/docs/audit/20251222T113034Z_autonomy_evidence/health_results.json",
       "calculation": "9/9 services ok => 9/9*100 = 100.0",
       "details": {
         "healthy": 9,
@@ -28,7 +28,7 @@
       "value": 100.0,
       "status": "ok",
       "source": "e2e_flows.json",
-      "evidence_path": "docs/audit/20251222T075806Z_autonomy_evidence/e2e_flows.json",
+      "evidence_path": "/home/elkakas314/vx11/docs/audit/20251222T113034Z_autonomy_evidence/e2e_flows.json",
       "calculation": "3/3 flows passed => 3/3*100 = 100.0",
       "details": {
         "passed": 3,
@@ -39,7 +39,7 @@
       "value": 0.0,
       "status": "deferred",
       "source": "pytest_summary.json",
-      "evidence_path": "docs/audit/20251222T075806Z_autonomy_evidence/pytest_summary.json",
+      "evidence_path": "/home/elkakas314/vx11/docs/audit/20251222T113034Z_autonomy_evidence/pytest_summary.json",
       "calculation": "0 tests executed (VX11_INTEGRATION=1 not set)",
       "reason": "Integration tests skipped by default. Set VX11_INTEGRATION=1 to enable.",
       "details": {

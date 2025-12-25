@@ -1,185 +1,123 @@
 {
-  "generated_at": "2025-12-22T13:51:22Z",
-  "last_evidence_run": "20251222T144533Z_full_testpack",
-  "schema_version": "9.0",
+  "version": "9.0",
+  "generated_at": "2025-12-25T04:16:15.680729+00:00",
+  "outdir": "docs/audit/20251222T144533Z_full_testpack",
   "audit_context": {
     "input_sources": [
-      "docs/audit/20251222T144533Z_full_testpack/health_results_final.json",
+      "docs/audit/20251222T144533Z_full_testpack/health_results.json",
       "docs/audit/20251222T144533Z_full_testpack/e2e_flows.json",
-      "docs/audit/20251222T144533Z_full_testpack/pytest_all_summary.json",
-      "docs/audit/20251222T144533Z_full_testpack/operator_smoke_results.json"
+      "docs/audit/20251222T144533Z_full_testpack/pytest_summary.json",
+      "/home/elkakas314/vx11/data/runtime/vx11.db"
     ],
-    "testpack_branch": "qa/full-testpack_20251222T144533Z"
+    "evidence_complete": true,
+    "reason_incomplete": null
   },
   "metrics": {
     "health_core_pct": {
-      "value": 100.0,
-      "source": "docs/audit/20251222T144533Z_full_testpack/health_results_final.json",
+      "value": 0.0,
       "status": "ok",
+      "source": "health_results.json",
+      "evidence_path": "docs/audit/20251222T144533Z_full_testpack/health_results.json",
+      "calculation": "0/4 services ok => 0/4*100 = 0.0",
       "details": {
-        "healthy_count": 10,
-        "total_services": 10,
-        "services": [
-          "tentaculo_link",
-          "madre",
-          "switch",
-          "hermes",
-          "hormiguero",
-          "manifestator",
-          "mcp",
-          "shubniggurath",
-          "spawner",
-          "operator-backend"
-        ]
-      },
-      "note": "All 10 services healthy"
+        "healthy": 0,
+        "total": 4
+      }
     },
     "contract_coherence_pct": {
-      "value": 100.0,
-      "source": "docs/audit/20251222T144533Z_full_testpack/e2e_flows.json",
+      "value": 0.0,
       "status": "ok",
+      "source": "e2e_flows.json",
+      "evidence_path": "docs/audit/20251222T144533Z_full_testpack/e2e_flows.json",
+      "calculation": "0/3 flows passed => 0/3*100 = 0.0",
       "details": {
-        "flows_pass": 3,
-        "total_flows": 3,
-        "flows": {
-          "Flow A: Gateway->Switch->Hermes->Madre": "PASS",
-          "Flow B: Madre->Daughter->Action->DB": "PASS",
-          "Flow C: Hormiguero+Manifestator": "PASS"
-        }
-      },
-      "note": "All E2E flows pass"
+        "passed": 0,
+        "total": 3
+      }
     },
     "tests_p0_pct": {
-      "value": 100.0,
-      "source": "tests/test_integration_flows_e2e.py (VX11_INTEGRATION=1)",
-      "status": "ok",
+      "value": 0.0,
+      "status": "deferred",
+      "source": "pytest_summary.json",
+      "evidence_path": "docs/audit/20251222T144533Z_full_testpack/pytest_summary.json",
+      "calculation": "0 tests executed (VX11_INTEGRATION=1 not set)",
+      "reason": "Integration tests skipped by default. Set VX11_INTEGRATION=1 to enable.",
       "details": {
-        "passed": 4,
-        "total": 4,
-        "gating": "CORRECT (VX11_INTEGRATION=0 => skip clean, VX11_INTEGRATION=1 => all pass)"
-      },
-      "note": "P0 integration tests PASS with fresh execution"
+        "passed": 0,
+        "failed": 0,
+        "total": 0
+      }
     },
     "db_integrity_pct": {
       "value": 100.0,
-      "source": "PRAGMA quick_check + integrity_check + foreign_key_check",
       "status": "ok",
+      "source": "db_integrity",
+      "evidence_path": "/home/elkakas314/vx11/data/runtime/vx11.db",
+      "calculation": "PRAGMA quick_check + PRAGMA integrity_check passed",
       "details": {
         "quick_check": "ok",
-        "integrity_check": "ok",
-        "foreign_key_check": "empty"
-      },
-      "note": "Database fully intact"
+        "integrity_check": "ok"
+      }
     },
     "Estabilidad_operativa_pct": {
-      "value": 85.0,
-      "formula": "0.3*health_core + 0.3*tests_p0 + 0.4*contract_coherence",
-      "components": {
-        "health_core_pct": 100.0,
-        "tests_p0_pct": 100.0,
-        "contract_coherence_pct": 100.0
+      "value": 10.0,
+      "status": "ok",
+      "source": "derived",
+      "evidence_path": null,
+      "calculation": "0.35*0.0 + 0.30*0.0 + 0.25*0.0 + 0.10*100.0 = 10.0",
+      "weights": {
+        "health_core": 0.35,
+        "tests_p0": 0.3,
+        "contract_coherence": 0.25,
+        "db_integrity": 0.1
       },
-      "calculation": "0.3*100.0 + 0.3*100.0 + 0.4*100.0 = 100.0",
-      "note": "Sistema completamente estable"
+      "inputs": {
+        "health_core_pct": 0.0,
+        "tests_p0_pct": 0.0,
+        "contract_coherence_pct": 0.0,
+        "db_integrity_pct": 100.0
+      }
     },
-    "Autonomia_pct": {
-      "value": 100.0,
-      "source": "Implied from flows A/B/C autonomy",
+    "evidence_coverage_pct": {
+      "value": 80.0,
       "status": "ok",
-      "note": "Todos los flows son aut\u00f3nomos"
-    },
-    "module_completeness_pct": {
-      "value": 87.5,
-      "formula": "average(module_scores)",
-      "status": "ok",
-      "note": "New metric: measures per-module health, test coverage, e2e participation, DB interaction",
-      "source": "docs/audit/20251222T144533Z_full_testpack/module_completeness.json"
+      "source": "derived",
+      "evidence_path": null,
+      "calculation": "coverage_overall: 4/5*100 = 80.0%",
+      "coverage_strict": {
+        "value": 60.0,
+        "calculation": "3/5 real evidence (no derived/deferred) = 60.0%",
+        "count": 3
+      },
+      "coverage_overall": {
+        "value": 80.0,
+        "calculation": "4/5 ok or derived ok (no NV/deferred) = 80.0%",
+        "count": 4
+      }
     }
   },
-  "module_completeness_breakdown": {
-    "tentaculo_link": {
-      "health": true,
-      "tests": true,
-      "e2e_flow_a": true,
-      "db_interaction": false,
-      "score_pct": 75.0
-    },
-    "madre": {
-      "health": true,
-      "tests": true,
-      "e2e_flow_b": true,
-      "db_interaction": true,
-      "score_pct": 100.0
-    },
-    "switch": {
-      "health": true,
-      "tests": true,
-      "e2e_flow_a": true,
-      "db_interaction": false,
-      "score_pct": 75.0
-    },
-    "hermes": {
-      "health": true,
-      "tests": true,
-      "e2e_flow_a": true,
-      "db_interaction": true,
-      "score_pct": 100.0
-    },
-    "hormiguero": {
-      "health": true,
-      "tests": true,
-      "e2e_flow_c": true,
-      "db_interaction": true,
-      "score_pct": 100.0
-    },
-    "manifestator": {
-      "health": true,
-      "tests": false,
-      "e2e_flow_c": true,
-      "db_interaction": true,
-      "score_pct": 75.0
-    },
-    "mcp": {
-      "health": true,
-      "tests": true,
-      "e2e_flow_a": false,
-      "db_interaction": false,
-      "score_pct": 50.0
-    },
-    "shubniggurath": {
-      "health": true,
-      "tests": true,
-      "e2e_flow_a": false,
-      "db_interaction": true,
-      "score_pct": 75.0
-    },
-    "spawner": {
-      "health": true,
-      "tests": true,
-      "e2e_flow_b": true,
-      "db_interaction": true,
-      "score_pct": 100.0
-    },
-    "operator-backend": {
-      "health": true,
-      "tests": true,
-      "e2e_flow_a": false,
-      "db_interaction": false,
-      "score_pct": 50.0
+  "metrics_flat": {
+    "health_core_pct": 0.0,
+    "contract_coherence_pct": 0.0,
+    "tests_p0_pct": 0.0,
+    "db_integrity_pct": 100.0,
+    "Estabilidad_operativa_pct": 10.0,
+    "evidence_coverage_pct": 80.0
+  },
+  "autonomy_verdict": {
+    "status": "CRITICAL",
+    "decision_logic": {
+      "Estabilidad_value": 10.0,
+      "Estabilidad_threshold": "10.0 >= 75.0? \u2192 False",
+      "coverage_strict_check": "60.0 >= 50%? \u2192 True",
+      "health_services_check": "0.0% healthy \u2192 False",
+      "all_flows_pass": false,
+      "db_integrity_status": "ok"
     }
   },
-  "autonomy_verdict": "OPERATIONAL",
-  "evidence_trail": {
-    "phase": "FULL TESTPACK QA",
-    "phases_completed": {
-      "FASE_0_Preflight": "COMPLETE",
-      "FASE_1_P0_Tests_Gating": "COMPLETE (P0=100%, gating CORRECT)",
-      "FASE_2_Stack_QA": "COMPLETE (10/10 services healthy)",
-      "FASE_3_Suite_Total": "COMPLETE (92 passed, rc=0)",
-      "FASE_4_E2E_Flows": "COMPLETE (3/3 flows PASS)",
-      "FASE_5_DB_Pragmas": "COMPLETE (DB integrity 100%)",
-      "FASE_6_Operator": "COMPLETE (backend+frontend OK)",
-      "FASE_7_Metrics": "COMPLETE (v9 + module completeness)"
-    }
+  "validation_checksums": {
+    "invariant_check_100_0_100_100": "N/A",
+    "weights_sum": "1.0 (0.35 + 0.30 + 0.25 + 0.10)",
+    "p0_metrics_count": 6
   }
 }
