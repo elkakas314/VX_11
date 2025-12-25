@@ -1,24 +1,31 @@
-**VX11 LATEST STATUS**
+**VX11 R1 AUDIT STATUS** (2025-12-25T02:26Z)
 
-- **Git branch:** main
-- **Local HEAD:** e95583f
-- **Remote used:** vx_11_remote
-- **Working tree clean:** no
+**Git:**
+- Branch: main
+- Local HEAD: ae53350
+- Remote HEAD: ae53350 (vx_11_remote/main)
+- Status: ✅ CLEAN + SYNCED
 
-- **DB path (not committed):** data/runtime/vx11.db
-- **DB size (bytes):** 619692032
-- **DB size (MB):** 590,98
-- **PRAGMA quick_check:** ok
-- **PRAGMA integrity_check:** ok
-- **PRAGMA foreign_key_check (rows):** 
+**Runtime:**
+- Containers: 9/9 UP (8+ hours, all healthy)
+- Ports: 8000-8004, 8006-8008 listening ✅
+- Policy: solo_madre ✅
 
-- **SCORECARD.json present:** yes
-- **SCORECARD generated_ts:** 20251225T014619Z
+**DB:**
+- PRAGMA checks: all ok ✅
+- Size: 619.7 MB
+- Tables: 70
+- Rows: 1.2M
 
-- **PERCENTAGES.json present:** yes
-- **PERCENTAGES.generated_at:** 2025-12-22T13:51:22Z
+**Artifacts:**
+- PERCENTAGES.json v9: ✅ REGENERATED (2025-12-25T02:24Z)
+- SCORECARD.json: present (2025-12-25T01:46Z)
+- DB_SCHEMA_v7_FINAL.json: present ✅
+- DB_MAP_v7_FINAL.md: present ✅
 
-- **Blockers:**
-  - none
-  - none
+**Evidence:**
+- Last autonomy_evidence: 2025-12-22T075806Z
+- Current metrics: OPERATIONAL ✅
+
+**Blockers:** NONE
 

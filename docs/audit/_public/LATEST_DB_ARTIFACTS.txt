@@ -1,6 +1,7 @@
-DB artifacts present in repo root docs/audit/:
-- DB_SCHEMA_v7_FINAL.json: present
-- DB_MAP_v7_FINAL.md: present
-- DB_MAP_v7_META.txt: present
-- SCORECARD.json: present
-- PERCENTAGES.json: present
+DB Artifacts Present (docs/audit/):
+- DB_SCHEMA_v7_FINAL.json: ✅ exists
+- DB_MAP_v7_FINAL.md: ✅ exists
+- DB_MAP_v7_META.txt: ✅ exists
+- SCORECARD.json: ✅ exists (generated_ts: 20251225T014619Z)
+- PERCENTAGES.json: ✅ exists (regenerated: 20251225T022454Z - FRESH)
+
