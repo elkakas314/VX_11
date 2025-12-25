@@ -47,6 +47,9 @@ docs/audit/**
 !docs/audit/FASE7_CONCLUSIÓN_FINAL.md
 !docs/audit/DIAGNOSTIC_ASSESSMENT_20251222.md
 
+# Public audit artifacts allowed for remote sync
+!docs/audit/_public/**
+
 # VX11 audit artifacts (must not live in repo root)
 *_openapi.json
 functional_flow_results.json

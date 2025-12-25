@@ -117,3 +117,4 @@ Copilot:
 - Registra evidencia siempre.
 - No rompe VX11.
 - No limpia nada sin orden.
+ - Addendum: see `.github/copilot-instructions.vx11_addendum.md` for required bootstrap/status/git/post-task rules.
