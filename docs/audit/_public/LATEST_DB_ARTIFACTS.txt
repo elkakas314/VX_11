@@ -1,6 +1,6 @@
-DB Schema/Map artifacts:
-docs/audit/DB_SCHEMA_v7_FINAL.json 131912 2025-12-25 00:37:48.969258878 +0100
-docs/audit/DB_MAP_v7_FINAL.md 24149 2025-12-25 00:37:48.970258889 +0100
-docs/audit/DB_MAP_v7_META.txt 85 2025-12-25 00:37:48.971258899 +0100
-docs/audit/SCORECARD.json 196 2025-12-25 00:37:49.099260259 +0100
-docs/audit/PERCENTAGES.json 5295 2025-12-23 17:06:13.896609555 +0100
+DB artifacts present in repo root docs/audit/:
+- DB_SCHEMA_v7_FINAL.json: present
+- DB_MAP_v7_FINAL.md: present
+- DB_MAP_v7_META.txt: present
+- SCORECARD.json: present
+- PERCENTAGES.json: present
