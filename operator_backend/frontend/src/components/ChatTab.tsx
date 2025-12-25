@@ -1,58 +1,34 @@
-import React, { useState } from "react";
-import { sendChat } from "../api/canonical";
-import { ChatResponse, ErrorResponse } from "../types/canonical";
+import React from "react";
+import { useChat } from "../hooks/useChat";
+import { DegradedModeBanner } from "./DegradedModeBanner";
 
 export const ChatTab: React.FC = () => {
-    const [messages, setMessages] = useState<Array<{ role: "user" | "assistant"; content: string; status?: string }>>([]);
-    const [input, setInput] = useState("");
-    const [loading, setLoading] = useState(false);
-    const [loadingStatus, setLoadingStatus] = useState("");
-    const [mode, setMode] = useState("default");
+    const {
+        messages,
+        input,
+        loading,
+        loadingStatus,
+        mode,
+        degradedMode,
+        degradedHint,
+        send,
+        setInput,
+        setMode,
+        setDegradedMode,
+    } = useChat({ maxMessageLength: 4096 });
 
-    const handleSend = async () => {
-        if (!input.trim()) return;
-        if (input.length > 4096) {
-            alert("Message too long (max 4KB)");
-            return;
-        }
-
-        const userMsg = input;
-        setMessages((prev) => [...prev, { role: "user", content: userMsg }]);
-        setInput("");
-        setLoading(true);
-        setLoadingStatus("Sending to Madre...");
-
-        const result = await sendChat(userMsg, mode);
-
-        if ("error" in result) {
-            const err = result as ErrorResponse;
-            setMessages((prev) => [
-                ...prev,
-                {
-                    role: "assistant",
-                    content: `❌ Error: ${err.error || "Request failed"}`,
-                    status: "error"
-                },
-            ]);
-        } else {
-            const resp = result as ChatResponse;
-            const isDegraded = resp.response.includes("[DEGRADED]");
-            setMessages((prev) => [
-                ...prev,
-                {
-                    role: "assistant",
-                    content: resp.response,
-                    status: isDegraded ? "degraded" : "ok"
-                }
-            ]);
-        }
-
-        setLoading(false);
-        setLoadingStatus("");
-    };
+    const handleSend = () => send();
 
     return (
         <div className="h-full flex flex-col">
+            {/* Degraded Mode Banner */}
+            <DegradedModeBanner
+                visible={degradedMode}
+                hint={degradedHint}
+                autoDismissMs={5000}
+                onDismiss={() => setDegradedMode(false)}
+            />
+
             {loading && (
                 <div className="mb-3 p-3 bg-blue-900 border border-blue-500 rounded text-sm text-blue-100 animate-pulse">
                     ⏳ {loadingStatus}
@@ -79,15 +55,21 @@ export const ChatTab: React.FC = () => {
                     </div>
                 ) : (
                     messages.map((msg, idx) => (
-                        <div
-                            key={idx}
-                            className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-                        >
+                        <div key={idx} className="flex flex-col space-y-1">
                             <div
-                                className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg border-l-4 ${msg.role === "user" ? "bg-blue-600 text-white border-blue-500" : msg.status === "degraded" ? "bg-yellow-900 text-yellow-100 border-yellow-500" : msg.status === "error" ? "bg-red-900 text-red-100 border-red-500" : "bg-slate-700 text-slate-100 border-slate-600"}`}
+                                className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                             >
-                                <p className="text-sm">{msg.content}</p>
+                                <div
+                                    className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg border-l-4 ${msg.role === "user" ? "bg-blue-600 text-white border-blue-500" : msg.status === "degraded" ? "bg-yellow-900 text-yellow-100 border-yellow-500" : msg.status === "error" ? "bg-red-900 text-red-100 border-red-500" : msg.routeTaken === "tentaculo_link" ? "bg-green-900 text-green-100 border-green-500" : msg.routeTaken === "madre" ? "bg-slate-700 text-slate-100 border-slate-600" : "bg-slate-700 text-slate-100 border-slate-600"}`}
+                                >
+                                    <p className="text-sm">{msg.content}</p>
+                                </div>
                             </div>
+                            {msg.requestId && (
+                                <div className="text-xs text-slate-500 px-4">
+                                    ID: {msg.requestId.substring(0, 8)}... | Route: {msg.routeTaken}
+                                </div>
+                            )}
                         </div>
                     ))
                 )}
