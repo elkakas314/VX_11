@@ -1,6 +1,6 @@
 # VX11 Database Map (generated)
 
-Generated at: 2025-12-24T23:12:02.934958Z
+Generated at: 2025-12-25T01:46:19.904809Z
 
 Database file: data/runtime/vx11.db
 
@@ -144,7 +144,7 @@ Database file: data/runtime/vx11.db
 ### cli_usage_stats — ACTIVE
 
 - Module: hermes
-- Rows: 252
+- Rows: 246
 - Columns:
   - id (INTEGER) PK NOT NULL
   - provider_id (VARCHAR(128)) NOT NULL
@@ -747,7 +747,7 @@ Database file: data/runtime/vx11.db
 ### pheromone_log — ACTIVE
 
 - Module: hormiguero
-- Rows: 92784
+- Rows: 23169
 - Columns:
   - id (INTEGER) PK NOT NULL
   - pheromone_type (VARCHAR(64)) NOT NULL
@@ -868,7 +868,7 @@ Database file: data/runtime/vx11.db
 ### routing_events — ACTIVE
 
 - Module: switch
-- Rows: 47
+- Rows: 46
 - Columns:
   - id (INTEGER) PK NOT NULL
   - timestamp (DATETIME)
