@@ -949,9 +949,9 @@ async def get_events(
     db: Session = Depends(get_session),
 ):
     """
-    Server-Sent Events (SSE) real stream (Phase 2c real implementation).
+    Server-Sent Events (SSE) infinite stream (Phase 2c enhanced - infinite reconnect).
 
-    Emits system events from DB in real-time.
+    Emits system events from DB in real-time. Stream never closes (reconnectable).
 
     Query params (optional filters):
       - source: filter by event source (e.g., 'madre', 'shubniggurath')
@@ -962,54 +962,93 @@ async def get_events(
       curl -N -H "Authorization: Bearer $TOKEN" http://localhost:8011/api/events
       curl -N -H "Authorization: Bearer $TOKEN" 'http://localhost:8011/api/events?source=madre&severity=error'
 
-    Response (200 stream):
-      data: {"id": 1, "type": "startup", "source": "madre", "severity": "info", "payload": {...}, "timestamp": "2024-12-22T19:44:00Z"}
-      data: {"id": 2, "type": "error", "source": "shubniggurath", "severity": "error", "payload": {...}, "timestamp": "2024-12-22T19:45:00Z"}
-      ...
+    Response (200 stream - INFINITE):
+      data: {"id": 1, "type": "startup", "source": "madre", "severity": "info", "request_id": "req-123", "payload": {...}, "timestamp": "2024-12-22T19:44:00Z"}
+      data: {"id": 2, "type": "error", "source": "shubniggurath", "severity": "error", "request_id": "req-123", "payload": {...}, "timestamp": "2024-12-22T19:45:00Z"}
+      data: {"type": "heartbeat", "request_id": "req-123", "timestamp": "2024-12-22T19:46:00Z"}
+      ... (stream continues indefinitely, client reconnects on disconnect)
     """
 
     async def event_generator():
         import asyncio
         import json
+        from datetime import datetime
 
-        # Get initial events from DB (last 10)
-        query = db.query(SystemEvents)
-        if source:
-            query = query.filter(SystemEvents.source == source)
-        if event_type:
-            query = query.filter(SystemEvents.event_type == event_type)
-        if severity:
-            query = query.filter(SystemEvents.severity == severity)
+        # Generate request context for this SSE stream
+        req_ctx = request_context()
+        request_id = req_ctx["request_id"]
+        last_event_id = 0
+        heartbeat_interval = 30  # Send heartbeat every 30 seconds
+        last_heartbeat = datetime.utcnow()
 
-        recent_events = query.order_by(SystemEvents.timestamp.desc()).limit(10).all()
+        while True:  # INFINITE LOOP - never closes
+            try:
+                # Check for new events since last_event_id (poll every 5s)
+                query = db.query(SystemEvents).filter(SystemEvents.id > last_event_id)
+                if source:
+                    query = query.filter(SystemEvents.source == source)
+                if event_type:
+                    query = query.filter(SystemEvents.event_type == event_type)
+                if severity:
+                    query = query.filter(SystemEvents.severity == severity)
 
-        # Emit recent events
-        for event in reversed(recent_events):
-            event_data = {
-                "id": event.id,
-                "type": event.event_type,
-                "source": event.source,
-                "severity": event.severity,
-                "payload": event.payload,
-                "timestamp": (
-                    event.timestamp.isoformat() + "Z" if event.timestamp else None
-                ),
-            }
-            yield f"data: {json.dumps(event_data)}\n\n"
-            await asyncio.sleep(0.01)
+                new_events = query.order_by(SystemEvents.timestamp.asc()).all()
 
-        # Emit heartbeat to keep connection alive (for 5 cycles, then close)
-        for _ in range(5):
-            heartbeat = {
-                "type": "heartbeat",
-                "timestamp": datetime.utcnow().isoformat() + "Z",
-            }
-            yield f"data: {json.dumps(heartbeat)}\n\n"
-            await asyncio.sleep(1)
+                # Emit new events
+                for event in new_events:
+                    event_data = {
+                        "id": event.id,
+                        "type": event.event_type,
+                        "source": event.source,
+                        "severity": event.severity,
+                        "request_id": request_id,  # Track which client received this
+                        "payload": event.payload,
+                        "timestamp": (
+                            event.timestamp.isoformat() + "Z"
+                            if event.timestamp
+                            else None
+                        ),
+                    }
+                    yield f"data: {json.dumps(event_data)}\n\n"
+                    last_event_id = event.id
+                    last_heartbeat = datetime.utcnow()  # Reset heartbeat timer
+                    await asyncio.sleep(0.01)
+
+                # Emit heartbeat if no events for heartbeat_interval seconds
+                now = datetime.utcnow()
+                if (now - last_heartbeat).total_seconds() >= heartbeat_interval:
+                    heartbeat = {
+                        "type": "heartbeat",
+                        "request_id": request_id,
+                        "timestamp": now.isoformat() + "Z",
+                    }
+                    yield f"data: {json.dumps(heartbeat)}\n\n"
+                    last_heartbeat = now
+
+                # Poll for new events every 5 seconds
+                await asyncio.sleep(5)
+
+            except Exception as e:
+                # Log error but keep stream alive (client can reconnect)
+                error_event = {
+                    "type": "error",
+                    "source": "api/events",
+                    "severity": "error",
+                    "request_id": request_id,
+                    "error": str(e),
+                    "timestamp": datetime.utcnow().isoformat() + "Z",
+                }
+                yield f"data: {json.dumps(error_event)}\n\n"
+                await asyncio.sleep(5)  # Back off on error
 
     return StreamingResponse(
         event_generator(),
         media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
     )
 
 
