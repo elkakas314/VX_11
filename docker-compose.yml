@@ -1,6 +1,7 @@
 services:
   # ========== TENTACULO LINK (PORT 8000) ==========
   tentaculo_link:
+    profiles: ["core"]
     build:
       context: .
       dockerfile: tentaculo_link/Dockerfile
@@ -78,7 +79,8 @@ services:
       - VX11_MAINTENANCE_WINDOW_ENABLED=1
     mem_limit: 512m
     depends_on:
-      - tentaculo_link
+      redis:
+        condition: service_healthy
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
