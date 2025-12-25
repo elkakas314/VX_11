@@ -48,7 +48,14 @@ VX11_TOKEN = (
 AUTH_HEADERS = {settings.token_header: VX11_TOKEN}
 
 # Policy/Mode control (Phase 3)
-VX11_MODE = os.getenv("VX11_MODE", "low_power")
+def policy_guard() -> Dict[str, str]:
+    mode = os.getenv("VX11_MODE", "low_power")
+    if mode == "low_power":
+        raise HTTPException(
+            status_code=409,
+            detail="Operator disabled by policy (low_power mode). Set VX11_MODE=operative_core to enable.",
+        )
+    return {"mode": mode}
 
 
 # ============ REQUEST/RESPONSE MODELS ============
@@ -175,7 +182,11 @@ class IntentRequest(BaseModel):
 
 
 @app.post("/intent")
-async def intent_handler(req: IntentRequest, _: bool = Depends(token_guard)):
+async def intent_handler(
+    req: IntentRequest,
+    _: bool = Depends(token_guard),
+    __: Dict = Depends(policy_guard),
+):
     """Route intents to target module (legacy endpoint)."""
     # Canonical proxy: if target is "switch", delegate via Tentáculo Link
     if req.target == "switch":
@@ -217,6 +228,7 @@ async def intent_handler(req: IntentRequest, _: bool = Depends(token_guard)):
 async def operator_chat(
     req: ChatRequest,
     _: bool = Depends(token_guard),
+    __: Dict = Depends(policy_guard),
 ):
     """Chat endpoint with BD persistence + Tentáculo Link integration."""
     session_id = req.session_id or str(uuid.uuid4())
@@ -470,6 +482,7 @@ class BrowserTaskRequest(BaseModel):
 async def browser_task(
     req: BrowserTaskRequest,
     _: bool = Depends(token_guard),
+    __: Dict = Depends(policy_guard),
 ):
     """Create browser task (Playwright real implementation)."""
     session_id = req.session_id or str(uuid.uuid4())
