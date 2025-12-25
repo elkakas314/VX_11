@@ -702,6 +702,78 @@ async def operator_task(
     return result
 
 
+@app.get("/operator/power/status")
+async def operator_power_status(_: bool = Depends(token_guard)):
+    """Proxy power status to Madre (single entrypoint)."""
+    clients = get_clients()
+    madre = clients.get_client("madre")
+    if not madre:
+        raise HTTPException(status_code=503, detail="madre_client_unavailable")
+    result = await madre.get("/madre/power/status")
+    write_log("tentaculo_link", "operator_power_status")
+    return result
+
+
+@app.get("/operator/power/policy/solo_madre/status")
+async def operator_solo_madre_status(_: bool = Depends(token_guard)):
+    """Proxy SOLO_MADRE policy status to Madre."""
+    clients = get_clients()
+    madre = clients.get_client("madre")
+    if not madre:
+        raise HTTPException(status_code=503, detail="madre_client_unavailable")
+    result = await madre.get("/madre/power/policy/solo_madre/status")
+    write_log("tentaculo_link", "operator_solo_madre_status")
+    return result
+
+
+@app.post("/operator/power/policy/solo_madre/apply")
+async def operator_solo_madre_apply(_: bool = Depends(token_guard)):
+    """Proxy SOLO_MADRE apply to Madre."""
+    clients = get_clients()
+    madre = clients.get_client("madre")
+    if not madre:
+        raise HTTPException(status_code=503, detail="madre_client_unavailable")
+    result = await madre.post("/madre/power/policy/solo_madre/apply", payload={})
+    write_log("tentaculo_link", "operator_solo_madre_apply")
+    return result
+
+
+@app.post("/operator/power/service/{name}/start")
+async def operator_power_start(name: str, _: bool = Depends(token_guard)):
+    """Proxy service start to Madre."""
+    clients = get_clients()
+    madre = clients.get_client("madre")
+    if not madre:
+        raise HTTPException(status_code=503, detail="madre_client_unavailable")
+    result = await madre.post(f"/madre/power/service/{name}/start", payload={})
+    write_log("tentaculo_link", f"operator_power_start:{name}")
+    return result
+
+
+@app.post("/operator/power/service/{name}/stop")
+async def operator_power_stop(name: str, _: bool = Depends(token_guard)):
+    """Proxy service stop to Madre."""
+    clients = get_clients()
+    madre = clients.get_client("madre")
+    if not madre:
+        raise HTTPException(status_code=503, detail="madre_client_unavailable")
+    result = await madre.post(f"/madre/power/service/{name}/stop", payload={})
+    write_log("tentaculo_link", f"operator_power_stop:{name}")
+    return result
+
+
+@app.post("/operator/power/service/{name}/restart")
+async def operator_power_restart(name: str, _: bool = Depends(token_guard)):
+    """Proxy service restart to Madre."""
+    clients = get_clients()
+    madre = clients.get_client("madre")
+    if not madre:
+        raise HTTPException(status_code=503, detail="madre_client_unavailable")
+    result = await madre.post(f"/madre/power/service/{name}/restart", payload={})
+    write_log("tentaculo_link", f"operator_power_restart:{name}")
+    return result
+
+
 @app.get("/operator/session/{session_id}")
 async def operator_session(
     session_id: str,
