@@ -1,0 +1,243 @@
+================================================================================
+VX11 SOLO MADRE — RUNBOOK OPERATIVO
+================================================================================
+Timestamp: 2025-12-25T06:50:00Z
+Status: VALIDATED (Phase 0-2 complete)
+
+================================================================================
+DESCRIPCIÓN
+================================================================================
+"SOLO MADRE ARRIBA" es la política operativa por defecto de VX11:
+- SIEMPRE: madre (orchestrador) + redis (cache) corriendo
+- OPCIONALMENTE: Otros módulos levantados bajo demanda via Power Manager
+- NUNCA: docker exec, kill, pkill. Solo docker compose (container-level)
+
+================================================================================
+ESTADO ACTUAL (Phase 2 validated)
+================================================================================
+✅ Power Manager: OPERATIONAL
+   - Endpoints: 9 disponibles
+   - Rate limit: 6 req/min
+   - DB logging: power_events table
+   - Allowlist: 10 servicios
+
+✅ Services Controlables:
+   1. tentaculo_link (8000)
+   2. switch (8002)
+   3. hermes (8003)
+   4. hormiguero (8004)
+   5. shubniggurath (8005)
+   6. mcp (8006)
+   7. spawner (8008)
+   8. manifestator (8007)
+   9. operator-backend (8010)
+  10. operator-frontend (3000)
+
+✅ Services Protegidos (nunca parar):
+   - madre (8001) — orchestrador
+   - redis (6379) — cache
+
+================================================================================
+COMANDOS OPERATIVOS
+================================================================================
+
+1. VER ESTADO ACTUAL
+   ──────────────────────────────────────────────────────────────────────────
+   curl -s http://localhost:8001/madre/power/status | python3 -m json.tool
+   
+   Output: Detalle de contenedores activos, health, puertos
+   
+
+2. APLICAR "SOLO MADRE" (Apagar todo)
+   ──────────────────────────────────────────────────────────────────────────
+   curl -X POST http://localhost:8001/madre/power/policy/solo_madre/apply \
+     -H "Content-Type: application/json"
+   
+   Resultado:
+   - Detiene 10 servicios (excepto madre + redis)
+   - Exitcode 0 = éxito
+   - Generan OUTDIR en docs/audit/madre_power_solo_madre_policy_apply_<TS>/
+   
+
+3. ARRANCAR UN MÓDULO (ej: switch)
+   ──────────────────────────────────────────────────────────────────────────
+   curl -X POST http://localhost:8001/madre/power/service/start \
+     -H "Content-Type: application/json" \
+     -d '{"service":"switch"}'
+   
+   Resultado:
+   - docker compose up -d <service>
+   - Esperado: 6-10 segundos para health check
+   - Puerto 8002 respondiendo con /health
+
+   Otros servicios:
+   - tentaculo_link: {"service":"tentaculo_link"}
+   - hermes: {"service":"hermes"}
+   - hormiguero: {"service":"hormiguero"}
+   - mcp: {"service":"mcp"}
+   - shubniggurath: {"service":"shubniggurath"}
+   - spawner: {"service":"spawner"}
+   - manifestator: {"service":"manifestator"}
+   
+
+4. PARAR UN MÓDULO (ej: switch)
+   ──────────────────────────────────────────────────────────────────────────
+   curl -X POST http://localhost:8001/madre/power/service/stop \
+     -H "Content-Type: application/json" \
+     -d '{"service":"switch"}'
+   
+   Resultado:
+   - docker compose stop <service>
+   - Esperado: ~100-200 ms
+   - Contenedor removido de docker ps
+   
+
+5. VERIFICAR HEALTH DE UN SERVICIO LEVANTADO
+   ──────────────────────────────────────────────────────────────────────────
+   # switch (8002)
+   curl -s http://localhost:8002/health | python3 -m json.tool
+   
+   # hermes (8003)
+   curl -s http://localhost:8003/health | python3 -m json.tool
+   
+   # Otros puertos: 8000, 8004, 8005, 8006, 8007, 8008, 8010
+   
+
+================================================================================
+CRITERIOS DE ÉXITO
+================================================================================
+
+✅ Política solo_madre aplicada:
+   - docker ps => SOLO madre + redis visibles
+   - curl http://localhost:8001/health => 200 OK
+   - Puertos 8000-8010 NO escuchando (excepto 8001, 6379)
+
+✅ Servicio levantado (ej: switch):
+   - docker ps => vx11-switch visible, status "Up ... (healthy)"
+   - curl http://localhost:8002/health => 200 + JSON
+   - Tiempo total: < 10 segundos
+
+✅ Servicio parado:
+   - docker ps => vx11-switch NO visible
+   - curl http://localhost:8002/health => Connection refused
+   - Exitcode from docker compose stop: 0
+
+
+================================================================================
+TROUBLESHOOTING
+================================================================================
+
+PROBLEMA: "Connection refused" en curl a power endpoint
+──────────────────────────────────────────────────────
+Solución:
+  1. Verificar: docker ps | grep madre
+  2. Si no está: docker compose up -d madre
+  3. Esperar: curl -s http://localhost:8001/health
+  4. Reintentar curl al endpoint
+
+PROBLEMA: Servicio no arranca o queda en "Restarting"
+──────────────────────────────────────────────────────
+Solución:
+  1. Ver logs: docker compose logs <service>
+  2. Verificar puerto no ocupado: 
+     lsof -i :8002 (para switch)
+  3. Si puerto ocupado: kill <pid> o esperar
+  4. Reintentar: curl POST /madre/power/service/start
+
+PROBLEMA: Rate limit excedido (429 Too Many Requests)
+──────────────────────────────────────────────────────
+Límite: 6 operaciones por minuto por IP
+Solución: Esperar 60 segundos antes de reintentar
+
+PROBLEMA: Service name mismatch (404 not_allowed)
+──────────────────────────────────────────────────
+Verificar nombre exacto:
+  - Listar servicios: docker compose config --services
+  - Asegurar: {"service":"<nombre_exacto>"}
+  - Nombres válidos: tentaculo_link, switch, hermes, hormiguero,
+    mcp, spawner, manifestator, shubniggurath, operator-backend
+
+PROBLEMA: Docker socket not available
+──────────────────────────────────────
+Verificar:
+  1. /var/run/docker.sock existe y es legible
+  2. docker compose ps funciona
+  3. Madre volumen monta socket: 
+     docker inspect vx11-madre | grep docker.sock
+  4. Si falta: docker compose restart madre
+
+
+================================================================================
+ARQUITECTURA CONTAINER-LEVEL ONLY
+================================================================================
+
+PERMITIDO (docker compose level):
+  ✅ docker compose stop <service>
+  ✅ docker compose up -d <service>
+  ✅ docker compose restart <service>
+  ✅ docker compose ps
+  ✅ docker ps
+
+PROHIBIDO (process-level):
+  ❌ docker exec <container> kill -9 <pid>
+  ❌ pkill -f <service>
+  ❌ systemctl kill vx11-*
+  ❌ kill <pid>
+  ❌ Signal directo a procesos
+
+Razón: Garantiza estado consistente y logging. docker compose es idempotente.
+
+
+================================================================================
+EVIDENCIA & LOGS
+================================================================================
+
+Cada operación genera:
+  - OUTDIR: docs/audit/madre_power_<action>_<service>_<TS>/
+  - JSON responses guardados en testing
+  - Power_events table en DB (si logging está enabled)
+
+Última validación (Phase 2):
+  - Directorio: docs/audit/solo_madre_power_phase0_20251225T065000Z/
+  - Archivos: PHASE*.txt, test*.json
+
+
+================================================================================
+REFERENCIA RÁPIDA
+================================================================================
+
+# Startup default (SOLO MADRE)
+docker compose up -d madre redis
+# Verificar
+curl -s http://localhost:8001/health
+
+# Apagar todo (menos madre/redis)
+curl -X POST http://localhost:8001/madre/power/policy/solo_madre/apply
+
+# Levantar switch
+curl -X POST http://localhost:8001/madre/power/service/start \
+  -H "Content-Type: application/json" -d '{"service":"switch"}'
+
+# Parar switch
+curl -X POST http://localhost:8001/madre/power/service/stop \
+  -H "Content-Type: application/json" -d '{"service":"switch"}'
+
+# Ver estado actual
+curl -s http://localhost:8001/madre/power/status
+
+
+================================================================================
+NEXT STEPS
+================================================================================
+
+1. Copilot: Implementar conftest.py fixtures para E2E tests
+2. Copilot: Invocar DeepSeek R1 para frontend Operator
+3. Automatización: Post-task regeneración de PERCENTAGES.json
+4. CI/CD: Integrar power manager en pipeline
+
+
+================================================================================
+Validado: 2025-12-25T06:50:00Z
+Status: OPERATIVO ✅
+Contact: VX11 Copilot Architect
+================================================================================
