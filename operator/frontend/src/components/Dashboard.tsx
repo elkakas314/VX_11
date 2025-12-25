@@ -14,7 +14,7 @@ const MODULE_COLORS: Record<string, string> = {
 
 interface ServiceCard {
     name: string
-    status: 'up' | 'down' | 'loading'
+    status: 'up' | 'down' | 'loading' | 'policy'
     latency?: number
 }
 
@@ -31,13 +31,28 @@ export function Dashboard() {
     useEffect(() => {
         const fetchStatus = async () => {
             try {
-                const health = await apiClient.getMadreHealth()
+                const status = await apiClient.getStatus()
+                const modules = await apiClient.getModules()
                 const power = await apiClient.getPowerStatus()
 
-                setServices(prev => prev.map(s => ({
-                    ...s,
-                    status: health.status === 'ok' ? 'up' : 'down'
-                })))
+                if (status.status === 'policy' || power.policy_enforced) {
+                    setServices(prev => prev.map(s => ({ ...s, status: 'policy' })))
+                    setPowerPolicy('solo_madre (policy)')
+                    return
+                }
+
+                if (modules?.modules?.length) {
+                    setServices(modules.modules.map((m: any) => ({
+                        name: m.name,
+                        status: m.status === 'on' ? 'up' : 'down'
+                    })))
+                } else {
+                    const health = await apiClient.getMadreHealth()
+                    setServices(prev => prev.map(s => ({
+                        ...s,
+                        status: health.status === 'ok' ? 'up' : 'down'
+                    })))
+                }
 
                 setPowerPolicy(power.policy_active || 'solo_madre')
             } catch (err) {
@@ -84,9 +99,12 @@ export function Dashboard() {
                                 <div className="mt-2 flex items-center gap-2">
                                     <div className={`w-3 h-3 rounded-full ${service.status === 'up' ? 'bg-green-500 animate-pulse' :
                                         service.status === 'loading' ? 'bg-yellow-500 animate-pulse' :
-                                            'bg-red-500'
+                                            service.status === 'policy' ? 'bg-blue-500' :
+                                                'bg-red-500'
                                         }`}></div>
-                                    <span className="text-sm text-gray-300 capitalize">{service.status}</span>
+                                    <span className="text-sm text-gray-300 capitalize">
+                                        {service.status === 'policy' ? 'off (policy)' : service.status}
+                                    </span>
                                 </div>
                             </div>
                             {service.latency && (

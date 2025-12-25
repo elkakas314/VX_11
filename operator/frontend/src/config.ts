@@ -60,10 +60,10 @@ export const ENDPOINTS = {
     VITE_CHAT: '/vx11/chat',
 
     // Power control endpoints
-    POWER_STATUS: '/madre/power/status',
-    POWER_SERVICE_START: (_service: string) => `/madre/power/service/start`,
-    POWER_SERVICE_STOP: (_service: string) => `/madre/power/service/stop`,
-    POWER_POLICY: '/madre/power/policy/solo_madre/status',
+    POWER_STATUS: '/api/power/status',
+    POWER_SERVICE_START: (service: string) => `/api/module/${service}/power_up`,
+    POWER_SERVICE_STOP: (service: string) => `/api/module/${service}/power_down`,
+    POWER_POLICY: '/api/policy/solo_madre/status',
 
     // Log streaming
     LOGS: '/api/logs',

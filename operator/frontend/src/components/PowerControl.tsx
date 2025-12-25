@@ -8,6 +8,13 @@ export function PowerControl() {
     const [success, setSuccess] = useState<string | null>(null)
     const [error, setError] = useState<string | null>(null)
 
+    const formatError = (err: any, fallback: string) => {
+        if (err?.response?.status === 409) {
+            return 'OFF por politica (SOLO_MADRE_ARRIBA)'
+        }
+        return err?.message || fallback
+    }
+
     const handleSoloMadre = async () => {
         setLoading('solo_madre')
         setError(null)
@@ -16,7 +23,7 @@ export function PowerControl() {
             setSuccess('Solo Madre policy applied!')
             setTimeout(() => setSuccess(null), 3000)
         } catch (err: any) {
-            setError(err.message || 'Failed to apply solo madre')
+            setError(formatError(err, 'Failed to apply solo madre'))
         } finally {
             setLoading(null)
         }
@@ -30,7 +37,7 @@ export function PowerControl() {
             setSuccess(`${service} started!`)
             setTimeout(() => setSuccess(null), 3000)
         } catch (err: any) {
-            setError(err.message || `Failed to start ${service}`)
+            setError(formatError(err, `Failed to start ${service}`))
         } finally {
             setLoading(null)
         }
@@ -44,7 +51,7 @@ export function PowerControl() {
             setSuccess(`${service} stopped!`)
             setTimeout(() => setSuccess(null), 3000)
         } catch (err: any) {
-            setError(err.message || `Failed to stop ${service}`)
+            setError(formatError(err, `Failed to stop ${service}`))
         } finally {
             setLoading(null)
         }

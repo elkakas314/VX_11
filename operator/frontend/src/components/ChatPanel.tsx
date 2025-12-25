@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useSessionStore, ChatMessage } from '../context/SessionContext'
+import { apiClient } from '../api/client'
 
 interface ChatPanelProps {
     sessionId: string
@@ -32,18 +33,37 @@ export function ChatPanel({ sessionId }: ChatPanelProps) {
         setInput('')
         setLoading(true)
 
-        // Simulate AI response
-        setTimeout(() => {
+        try {
+            const data = await apiClient.post<{ response: string }>('/api/chat', {
+                session_id: sessionId,
+                message: input,
+                user_id: 'operator_ui',
+            })
+
             const aiMessage: ChatMessage = {
                 id: `msg_${Date.now() + 1}`,
                 role: 'assistant',
-                content: `I received: "${input}". Real AI coming soon via tentáculo_link.`,
-                module: 'madre',
+                content: data?.response || 'No response',
+                module: 'tentaculo_link',
                 timestamp: new Date().toISOString(),
             }
             addMessage(sessionId, aiMessage)
+        } catch (err: any) {
+            const policyMsg =
+                err?.response?.status === 409
+                    ? 'OFF por politica (SOLO_MADRE_ARRIBA)'
+                    : err?.message || 'Chat failed'
+            const aiMessage: ChatMessage = {
+                id: `msg_${Date.now() + 1}`,
+                role: 'assistant',
+                content: policyMsg,
+                module: 'policy',
+                timestamp: new Date().toISOString(),
+            }
+            addMessage(sessionId, aiMessage)
+        } finally {
             setLoading(false)
-        }, 1000)
+        }
     }
 
     return (

@@ -12,6 +12,20 @@ class VX11ApiClient {
         headers: { 'Content-Type': 'application/json' }
     })
 
+    private getAuthHeaders() {
+        const token =
+            localStorage.getItem('vx11_operator_token') ||
+            import.meta.env.VITE_OPERATOR_TOKEN
+        const csrf =
+            localStorage.getItem('vx11_operator_csrf') ||
+            import.meta.env.VITE_OPERATOR_CSRF
+
+        const headers: Record<string, string> = {}
+        if (token) headers.Authorization = `Bearer ${token}`
+        if (csrf) headers['X-CSRF-Token'] = csrf
+        return headers
+    }
+
     private async retry<T>(fn: () => Promise<T>): Promise<T> {
         try {
             return await fn()
@@ -31,22 +45,70 @@ class VX11ApiClient {
         )
     }
 
+    async getStatus() {
+        return this.retry(() =>
+            this.client
+                .get('/api/status', { headers: this.getAuthHeaders() })
+                .then(r => r.data)
+                .catch((err) => {
+                    if (err?.response?.status === 409) {
+                        return { status: 'policy', mode: 'low_power' }
+                    }
+                    throw err
+                })
+        )
+    }
+
+    async getModules() {
+        return this.retry(() =>
+            this.client
+                .get('/api/modules', { headers: this.getAuthHeaders() })
+                .then(r => r.data)
+                .catch((err) => {
+                    if (err?.response?.status === 409) {
+                        return { modules: [], policy: 'low_power' }
+                    }
+                    throw err
+                })
+        )
+    }
+
     async getPowerStatus() {
         return this.retry(() =>
-            this.client.get('/madre/power/status').then(r => r.data).catch(() => ({ policy_active: 'solo_madre' }))
+            this.client
+                .get('/api/power/status', { headers: this.getAuthHeaders() })
+                .then(r => r.data)
+                .catch((err) => {
+                    if (err?.response?.status === 409) {
+                        return { policy_active: 'solo_madre', policy_enforced: true }
+                    }
+                    throw err
+                })
         )
     }
 
     async applySoloMadre() {
-        return this.retry(() => this.client.post('/madre/power/policy/solo_madre/apply').then(r => r.data))
+        return this.retry(() =>
+            this.client
+                .post('/api/policy/solo_madre/apply', {}, { headers: this.getAuthHeaders() })
+                .then(r => r.data)
+        )
     }
 
     async startService(service: string) {
-        return this.retry(() => this.client.post('/madre/power/service/start', { service }).then(r => r.data))
+        return this.retry(() =>
+            this.client
+                .post(`/api/module/${service}/power_up`, {}, { headers: this.getAuthHeaders() })
+                .then(r => r.data)
+        )
     }
 
     async stopService(service: string) {
-        return this.retry(() => this.client.post('/madre/power/service/stop', { service }).then(r => r.data))
+        return this.retry(() =>
+            this.client
+                .post(`/api/module/${service}/power_down`, {}, { headers: this.getAuthHeaders() })
+                .then(r => r.data)
+        )
     }
 
     async get<T>(path: string): Promise<T> {
@@ -54,7 +116,11 @@ class VX11ApiClient {
     }
 
     async post<T>(path: string, data: any): Promise<T> {
-        return this.retry(() => this.client.post(path, data).then(r => r.data))
+        return this.retry(() =>
+            this.client
+                .post(path, data, { headers: this.getAuthHeaders() })
+                .then(r => r.data)
+        )
     }
 }
 
