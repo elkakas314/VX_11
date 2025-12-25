@@ -460,6 +460,7 @@ async def post_chat(
     _: Dict = Depends(policy_check),
     user: Dict = Depends(csrf_check),
     db: Session = Depends(get_session),
+    ctx: Dict = Depends(request_context),
     __: Dict = Depends(rate_limit_guard),
 ):
     """
@@ -478,30 +479,65 @@ async def post_chat(
 
     Response (200):
       {
-        "session_id": "uuid",
-        "response": "respuesta del sistema",
-        "tool_calls": null
+        "ok": true,
+        "request_id": "...",
+        "route_taken": "tentaculo_link|degraded",
+        "degraded": bool,
+        "errors": [...],
+        "data": {
+          "session_id": "uuid",
+          "response": "respuesta del sistema",
+          "tool_calls": null
+        }
       }
 
     Errors:
       - 401: auth required
       - 409: policy violation (low_power mode)
+      - 500: internal error (returns unified error envelope)
     """
     import uuid as uuid_lib
     from config.forensics import write_log
+
+    request_id = ctx.get("request_id", str(uuid_lib.uuid4())[:12])
+    route_taken = "operator_backend"  # default
+    degraded = False
+    errors = []
 
     try:
         session_id = request.get("session_id") or str(uuid_lib.uuid4())
         user_id = request.get("user_id") or "api_user"
         message = request.get("message", "")
-        request_id = str(uuid_lib.uuid4())[:8]
 
         if not message:
-            raise ValueError("message is required")
+            errors.append(
+                ErrorInfo(step="input_validation", hint="message is required")
+            )
+            return UnifiedResponse(
+                ok=False,
+                request_id=request_id,
+                route_taken=route_taken,
+                degraded=False,
+                errors=errors,
+                data=None,
+            )
 
         # HARDENING: Max message length 4KB
         if len(message) > 4096:
-            raise ValueError(f"message too long (max 4KB, got {len(message)} bytes)")
+            errors.append(
+                ErrorInfo(
+                    step="input_validation",
+                    hint=f"message too long (max 4KB, got {len(message)} bytes)",
+                )
+            )
+            return UnifiedResponse(
+                ok=False,
+                request_id=request_id,
+                route_taken=route_taken,
+                degraded=False,
+                errors=errors,
+                data=None,
+            )
 
         # Create/get session
         session = db.query(OperatorSession).filter_by(session_id=session_id).first()
@@ -526,9 +562,11 @@ async def post_chat(
 
         # PHASE 3: Canonical routing via Tentaculo Link (no bypass)
         response_text = None
+        route_taken = "tentaculo_link"  # Attempt primary route
 
         if TESTING_MODE:
             response_text = f"[TESTING_MODE] Received: {message}"
+            route_taken = "operator_backend"
         else:
             try:
                 tentaculo_client = TentaculoLinkClient()
@@ -541,18 +579,22 @@ async def post_chat(
                 response_text = result.get("response") or result.get("message")
                 if response_text:
                     write_log("operator_api", f"chat:{session_id}:tentaculo_ok")
+                    route_taken = "tentaculo_link"
             except Exception as e:
                 write_log(
                     "operator_api",
                     f"chat:{session_id}:tentaculo_failed:{str(e)}",
                     level="INFO",
                 )
+                errors.append(ErrorInfo(step="tentaculo_link", hint=str(e)))
 
         # Degraded mode: fallback to echo (but ALWAYS persist)
         if not response_text:
             response_text = (
                 f"[DEGRADED] Received: {message}. Services not fully available."
             )
+            route_taken = "degraded"
+            degraded = True
             write_log(
                 "operator_api", f"chat:{session_id}:degraded_mode", level="WARNING"
             )
@@ -568,16 +610,30 @@ async def post_chat(
 
         write_log("operator_api", f"chat:{session_id}:success")
 
-        return {
-            "session_id": session_id,
-            "request_id": request_id,
-            "response": response_text,
-            "tool_calls": None,
-        }
+        return UnifiedResponse(
+            ok=True,
+            request_id=request_id,
+            route_taken=route_taken,
+            degraded=degraded,
+            errors=errors,
+            data={
+                "session_id": session_id,
+                "response": response_text,
+                "tool_calls": None,
+            },
+        )
 
     except Exception as exc:
         write_log("operator_api", f"chat_error:{exc}", level="ERROR")
-        raise HTTPException(status_code=500, detail=str(exc))
+        errors.append(ErrorInfo(step="handler", hint=str(exc)))
+        return UnifiedResponse(
+            ok=False,
+            request_id=request_id,
+            route_taken=route_taken,
+            degraded=degraded,
+            errors=errors,
+            data=None,
+        )
 
 
 # ============ AUDIT ENDPOINTS ============
