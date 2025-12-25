@@ -1,0 +1,53 @@
+# SOLO MADRE POWER CONTROL — LATEST VALIDATION
+
+**Timestamp**: 2025-12-25T05:21:38Z
+**Status**: ✅ COMPLETED AND VALIDATED
+
+## Summary
+
+VX11 Power Manager (container-level) fully operational:
+- Applied solo_madre policy: ✅ OK (stopped 10 services)
+- Start service test: ✅ OK (switch started)
+- Stop service test: ✅ OK (switch stopped)
+- Docker container-level only: ✅ VERIFIED (no exec/kill)
+- Audit logging: ✅ AUTOMATIC (every action in OUTDIR)
+- DB integrity: ✅ OK (PRAGMA checks passed)
+
+## Commands
+
+### Apply solo_madre policy
+POST /madre/power/policy/solo_madre/apply
+Result: Only madre + redis running
+
+### Start service
+POST /madre/power/service/start {"service":"switch"}
+Result: Container started via docker compose
+
+### Stop service
+POST /madre/power/service/stop {"service":"switch"}
+Result: Container stopped via docker compose
+
+### Check status
+GET /madre/power/status
+
+## Evidence Location
+
+Full documentation and validation results:
+docs/audit/vx11_solo_madre_powerctl_20251225T051938Z/
+├── FINAL_SUMMARY.md (executive summary)
+├── PHASE_0_1_FINDINGS.md (initial audit)
+├── PHASE_2_3_STRATEGY.md (design strategy)
+└── validation/ (functional tests)
+
+## Copilot Commands
+
+@vx11 solo_madre           → Apply policy
+@vx11 power start <mod>    → Start service
+@vx11 power stop <mod>     → Stop service
+@vx11 power status         → Show status
+
+## Next Steps
+
+1. Execute full test suite (VX11_INTEGRATION=1)
+2. Regenerate PERCENTAGES.json with latest evidence
+3. Monitor power control metrics in production
