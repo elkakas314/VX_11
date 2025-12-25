@@ -1,5 +1,5 @@
 {
-  "generated_at": "2025-12-25T03:07:39.193100Z",
+  "generated_at": "2025-12-25T03:20:16.924139Z",
   "database": "data/runtime/vx11.db",
   "tables": [
     {
@@ -3014,7 +3014,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 86,
+      "rows": 87,
       "status": "ACTIVE",
       "module": "madre"
     },
