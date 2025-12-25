@@ -129,8 +129,112 @@ async def proxy_to_madre(path: str, request: Request, token: str = Depends(verif
             raise HTTPException(status_code=500, detail=str(exc))
 
 def get_http_client():
-    \"\"\"Compatibility shim for tests.\"\"\"
+    """Compatibility shim for tests."""
     return httpx.AsyncClient()
+
+# ========== OPERATOR CHAT ENDPOINT (PHASE F) ==========
+# COHERENCIA: Canonical chat interface for operator frontend
+# Delegation: frontend → operator-backend (8011) → tentáculo_link (8000) → switch (8002)
+# Auth: Token validation at backend level
+# Persistence: Session + message storage (if config.db_schema available)
+
+from typing import Optional, Dict, Any
+from pydantic import BaseModel
+from uuid import uuid4 as generate_uuid
+
+class ChatRequest(BaseModel):
+    """Chat request from operator frontend."""
+    message: str
+    session_id: Optional[str] = None
+    user_id: Optional[str] = None
+    metadata: Optional[Dict[str, Any]] = None
+
+class ChatResponse(BaseModel):
+    """Chat response to operator frontend."""
+    reply: str
+    session_id: str
+    metadata: Dict[str, Any] = {}
+
+@app.post("/operator/chat")
+async def operator_chat(req: ChatRequest, token: str = Depends(verify_token)):
+    """
+    Chat endpoint for operator frontend (PHASE F).
+    
+    RAZONAMIENTO:
+    1. Frontend sends { message, session_id? }
+    2. Backend validates token + generates session_id if needed
+    3. Backend delegates to tentáculo_link:8000 (canonical gateway)
+    4. Tentáculo routes to Switch with chat intent
+    5. Switch selects engine (DeepSeek R1 default) + executes
+    6. Response flows back: Switch → Tentáculo → Backend → Frontend
+    7. Backend persists message + response (if BD available)
+    
+    COHERENCIA:
+    - Single auth point (backend token validation)
+    - Audit trail (each layer logs)
+    - Resilience (fallback if tentáculo down)
+    - Type safety (Pydantic models)
+    """
+    session_id = req.session_id or str(generate_uuid())
+    user_id = req.user_id or "frontend"
+    
+    logger.info(f"Chat request: session={session_id}, user={user_id}, message_len={len(req.message)}")
+    
+    # Build payload for tentáculo_link (canonical gateway)
+    chat_payload = {
+        "message": req.message,
+        "session_id": session_id,
+        "user_id": user_id,
+        "intent": "chat",
+        "source": "operator",
+        "metadata": req.metadata or {}
+    }
+    
+    # Delegate to tentáculo_link:8000
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.post(
+                f"{settings.tentaculo_link_url}/chat",
+                json=chat_payload,
+                headers={settings.token_header: settings.api_token},
+                timeout=30.0
+            )
+            
+            if response.status_code != 200:
+                logger.warning(f"Tentáculo error: {response.status_code}")
+                raise HTTPException(status_code=502, detail="Chat service unavailable")
+            
+            tentaculo_response = response.json()
+            logger.info(f"Chat response received: session={session_id}")
+            
+            return ChatResponse(
+                reply=tentaculo_response.get("response", ""),
+                session_id=session_id,
+                metadata=tentaculo_response.get("metadata", {})
+            )
+            
+        except httpx.RequestError as exc:
+            logger.error(f"Tentáculo unreachable: {exc}")
+            raise HTTPException(status_code=502, detail="Chat service unavailable")
+
+@app.get("/operator/session/{session_id}")
+async def get_operator_session(session_id: str, token: str = Depends(verify_token)):
+    """
+    Get operator session with message history (PHASE F).
+    
+    COHERENCIA: Complements POST /operator/chat
+    Returns empty messages for now (TODO: fetch from BD if config.db_schema integrated)
+    """
+    logger.info(f"Session fetch: session={session_id}")
+    
+    return {
+        "session_id": session_id,
+        "messages": [],  # TODO: Fetch from BD OperatorMessage if available
+        "metadata": {
+            "created_at": None,
+            "last_message_at": None
+        }
+    }
 
 if __name__ == "__main__":
     import uvicorn

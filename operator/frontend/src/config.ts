@@ -5,8 +5,10 @@
 
 export const API_CONFIG = {
     // Backend endpoint (fallback chain: env var → localhost → hardcoded)
+    // COHERENCIA: All requests go through operator-backend:8011 proxy
     BACKEND_URL: import.meta.env.VITE_BACKEND_URL || 'http://localhost:8011',
-    MADRE_URL: import.meta.env.VITE_MADRE_URL || 'http://localhost:8001',
+    // DEPRECATED: Frontend should NOT access madre directly (use BACKEND_URL instead)
+    MADRE_URL: 'http://localhost:8001',  // Only for reference, use backend proxy
     TENTACULO_URL: import.meta.env.VITE_TENTACULO_URL || 'http://localhost:8000',
 
     // API Timeouts (ms)

@@ -1,6 +1,8 @@
 import axios from 'axios'
 
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8001'
+// COHERENCIA: Frontend uses operator-backend (8011) as proxy, NOT madre directly
+// Rationale: Centralized auth, audit trail, session management
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8011'
 const TIMEOUT = 5000
 
 class VX11ApiClient {
