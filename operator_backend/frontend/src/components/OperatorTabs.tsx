@@ -157,7 +157,7 @@ const OverviewTab: React.FC<{ observeData?: any; observeFullResponse?: any }> = 
                 </div>
             ) : (
                 <div className="ot-trace-info">
-                    <small style={{ color: '#888' }}>No tracing data available</small>
+                    <small className="ot-muted">No tracing data available</small>
                 </div>
             )}
 
