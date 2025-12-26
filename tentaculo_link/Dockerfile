@@ -34,6 +34,7 @@ RUN mkdir -p /app/logs /app/data /app/models /app/sandbox
 
 # Add user local bin to PATH
 ENV PATH=/root/.local/bin:$PATH
+ENV PYTHONPATH=/app:$PYTHONPATH
 
 CMD ["python", "-m", "uvicorn", "tentaculo_link.main_v7:app", "--host", "0.0.0.0", "--port", "8000"]
 
