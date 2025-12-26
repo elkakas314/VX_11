@@ -331,8 +331,9 @@ services:
       dockerfile: operator_backend/backend/Dockerfile
     image: vx11-operator-backend:v7.0
     container_name: vx11-operator-backend
-    ports:
-      - "8011:8011"
+    # INVARIANTE 1: NO expose port to host (only via tentaculo_link)
+    # ports:
+    #   - "8011:8011"
     volumes:
       - ./build/artifacts/logs:/app/logs
       - ./data:/app/data

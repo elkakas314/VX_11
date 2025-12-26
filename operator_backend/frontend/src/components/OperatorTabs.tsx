@@ -117,34 +117,50 @@ export const OperatorTabs: React.FC<{ selectedModule?: string }> = ({
 // ============================================================================
 // TAB: OVERVIEW
 // ============================================================================
-const OverviewTab: React.FC<{ observeData?: any; observeFullResponse?: any }> = ({ 
+const OverviewTab: React.FC<{ observeData?: any; observeFullResponse?: any }> = ({
     observeData,
-    observeFullResponse, 
+    observeFullResponse,
 }) => {
     if (!observeData) {
         return <div className="ot-loading">Loading overview...</div>;
     }
+
+    const traceData = observeFullResponse?.data?.trace;
+    const providerUsed = observeFullResponse?.provider_used;
 
     return (
         <div>
             <h2 className="ot-heading">
                 Module Status
             </h2>
-            
-            {/* DeepSeek R1 Tracing Info */}
-            {observeFullResponse?.provider_used && (
+
+            {/* REAL Tracing Info (from BD, not env-vars) */}
+            {traceData ? (
+                <div className="ot-trace-info">
+                    <strong>Last Route (Real Tracing):</strong>
+                    <br />
+                    <span className="ot-provider-badge">{traceData.provider_name}</span>
+                    <br />
+                    <small>
+                        Trace ID: {traceData.trace_id?.substring(0, 8)} |
+                        Type: {traceData.route_type} |
+                        at {new Date(traceData.timestamp).toLocaleTimeString()}
+                    </small>
+                </div>
+            ) : providerUsed ? (
                 <div className="ot-trace-info">
                     <strong>Tracing:</strong>
                     <br />
-                    <span className="ot-provider-badge">{observeFullResponse.provider_used}</span>
-                    {observeFullResponse.model_used && (
-                        <span className="ot-model-badge">{observeFullResponse.model_used}</span>
-                    )}
+                    <span className="ot-provider-badge">{providerUsed}</span>
                     <br />
                     <small>Request ID: {observeFullResponse.request_id?.substring(0, 8)}</small>
                 </div>
+            ) : (
+                <div className="ot-trace-info">
+                    <small style={{ color: '#888' }}>No tracing data available</small>
+                </div>
             )}
-            
+
             <div className="ot-grid-overview">
                 {Object.entries(observeData).map(([name, status]: any) => (
                     <div key={name} className="ot-card">

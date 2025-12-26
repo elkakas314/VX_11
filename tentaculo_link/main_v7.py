@@ -1777,7 +1777,57 @@ async def operator_observe():
 
     write_log("tentaculo_link", "operator_observe:aggregated")
 
-    # FASE 3: Include DeepSeek R1 provider metadata
+    # FASE 3: REAL tracing from BD (canonical source of truth)
+    trace_info = None
+    try:
+        import sqlite3
+
+        db_path = "/app/data/runtime/vx11.db"
+        conn = sqlite3.connect(db_path)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+
+        # Leer ÚLTIMO ruteo real de BD (canonical)
+        cursor.execute(
+            """
+            SELECT id, trace_id, provider_id, route_type, timestamp
+            FROM routing_events
+            ORDER BY timestamp DESC LIMIT 1
+        """
+        )
+        row = cursor.fetchone()
+
+        if row:
+            provider_id = row["provider_id"]
+            trace_id = row["trace_id"]
+
+            # Tratar de resolver nombre amigable desde cli_providers
+            provider_name = provider_id
+            cursor.execute(
+                """
+                SELECT name FROM cli_providers
+                WHERE id = ? OR provider_id = ? LIMIT 1
+            """,
+                (provider_id, provider_id),
+            )
+            provider_row = cursor.fetchone()
+            if provider_row:
+                provider_name = provider_row["name"]
+
+            trace_info = {
+                "trace_id": trace_id,
+                "provider_id": provider_id,
+                "provider_name": provider_name,
+                "route_type": row["route_type"],
+                "timestamp": row["timestamp"],
+            }
+
+        conn.close()
+    except Exception as trace_exc:
+        write_log("tentaculo_link", f"operator_observe:trace_read_failed:{trace_exc}")
+        trace_info = None
+
+    # Build response with REAL tracing (not env-var fake)
     response = {
         "ok": True,
         "request_id": str(__import__("uuid").uuid4()),
@@ -1786,19 +1836,15 @@ async def operator_observe():
         "data": {
             "services": observed_services,
             "timestamp": datetime.datetime.utcnow().isoformat(),
+            "trace": trace_info,  # REAL tracing from BD
         },
         "errors": [],
     }
-    # Add DeepSeek R1 tracing if available
-    try:
-        import os
 
-        provider = os.getenv("DEEPSEEK_PROVIDER", "deepseek_chat")
-        model = os.getenv("DEEPSEEK_MODEL", "deepseek-reasoner")
-        response["provider_used"] = provider
-        response["model_used"] = model
-    except Exception:
-        pass  # Provider metadata optional
+    # Add provider/model from trace IF available (not invented)
+    if trace_info:
+        response["provider_used"] = trace_info["provider_name"]
+
     return response
 
 
