@@ -30,7 +30,12 @@ class TestChatUnifiedResponse:
         assert resp.request_id == "chat001"
         assert resp.route_taken == "tentaculo_link"
         assert resp.degraded is False
-        assert resp.data["session_id"] == "sess-123"
+        # ensure data exists before subscripting; support dict or object-style access
+        assert resp.data is not None
+        if isinstance(resp.data, dict):
+            assert resp.data["session_id"] == "sess-123"
+        else:
+            assert getattr(resp.data, "session_id", None) == "sess-123"
 
     def test_chat_response_degraded(self):
         """Test degraded chat response."""

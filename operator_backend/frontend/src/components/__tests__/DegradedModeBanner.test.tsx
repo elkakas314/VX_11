@@ -1,13 +1,14 @@
 import React from "react";
+import { describe, test, expect } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { DegradedModeBanner } from "./DegradedModeBanner";
+import { DegradedModeBanner } from "../DegradedModeBanner";
 
 describe("DegradedModeBanner Component", () => {
     test("does not render when visible=false", () => {
         const { container } = render(
             <DegradedModeBanner visible={false} hint="Test hint" />
         );
-        expect(container.firstChild).toBeEmptyDOMNode();
+        expect(container.firstChild).toBeNull();
     });
 
     test("renders when visible=true", () => {
@@ -27,7 +28,7 @@ describe("DegradedModeBanner Component", () => {
     });
 
     test("calls onDismiss when dismiss button clicked", () => {
-        const mockOnDismiss = jest.fn();
+        const mockOnDismiss = vi.fn();
         render(
             <DegradedModeBanner
                 visible={true}
@@ -43,7 +44,7 @@ describe("DegradedModeBanner Component", () => {
     });
 
     test("auto-dismisses after specified duration", async () => {
-        const mockOnDismiss = jest.fn();
+        const mockOnDismiss = vi.fn();
         render(
             <DegradedModeBanner
                 visible={true}
@@ -64,7 +65,7 @@ describe("DegradedModeBanner Component", () => {
     });
 
     test("does not auto-dismiss when autoDismissMs=0", async () => {
-        const mockOnDismiss = jest.fn();
+        const mockOnDismiss = vi.fn();
         render(
             <DegradedModeBanner
                 visible={true}
@@ -93,8 +94,8 @@ describe("DegradedModeBanner Component", () => {
     });
 
     test("cancels auto-dismiss timer when component unmounts", async () => {
-        jest.useFakeTimers();
-        const mockOnDismiss = jest.fn();
+        vi.useFakeTimers();
+        const mockOnDismiss = vi.fn();
 
         const { unmount } = render(
             <DegradedModeBanner
@@ -106,10 +107,10 @@ describe("DegradedModeBanner Component", () => {
         );
 
         unmount();
-        jest.runAllTimers();
+        vi.runAllTimers();
 
         expect(mockOnDismiss).not.toHaveBeenCalled();
-        jest.useRealTimers();
+        vi.useRealTimers();
     });
 
     test("applies correct CSS classes", () => {

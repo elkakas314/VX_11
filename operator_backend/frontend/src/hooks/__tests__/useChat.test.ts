@@ -1,14 +1,15 @@
+import { describe, beforeEach, test, expect, vi } from "vitest";
 import { renderHook, act, waitFor } from "@testing-library/react";
-import { useChat } from "./useChat";
-import * as canonicalApi from "../api/canonical";
+import { useChat } from "../useChat";
+import * as canonicalApi from "../../api/canonical";
 
-jest.mock("../api/canonical", () => ({
-    sendChat: jest.fn(),
+vi.mock("../../api/canonical", () => ({
+    sendChat: vi.fn(),
 }));
 
 describe("useChat Hook", () => {
     beforeEach(() => {
-        jest.clearAllMocks();
+        vi.clearAllMocks();
     });
 
     test("initializes with default state", () => {
@@ -30,7 +31,7 @@ describe("useChat Hook", () => {
             errors: [],
             data: { response: "Hello!" },
         };
-        (canonicalApi.sendChat as jest.Mock).mockResolvedValueOnce(mockResponse);
+        (canonicalApi.sendChat as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockResponse);
 
         const { result } = renderHook(() => useChat());
 
@@ -62,7 +63,7 @@ describe("useChat Hook", () => {
             errors: [{ step: "tentaculo", hint: "Timeout" }],
             data: { response: "[DEGRADED] Fallback" },
         };
-        (canonicalApi.sendChat as jest.Mock).mockResolvedValueOnce(mockResponse);
+        (canonicalApi.sendChat as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockResponse);
 
         const { result } = renderHook(() => useChat());
 
@@ -84,7 +85,7 @@ describe("useChat Hook", () => {
 
     test("handles error response", async () => {
         const mockError = { error: "Network error" };
-        (canonicalApi.sendChat as jest.Mock).mockResolvedValueOnce(mockError);
+        (canonicalApi.sendChat as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockError);
 
         const { result } = renderHook(() => useChat());
 
@@ -103,7 +104,7 @@ describe("useChat Hook", () => {
     });
 
     test("respects maxMessageLength option", () => {
-        const alertSpy = jest.spyOn(window, "alert").mockImplementation();
+        const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => { });
         const { result } = renderHook(() => useChat({ maxMessageLength: 100 }));
 
         act(() => {
@@ -139,7 +140,7 @@ describe("useChat Hook", () => {
             errors: [],
             data: { response: "Response" },
         };
-        (canonicalApi.sendChat as jest.Mock).mockResolvedValueOnce(mockResponse);
+        (canonicalApi.sendChat as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockResponse);
 
         const { result } = renderHook(() => useChat());
 
@@ -176,7 +177,7 @@ describe("useChat Hook", () => {
             ],
             data: { response: "Degraded" },
         };
-        (canonicalApi.sendChat as jest.Mock).mockResolvedValueOnce(mockResponse);
+        (canonicalApi.sendChat as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockResponse);
 
         const { result } = renderHook(() => useChat());
 
@@ -200,7 +201,7 @@ describe("useChat Hook", () => {
         const mockResponse = {
             response: "[DEGRADED] Legacy fallback",
         };
-        (canonicalApi.sendChat as jest.Mock).mockResolvedValueOnce(mockResponse);
+        (canonicalApi.sendChat as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockResponse);
 
         const { result } = renderHook(() => useChat());
 
@@ -227,7 +228,7 @@ describe("useChat Hook", () => {
             errors: [{ step: "tentaculo", hint: "Custom error hint" }],
             data: { response: "Failed" },
         };
-        (canonicalApi.sendChat as jest.Mock).mockResolvedValueOnce(mockResponse);
+        (canonicalApi.sendChat as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockResponse);
 
         const { result } = renderHook(() => useChat());
 
@@ -253,7 +254,7 @@ describe("useChat Hook", () => {
             errors: [],
             data: { response: "Degraded but no errors" },
         };
-        (canonicalApi.sendChat as jest.Mock).mockResolvedValueOnce(mockResponse);
+        (canonicalApi.sendChat as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockResponse);
 
         const { result } = renderHook(() => useChat());
 

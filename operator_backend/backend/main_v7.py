@@ -37,6 +37,7 @@ from config.db_schema import (
 from .browser import BrowserClient
 from .switch_integration import SwitchClient, TentaculoLinkClient
 from .routers.canonical_api import router as canonical_api_router
+from .routes_operator import router as operator_router
 
 # Load tokens
 load_tokens()
@@ -46,6 +47,7 @@ VX11_TOKEN = (
     or settings.api_token
 )
 AUTH_HEADERS = {settings.token_header: VX11_TOKEN}
+
 
 # Policy/Mode control (Phase 3)
 def policy_guard() -> Dict[str, str]:
@@ -154,6 +156,9 @@ app.add_middleware(
 
 # Include canonical API router (Phase 1+3)
 app.include_router(canonical_api_router)
+
+# Include operator routes (FASE D)
+app.include_router(operator_router)
 
 
 # ============ HEALTH ============

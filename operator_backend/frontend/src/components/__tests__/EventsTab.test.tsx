@@ -1,10 +1,11 @@
 import React from "react";
+import { describe, beforeEach, afterEach, test, expect, vi } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { EventsTab } from "./EventsTab";
-import * as EventServiceModule from "../services/EventService";
+import { EventsTab } from "../EventsTab";
+import * as EventServiceModule from "../../services/EventService";
 
-jest.mock("../services/EventService");
+vi.mock("../../services/EventService");
 
 describe("EventsTab Component", () => {
     let mockEventService: any;
@@ -12,8 +13,8 @@ describe("EventsTab Component", () => {
 
     beforeEach(() => {
         mockEventService = {
-            connect: jest.fn(),
-            on: jest.fn((listener) => {
+            connect: vi.fn(),
+            on: vi.fn((listener: any) => {
                 // Call listener with a test event
                 setTimeout(() => {
                     listener({
@@ -24,24 +25,24 @@ describe("EventsTab Component", () => {
                         timestamp: new Date().toISOString(),
                     });
                 }, 0);
-                return jest.fn(); // unsubscribe
+                return vi.fn(); // unsubscribe
             }),
-            setFilter: jest.fn(),
-            disconnect: jest.fn(),
-            getRequestId: jest.fn(() => "req-123"),
-            isConnected: jest.fn(() => true),
-            getReconnectAttempts: jest.fn(() => 0),
+            setFilter: vi.fn(),
+            disconnect: vi.fn(),
+            getRequestId: vi.fn(() => "req-123"),
+            isConnected: vi.fn(() => true),
+            getReconnectAttempts: vi.fn(() => 0),
         };
 
         (EventServiceModule.EventService as any).mockImplementation(() => mockEventService);
     });
 
     afterEach(() => {
-        jest.clearAllMocks();
+        vi.clearAllMocks();
     });
 
     test("renders connection status", async () => {
-        render(<EventsTab token={mockToken} />);
+        render(<EventsTab />);
 
         await waitFor(() => {
             expect(screen.getByText(/Connected/)).toBeInTheDocument();
@@ -49,7 +50,7 @@ describe("EventsTab Component", () => {
     });
 
     test("displays events from stream", async () => {
-        render(<EventsTab token={mockToken} />);
+        render(<EventsTab />);
 
         await waitFor(() => {
             expect(screen.getByText("startup")).toBeInTheDocument();
@@ -57,7 +58,7 @@ describe("EventsTab Component", () => {
     });
 
     test("shows event details", async () => {
-        render(<EventsTab token={mockToken} />);
+        render(<EventsTab />);
 
         await waitFor(() => {
             expect(screen.getByText("madre")).toBeInTheDocument();
@@ -66,7 +67,7 @@ describe("EventsTab Component", () => {
     });
 
     test("allows filtering by source", async () => {
-        render(<EventsTab token={mockToken} />);
+        render(<EventsTab />);
 
         const sourceInput = screen.getByPlaceholderText("Filter by source...");
         await userEvent.type(sourceInput, "shubniggurath");
@@ -79,7 +80,7 @@ describe("EventsTab Component", () => {
     });
 
     test("allows filtering by event type", async () => {
-        render(<EventsTab token={mockToken} />);
+        render(<EventsTab />);
 
         const typeInput = screen.getByPlaceholderText("Filter by type...");
         await userEvent.type(typeInput, "error");
@@ -92,7 +93,7 @@ describe("EventsTab Component", () => {
     });
 
     test("allows filtering by severity", async () => {
-        render(<EventsTab token={mockToken} />);
+        render(<EventsTab />);
 
         const severityInput = screen.getByPlaceholderText("Filter by severity...");
         await userEvent.type(severityInput, "critical");
@@ -105,7 +106,7 @@ describe("EventsTab Component", () => {
     });
 
     test("clears events on clear button click", async () => {
-        render(<EventsTab token={mockToken} />);
+        render(<EventsTab />);
 
         await waitFor(() => {
             expect(screen.getByText("startup")).toBeInTheDocument();
@@ -118,7 +119,7 @@ describe("EventsTab Component", () => {
     });
 
     test("auto-scroll checkbox works", async () => {
-        render(<EventsTab token={mockToken} />);
+        render(<EventsTab />);
 
         const autoScrollCheckbox = screen.getByRole("checkbox");
         expect(autoScrollCheckbox).toBeChecked();
@@ -128,7 +129,7 @@ describe("EventsTab Component", () => {
     });
 
     test("displays event icons based on type", async () => {
-        render(<EventsTab token={mockToken} />);
+        render(<EventsTab />);
 
         await waitFor(() => {
             expect(screen.getByText("🚀")).toBeInTheDocument(); // startup icon
@@ -136,7 +137,7 @@ describe("EventsTab Component", () => {
     });
 
     test("shows event timestamps", async () => {
-        render(<EventsTab token={mockToken} />);
+        render(<EventsTab />);
 
         await waitFor(() => {
             expect(screen.getByText(/:\d{2}/)).toBeInTheDocument(); // Time format MM:SS
@@ -144,7 +145,7 @@ describe("EventsTab Component", () => {
     });
 
     test("displays request ID in events", async () => {
-        render(<EventsTab token={mockToken} />);
+        render(<EventsTab />);
 
         await waitFor(() => {
             expect(screen.getByText(/Request ID: req-12/)).toBeInTheDocument();
@@ -152,7 +153,7 @@ describe("EventsTab Component", () => {
     });
 
     test("shows total event count", async () => {
-        render(<EventsTab token={mockToken} />);
+        render(<EventsTab />);
 
         await waitFor(() => {
             expect(screen.getByText(/Total events: \d+/)).toBeInTheDocument();
@@ -160,7 +161,7 @@ describe("EventsTab Component", () => {
     });
 
     test("disconnects on unmount", () => {
-        const { unmount } = render(<EventsTab token={mockToken} />);
+        const { unmount } = render(<EventsTab />);
 
         unmount();
 
@@ -168,9 +169,9 @@ describe("EventsTab Component", () => {
     });
 
     test("displays reconnect attempts", async () => {
-        mockEventService.getReconnectAttempts = jest.fn(() => 2);
+        mockEventService.getReconnectAttempts = vi.fn(() => 2);
 
-        render(<EventsTab token={mockToken} />);
+        render(<EventsTab />);
 
         await waitFor(() => {
             expect(screen.getByText(/Reconnect attempts: 2/)).toBeInTheDocument();
@@ -178,7 +179,7 @@ describe("EventsTab Component", () => {
     });
 
     test("color-codes events by severity", async () => {
-        const { container } = render(<EventsTab token={mockToken} />);
+        const { container } = render(<EventsTab />);
 
         await waitFor(() => {
             const eventDiv = container.querySelector("[class*='bg-blue-900']");
@@ -204,14 +205,14 @@ describe("EventsTab Component", () => {
             },
         ];
 
-        mockEventService.on = jest.fn((listener) => {
+        mockEventService.on = vi.fn((listener) => {
             events.forEach((event) => {
                 setTimeout(() => listener(event), 0);
             });
-            return jest.fn();
+            return vi.fn();
         });
 
-        render(<EventsTab token={mockToken} />);
+        render(<EventsTab />);
 
         await waitFor(() => {
             expect(screen.getByText("startup")).toBeInTheDocument();

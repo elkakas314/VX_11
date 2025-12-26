@@ -1,4 +1,5 @@
-import { EventService, StreamEvent } from "./EventService";
+import { describe, beforeEach, afterEach, test, expect, vi } from "vitest";
+import { EventService, StreamEvent } from "../EventService";
 
 describe("EventService", () => {
     let service: EventService;
@@ -7,17 +8,17 @@ describe("EventService", () => {
     beforeEach(() => {
         service = new EventService(mockToken);
         // Mock EventSource
-        global.EventSource = jest.fn(() => ({
-            addEventListener: jest.fn(),
-            removeEventListener: jest.fn(),
-            close: jest.fn(),
+        global.EventSource = vi.fn(() => ({
+            addEventListener: vi.fn(),
+            removeEventListener: vi.fn(),
+            close: vi.fn(),
             readyState: EventSource.OPEN,
         })) as any;
     });
 
     afterEach(() => {
         service.disconnect();
-        jest.clearAllMocks();
+        vi.clearAllMocks();
     });
 
     test("initializes with correct token and default filter", () => {
@@ -27,46 +28,48 @@ describe("EventService", () => {
 
     test("connects to EventSource", () => {
         service.connect();
-        expect(global.EventSource).toHaveBeenCalled();
+        expect(global.EventSource as unknown as ReturnType<typeof vi.fn>).toHaveBeenCalled();
     });
 
     test("does not create duplicate connections", () => {
         service.connect();
         service.connect();
         // EventSource should be called only once
-        expect(global.EventSource).toHaveBeenCalledTimes(1);
+        expect(global.EventSource as unknown as ReturnType<typeof vi.fn>).toHaveBeenCalledTimes(1);
     });
 
-    test("listens to events and emits to listeners", (done) => {
+    test("listens to events and emits to listeners", async () => {
         const mockEvent: StreamEvent = {
             type: "test",
             request_id: "req-123",
             timestamp: new Date().toISOString(),
         };
 
-        service.on((event) => {
-            expect(event).toEqual(mockEvent);
-            expect(service.getRequestId()).toBe("req-123");
-            done();
-        });
-
-        service.connect();
-
-        // Simulate EventSource message
-        const eventSourceInstance = (global.EventSource as any).mock.results[0].value;
-        const messageHandler = eventSourceInstance.addEventListener.mock.calls.find(
-            (call: any[]) => call[0] === "message"
-        )?.[1];
-
-        if (messageHandler) {
-            messageHandler({
-                data: JSON.stringify(mockEvent),
+        await new Promise<void>((resolve) => {
+            service.on((event: StreamEvent) => {
+                expect(event).toEqual(mockEvent);
+                expect(service.getRequestId()).toBe("req-123");
+                resolve();
             });
-        }
+
+            service.connect();
+
+            // Simulate EventSource message
+            const eventSourceInstance = (global.EventSource as any).mock.results[0].value;
+            const messageHandler = eventSourceInstance.addEventListener.mock.calls.find(
+                (call: any[]) => call[0] === "message"
+            )?.[1];
+
+            if (messageHandler) {
+                messageHandler({
+                    data: JSON.stringify(mockEvent),
+                });
+            }
+        });
     });
 
     test("handles errors and attempts reconnection", () => {
-        jest.useFakeTimers();
+        vi.useFakeTimers();
         service.connect();
 
         const eventSourceInstance = (global.EventSource as any).mock.results[0].value;
@@ -80,14 +83,14 @@ describe("EventService", () => {
 
         expect(service.getReconnectAttempts()).toBe(1);
 
-        jest.advanceTimersByTime(1000);
+        vi.advanceTimersByTime(1000);
         expect(global.EventSource).toHaveBeenCalledTimes(2); // Original + reconnect
 
-        jest.useRealTimers();
+        vi.useRealTimers();
     });
 
     test("applies exponential backoff on reconnection", () => {
-        jest.useFakeTimers();
+        vi.useFakeTimers();
         service.connect();
 
         for (let i = 0; i < 3; i++) {
@@ -103,18 +106,18 @@ describe("EventService", () => {
             }
 
             const expectedBackoff = Math.min(1000 * Math.pow(2, i), 30000);
-            jest.advanceTimersByTime(expectedBackoff);
+            vi.advanceTimersByTime(expectedBackoff);
         }
 
         // Should have created 4 connections (original + 3 reconnects)
         expect((global.EventSource as any).mock.calls.length).toBeGreaterThan(1);
 
-        jest.useRealTimers();
+        vi.useRealTimers();
     });
 
     test("allows adding and removing listeners", () => {
-        const listener1 = jest.fn();
-        const listener2 = jest.fn();
+        const listener1 = vi.fn();
+        const listener2 = vi.fn();
 
         const unsubscribe1 = service.on(listener1);
         const unsubscribe2 = service.on(listener2);
@@ -152,7 +155,7 @@ describe("EventService", () => {
     });
 
     test("on_type filters events by type", () => {
-        const mockListener = jest.fn();
+        const mockListener = vi.fn();
 
         service.on_type("startup", mockListener);
         service.connect();
@@ -181,7 +184,7 @@ describe("EventService", () => {
     });
 
     test("disconnects and stops reconnection attempts", () => {
-        jest.useFakeTimers();
+        vi.useFakeTimers();
         service.connect();
 
         const eventSourceInstance = (global.EventSource as any).mock.results[0].value;
@@ -196,12 +199,12 @@ describe("EventService", () => {
         service.disconnect();
 
         const previousCallCount = (global.EventSource as any).mock.calls.length;
-        jest.advanceTimersByTime(10000);
+        vi.advanceTimersByTime(10000);
 
         // Should not attempt reconnection after disconnect
         expect((global.EventSource as any).mock.calls.length).toBe(previousCallCount);
 
-        jest.useRealTimers();
+        vi.useRealTimers();
     });
 
     test("tracks request ID from events", () => {
@@ -248,8 +251,8 @@ describe("EventService", () => {
     });
 
     test("handles malformed JSON in events gracefully", () => {
-        const mockListener = jest.fn();
-        const consoleError = jest.spyOn(console, "error").mockImplementation();
+        const mockListener = vi.fn();
+        const consoleError = vi.spyOn(console, "error").mockImplementation(() => { });
 
         service.on(mockListener);
         service.connect();
@@ -270,7 +273,7 @@ describe("EventService", () => {
     });
 
     test("respects max reconnect attempts", () => {
-        jest.useFakeTimers();
+        vi.useFakeTimers();
         service.connect();
 
         for (let i = 0; i < 11; i++) {
@@ -283,13 +286,13 @@ describe("EventService", () => {
 
             if (errorHandler) {
                 errorHandler(new Event("error"));
-                jest.advanceTimersByTime(30000);
+                vi.advanceTimersByTime(30000);
             }
         }
 
         const maxAttemptsReached = service.getReconnectAttempts() >= 10;
         expect(maxAttemptsReached).toBe(true);
 
-        jest.useRealTimers();
+        vi.useRealTimers();
     });
 });

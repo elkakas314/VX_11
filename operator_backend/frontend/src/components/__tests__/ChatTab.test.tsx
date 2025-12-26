@@ -1,17 +1,18 @@
 import React from "react";
+import { describe, beforeEach, test, expect, vi } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { ChatTab } from "./ChatTab";
-import * as canonicalApi from "../api/canonical";
+import { ChatTab } from "../ChatTab";
+import * as canonicalApi from "../../api/canonical";
 
 // Mock the API
-jest.mock("../api/canonical", () => ({
-    sendChat: jest.fn(),
+vi.mock("../../api/canonical", () => ({
+    sendChat: vi.fn(),
 }));
 
 describe("ChatTab Component", () => {
     beforeEach(() => {
-        jest.clearAllMocks();
+        vi.clearAllMocks();
     });
 
     test("renders initial state without messages", () => {
@@ -28,7 +29,7 @@ describe("ChatTab Component", () => {
             errors: [],
             data: { response: "Hello from Tentaculo!" },
         };
-        (canonicalApi.sendChat as jest.Mock).mockResolvedValueOnce(mockResponse);
+        (canonicalApi.sendChat as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockResponse);
 
         render(<ChatTab />);
 
@@ -56,7 +57,7 @@ describe("ChatTab Component", () => {
             errors: [{ step: "tentaculo_link", hint: "Connection timeout" }],
             data: { response: "[DEGRADED] Fallback response" },
         };
-        (canonicalApi.sendChat as jest.Mock).mockResolvedValueOnce(mockResponse);
+        (canonicalApi.sendChat as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockResponse);
 
         render(<ChatTab />);
 
@@ -81,7 +82,7 @@ describe("ChatTab Component", () => {
             errors: [],
             data: { response: "Response from Tentaculo" },
         };
-        (canonicalApi.sendChat as jest.Mock).mockResolvedValueOnce(mockResponse);
+        (canonicalApi.sendChat as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockResponse);
 
         render(<ChatTab />);
 
@@ -99,7 +100,7 @@ describe("ChatTab Component", () => {
 
     test("handles error response", async () => {
         const mockError = { error: "Network error" };
-        (canonicalApi.sendChat as jest.Mock).mockResolvedValueOnce(mockError);
+        (canonicalApi.sendChat as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockError);
 
         render(<ChatTab />);
 
@@ -124,7 +125,7 @@ describe("ChatTab Component", () => {
     });
 
     test("prevents messages longer than maxMessageLength", async () => {
-        const alertSpy = jest.spyOn(window, "alert").mockImplementation();
+        const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => { });
         render(<ChatTab />);
 
         const input = screen.getByRole("textbox") as HTMLInputElement;
@@ -149,7 +150,7 @@ describe("ChatTab Component", () => {
             errors: [],
             data: { response: "Green border (tentaculo)" },
         };
-        (canonicalApi.sendChat as jest.Mock).mockResolvedValueOnce(mockResponse);
+        (canonicalApi.sendChat as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockResponse);
 
         render(<ChatTab />);
 
@@ -174,7 +175,7 @@ describe("ChatTab Component", () => {
             errors: [{ step: "tentaculo", hint: "Timeout" }],
             data: { response: "[DEGRADED] Fallback" },
         };
-        (canonicalApi.sendChat as jest.Mock).mockResolvedValueOnce(mockResponse);
+        (canonicalApi.sendChat as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockResponse);
 
         render(<ChatTab />);
 
