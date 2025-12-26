@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import './ControlPanel.css';
 
 interface ControlPanelProps {
     selectedModule?: string;
@@ -34,16 +35,12 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ selectedModule }) =>
     };
 
     return (
-        <div style={styles.container}>
-            <div style={styles.tabs}>
+        <div className="cp-container">
+            <div className="cp-tabs">
                 {['audit', 'modules', 'explorer', 'settings'].map((tab) => (
                     <button
                         key={tab}
-                        style={{
-                            ...styles.tab,
-                            backgroundColor: activeTab === tab ? '#4ade80' : '#333',
-                            color: activeTab === tab ? '#000' : '#e0e0e0',
-                        }}
+                        className={`cp-tab ${activeTab === tab ? 'active' : ''}`}
                         onClick={() => setActiveTab(tab as typeof activeTab)}
                     >
                         {tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -51,12 +48,12 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ selectedModule }) =>
                 ))}
             </div>
 
-            <div style={styles.content}>
+            <div className="cp-content">
                 {activeTab === 'audit' && (
                     <div>
                         <h3>Audit Jobs</h3>
                         <button
-                            style={styles.button}
+                            className="cp-button"
                             onClick={() => {
                                 fetch('/api/audit', {
                                     method: 'POST',
@@ -76,13 +73,13 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ selectedModule }) =>
                         {selectedModule ? (
                             <>
                                 <p>Selected: {selectedModule}</p>
-                                <button style={styles.button} onClick={() => handlePowerAction('power_up')}>
+                                <button className="cp-button" onClick={() => handlePowerAction('power_up')}>
                                     Power Up
                                 </button>
-                                <button style={styles.button} onClick={() => handlePowerAction('power_down')}>
+                                <button className="cp-button" onClick={() => handlePowerAction('power_down')}>
                                     Power Down
                                 </button>
-                                <button style={styles.button} onClick={() => handlePowerAction('restart')}>
+                                <button className="cp-button" onClick={() => handlePowerAction('restart')}>
                                     Restart
                                 </button>
                             </>
@@ -100,7 +97,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ selectedModule }) =>
                             href="/api/explorer/db?table=modules&limit=100"
                             target="_blank"
                             rel="noreferrer"
-                            style={styles.link}
+                            className="cp-link"
                         >
                             View Modules Table
                         </a>
@@ -110,28 +107,28 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ selectedModule }) =>
                 {activeTab === 'settings' && (
                     <div>
                         <h3>User Settings</h3>
-                        <label style={styles.label}>
+                        <label className="cp-label">
                             Theme:
                             <select
                                 value={settings.theme}
                                 onChange={(e) => setSettings({ ...settings, theme: e.target.value as 'dark' | 'light' })}
-                                style={styles.input}
+                                className="cp-input"
                             >
                                 <option value="dark">Dark</option>
                                 <option value="light">Light</option>
                             </select>
                         </label>
-                        <label style={styles.label}>
+                        <label className="cp-label">
                             Auto-refresh interval (ms):
                             <input
                                 type="number"
                                 min="1000"
                                 value={settings.auto_refresh_interval}
                                 onChange={(e) => setSettings({ ...settings, auto_refresh_interval: parseInt(e.target.value) })}
-                                style={styles.input}
+                                className="cp-input"
                             />
                         </label>
-                        <button style={styles.button} onClick={handleSettingsSave}>
+                        <button className="cp-button" onClick={handleSettingsSave}>
                             Save Settings
                         </button>
                     </div>
@@ -139,67 +136,4 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ selectedModule }) =>
             </div>
         </div>
     );
-};
-
-const styles = {
-    container: {
-        padding: '16px',
-        backgroundColor: '#1a1a1a',
-        color: '#e0e0e0',
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column' as const,
-        overflowY: 'auto' as const,
-    },
-    tabs: {
-        display: 'flex',
-        gap: '8px',
-        marginBottom: '16px',
-        borderBottom: '1px solid #333',
-        paddingBottom: '8px',
-    },
-    tab: {
-        padding: '8px 12px',
-        borderRadius: '4px',
-        border: 'none',
-        cursor: 'pointer',
-        fontSize: '12px',
-        fontWeight: 'bold',
-    },
-    content: {
-        flex: 1,
-        overflowY: 'auto' as const,
-    },
-    button: {
-        display: 'block',
-        padding: '8px 12px',
-        marginTop: '8px',
-        backgroundColor: '#4ade80',
-        color: '#000',
-        border: 'none',
-        borderRadius: '4px',
-        cursor: 'pointer',
-        fontWeight: 'bold',
-        fontSize: '12px',
-    },
-    label: {
-        display: 'block',
-        marginBottom: '12px',
-    },
-    input: {
-        display: 'block',
-        width: '100%',
-        padding: '8px',
-        marginTop: '4px',
-        backgroundColor: '#2a2a2a',
-        color: '#e0e0e0',
-        border: '1px solid #444',
-        borderRadius: '4px',
-    },
-    link: {
-        color: '#4ade80',
-        textDecoration: 'none',
-        display: 'block',
-        marginTop: '8px',
-    },
 };

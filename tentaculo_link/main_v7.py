@@ -1777,7 +1777,8 @@ async def operator_observe():
 
     write_log("tentaculo_link", "operator_observe:aggregated")
 
-    return {
+    # FASE 3: Include DeepSeek R1 provider metadata
+    response = {
         "ok": True,
         "request_id": str(__import__("uuid").uuid4()),
         "route_taken": "GET /operator/observe",
@@ -1788,6 +1789,16 @@ async def operator_observe():
         },
         "errors": [],
     }
+    # Add DeepSeek R1 tracing if available
+    try:
+        import os
+        provider = os.getenv("DEEPSEEK_PROVIDER", "deepseek_chat")
+        model = os.getenv("DEEPSEEK_MODEL", "deepseek-reasoner")
+        response["provider_used"] = provider
+        response["model_used"] = model
+    except Exception:
+        pass  # Provider metadata optional
+    return response
 
 
 if __name__ == "__main__":

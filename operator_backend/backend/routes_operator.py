@@ -26,8 +26,10 @@ def create_unified_response(
     data: Optional[Dict[str, Any]] = None,
     errors: Optional[List[str]] = None,
     degraded: bool = False,
+    provider_used: Optional[str] = None,
+    model_used: Optional[str] = None,
 ) -> Dict[str, Any]:
-    return {
+    result = {
         "ok": ok,
         "request_id": request_id,
         "route_taken": route_taken,
@@ -35,6 +37,12 @@ def create_unified_response(
         "errors": errors or [],
         "data": data or {},
     }
+    # FASE 3: DeepSeek R1 tracing
+    if provider_used:
+        result["provider_used"] = provider_used
+    if model_used:
+        result["model_used"] = model_used
+    return result
 
 
 logger = logging.getLogger("operator_routes")
