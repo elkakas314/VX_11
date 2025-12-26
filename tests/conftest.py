@@ -7,7 +7,8 @@ import requests
 from pathlib import Path
 
 
-INTEGRATION_ENABLED = os.getenv("VX11_INTEGRATION", "") == "1"
+# ⚠️  CHANGED (2025-12-26): Default to ENABLED. Can be disabled with VX11_INTEGRATION=0
+INTEGRATION_ENABLED = os.getenv("VX11_INTEGRATION", "1") != "0"
 
 
 def pytest_configure(config):

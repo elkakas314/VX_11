@@ -6,15 +6,20 @@ import sys
 import time
 from datetime import datetime
 
-DB = os.environ.get("VX11_DB_PATH") or (sys.argv[1] if len(sys.argv) > 1 else "data/runtime/vx11.db")
+DB = os.environ.get("VX11_DB_PATH") or (
+    sys.argv[1] if len(sys.argv) > 1 else "data/runtime/vx11.db"
+)
 if not os.path.exists(DB):
     raise SystemExit("DB not found: " + DB)
+
+
 def connect_db(db_path):
     uri = f"file:{db_path}?mode=ro"
     try:
         return sqlite3.connect(uri, uri=True)
     except sqlite3.OperationalError:
         return sqlite3.connect(db_path)
+
 
 conn = connect_db(DB)
 conn.row_factory = sqlite3.Row
@@ -177,6 +182,7 @@ with open("docs/audit/DB_MAP_v7_FINAL.md", "w", encoding="utf-8") as f:
 
 print("Wrote docs/audit/DB_SCHEMA_v7_FINAL.json and docs/audit/DB_MAP_v7_FINAL.md")
 
+
 def env_flag(name, default=True):
     raw = os.environ.get(name)
     if raw is None:
@@ -204,8 +210,9 @@ def run_integrity_check(conn, timeout_secs):
         conn.set_progress_handler(None, 0)
 
 
-skip_integrity = env_flag("VX11_DBMAP_SKIP_INTEGRITY", default=True)
-timeout_secs = int(os.environ.get("VX11_DBMAP_INTEGRITY_TIMEOUT_SECS", "10"))
+# ⚠️  CHANGED (2025-12-26): Run integrity checks by default (not skip). Timeout 60s instead of 10s
+skip_integrity = env_flag("VX11_DBMAP_SKIP_INTEGRITY", default=False)
+timeout_secs = int(os.environ.get("VX11_DBMAP_INTEGRITY_TIMEOUT_SECS", "60"))
 integrity = "SKIPPED"
 if not skip_integrity:
     integrity = run_integrity_check(conn, timeout_secs)
