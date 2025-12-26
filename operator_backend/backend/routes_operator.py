@@ -549,3 +549,179 @@ async def get_route_taken(
             "limit": limit,
         },
     )
+
+
+# ============================================================================
+# FASE 2: DATABASE READ-ONLY ENDPOINTS (para visor)
+# ============================================================================
+
+
+@router.get("/db/routing-events")
+async def get_routing_events(
+    request: Request,
+    limit: int = Query(200, ge=1, le=500),
+    offset: int = Query(0, ge=0),
+) -> Dict[str, Any]:
+    """
+    Get routing events from BD (read-only, paginado, LIMIT enforced).
+    """
+    route_context = await _get_request_context(request)
+    db_path = "/home/elkakas314/vx11/data/runtime/vx11.db"
+
+    try:
+        conn = sqlite3.connect(db_path)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+
+        # Tabla mock: si no existe, devolver vacio
+        try:
+            cursor.execute("SELECT COUNT(*) as cnt FROM routing_events")
+            total = cursor.fetchone()["cnt"]
+        except sqlite3.OperationalError:
+            # Tabla no existe
+            conn.close()
+            return create_unified_response(
+                ok=True,
+                request_id=_get_request_id(request),
+                route_taken=route_context,
+                data={"events": [], "total": 0, "offset": offset, "limit": limit},
+            )
+
+        # Query con LIMIT obligatorio
+        cursor.execute(
+            "SELECT * FROM routing_events ORDER BY id DESC LIMIT ? OFFSET ?",
+            (limit, offset),
+        )
+        rows = [dict(row) for row in cursor.fetchall()]
+        conn.close()
+
+        return create_unified_response(
+            ok=True,
+            request_id=_get_request_id(request),
+            route_taken=route_context,
+            data={
+                "events": rows,
+                "total": total,
+                "offset": offset,
+                "limit": limit,
+            },
+        )
+
+    except Exception as e:
+        logger.exception(f"DB routing-events error: {e}")
+        return create_unified_response(
+            ok=False,
+            request_id=_get_request_id(request),
+            route_taken=route_context,
+            errors=[str(e)],
+            data={},
+        )
+
+
+@router.get("/db/cli-providers")
+async def get_cli_providers(
+    request: Request,
+    limit: int = Query(100, ge=1, le=500),
+) -> Dict[str, Any]:
+    """
+    Get CLI providers from BD (read-only).
+    """
+    route_context = await _get_request_context(request)
+    db_path = "/home/elkakas314/vx11/data/runtime/vx11.db"
+
+    try:
+        conn = sqlite3.connect(db_path)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+
+        try:
+            cursor.execute("SELECT COUNT(*) as cnt FROM cli_providers")
+            total = cursor.fetchone()["cnt"]
+        except sqlite3.OperationalError:
+            conn.close()
+            return create_unified_response(
+                ok=True,
+                request_id=_get_request_id(request),
+                route_taken=route_context,
+                data={"providers": [], "total": 0},
+            )
+
+        cursor.execute("SELECT * FROM cli_providers LIMIT ?", (limit,))
+        rows = [dict(row) for row in cursor.fetchall()]
+        conn.close()
+
+        return create_unified_response(
+            ok=True,
+            request_id=_get_request_id(request),
+            route_taken=route_context,
+            data={"providers": rows, "total": total},
+        )
+
+    except Exception as e:
+        logger.exception(f"DB cli-providers error: {e}")
+        return create_unified_response(
+            ok=False,
+            request_id=_get_request_id(request),
+            route_taken=route_context,
+            errors=[str(e)],
+            data={},
+        )
+
+
+@router.get("/db/spawns")
+async def get_spawns(
+    request: Request,
+    limit: int = Query(100, ge=1, le=500),
+    offset: int = Query(0, ge=0),
+) -> Dict[str, Any]:
+    """
+    Get spawn records from BD (read-only, paginado).
+    """
+    route_context = await _get_request_context(request)
+    db_path = "/home/elkakas314/vx11/data/runtime/vx11.db"
+
+    try:
+        conn = sqlite3.connect(db_path)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+
+        try:
+            cursor.execute("SELECT COUNT(*) as cnt FROM spawns")
+            total = cursor.fetchone()["cnt"]
+        except sqlite3.OperationalError:
+            conn.close()
+            return create_unified_response(
+                ok=True,
+                request_id=_get_request_id(request),
+                route_taken=route_context,
+                data={"spawns": [], "total": 0, "offset": offset, "limit": limit},
+            )
+
+        cursor.execute(
+            "SELECT * FROM spawns ORDER BY id DESC LIMIT ? OFFSET ?",
+            (limit, offset),
+        )
+        rows = [dict(row) for row in cursor.fetchall()]
+        conn.close()
+
+        return create_unified_response(
+            ok=True,
+            request_id=_get_request_id(request),
+            route_taken=route_context,
+            data={
+                "spawns": rows,
+                "total": total,
+                "offset": offset,
+                "limit": limit,
+            },
+        )
+
+    except Exception as e:
+        logger.exception(f"DB spawns error: {e}")
+        return create_unified_response(
+            ok=False,
+            request_id=_get_request_id(request),
+            route_taken=route_context,
+            errors=[str(e)],
+            data={},
+        )

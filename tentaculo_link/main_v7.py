@@ -1734,6 +1734,62 @@ async def proxy_shub(
         )
 
 
+# ============================================================================
+# FASE 2: OPERATOR VISOR ENDPOINTS
+# ============================================================================
+
+
+@app.get("/operator/observe")
+async def operator_observe():
+    """
+    Aggregate status for Operator Visor (read-only, fast).
+
+    Returns: High-level status of key services.
+    Designed for Operator UI to display module health without detailed query.
+    """
+    import datetime
+
+    clients = get_clients()
+    health_results = await clients.health_check_all()
+
+    # Defensive: resolve coroutines
+    for name, val in list(health_results.items()):
+        try:
+            if asyncio.iscoroutine(val):
+                health_results[name] = await val
+        except Exception as _exc:
+            health_results[name] = {"status": "error", "error": str(_exc)}
+
+    # Prepare "observed" modules for UI
+    observed_services = {
+        "tentaculo_link": health_results.get("tentaculo_link", {}),
+        "madre": health_results.get("madre", {}),
+        "switch": health_results.get("switch", {}),
+        "spawner": health_results.get("spawner", {}),
+        "hormiguero": health_results.get("hormiguero", {}),
+    }
+
+    # Add latency and timestamp
+    for service_name, status_data in observed_services.items():
+        if isinstance(status_data, dict):
+            status_data.setdefault("latency_ms", 0)
+            status_data.setdefault("timestamp", datetime.datetime.utcnow().isoformat())
+
+    write_log("tentaculo_link", "operator_observe:aggregated")
+
+    return {
+        "ok": True,
+        "request_id": str(__import__("uuid").uuid4()),
+        "route_taken": "GET /operator/observe",
+        "degraded": False,
+        "data": {
+            "services": observed_services,
+            "timestamp": datetime.datetime.utcnow().isoformat(),
+        },
+        "errors": [],
+    }
+
+
 if __name__ == "__main__":
     import uvicorn
 
