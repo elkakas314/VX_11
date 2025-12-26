@@ -1,9 +1,17 @@
 {
-  "generated_ts": "20251226T122437Z",
-  "integrity": "5000",
-  "total_tables": 70,
-  "total_rows": 1174170,
-  "db_size_bytes": 619692032,
-  "backup_db_count": 2,
-  "backups_archived_count": 23
+  "generated_ts": "20251226T135043Z",
+  "db": {
+    "size_bytes": 619692032,
+    "total_rows": 0,
+    "quick_check": "ok",
+    "integrity_check": "ok",
+    "foreign_key_check": "violations: 1",
+    "total_tables": 70
+  },
+  "order_fs_pct": 57.8947,
+  "coherencia_routing_pct": null,
+  "automatizacion_pct": null,
+  "autonomia_pct": null,
+  "canonicalizacion_pct": 100.0,
+  "global_ponderado_pct": 78.9474
 }
