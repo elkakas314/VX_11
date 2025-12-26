@@ -6,8 +6,8 @@ import json
 import pytest
 import tempfile
 from unittest.mock import patch, MagicMock
-from hormiguero.hormiguero.core.queen import Queen
-from hormiguero.hormiguero.config import settings
+from hormiguero.core.queen import Queen
+from hormiguero.config import settings
 
 
 class TestManifestatorBuilderSpec:

@@ -1,0 +1,27 @@
+{
+    "include": [
+        "."
+    ],
+    "exclude": [
+        "**/node_modules",
+        "**/__pycache__",
+        ".venv",
+        "build",
+        "dist"
+    ],
+    "typeCheckingMode": "standard",
+    "pythonVersion": "3.10",
+    "pythonPlatform": "Linux",
+    "venvPath": ".venv",
+    "typeshedPath": "",
+    "reportMissingImports": false,
+    "reportMissingTypeStubs": false,
+    "reportOptionalMemberAccess": false,
+    "stubPath": ".",
+    "extraPaths": [
+        ".",
+        "hormiguero",
+        "mcp",
+        "spawner"
+    ]
+}

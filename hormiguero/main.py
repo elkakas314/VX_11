@@ -7,27 +7,28 @@ import asyncio
 import os
 import sys
 
-PACKAGE_ROOT = os.path.join(os.path.dirname(__file__), "hormiguero")
+# Asegurar que hormiguero está en PYTHONPATH
+ROOT_PATH = os.path.abspath(os.path.dirname(__file__))
+PACKAGE_ROOT = os.path.join(ROOT_PATH, "..")
 if PACKAGE_ROOT not in sys.path:
     sys.path.insert(0, PACKAGE_ROOT)
 
-from config import settings
-from core.db.sqlite import ensure_schema
-from core.db import repo
-from core.queen import Queen
-from core.actions import executor
+# Imports desde hormiguero.core (now resolvable)
+from hormiguero.config import settings
+from hormiguero.core.db.sqlite import ensure_schema
+from hormiguero.core.db import repo
+from hormiguero.core.queen import Queen
+from hormiguero.core.actions import executor
 
 # INEE imports (optional)
 try:
-    from inee.api import router as inee_router, init_inee_router
-    from inee.colonies import INEERegistry, INEERegistryDAO
-    from inee.db import INEEDBManager
+    from hormiguero.inee.api import router as inee_router, init_inee_router
+    from hormiguero.inee.colonies import INEERegistry, INEERegistryDAO
+    from hormiguero.inee.db import INEEDBManager
 
     INEE_AVAILABLE = True
 except ImportError:
     INEE_AVAILABLE = False
-
-ROOT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
 
 class ActionItem(BaseModel):

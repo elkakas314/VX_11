@@ -7,8 +7,8 @@ import json
 import pytest
 import tempfile
 from unittest.mock import patch, MagicMock
-from hormiguero.hormiguero.core.queen import Queen
-from hormiguero.hormiguero.config import settings
+from hormiguero.core.queen import Queen
+from hormiguero.config import settings
 
 
 class TestManifestatorIntegration:
@@ -24,7 +24,7 @@ class TestManifestatorIntegration:
         """fs_drift incident should trigger Manifestator patchplan call."""
 
         # Mock the HTTP call to Manifestator
-        with patch("hormiguero.hormiguero.core.queen.requests.post") as mock_post:
+        with patch("hormiguero.core.queen.requests.post") as mock_post:
             mock_post.return_value.status_code = 200
             mock_post.return_value.json.return_value = {
                 "plan_id": "test-plan-123",

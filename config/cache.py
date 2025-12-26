@@ -16,7 +16,10 @@ import logging
 import os
 from typing import Any, Optional
 
-import aioredis
+try:
+    import aioredis
+except ImportError:
+    aioredis = None  # type: ignore
 
 logger = logging.getLogger(__name__)
 
