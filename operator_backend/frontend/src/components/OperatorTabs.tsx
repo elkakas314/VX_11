@@ -151,8 +151,8 @@ const OverviewTab: React.FC<{
                             <div className="ot-card-title">{svc.module_name ?? 'Unknown'}</div>
                             <div
                                 className={`ot-card-status ${svc?.status === 'healthy'
-                                        ? 'ot-status-up'
-                                        : 'ot-status-down'
+                                    ? 'ot-status-up'
+                                    : 'ot-status-down'
                                     }`}
                             >
                                 {svc?.status === 'healthy' ? '✓' : '✗'}
