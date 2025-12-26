@@ -23,8 +23,8 @@ def create_unified_response(
     ok: bool,
     request_id: str,
     route_taken: str,
-    data: Dict[str, Any] = None,
-    errors: List[str] = None,
+    data: Optional[Dict[str, Any]] = None,
+    errors: Optional[List[str]] = None,
     degraded: bool = False,
 ) -> Dict[str, Any]:
     return {
