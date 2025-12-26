@@ -1,6 +1,6 @@
 # VX11 Database Map (generated)
 
-Generated at: 2025-12-25T03:55:35.043646Z
+Generated at: 2025-12-26T01:43:19.984940Z
 
 Database file: data/runtime/vx11.db
 
@@ -9,7 +9,7 @@ Database file: data/runtime/vx11.db
 ### audit_logs — ACTIVE
 
 - Module: madre
-- Rows: 1
+- Rows: 10
 - Columns:
   - id (INTEGER) PK NOT NULL
   - component (VARCHAR(64)) NOT NULL
@@ -144,7 +144,7 @@ Database file: data/runtime/vx11.db
 ### cli_usage_stats — ACTIVE
 
 - Module: hermes
-- Rows: 240
+- Rows: 186
 - Columns:
   - id (INTEGER) PK NOT NULL
   - provider_id (VARCHAR(128)) NOT NULL
@@ -183,6 +183,7 @@ Database file: data/runtime/vx11.db
   - git_commit (TEXT)
   - status (TEXT)
   - notes (TEXT)
+  - action_type (TEXT)
 
 ### copilot_repo_map — ACTIVE
 
@@ -538,7 +539,7 @@ Database file: data/runtime/vx11.db
 ### madre_actions — ACTIVE
 
 - Module: madre
-- Rows: 102
+- Rows: 113
 - Columns:
   - id (INTEGER) PK NOT NULL
   - module (VARCHAR(64)) NOT NULL
@@ -656,7 +657,7 @@ Database file: data/runtime/vx11.db
 ### operator_browser_task — ACTIVE
 
 - Module: operator
-- Rows: 61
+- Rows: 65
 - Columns:
   - id (INTEGER) PK NOT NULL
   - session_id (VARCHAR(64)) NOT NULL
@@ -687,7 +688,7 @@ Database file: data/runtime/vx11.db
 ### operator_message — ACTIVE
 
 - Module: operator
-- Rows: 156
+- Rows: 168
 - Columns:
   - id (INTEGER) PK NOT NULL
   - session_id (VARCHAR(64)) NOT NULL
@@ -701,7 +702,7 @@ Database file: data/runtime/vx11.db
 ### operator_session — ACTIVE
 
 - Module: operator
-- Rows: 213
+- Rows: 235
 - Columns:
   - id (INTEGER) PK NOT NULL
   - session_id (VARCHAR(64)) NOT NULL
@@ -713,7 +714,7 @@ Database file: data/runtime/vx11.db
 ### operator_switch_adjustment — ACTIVE
 
 - Module: operator
-- Rows: 61
+- Rows: 65
 - Columns:
   - id (INTEGER) PK NOT NULL
   - session_id (VARCHAR(64)) NOT NULL
@@ -731,7 +732,7 @@ Database file: data/runtime/vx11.db
 ### operator_tool_call — ACTIVE
 
 - Module: operator
-- Rows: 61
+- Rows: 65
 - Columns:
   - id (INTEGER) PK NOT NULL
   - message_id (INTEGER) NOT NULL
@@ -800,7 +801,7 @@ Database file: data/runtime/vx11.db
 
 ### rails_events — ACTIVE
 
-- Rows: 15
+- Rows: 27
 - Columns:
   - id (INTEGER) PK
   - who (TEXT) NOT NULL
@@ -868,7 +869,7 @@ Database file: data/runtime/vx11.db
 ### routing_events — ACTIVE
 
 - Module: switch
-- Rows: 45
+- Rows: 36
 - Columns:
   - id (INTEGER) PK NOT NULL
   - timestamp (DATETIME)
@@ -893,7 +894,7 @@ Database file: data/runtime/vx11.db
 ### scheduler_history — ACTIVE
 
 - Module: madre
-- Rows: 41052
+- Rows: 31288
 - Columns:
   - id (INTEGER) PK NOT NULL
   - timestamp (DATETIME)
@@ -1048,7 +1049,7 @@ Database file: data/runtime/vx11.db
 ### task_queue — ACTIVE
 
 - Module: madre
-- Rows: 119
+- Rows: 128
 - Columns:
   - id (INTEGER) PK NOT NULL
   - source (VARCHAR(64)) NOT NULL

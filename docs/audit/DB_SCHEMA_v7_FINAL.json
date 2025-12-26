@@ -1,5 +1,5 @@
 {
-  "generated_at": "2025-12-25T03:55:34.978978Z",
+  "generated_at": "2025-12-26T01:43:19.908146Z",
   "database": "data/runtime/vx11.db",
   "tables": [
     {
@@ -47,7 +47,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 1,
+      "rows": 10,
       "status": "ACTIVE",
       "module": "madre"
     },
@@ -801,7 +801,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 240,
+      "rows": 186,
       "status": "ACTIVE",
       "module": "hermes"
     },
@@ -946,6 +946,14 @@
           "type": "TEXT",
           "notnull": false,
           "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 9,
+          "name": "action_type",
+          "type": "TEXT",
+          "notnull": false,
+          "dflt_value": "'generic'",
           "pk": false
         }
       ],
@@ -3014,7 +3022,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 102,
+      "rows": 113,
       "status": "ACTIVE",
       "module": "madre"
     },
@@ -3689,7 +3697,7 @@
           "match": "NONE"
         }
       ],
-      "rows": 61,
+      "rows": 65,
       "status": "ACTIVE",
       "module": "operator"
     },
@@ -3830,7 +3838,7 @@
           "match": "NONE"
         }
       ],
-      "rows": 156,
+      "rows": 168,
       "status": "ACTIVE",
       "module": "operator"
     },
@@ -3887,7 +3895,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 213,
+      "rows": 235,
       "status": "ACTIVE",
       "module": "operator"
     },
@@ -3989,7 +3997,7 @@
           "match": "NONE"
         }
       ],
-      "rows": 61,
+      "rows": 65,
       "status": "ACTIVE",
       "module": "operator"
     },
@@ -4073,7 +4081,7 @@
           "match": "NONE"
         }
       ],
-      "rows": 61,
+      "rows": 65,
       "status": "ACTIVE",
       "module": "operator"
     },
@@ -4456,7 +4464,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 15,
+      "rows": 27,
       "status": "ACTIVE",
       "module": ""
     },
@@ -4814,7 +4822,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 45,
+      "rows": 36,
       "status": "ACTIVE",
       "module": "switch"
     },
@@ -4920,7 +4928,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 41052,
+      "rows": 31288,
       "status": "ACTIVE",
       "module": "madre"
     },
@@ -5777,7 +5785,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 119,
+      "rows": 128,
       "status": "ACTIVE",
       "module": "madre"
     },
