@@ -1,11 +1,17 @@
 {
-  "generated_ts": "20251226T135043Z",
+  "generated_ts": "20251226T135141Z",
+  "integrity": "5000",
+  "total_tables": 70,
+  "total_rows": 1172175,
+  "db_size_bytes": 619692032,
+  "backup_db_count": 2,
+  "backups_archived_count": 23,
   "db": {
     "size_bytes": 619692032,
-    "total_rows": 0,
+    "total_rows": 1172175,
     "quick_check": "ok",
     "integrity_check": "ok",
-    "foreign_key_check": "violations: 1",
+    "foreign_key_check": "ok",
     "total_tables": 70
   },
   "order_fs_pct": 57.8947,
