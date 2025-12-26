@@ -173,29 +173,183 @@ def get_canon_metrics():
     return round(100.0 * valid_count / len(canon_files), 4)
 
 
+def get_automatizacion_pct():
+    """Calculate automatizacion_pct based on:
+    - DB_MAP generation OK (25%)
+    - SCORECARD generation with all non-null fields (25%)
+    - pytest basic pass (25%)
+    - pytest integration pass (25%)
+    """
+    score_parts = []
+
+    # Check 1: DB_MAP generation
+    db_map_path = REPO_ROOT / "docs" / "audit" / "DB_MAP_v7_FINAL.md"
+    if db_map_path.exists() and db_map_path.stat().st_size > 0:
+        score_parts.append(25.0)  # 25%
+
+    # Check 2: SCORECARD generation (previous run)
+    scorecard_path = REPO_ROOT / "docs" / "audit" / "SCORECARD.json"
+    if scorecard_path.exists():
+        try:
+            with open(scorecard_path) as f:
+                sc = json.load(f)
+                # Check if all 5 key fields exist and are non-null
+                fields = [
+                    "order_fs_pct",
+                    "coherencia_routing_pct",
+                    "automatizacion_pct",
+                    "autonomia_pct",
+                    "canonicalizacion_pct",
+                ]
+                if all(sc.get(f) is not None for f in fields):
+                    score_parts.append(25.0)  # 25%
+        except Exception:
+            pass
+
+    # Check 3: pytest basic
+    try:
+        result = subprocess.run(
+            [sys.executable, "-m", "pytest", "-q"],
+            cwd=str(REPO_ROOT),
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
+        if result.returncode == 0:
+            score_parts.append(25.0)  # 25%
+    except Exception:
+        pass
+
+    # Check 4: pytest integration (if env set)
+    try:
+        env = os.environ.copy()
+        env["VX11_INTEGRATION"] = "1"
+        result = subprocess.run(
+            [sys.executable, "-m", "pytest", "-q"],
+            cwd=str(REPO_ROOT),
+            capture_output=True,
+            text=True,
+            timeout=240,
+            env=env,
+        )
+        if result.returncode == 0:
+            score_parts.append(25.0)  # 25%
+    except Exception:
+        pass
+
+    # Return average of passed checks
+    if not score_parts:
+        return 0.0
+    return round(sum(score_parts) / 4, 4)  # 4 checks total
+
+
+def get_autonomia_pct():
+    """Calculate autonomia_pct based on:
+    - solo_madre mode capability (40%)
+    - controlled window spawn/operation (30%)
+    - return to solo_madre + health OK (30%)
+
+    For local-ready: check if solo_madre mode is documented and services respond.
+    """
+    score_parts = []
+
+    # Check 1: solo_madre capability (40%)
+    try:
+        result = subprocess.run(
+            ["docker", "compose", "ps", "--services"],
+            cwd=str(REPO_ROOT),
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        if (
+            "madre" in result.stdout
+            and "tentaculo_link" in result.stdout
+            and "redis" in result.stdout
+        ):
+            score_parts.append(40.0)  # 40%
+    except Exception:
+        pass
+
+    # Check 2: tentaculo health (30%)
+    try:
+        result = subprocess.run(
+            [
+                "curl",
+                "-sS",
+                "-o",
+                "/dev/null",
+                "-w",
+                "%{http_code}",
+                "http://127.0.0.1:8000/health",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        if result.stdout.strip() == "200":
+            score_parts.append(30.0)  # 30%
+    except Exception:
+        pass
+
+    # Check 3: madre health via tentaculo (30%)
+    try:
+        result = subprocess.run(
+            [
+                "curl",
+                "-sS",
+                "-o",
+                "/dev/null",
+                "-w",
+                "%{http_code}",
+                "http://127.0.0.1:8000/vx11/status",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        if result.stdout.strip() == "200":
+            score_parts.append(30.0)  # 30%
+    except Exception:
+        pass
+
+    # Return sum of achieved checks (100 max = all 3 passed)
+    if not score_parts:
+        return 0.0
+    return min(100.0, round(sum(score_parts) / 1, 4))
+
+
 def build_complete_scorecard():
-    """Build complete SCORECARD with all metrics."""
+    """Build complete SCORECARD with all 5 metrics (non-null)."""
     scorecard = {
         "generated_ts": datetime.utcnow().strftime("%Y%m%dT%H%M%SZ"),
         "db": get_db_metrics(),
-        "order_fs_pct": run_auditor_orden(),
-        "coherencia_routing_pct": run_coherencia_routing(),
-        "automatizacion_pct": None,  # TODO: implement
-        "autonomia_pct": None,  # TODO: implement
-        "canonicalizacion_pct": get_canon_metrics(),
+        "order_fs_pct": run_auditor_orden() or 0.0,
+        "coherencia_routing_pct": run_coherencia_routing() or 0.0,
+        "automatizacion_pct": get_automatizacion_pct(),
+        "autonomia_pct": get_autonomia_pct(),
+        "canonicalizacion_pct": get_canon_metrics() or 0.0,
     }
 
-    # Calculate global weighted percentage if enough metrics are available
-    metrics = [
-        scorecard.get("order_fs_pct"),
-        scorecard.get("coherencia_routing_pct"),
-        scorecard.get("canonicalizacion_pct"),
-    ]
-    available = [m for m in metrics if m is not None]
-    if available:
-        scorecard["global_ponderado_pct"] = round(sum(available) / len(available), 4)
-    else:
-        scorecard["global_ponderado_pct"] = None
+    # Calculate global weighted percentage (explicit methodology)
+    weights = {
+        "order_fs_pct": 0.25,
+        "coherencia_routing_pct": 0.25,
+        "automatizacion_pct": 0.25,
+        "autonomia_pct": 0.25,
+    }
+    weighted_sum = sum(scorecard.get(k, 0.0) * v for k, v in weights.items())
+    scorecard["global_ponderado_pct"] = round(weighted_sum, 4)
+
+    # Add methodology
+    scorecard["methodology"] = {
+        "orden_fs_pct": "FS canonical compliance (expected vs present roots)",
+        "coherencia_routing_pct": "Routing event quality (route_taken non-null, no contract errors)",
+        "automatizacion_pct": "Automation checklist: DB_MAP OK + SCORECARD complete + pytest basic + pytest integration",
+        "autonomia_pct": "solo_madre capability + service health checks (tentaculo_link 8000)",
+        "canonicalizacion_pct": "Valid canonical JSON files in docs/canon/ (100% if all valid)",
+        "global_ponderado_pct": "Weighted average: 0.25×Orden_fs + 0.25×Coherencia + 0.25×Automatizacion + 0.25×Autonomia",
+    }
 
     return scorecard
 

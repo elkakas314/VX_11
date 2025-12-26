@@ -40,17 +40,20 @@ export default function App() {
   };
 
   const pollHealth = async () => {
-    // Check Madre health (8001)
+    // Check health via tentaculo_link (single entrypoint 8000)
+    // Proxied endpoints: madre, backend health accessible through 8000 only
     try {
-      const r = await fetch("http://localhost:8001/health", { method: "GET" });
+      const r = await fetch("http://localhost:8000/health", { method: "GET" });
       if (r.ok) setMadreHealth({ status: "ok", healthy: true });
+      else setMadreHealth({ status: "error", healthy: false });
     } catch {
       setMadreHealth({ status: "offline", healthy: false });
     }
-    // Check Backend health (8011)
+    // Backend health also goes through tentaculo (8000)
     try {
-      const r = await fetch("http://localhost:8011/health", { method: "GET" });
+      const r = await fetch("http://localhost:8000/operator/observe", { method: "GET" });
       if (r.ok) setBackendHealth({ status: "ok", healthy: true });
+      else setBackendHealth({ status: "error", healthy: false });
     } catch {
       setBackendHealth({ status: "offline", healthy: false });
     }
@@ -179,11 +182,11 @@ export default function App() {
           <div className="p-4 border-b border-slate-700">
             <h2 className="text-lg font-bold mb-3 text-amber-400">System Health</h2>
 
-            {/* Madre Status */}
+            {/* Madre Status (via tentaculo_link:8000) */}
             <div className="mb-4 p-3 bg-slate-700 rounded">
               <div className="flex items-center gap-2 mb-1">
                 <span className={`inline-block w-3 h-3 rounded-full ${madreHealth?.healthy ? "bg-green-500" : "bg-red-500"}`}></span>
-                <span className="font-bold text-sm">Madre (8001)</span>
+                <span className="font-bold text-sm">Core (via 8000)</span>
               </div>
               <div className="text-xs text-slate-400">
                 {madreHealth?.status === "ok" ? "✓ Running" : "✗ Offline"}
@@ -194,7 +197,7 @@ export default function App() {
             <div className="p-3 bg-slate-700 rounded">
               <div className="flex items-center gap-2 mb-1">
                 <span className={`inline-block w-3 h-3 rounded-full ${backendHealth?.healthy ? "bg-green-500" : "bg-red-500"}`}></span>
-                <span className="font-bold text-sm">Operator (8011)</span>
+                <span className="font-bold text-sm">Operator (via 8000)</span>
               </div>
               <div className="text-xs text-slate-400">
                 {backendHealth?.status === "ok" ? "✓ Running" : "✗ Offline"}
