@@ -5,11 +5,11 @@ import json
 import time
 from unittest.mock import patch, MagicMock
 
-# Mock imports
-from tests.conftest import client, db_session, auth_token
-
+# conftest provides pytest fixtures: client, auth_token, db_session
 
 @pytest.mark.asyncio
+@pytest.mark.timeout(10)
+@pytest.mark.sse_stream
 async def test_events_endpoint_returns_sse_stream(client, auth_token):
     """Test that /api/events returns a valid SSE stream"""
     headers = {"Authorization": f"Bearer {auth_token}"}
@@ -22,23 +22,24 @@ async def test_events_endpoint_returns_sse_stream(client, auth_token):
 
 
 @pytest.mark.asyncio
+@pytest.mark.timeout(10)
+@pytest.mark.sse_stream
 async def test_events_stream_includes_request_id(client, auth_token, db_session):
     """Test that stream events include request_id for tracking"""
     headers = {"Authorization": f"Bearer {auth_token}"}
 
-    with client.stream("GET", "/api/events", headers=headers) as response:
-        assert response.status_code == 200
-
-        # Read first few lines from stream
-        lines = []
-        for i, line in enumerate(response.iter_lines()):
-            if i >= 5:  # Read 5 events/heartbeats
-                break
-            if line.startswith(b"data: "):
-                try:
-                    event_data = json.loads(line[6:].decode())
-                    lines.append(event_data)
-                except:
+    # Consume max 5 events to prevent infinite loop
+    from conftest import consume_sse_events
+    
+    response = client.get("/api/events", headers=headers)
+    assert response.status_code == 200
+    
+    events = consume_sse_events(response, max_events=5)
+    
+    # Check that at least one event has request_id
+    assert any(
+        "request_id" in event for event in events
+    ), "No request_id found in stream events"
                     pass
 
         # Check that at least one event has request_id

@@ -9,22 +9,21 @@ from sqlalchemy.orm import Session
 
 
 @pytest.mark.e2e
+@pytest.mark.operative_only
 class TestOperatorE2EHardening:
     """End-to-end tests for operator hardening (FASE C)"""
 
     @pytest.fixture
-    def api_client(self):
-        """Fixture for API client"""
-        from operator_backend.backend.main import app
-
-        return TestClient(app)
+    def api_client(self, client):
+        """Fixture for API client (using conftest fixture)"""
+        return client
 
     @pytest.fixture
-    def auth_headers(self, api_client):
-        """Get auth headers for E2E tests"""
-        # Mock JWT token for testing
-        return {"Authorization": "Bearer test-jwt-token"}
+    def auth_headers(self, auth_headers):
+        """Get auth headers for E2E tests (using conftest fixture)"""
+        return auth_headers
 
+    @pytest.mark.timeout(10)
     def test_e2e_unified_response_schema(self, api_client, auth_headers):
         """Test that /api/chat returns unified response schema"""
         response = api_client.post(
