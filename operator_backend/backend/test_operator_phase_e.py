@@ -6,6 +6,7 @@ import pytest
 import json
 
 
+@pytest.mark.integration
 @pytest.mark.timeout(5)
 class TestRateLimiting:
     """Tests para rate limiting middleware."""
@@ -37,6 +38,7 @@ class TestRateLimiting:
         assert has_header or has_body_id
 
 
+@pytest.mark.integration
 @pytest.mark.timeout(5)
 class TestCSRFProtection:
     """Tests para CSRF token protection."""
@@ -54,6 +56,7 @@ class TestCSRFProtection:
         assert response.status_code == 200
 
 
+@pytest.mark.integration
 @pytest.mark.timeout(5)
 class TestStructuredLogs:
     """Tests para structured JSON logging."""
@@ -62,7 +65,9 @@ class TestStructuredLogs:
         """Verificar que response contiene headers de logging (o datos en body)."""
         response = client.get("/api/status/modules")
         # Headers o data en body
-        has_headers = "x-request-id" in response.headers or "x-elapsed-ms" in response.headers
+        has_headers = (
+            "x-request-id" in response.headers or "x-elapsed-ms" in response.headers
+        )
         has_data = False
         if response.status_code == 200:
             data = response.json()
@@ -82,6 +87,7 @@ class TestStructuredLogs:
             assert req_id1 != req_id2
 
 
+@pytest.mark.integration
 @pytest.mark.timeout(5)
 class TestSecurityHeaders:
     """Tests para security headers en respuestas."""

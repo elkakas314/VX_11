@@ -11,6 +11,28 @@ import pytest
 from typing import Generator, AsyncGenerator
 from unittest.mock import MagicMock, AsyncMock
 
+# ============================================================================
+# INTEGRATION TEST GATING (from /tests/conftest.py pattern)
+# ============================================================================
+INTEGRATION_ENABLED = os.getenv("VX11_INTEGRATION", "") == "1"
+
+
+def pytest_collection_modifyitems(config, items):
+    """Skip tests marked as 'integration' unless VX11_INTEGRATION=1."""
+    if INTEGRATION_ENABLED:
+        return
+    skip = pytest.mark.skip(
+        reason="Integration tests skipped by default. Set VX11_INTEGRATION=1 to run."
+    )
+    for item in list(items):
+        if "integration" in item.keywords:
+            item.add_marker(skip)
+
+
+# ============================================================================
+# FIXTURES: App Setup & TestClient
+# ============================================================================
+
 # Asegurar que el rootdir de VX11 está en PYTHONPATH
 vx11_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
 if vx11_root not in sys.path:
