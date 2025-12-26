@@ -1,0 +1,52 @@
+/* OperatorTabs.css - styling for tab component */
+
+.ot-heading {
+    margin-top: 0;
+    margin-bottom: 16px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #e0e0e0;
+}
+
+.ot-heading--small {
+    font-size: 14px;
+}
+
+.ot-td {
+    padding: 8px;
+    border-bottom: 1px solid #222;
+    color: #e0e0e0;
+}
+
+/* Provider/Model metadata display */
+.ot-provider-badge {
+    display: inline-block;
+    background-color: #1a1a1a;
+    border: 1px solid #4ade80;
+    color: #4ade80;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: bold;
+}
+
+.ot-model-badge {
+    display: inline-block;
+    background-color: #1a1a1a;
+    border: 1px solid #60a5fa;
+    color: #60a5fa;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: bold;
+    margin-left: 4px;
+}
+
+.ot-trace-info {
+    font-size: 11px;
+    color: #888;
+    margin-top: 8px;
+    padding: 8px;
+    background-color: #0a0a0a;
+    border-left: 2px solid #333;
+}

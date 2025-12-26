@@ -3,98 +3,12 @@ import './OperatorTabs.css';
 
 type Tab = 'overview' | 'chat' | 'events' | 'routing';
 
-const styles: { [key: string]: React.CSSProperties } = {
-    tabContainer: {
-        display: 'flex',
-        flexDirection: 'column',
-        height: '100%',
-    } as React.CSSProperties,
-    tabButtons: {
-        display: 'flex',
-        gap: '8px',
-        padding: '12px',
-        backgroundColor: '#0a0a0a',
-        borderBottom: '1px solid #333',
-    } as React.CSSProperties,
-    tabBtn: {
-        padding: '8px 16px',
-        backgroundColor: '#1a1a1a',
-        border: '1px solid #444',
-        color: '#e0e0e0',
-        cursor: 'pointer',
-        borderRadius: '4px',
-        fontSize: '13px',
-        transition: 'all 0.2s',
-    } as React.CSSProperties,
-    tabBtnActive: {
-        backgroundColor: '#4ade80',
-        color: '#000',
-        borderColor: '#4ade80',
-    } as React.CSSProperties,
-    tabContent: {
-        flex: 1,
-        overflow: 'auto',
-        padding: '16px',
-    } as React.CSSProperties,
-    table: {
-        width: '100%',
-        borderCollapse: 'collapse',
-        fontSize: '12px',
-        color: '#e0e0e0',
-    } as React.CSSProperties,
-    th: {
-        textAlign: 'left',
-        padding: '8px',
-        borderBottom: '1px solid #444',
-        backgroundColor: '#1a1a1a',
-        fontWeight: 'bold',
-    } as React.CSSProperties,
-    td: {
-        padding: '8px',
-        borderBottom: '1px solid #222',
-    } as React.CSSProperties,
-    statusUp: {
-        color: '#4ade80',
-    } as React.CSSProperties,
-    statusDown: {
-        color: '#ef4444',
-    } as React.CSSProperties,
-    gridOverview: {
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-        gap: '12px',
-    } as React.CSSProperties,
-    card: {
-        backgroundColor: '#1a1a1a',
-        border: '1px solid #333',
-        padding: '12px',
-        borderRadius: '4px',
-        minHeight: '100px',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'space-between',
-    } as React.CSSProperties,
-    cardTitle: {
-        fontSize: '14px',
-        fontWeight: 'bold',
-        marginBottom: '8px',
-    } as React.CSSProperties,
-    cardStatus: {
-        fontSize: '24px',
-        fontWeight: 'bold',
-        marginBottom: '4px',
-    } as React.CSSProperties,
-    cardMeta: {
-        fontSize: '11px',
-        color: '#888',
-    } as React.CSSProperties,
-};
-
 export const OperatorTabs: React.FC<{ selectedModule?: string }> = ({
     selectedModule,
 }) => {
     const [activeTab, setActiveTab] = useState<Tab>('overview');
     const [observeData, setObserveData] = useState<any>(null);
+    const [observeFullResponse, setObserveFullResponse] = useState<any>(null);
     const [routingData, setRoutingData] = useState<any[]>([]);
     const [providersData, setProvidersData] = useState<any[]>([]);
     const [spawnsData, setSpawnsData] = useState<any[]>([]);
@@ -106,6 +20,7 @@ export const OperatorTabs: React.FC<{ selectedModule?: string }> = ({
                 const resp = await fetch('/operator/observe');
                 const data = await resp.json();
                 setObserveData(data?.data?.services);
+                setObserveFullResponse(data); // Store full response for provider/model tracing
             } catch (e) {
                 console.error('Error fetching /operator/observe:', e);
             }
@@ -164,19 +79,16 @@ export const OperatorTabs: React.FC<{ selectedModule?: string }> = ({
         <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            style={{
-                ...styles.tabBtn,
-                ...(activeTab === tab ? styles.tabBtnActive : {}),
-            }}
+            className={`ot-tab-btn ${activeTab === tab ? 'ot-tab-btn--active' : ''}`}
         >
             {label}
         </button>
     );
 
     return (
-        <div style={styles.tabContainer}>
+        <div className="ot-tab-container">
             {/* Tab Buttons */}
-            <div style={styles.tabButtons}>
+            <div className="ot-tab-buttons">
                 {renderTabButton('overview', 'Overview')}
                 {renderTabButton('chat', 'Chat')}
                 {renderTabButton('events', 'Events')}
@@ -184,9 +96,9 @@ export const OperatorTabs: React.FC<{ selectedModule?: string }> = ({
             </div>
 
             {/* Tab Content */}
-            <div style={styles.tabContent}>
+            <div className="ot-tab-content">
                 {activeTab === 'overview' && (
-                    <OverviewTab observeData={observeData} />
+                    <OverviewTab observeData={observeData} observeFullResponse={observeFullResponse} />
                 )}
                 {activeTab === 'chat' && <ChatTab selectedModule={selectedModule} />}
                 {activeTab === 'events' && <EventsTab />}
@@ -205,9 +117,12 @@ export const OperatorTabs: React.FC<{ selectedModule?: string }> = ({
 // ============================================================================
 // TAB: OVERVIEW
 // ============================================================================
-const OverviewTab: React.FC<{ observeData?: any }> = ({ observeData }) => {
+const OverviewTab: React.FC<{ observeData?: any; observeFullResponse?: any }> = ({ 
+    observeData,
+    observeFullResponse, 
+}) => {
     if (!observeData) {
-        return <div style={{ color: '#888' }}>Loading overview...</div>;
+        return <div className="ot-loading">Loading overview...</div>;
     }
 
     return (
@@ -215,20 +130,31 @@ const OverviewTab: React.FC<{ observeData?: any }> = ({ observeData }) => {
             <h2 className="ot-heading">
                 Module Status
             </h2>
-            <div style={styles.gridOverview}>
+            
+            {/* DeepSeek R1 Tracing Info */}
+            {observeFullResponse?.provider_used && (
+                <div className="ot-trace-info">
+                    <strong>Tracing:</strong>
+                    <br />
+                    <span className="ot-provider-badge">{observeFullResponse.provider_used}</span>
+                    {observeFullResponse.model_used && (
+                        <span className="ot-model-badge">{observeFullResponse.model_used}</span>
+                    )}
+                    <br />
+                    <small>Request ID: {observeFullResponse.request_id?.substring(0, 8)}</small>
+                </div>
+            )}
+            
+            <div className="ot-grid-overview">
                 {Object.entries(observeData).map(([name, status]: any) => (
-                    <div key={name} style={styles.card}>
-                        <div style={styles.cardTitle}>{name}</div>
+                    <div key={name} className="ot-card">
+                        <div className="ot-card-title">{name}</div>
                         <div
-                            style={{
-                                ...styles.cardStatus,
-                                color:
-                                    status?.status === 'ok' ? '#4ade80' : '#ef4444',
-                            }}
+                            className={`ot-card-status ${status?.status === 'ok' ? 'ot-status-up' : 'ot-status-down'}`}
                         >
                             {status?.status === 'ok' ? '✓' : '✗'}
                         </div>
-                        <div style={styles.cardMeta}>
+                        <div className="ot-card-meta">
                             {status?.status || 'unknown'}
                             {status?.latency_ms && ` | ${status.latency_ms}ms`}
                         </div>
@@ -250,11 +176,11 @@ const ChatTab: React.FC<{ selectedModule?: string }> = ({
             <h2 className="ot-heading">
                 Chat Console
             </h2>
-            <p style={{ color: '#888' }}>
+            <p className="ot-muted">
                 Chat interface goes here.
                 {selectedModule && ` (Module: ${selectedModule})`}
             </p>
-            <p style={{ fontSize: '12px', color: '#666' }}>
+            <p className="ot-small">
                 [Placeholder para TAB Chat - integrar ChatPanel aquí]
             </p>
         </div>
@@ -270,10 +196,10 @@ const EventsTab: React.FC = () => {
             <h2 className="ot-heading">
                 Events Stream
             </h2>
-            <p style={{ color: '#888' }}>
+            <p className="ot-muted">
                 Real-time events from /api/events (SSE).
             </p>
-            <p style={{ fontSize: '12px', color: '#666' }}>
+            <p className="ot-small">
                 [Placeholder para TAB Events - integrar SSE + filtros]
             </p>
         </div>
@@ -299,15 +225,12 @@ const RoutingDbTab: React.FC<{
             </h2>
 
             {/* Subtab selector */}
-            <div style={{ marginBottom: '12px', display: 'flex', gap: '8px' }}>
+            <div className="ot-subtab-selector">
                 {(['routing', 'providers', 'spawns'] as const).map((st) => (
                     <button
                         key={st}
                         onClick={() => setSubtab(st)}
-                        style={{
-                            ...styles.tabBtn,
-                            ...(subtab === st ? styles.tabBtnActive : {}),
-                        }}
+                        className={`ot-tab-btn ${subtab === st ? 'ot-tab-btn--active' : ''}`}
                     >
                         {st.charAt(0).toUpperCase() + st.slice(1)}
                     </button>
@@ -316,12 +239,12 @@ const RoutingDbTab: React.FC<{
 
             {/* Tables */}
             {subtab === 'routing' && (
-                <table style={styles.table}>
+                <table className="ot-table">
                     <thead>
                         <tr>
-                            <th style={styles.th}>ID</th>
-                            <th style={styles.th}>Route</th>
-                            <th style={styles.th}>Status</th>
+                            <th className="ot-th">ID</th>
+                            <th className="ot-th">Route</th>
+                            <th className="ot-th">Status</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -337,12 +260,12 @@ const RoutingDbTab: React.FC<{
             )}
 
             {subtab === 'providers' && (
-                <table style={styles.table}>
+                <table className="ot-table">
                     <thead>
                         <tr>
-                            <th style={styles.th}>ID</th>
-                            <th style={styles.th}>Provider</th>
-                            <th style={styles.th}>Model</th>
+                            <th className="ot-th">ID</th>
+                            <th className="ot-th">Provider</th>
+                            <th className="ot-th">Model</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -358,12 +281,12 @@ const RoutingDbTab: React.FC<{
             )}
 
             {subtab === 'spawns' && (
-                <table style={styles.table}>
+                <table className="ot-table">
                     <thead>
                         <tr>
-                            <th style={styles.th}>ID</th>
-                            <th style={styles.th}>Spawn</th>
-                            <th style={styles.th}>Type</th>
+                            <th className="ot-th">ID</th>
+                            <th className="ot-th">Spawn</th>
+                            <th className="ot-th">Type</th>
                         </tr>
                     </thead>
                     <tbody>

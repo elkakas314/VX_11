@@ -1792,6 +1792,7 @@ async def operator_observe():
     # Add DeepSeek R1 tracing if available
     try:
         import os
+
         provider = os.getenv("DEEPSEEK_PROVIDER", "deepseek_chat")
         model = os.getenv("DEEPSEEK_MODEL", "deepseek-reasoner")
         response["provider_used"] = provider
