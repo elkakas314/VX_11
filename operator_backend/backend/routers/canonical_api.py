@@ -33,6 +33,7 @@ from sqlalchemy.orm import Session
 from config.settings import settings
 from config.tokens import get_token, load_tokens
 from config.rate_limit import get_rate_limiter
+from config.forensics import write_log
 from config.db_schema import (
     get_session,
     OperatorSession,
@@ -666,7 +667,6 @@ async def post_chat(
       - 500: internal error (returns unified error envelope)
     """
     import uuid as uuid_lib
-    from config.forensics import write_log
 
     request_id = ctx.get("request_id", str(uuid_lib.uuid4())[:12])
     route_taken = "operator_backend"  # default
@@ -1471,4 +1471,339 @@ async def get_scorecard(
         return JSONResponse(
             status_code=500,
             content={"ok": False, "detail": "Error reading SCORECARD"},
+        )
+
+
+# ============ NEW ENDPOINTS (FASE 2 - SPEC ALIGN) ============
+
+
+@router.get("/api/topology")
+async def get_topology(
+    _: Dict = Depends(policy_check),
+    ctx: Dict = Depends(request_context),
+):
+    """
+    Get VX11 system topology (canonical endpoint).
+
+    Returns structured nodes, edges, and architecture metadata.
+    This is the canonical topology endpoint; /api/map is an alias for backward compatibility.
+
+    Returns: {ok, data: {nodes, edges, metadata}, timestamp}
+    """
+    import json as json_lib
+    from pathlib import Path
+
+    try:
+        # Try to read from canonical topology file if it exists
+        topology_path = Path(
+            os.getenv("VX11_TOPOLOGY_PATH", "docs/canon/topology_snapshot.json")
+        )
+
+        if topology_path.exists():
+            with open(topology_path, "r") as f:
+                data = json_lib.load(f)
+            write_log(
+                "operator_backend",
+                f"topology:retrieved_from_file:{ctx.get('request_id', 'unknown')}",
+            )
+            return {
+                "ok": True,
+                "data": data,
+                "timestamp": datetime.utcnow().isoformat() + "Z",
+            }
+
+        # Fallback: return minimal canonical topology (from settings if available)
+        fallback_topology = {
+            "nodes": [
+                {"id": "madre", "label": "Madre", "status": "healthy", "port": 8001},
+                {
+                    "id": "tentaculo_link",
+                    "label": "Tentáculo Link",
+                    "status": "healthy",
+                    "port": 8000,
+                },
+                {"id": "redis", "label": "Redis", "status": "healthy", "port": 6379},
+            ],
+            "edges": [
+                {"from": "tentaculo_link", "to": "madre", "label": "proxy"},
+                {"from": "redis", "to": "madre", "label": "cache"},
+            ],
+            "metadata": {
+                "policy": "SOLO_MADRE",
+                "entrypoint": "tentaculo_link:8000",
+                "timestamp": datetime.utcnow().isoformat() + "Z",
+            },
+        }
+
+        write_log(
+            "operator_backend",
+            f"topology:retrieved_fallback:{ctx.get('request_id', 'unknown')}",
+        )
+        return {
+            "ok": True,
+            "data": fallback_topology,
+            "timestamp": datetime.utcnow().isoformat() + "Z",
+        }
+
+    except Exception as exc:
+        write_log("operator_backend", f"topology:error:{exc}", level="ERROR")
+        return JSONResponse(
+            status_code=500,
+            content={"ok": False, "detail": "Error reading topology"},
+        )
+
+
+@router.get("/api/audit/runs")
+async def list_audit_runs(
+    _: Dict = Depends(auth_check),
+    ctx: Dict = Depends(request_context),
+    limit: int = 10,
+    offset: int = 0,
+):
+    """
+    List recent audit run outdirs from docs/audit/vx11_*.
+
+    Returns: {ok, data: [{run_id, timestamp, reason, status}], total}
+    """
+    from pathlib import Path
+    import json as json_lib
+    from datetime import datetime
+
+    try:
+        audit_base = Path("docs/audit")
+        if not audit_base.exists():
+            return JSONResponse(
+                status_code=404, content={"ok": False, "detail": "No audit directory"}
+            )
+
+        # Find all vx11_* directories
+        runs = []
+        for run_dir in sorted(audit_base.glob("vx11_*"), reverse=True):
+            if not run_dir.is_dir():
+                continue
+
+            # Extract timestamp from dirname (e.g., vx11_prompt8_operatorjson_align_1766836243 -> 1766836243)
+            parts = run_dir.name.split("_")
+            ts = parts[-1] if parts else "unknown"
+
+            # Try to read summary metadata
+            summary_file = run_dir / "PHASE1_AUDIT_FINDINGS.md"
+            reason = "audit run"
+            status_val = "completed"
+
+            if not summary_file.exists():
+                summary_file = run_dir / "COMPLETION_REPORT.md"
+            if not summary_file.exists():
+                summary_file = run_dir / "FINAL_STATUS.md"
+
+            runs.append(
+                {
+                    "run_id": run_dir.name,
+                    "timestamp": ts,
+                    "reason": reason,
+                    "status": status_val,
+                    "path": str(run_dir),
+                }
+            )
+
+        # Apply pagination
+        total = len(runs)
+        paginated = runs[offset : offset + limit]
+
+        write_log("operator_backend", f"audit_runs:listed:{len(paginated)} of {total}")
+        return {
+            "ok": True,
+            "data": paginated,
+            "total": total,
+            "offset": offset,
+            "limit": limit,
+            "timestamp": datetime.utcnow().isoformat() + "Z",
+        }
+
+    except Exception as exc:
+        write_log("operator_backend", f"audit_runs:error:{exc}", level="ERROR")
+        return JSONResponse(
+            status_code=500,
+            content={"ok": False, "detail": f"Error listing audit runs: {str(exc)}"},
+        )
+
+
+@router.get("/api/audit/runs/{run_id}")
+async def get_audit_run_detail(
+    run_id: str,
+    _: Dict = Depends(auth_check),
+    ctx: Dict = Depends(request_context),
+):
+    """
+    Read metadata and key files from a specific audit run outdir.
+
+    Returns: {ok, data: {files, metadata}, timestamp}
+    Whitelist: PHASE1_AUDIT_FINDINGS.md, COMPLETION_REPORT.md, FINAL_STATUS.md, git_log.txt, etc.
+    """
+    from pathlib import Path
+    import json as json_lib
+
+    try:
+        # Validate run_id to prevent path traversal
+        if ".." in run_id or "/" in run_id:
+            return JSONResponse(
+                status_code=400, content={"ok": False, "detail": "Invalid run_id"}
+            )
+
+        run_path = Path("docs/audit") / run_id
+        if not run_path.exists() or not run_path.is_dir():
+            return JSONResponse(
+                status_code=404,
+                content={"ok": False, "detail": f"Run {run_id} not found"},
+            )
+
+        # Whitelist of allowed files to read
+        whitelist = {
+            "PHASE1_AUDIT_FINDINGS.md",
+            "COMPLETION_REPORT.md",
+            "FINAL_STATUS.md",
+            "git_log.txt",
+            "docker_ps_solo_madre.txt",
+            "npm_build_*.txt",
+            "tests_p0_final.txt",
+            "BACKEND_CONSOLIDATION.md",
+            "FRONTEND_BUILD_FIX.md",
+        }
+
+        files_content = {}
+        for fname in run_path.glob("*"):
+            if fname.is_file() and (
+                fname.name in whitelist or fname.name.startswith("npm_build_")
+            ):
+                try:
+                    with open(fname, "r") as f:
+                        content = f.read(5000)  # Limit to 5KB per file
+                    files_content[fname.name] = content[
+                        :1000
+                    ]  # Truncate to 1KB in response
+                except Exception:
+                    pass
+
+        write_log("operator_backend", f"audit_run_detail:retrieved:{run_id}")
+        return {
+            "ok": True,
+            "data": {
+                "run_id": run_id,
+                "files": list(files_content.keys()),
+                "file_previews": files_content,
+            },
+            "timestamp": datetime.utcnow().isoformat() + "Z",
+        }
+
+    except Exception as exc:
+        write_log("operator_backend", f"audit_run_detail:error:{exc}", level="ERROR")
+        return JSONResponse(
+            status_code=500,
+            content={"ok": False, "detail": f"Error reading audit run: {str(exc)}"},
+        )
+
+
+@router.get("/api/settings")
+async def get_settings(
+    _: Dict = Depends(auth_check),
+    ctx: Dict = Depends(request_context),
+):
+    """
+    Read operator UI settings (theme, polling, filters, etc.).
+
+    Returns: {ok, data: {theme, poll_interval, redaction_level, default_tab}, timestamp}
+    """
+    try:
+        # Read from environment or config file
+        settings_data = {
+            "theme": os.getenv("VX11_OPERATOR_THEME", "dark"),
+            "poll_interval": int(os.getenv("VX11_OPERATOR_POLL_INTERVAL", "5")),
+            "redaction_level": os.getenv("VX11_OPERATOR_REDACTION", "medium"),
+            "default_tab": os.getenv("VX11_OPERATOR_DEFAULT_TAB", "overview"),
+            "telemetry_enabled": os.getenv("VX11_OPERATOR_TELEMETRY", "true").lower()
+            == "true",
+        }
+
+        write_log(
+            "operator_backend", f"settings:retrieved:{ctx.get('request_id', 'unknown')}"
+        )
+        return {
+            "ok": True,
+            "data": settings_data,
+            "timestamp": datetime.utcnow().isoformat() + "Z",
+        }
+
+    except Exception as exc:
+        write_log("operator_backend", f"settings:error:{exc}", level="ERROR")
+        return JSONResponse(
+            status_code=500,
+            content={"ok": False, "detail": "Error reading settings"},
+        )
+
+
+@router.post("/api/settings")
+async def update_settings(
+    settings_update: Dict[str, Any],
+    _: Dict = Depends(auth_check),
+    ctx: Dict = Depends(request_context),
+):
+    """
+    Update operator UI settings (restricted schema).
+
+    Allowed fields:
+    - theme: "dark" | "light"
+    - poll_interval: 1-60 seconds
+    - redaction_level: "low" | "medium" | "high"
+    - default_tab: "overview" | "topology" | "metrics" | "audit" | "settings"
+
+    Returns: {ok, data: {updated_settings}, timestamp}
+    """
+    try:
+        # Validate inputs (restricted schema)
+        validated = {}
+
+        if "theme" in settings_update:
+            if settings_update["theme"] in ["dark", "light"]:
+                validated["theme"] = settings_update["theme"]
+
+        if "poll_interval" in settings_update:
+            try:
+                interval = int(settings_update["poll_interval"])
+                if 1 <= interval <= 60:
+                    validated["poll_interval"] = interval
+            except (ValueError, TypeError):
+                pass
+
+        if "redaction_level" in settings_update:
+            if settings_update["redaction_level"] in ["low", "medium", "high"]:
+                validated["redaction_level"] = settings_update["redaction_level"]
+
+        if "default_tab" in settings_update:
+            if settings_update["default_tab"] in [
+                "overview",
+                "topology",
+                "metrics",
+                "audit",
+                "settings",
+            ]:
+                validated["default_tab"] = settings_update["default_tab"]
+
+        # For now, settings are ephemeral (not persisted to disk)
+        # In production, these would be stored in database or config file
+
+        write_log("operator_backend", f"settings:updated:{len(validated)} fields")
+        return {
+            "ok": True,
+            "data": {
+                "updated": validated,
+                "note": "Settings updated for this session (ephemeral)",
+            },
+            "timestamp": datetime.utcnow().isoformat() + "Z",
+        }
+
+    except Exception as exc:
+        write_log("operator_backend", f"settings:error:{exc}", level="ERROR")
+        return JSONResponse(
+            status_code=500,
+            content={"ok": False, "detail": "Error updating settings"},
         )

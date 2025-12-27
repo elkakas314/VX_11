@@ -8,6 +8,11 @@ import { ModulesTab } from "./components/ModulesTab";
 import { JobsTab } from "./components/JobsTab";
 import { EventsTab } from "./components/EventsTab";
 import { AuditTab } from "./components/AuditTab";
+import { OverviewTab } from "./components/OverviewTab";
+import { TopologyTab } from "./components/TopologyTab";
+import { MetricsTab } from "./components/MetricsTab";
+import { AuditRunsTab } from "./components/AuditRunsTab";
+import { SettingsTab } from "./components/SettingsTab";
 import { TabName } from "./types/canonical";
 
 export default function App() {
@@ -60,21 +65,12 @@ export default function App() {
     }
   };
 
-  const handleLogout = () => {
-    clearAuth();
-    setIsLoggedIn(false);
-    setUsername(null);
-    setActiveTab("dashboard");
-  };
-
   const tabs: { id: TabName; label: string; icon: string }[] = [
-    { id: "dashboard", label: "Dashboard", icon: "📊" },
-    { id: "chat", label: "Chat", icon: "💬" },
-    { id: "map", label: "Map", icon: "🗺️" },
-    { id: "modules", label: "Modules", icon: "🧩" },
-    { id: "jobs", label: "Jobs", icon: "⚙️" },
-    { id: "events", label: "Events", icon: "📢" },
+    { id: "overview", label: "Overview", icon: "📊" },
+    { id: "topology", label: "Topology", icon: "🗺️" },
+    { id: "metrics", label: "Metrics", icon: "📈" },
     { id: "audit", label: "Audit", icon: "📋" },
+    { id: "settings", label: "Settings", icon: "⚙️" },
   ];
 
   // Show login if not authenticated
@@ -166,13 +162,11 @@ export default function App() {
           {/* Tab Content */}
           <div className="flex-1 overflow-auto p-6">
             <div className="max-w-full">
-              {activeTab === "dashboard" && <DashboardTab />}
-              {activeTab === "chat" && <ChatTab />}
-              {activeTab === "map" && <MapTab />}
-              {activeTab === "modules" && <ModulesTab />}
-              {activeTab === "jobs" && <JobsTab />}
-              {activeTab === "events" && <EventsTab />}
-              {activeTab === "audit" && <AuditTab />}
+              {activeTab === "overview" && <OverviewTab />}
+              {activeTab === "topology" && <TopologyTab />}
+              {activeTab === "metrics" && <MetricsTab />}
+              {activeTab === "audit" && <AuditRunsTab />}
+              {activeTab === "settings" && <SettingsTab />}
             </div>
           </div>
         </div>
