@@ -1917,11 +1917,14 @@ async def operator_api_proxy(path: str, request: Request):
         query_string = "&".join(f"{k}={v}" for k, v in request.query_params.items())
         backend_path = f"{backend_path}?{query_string}"
 
-    # Extract Authorization header from request (optional, pass-through)
+    # Extract Authorization and CSRF headers from request (optional, pass-through)
     auth_header = request.headers.get("authorization")
+    csrf_header = request.headers.get("x-csrf-token")
     extra_headers = {}
     if auth_header:
         extra_headers["authorization"] = auth_header
+    if csrf_header:
+        extra_headers["x-csrf-token"] = csrf_header
 
     try:
         method = request.method.lower()
@@ -1940,10 +1943,17 @@ async def operator_api_proxy(path: str, request: Request):
         else:
             raise HTTPException(status_code=405, detail="method_not_allowed")
 
-        write_log("tentaculo_link", f"operator_api_proxy:{method}:{path}")
+        write_log(
+            "tentaculo_link",
+            f"operator_api_proxy:{method}:{path}:ok:headers={list(extra_headers.keys())}",
+        )
         return result
     except Exception as exc:
-        write_log("tentaculo_link", f"operator_api_proxy_error:{exc}", level="WARNING")
+        write_log(
+            "tentaculo_link",
+            f"operator_api_proxy_error:{method}:{path}:{exc}",
+            level="WARNING",
+        )
         raise HTTPException(status_code=500, detail=str(exc))
 
 
