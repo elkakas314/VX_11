@@ -27,14 +27,14 @@ def get_deepseek_api_key() -> Optional[str]:
 
 async def call_deepseek_r1(
     message: str,
-    timeout_seconds: int = 30,
+    timeout_seconds: int = 15,
 ) -> dict:
     """
     Call DeepSeek R1 model.
 
     Args:
         message: User message
-        timeout_seconds: Request timeout (default 30s)
+        timeout_seconds: Request timeout (default 15s, prod-friendly)
 
     Returns:
         dict with keys:

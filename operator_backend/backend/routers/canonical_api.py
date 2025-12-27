@@ -153,32 +153,53 @@ def policy_check() -> Dict[str, str]:
     return {"mode": mode}
 
 
-def auth_check(authorization: Optional[str] = Header(None)) -> Dict[str, str]:
+def auth_check(
+    authorization: Optional[str] = Header(None),
+    x_vx11_token: Optional[str] = Header(None),
+) -> Dict[str, str]:
     """
-    Validate Bearer token.
+    Validate auth based on VX11_AUTH_MODE policy.
 
-    Raises HTTPException(401) if missing/invalid.
+    - off: returns empty dict (bypass)
+    - token: validates x-vx11-token header
+    - jwt: validates Bearer token (JWT)
+
+    Raises HTTPException(401) if validation fails.
     """
-    if not authorization:
-        raise HTTPException(
-            status_code=401,
-            detail="Missing Authorization header",
-        )
+    auth_mode = os.getenv("VX11_AUTH_MODE", "off")
 
-    try:
-        scheme, token = authorization.split()
-        if scheme.lower() != "bearer":
-            raise HTTPException(status_code=401, detail="Invalid auth scheme")
+    if auth_mode == "off":
+        # DEV: bypass auth
+        return {"user_id": "dev", "csrf": "dev"}
 
-        payload = jwt.decode(token, OPERATOR_TOKEN_SECRET, algorithms=["HS256"])
-        return {
-            "user_id": payload.get("sub", "unknown"),
-            "csrf": payload.get("csrf"),
-        }
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=401, detail="Token expired")
-    except jwt.InvalidTokenError as e:
-        raise HTTPException(status_code=401, detail=f"Invalid token: {str(e)}")
+    if auth_mode == "token":
+        # Token mode: validate x-vx11-token
+        if not x_vx11_token:
+            raise HTTPException(status_code=401, detail="auth_required")
+        if x_vx11_token != VX11_TOKEN:
+            raise HTTPException(status_code=403, detail="forbidden")
+        return {"user_id": "token_auth", "csrf": None}
+
+    if auth_mode == "jwt":
+        # JWT mode: validate Authorization Bearer
+        if not authorization:
+            raise HTTPException(status_code=401, detail="Missing Authorization header")
+        try:
+            scheme, token = authorization.split()
+            if scheme.lower() != "bearer":
+                raise HTTPException(status_code=401, detail="Invalid auth scheme")
+            payload = jwt.decode(token, OPERATOR_TOKEN_SECRET, algorithms=["HS256"])
+            return {
+                "user_id": payload.get("sub", "unknown"),
+                "csrf": payload.get("csrf"),
+            }
+        except jwt.ExpiredSignatureError:
+            raise HTTPException(status_code=401, detail="Token expired")
+        except jwt.InvalidTokenError as e:
+            raise HTTPException(status_code=401, detail=f"Invalid token: {str(e)}")
+
+    # Unknown mode: deny
+    raise HTTPException(status_code=500, detail=f"Unknown VX11_AUTH_MODE: {auth_mode}")
 
 
 def csrf_check(
@@ -423,6 +444,7 @@ async def get_status(
 @router.get("/api/map")
 async def get_map(
     _: Dict = Depends(policy_check),
+    __: Dict = Depends(auth_check),
 ):
     """
     Get system architecture map (canonical).

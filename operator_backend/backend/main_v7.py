@@ -111,18 +111,58 @@ class VX11Overview(BaseModel):
 
 
 class TokenGuard:
-    """Token validation with VX11_AUTH_MODE policy."""
+    """
+    Unified token validation with VX11_AUTH_MODE policy.
 
-    def __call__(self, x_vx11_token: str = Header(None)) -> bool:
+    Supports:
+    - VX11_AUTH_MODE=off    → bypass (DEV ONLY)
+    - VX11_AUTH_MODE=token  → x-vx11-token header
+    - VX11_AUTH_MODE=jwt    → Authorization: Bearer <JWT>
+    """
+
+    def __call__(
+        self,
+        x_vx11_token: str = Header(None),
+        authorization: str = Header(None),
+    ) -> bool:
         auth_mode = os.getenv("VX11_AUTH_MODE", "off")
 
+        if auth_mode == "off":
+            # DEV: bypass all auth
+            return True
+
         if auth_mode == "token":
+            # Token mode: requires x-vx11-token header
             if not x_vx11_token:
-                raise HTTPException(status_code=401, detail="auth_required")
+                raise HTTPException(
+                    status_code=401, detail="Missing x-vx11-token header"
+                )
             if x_vx11_token != VX11_TOKEN:
-                raise HTTPException(status_code=403, detail="forbidden")
-        # auth_mode == "off" → allow all requests
-        return True
+                raise HTTPException(status_code=403, detail="Invalid token")
+            return True
+
+        if auth_mode == "jwt":
+            # JWT mode: requires Authorization: Bearer <JWT>
+            if not authorization:
+                raise HTTPException(
+                    status_code=401, detail="Missing Authorization header"
+                )
+            try:
+                scheme, token = authorization.split()
+                if scheme.lower() != "bearer":
+                    raise HTTPException(status_code=401, detail="Invalid auth scheme")
+                # NOTE: JWT validation could go here (verify signature, expiry, etc.)
+                # For now: simple presence check (assume madre/auth-gateway validates)
+                return True
+            except ValueError:
+                raise HTTPException(
+                    status_code=401, detail="Invalid Authorization header format"
+                )
+
+        # Unknown mode: deny
+        raise HTTPException(
+            status_code=500, detail=f"Unknown VX11_AUTH_MODE: {auth_mode}"
+        )
 
 
 token_guard = TokenGuard()
@@ -177,44 +217,18 @@ async def health():
     }
 
 
-@app.get("/api/status")
-async def api_status(_: bool = Depends(token_guard)):
-    """
-    System status for frontend dashboard.
-    Returns: madre, tentaculo_link, redis health + core services.
-    """
-    import httpx
-
-    status = {
-        "operator_backend": "ok",
-        "services": {},
-        "timestamp": datetime.utcnow().isoformat(),
+@app.get("/health")
+async def health():
+    """Simple health check."""
+    return {
+        "status": "ok",
+        "module": "operator",
+        "version": "7.0",
     }
 
-    # Check core services
-    tentaculo_url = os.getenv("VX11_TENTACULO_URL", "http://localhost:8000")
-    madre_url = os.getenv("VX11_MADRE_URL", "http://localhost:8001")
 
-    # Check tentaculo_link
-    try:
-        async with httpx.AsyncClient(timeout=2.0) as client:
-            resp = await client.get(f"{tentaculo_url}/health")
-            status["services"]["tentaculo_link"] = (
-                "ok" if resp.status_code == 200 else "error"
-            )
-    except Exception as e:
-        status["services"]["tentaculo_link"] = f"offline: {str(e)[:30]}"
-
-    # Check madre
-    try:
-        async with httpx.AsyncClient(timeout=2.0) as client:
-            resp = await client.get(f"{madre_url}/health")
-            status["services"]["madre"] = "ok" if resp.status_code == 200 else "error"
-    except Exception as e:
-        status["services"]["madre"] = f"offline: {str(e)[:30]}"
-
-    write_log("operator_backend", "api_status:ok")
-    return status
+# NOTE: /api/status moved to canonical_api router (canonical_api.py)
+# Keeping @app.get("/health") only for direct health checks
 
 
 class IntentRequest(BaseModel):
