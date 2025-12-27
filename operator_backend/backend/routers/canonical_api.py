@@ -157,7 +157,7 @@ def policy_check() -> Dict[str, str]:
 def auth_check(
     authorization: Optional[str] = Header(None),
     x_vx11_token: Optional[str] = Header(None),
-) -> Dict[str, str]:
+) -> Dict[str, Optional[str]]:
     """
     Validate auth based on VX11_AUTH_MODE policy.
 

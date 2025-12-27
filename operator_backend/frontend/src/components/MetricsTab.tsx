@@ -71,23 +71,35 @@ export function MetricsTab() {
     };
 
     const getMetricColor = (key: string, value: any): string => {
-        if (typeof value !== "number") return "text-slate-300";
-
+        // Percentage-like metrics: treat numeric or numeric-string values
         if (key.includes("pct") || key.includes("percent")) {
-            if (value >= 90) return "text-green-400";
-            if (value >= 70) return "text-yellow-400";
+            const num = typeof value === "number" ? value : Number(String(value).replace("%", ""));
+            if (Number.isNaN(num)) return "text-slate-300";
+            if (num >= 90) return "text-green-400";
+            if (num >= 70) return "text-yellow-400";
             return "text-red-400";
         }
 
+        // Verdict-like metrics: treat as string (case-insensitive)
         if (key.includes("verdict")) {
-            if (value === "OPERATIVE" || String(value).includes("OPERATIVE")) return "text-green-400";
-            if (value === "DEGRADED" || String(value).includes("DEGRADED")) return "text-yellow-400";
+            const s = String(value || "").toUpperCase();
+            if (s.includes("OPERATIVE")) return "text-green-400";
+            if (s.includes("DEGRADED")) return "text-yellow-400";
             return "text-red-400";
         }
 
+        // Default fallback
         return "text-slate-300";
     };
+    const getProgressBarColor = (value: number): string => {
+        if (value >= 90) return "bg-green-600";
+        if (value >= 70) return "bg-yellow-600";
+        return "bg-red-600";
+    };
 
+    const getRowBgColor = (idx: number): string => {
+        return idx % 2 === 0 ? "bg-slate-800" : "bg-slate-800/50";
+    };
     return (
         <div className="p-6 space-y-6">
             {/* Header */}
@@ -113,14 +125,11 @@ export function MetricsTab() {
                                     </div>
                                     {typeof value === "number" && key.includes("pct") && (
                                         <div className="mt-2 bg-slate-900 rounded h-1 w-full overflow-hidden">
+                                            {/* webhint-disable no-inline-styles */}
                                             <div
-                                                className={`h-full transition-all ${value >= 90
-                                                        ? "bg-green-600"
-                                                        : value >= 70
-                                                            ? "bg-yellow-600"
-                                                            : "bg-red-600"
-                                                    }`}
-                                                style={{ width: `${Math.min(value, 100)}%` }}
+                                                className={`h-full transition-all ${getProgressBarColor(value)}`}
+                                                // eslint-disable-next-line react/style-prop-object
+                                                style={{ width: `${Math.min(Math.max(value, 0), 100)}%` }}
                                             />
                                         </div>
                                     )}
@@ -142,8 +151,7 @@ export function MetricsTab() {
                                     .map(([key, value], idx) => (
                                         <tr
                                             key={key}
-                                            className={`border-b border-slate-700 last:border-b-0 ${idx % 2 === 0 ? "bg-slate-800" : "bg-slate-800/50"
-                                                }`}
+                                            className={`border-b border-slate-700 last:border-b-0 ${getRowBgColor(idx)}`}
                                         >
                                             <td className="px-4 py-3 text-slate-400 font-mono">
                                                 {key.replace(/_/g, " ")}
