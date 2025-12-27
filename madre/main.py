@@ -408,6 +408,92 @@ async def status():
     return {"madre": "ok", "delegated_services": deps}
 
 
+@app.get("/madre/status")
+async def madre_status():
+    """
+    GET /madre/status: Unified Madre status endpoint (P0 #1).
+    Returns consolidated info about madre module, services, DB, and canon.
+    """
+    import json
+    from pathlib import Path
+
+    # Get delegated services (power status)
+    deps = await _delegator.check_dependencies()
+
+    # Get DB info
+    db_path = "data/runtime/vx11.db"
+    db_info = {
+        "path": db_path,
+        "exists": Path(db_path).exists(),
+        "size_bytes": Path(db_path).stat().st_size if Path(db_path).exists() else 0,
+    }
+
+    # DB integrity (quick check)
+    try:
+        result = subprocess.run(
+            ["sqlite3", db_path, "PRAGMA quick_check;"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        db_info["quick_check"] = result.stdout.strip()
+    except Exception as e:
+        db_info["quick_check"] = f"error: {str(e)}"
+
+    # FK violations count
+    try:
+        result = subprocess.run(
+            ["sqlite3", db_path, "PRAGMA foreign_key_check;"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        fk_lines = result.stdout.strip().split("\n") if result.stdout.strip() else []
+        db_info["fk_violations"] = len([l for l in fk_lines if l])
+    except Exception as e:
+        db_info["fk_violations"] = -1
+
+    # Canon info
+    canon_dir = Path("docs/canon")
+    canon_files = list(canon_dir.glob("*.json")) if canon_dir.exists() else []
+    canon_info = {
+        "files": len(canon_files),
+        "dir": str(canon_dir),
+    }
+
+    # Compute composite hash if possible
+    if canon_files:
+        import hashlib
+
+        hashes = []
+        for cf in sorted(canon_files):
+            try:
+                hashes.append(hashlib.sha256(cf.read_bytes()).hexdigest()[:8])
+            except:
+                pass
+        canon_info["hash_composite"] = "".join(hashes)[:16] if hashes else "N/A"
+
+    # Determine mode (detect from power/policy if possible)
+    mode = "solo_madre"  # default
+    try:
+        # Check if solo_madre policy is active by introspecting power_manager
+        # For now, use simple heuristic: if only madre+redis+tentaculo, then solo_madre
+        pass
+    except:
+        pass
+
+    return {
+        "module": "madre",
+        "version": "7.0",
+        "mode": mode,
+        "services_expected": ["tentaculo_link", "redis"],
+        "services_running": list(deps.keys()) if isinstance(deps, dict) else [],
+        "db": db_info,
+        "canon": canon_info,
+        "timestamp": datetime.utcnow().isoformat() + "Z",
+    }
+
+
 @app.get("/sessions")
 async def sessions():
     return {

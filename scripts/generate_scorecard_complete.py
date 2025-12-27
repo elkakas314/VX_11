@@ -320,26 +320,75 @@ def get_autonomia_pct():
 
 
 def build_complete_scorecard():
-    """Build complete SCORECARD with all 5 metrics (non-null)."""
+    """Build complete SCORECARD with all 5 metrics (non-null) + percentages block (P0 #2)."""
+    # Get individual metrics
+    orden_fs_val = run_auditor_orden()
+    coherencia_routing_val = run_coherencia_routing()
+    automatizacion_val = get_automatizacion_pct()
+    autonomia_val = get_autonomia_pct()
+    canonicalizacion_val = get_canon_metrics()
+
+    # Build percentages block (ALWAYS include, even if null)
+    percentages = {
+        "Orden_fs_pct": orden_fs_val if orden_fs_val is not None else None,
+        "Coherencia_routing_pct": (
+            coherencia_routing_val if coherencia_routing_val is not None else None
+        ),
+        "Automatizacion_pct": (
+            automatizacion_val
+            if automatizacion_val and automatizacion_val > 0
+            else None
+        ),
+        "Autonomia_pct": autonomia_val if autonomia_val and autonomia_val > 0 else None,
+        "Global_ponderado_pct": None,  # Will compute below
+    }
+
+    # Build percentages_notes (explain why null, if applicable)
+    percentages_notes = {
+        "Orden_fs_pct": (
+            "File system canonical compliance (roots order)"
+            if percentages["Orden_fs_pct"] is not None
+            else "auditor_orden_vx11.py unavailable or no FS drift data"
+        ),
+        "Coherencia_routing_pct": (
+            "Routing event coherence (switch/routing quality)"
+            if percentages["Coherencia_routing_pct"] is not None
+            else "Switch service down or no routing events available"
+        ),
+        "Automatizacion_pct": (
+            "Automation readiness (DB_MAP + pytest + SCORECARD)"
+            if percentages["Automatizacion_pct"] is not None
+            else "Not all automation prerequisites met"
+        ),
+        "Autonomia_pct": (
+            "solo_madre autonomy + service health"
+            if percentages["Autonomia_pct"] is not None
+            else "Services not responding to health checks or solo_madre not configured"
+        ),
+        "Global_ponderado_pct": "Weighted average of Orden_fs, Coherencia, Automatizacion, Autonomia",
+    }
+
+    # Compute global_ponderado_pct if we have at least some metrics
+    non_null_metrics = [v for v in percentages.values() if v is not None]
+    if len(non_null_metrics) > 0:
+        avg_val = sum(non_null_metrics) / len(non_null_metrics)
+        percentages["Global_ponderado_pct"] = round(avg_val, 4)
+
+    # Main scorecard structure
     scorecard = {
         "generated_ts": datetime.utcnow().strftime("%Y%m%dT%H%M%SZ"),
         "db": get_db_metrics(),
-        "order_fs_pct": run_auditor_orden() or 0.0,
-        "coherencia_routing_pct": run_coherencia_routing() or 0.0,
-        "automatizacion_pct": get_automatizacion_pct(),
-        "autonomia_pct": get_autonomia_pct(),
-        "canonicalizacion_pct": get_canon_metrics() or 0.0,
+        "percentages": percentages,
+        "percentages_notes": percentages_notes,
     }
 
-    # Calculate global weighted percentage (explicit methodology)
-    weights = {
-        "order_fs_pct": 0.25,
-        "coherencia_routing_pct": 0.25,
-        "automatizacion_pct": 0.25,
-        "autonomia_pct": 0.25,
-    }
-    weighted_sum = sum(scorecard.get(k, 0.0) * v for k, v in weights.items())
-    scorecard["global_ponderado_pct"] = round(weighted_sum, 4)
+    # Legacy fields for backward compatibility
+    scorecard["order_fs_pct"] = percentages["Orden_fs_pct"] or 0.0
+    scorecard["coherencia_routing_pct"] = percentages["Coherencia_routing_pct"] or 0.0
+    scorecard["automatizacion_pct"] = percentages["Automatizacion_pct"] or 0.0
+    scorecard["autonomia_pct"] = percentages["Autonomia_pct"] or 0.0
+    scorecard["canonicalizacion_pct"] = canonicalizacion_val or 0.0
+    scorecard["global_ponderado_pct"] = percentages["Global_ponderado_pct"] or 0.0
 
     # Add methodology
     scorecard["methodology"] = {
@@ -348,7 +397,7 @@ def build_complete_scorecard():
         "automatizacion_pct": "Automation checklist: DB_MAP OK + SCORECARD complete + pytest basic + pytest integration",
         "autonomia_pct": "solo_madre capability + service health checks (tentaculo_link 8000)",
         "canonicalizacion_pct": "Valid canonical JSON files in docs/canon/ (100% if all valid)",
-        "global_ponderado_pct": "Weighted average: 0.25×Orden_fs + 0.25×Coherencia + 0.25×Automatizacion + 0.25×Autonomia",
+        "global_ponderado_pct": "Weighted average of non-null metrics",
     }
 
     return scorecard

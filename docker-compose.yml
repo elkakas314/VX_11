@@ -325,19 +325,26 @@ services:
 
   # ========== OPERATOR BACKEND (PORT 8011) ==========
   operator-backend:
-    profiles: ["operator"]
+    profiles: ["core", "operator"]
     build:
       context: .
       dockerfile: operator_backend/backend/Dockerfile
     image: vx11-operator-backend:v7.0
     container_name: vx11-operator-backend
-    # INVARIANTE 1: NO expose port to host (only via tentaculo_link)
-    # ports:
-    #   - "8011:8011"
+    hostname: operator-backend
+    networks:
+      default:
+        aliases:
+          - operator_backend
+          - operator-backend
+    # INVARIANTE: P0 #3 — Expose 8011 for operator window (temporary, via ventana temporal)
+    ports:
+      - "8011:8011"
     volumes:
       - ./build/artifacts/logs:/app/logs
       - ./data:/app/data
       - ./models:/app/models
+      - ./docs/canon:/app/docs/canon:ro
     environment:
       - ULTRA_LOW_MEMORY=true
       - LOG_LEVEL=INFO
@@ -347,13 +354,16 @@ services:
       - VX11_TENTACULO_LINK_TOKEN=vx11-local-token
       - VX11_OPERATOR_TOKEN=vx11-local-token
       - VX11_LOCAL_TOKEN=vx11-local-token
+      # P0 #3: Single entrypoint via tentaculo_link (NO direct service calls)
+      - VX11_TENTACULO_URL=http://tentaculo_link:8000
+      - VX11_MADRE_URL=http://madre:8001
       - VX11_MODE=${VX11_MODE:-operative_core}
       - OPERATOR_ADMIN_PASSWORD=${OPERATOR_ADMIN_PASSWORD:-admin}
       - OPERATOR_TOKEN_SECRET=${OPERATOR_TOKEN_SECRET:-operator-secret-v7}
     mem_limit: 512m
     depends_on:
       - tentaculo_link
-      - switch
+      - madre
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8011/health"]
