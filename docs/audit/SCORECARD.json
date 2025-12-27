@@ -1,8 +1,8 @@
 {
-  "generated_ts": "20251227T023625Z",
+  "generated_ts": "20251227T101950Z",
   "integrity": "5000",
   "total_tables": 70,
-  "total_rows": 1162534,
+  "total_rows": 1157255,
   "db_size_bytes": 619692032,
   "backup_db_count": 2,
   "backups_archived_count": 23

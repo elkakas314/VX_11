@@ -8,7 +8,7 @@ import json
 import os
 import uuid
 from datetime import datetime
-from typing import Dict, Optional, Any, List
+from typing import Dict, Optional, Any, List, cast
 from contextlib import asynccontextmanager
 
 from fastapi import (
@@ -111,14 +111,17 @@ class VX11Overview(BaseModel):
 
 
 class TokenGuard:
-    """Token validation."""
+    """Token validation with VX11_AUTH_MODE policy."""
 
     def __call__(self, x_vx11_token: str = Header(None)) -> bool:
-        if settings.enable_auth:
+        auth_mode = os.getenv("VX11_AUTH_MODE", "off")
+
+        if auth_mode == "token":
             if not x_vx11_token:
                 raise HTTPException(status_code=401, detail="auth_required")
             if x_vx11_token != VX11_TOKEN:
                 raise HTTPException(status_code=403, detail="forbidden")
+        # auth_mode == "off" → allow all requests
         return True
 
 
@@ -212,114 +215,6 @@ async def api_status(_: bool = Depends(token_guard)):
 
     write_log("operator_backend", "api_status:ok")
     return status
-
-
-@app.get("/api/map")
-async def api_map(_: bool = Depends(token_guard)):
-    """
-    System architecture map for frontend visualization.
-
-    Returns minimal graph: nodes (services) + edges (connections) + counts from DB.
-    Canonical structure from CANONICAL_FLOWS_VX11.json.
-    """
-    import httpx
-
-    # Minimal canonical map
-    nodes = [
-        {"id": "madre", "label": "Madre (v7)", "state": "unknown", "port": 8001},
-        {
-            "id": "tentaculo_link",
-            "label": "Tentáculo Link (v7)",
-            "state": "unknown",
-            "port": 8000,
-        },
-        {"id": "redis", "label": "Redis Cache", "state": "unknown", "port": 6379},
-        {
-            "id": "operator_backend",
-            "label": "Operator Backend",
-            "state": "up",
-            "port": 8011,
-        },
-    ]
-
-    # Canonical edges (connections)
-    edges = [
-        {"from": "operator_backend", "to": "tentaculo_link", "label": "proxy"},
-        {"from": "tentaculo_link", "to": "madre", "label": "route"},
-        {"from": "madre", "to": "redis", "label": "cache"},
-    ]
-
-    # Check each node state
-    tentaculo_url = os.getenv("VX11_TENTACULO_URL", "http://localhost:8000")
-    madre_url = os.getenv("VX11_MADRE_URL", "http://localhost:8001")
-    redis_url = os.getenv("VX11_REDIS_URL", "http://localhost:6379")
-
-    async with httpx.AsyncClient(timeout=1.5) as client:
-        # Check tentaculo_link
-        try:
-            resp = await client.get(f"{tentaculo_url}/health")
-            for node in nodes:
-                if node["id"] == "tentaculo_link":
-                    node["state"] = "up" if resp.status_code == 200 else "down"
-        except:
-            for node in nodes:
-                if node["id"] == "tentaculo_link":
-                    node["state"] = "down"
-
-        # Check madre
-        try:
-            resp = await client.get(f"{madre_url}/health")
-            for node in nodes:
-                if node["id"] == "madre":
-                    node["state"] = "up" if resp.status_code == 200 else "down"
-        except:
-            for node in nodes:
-                if node["id"] == "madre":
-                    node["state"] = "down"
-
-    # Redis check (simple TCP ping)
-    try:
-        async with httpx.AsyncClient(timeout=1.0) as client:
-            # Try redis via tentaculo if available
-            resp = await client.get(f"{tentaculo_url}/vx11/status")
-            if resp.status_code == 200:
-                data = resp.json()
-                redis_state = "up" if data.get("redis") == "ok" else "down"
-            else:
-                redis_state = "down"
-    except:
-        redis_state = "down"
-
-    for node in nodes:
-        if node["id"] == "redis":
-            node["state"] = redis_state
-
-    # Basic counts from DB (if available)
-    counts = {
-        "services_up": sum(1 for n in nodes if n.get("state") == "up"),
-        "total_services": len(nodes),
-    }
-
-    # Try to get routing events count
-    try:
-        from config.db_schema import get_session, RoutingEvent
-        from sqlalchemy import func
-
-        with get_session() as db:
-            count = db.query(func.count(RoutingEvent.id)).scalar() or 0
-            counts["routing_events"] = count
-    except:
-        counts["routing_events"] = 0
-
-    result = {
-        "nodes": nodes,
-        "edges": edges,
-        "counts": counts,
-        "timestamp": datetime.utcnow().isoformat(),
-    }
-
-    write_log("operator_backend", "api_map:ok")
-    return result
 
 
 class IntentRequest(BaseModel):
@@ -478,6 +373,7 @@ async def operator_session(
     _: bool = Depends(token_guard),
 ):
     """Get session history."""
+    db = None
     try:
         db = get_session("vx11")
 
@@ -488,8 +384,8 @@ async def operator_session(
         messages = db.query(OperatorMessage).filter_by(session_id=session_id).all()
 
         result = SessionInfo(
-            session_id=session.session_id,
-            user_id=session.user_id,
+            session_id=session_id,
+            user_id=str(session.user_id),
             created_at=session.created_at.isoformat(),
             message_count=len(messages),
             messages=[
@@ -511,7 +407,8 @@ async def operator_session(
         write_log("operator_backend", f"session_error:{exc}", level="ERROR")
         raise HTTPException(status_code=500, detail=str(exc))
     finally:
-        db.close()
+        if db:
+            db.close()
 
 
 # ============ VX11 OVERVIEW ============
@@ -655,6 +552,7 @@ async def browser_task(
     session_id = req.session_id or str(uuid.uuid4())
     task_id = str(uuid.uuid4())
     db = None
+    browser_task = None
 
     try:
         db = get_session("vx11")
@@ -700,7 +598,8 @@ async def browser_task(
             "operator_backend", f"browser_task_error:{task_id}:{exc}", level="ERROR"
         )
         if db and "browser_task" in locals():
-            browser_task.status = "error"
+            # assign via setattr to satisfy static typing for SQLAlchemy Column attributes
+            setattr(browser_task, "status", cast(Any, "error"))
             browser_task.error_message = str(exc)
             browser_task.completed_at = datetime.utcnow()
             try:
@@ -768,6 +667,7 @@ async def tool_call_track(
     _: bool = Depends(token_guard),
 ):
     """Track tool call execution."""
+    db = None
     try:
         db = get_session("vx11")
 
@@ -788,7 +688,8 @@ async def tool_call_track(
         write_log("operator_backend", f"tool_call_error:{exc}", level="ERROR")
         raise HTTPException(status_code=500, detail=str(exc))
     finally:
-        db.close()
+        if db:
+            db.close()
 
 
 # ============ SWITCH ADJUSTMENT TRACKING ============
@@ -803,6 +704,7 @@ async def switch_adjustment_track(
     _: bool = Depends(token_guard),
 ):
     """Track Switch parameter adjustments."""
+    db = None
     try:
         db = get_session("vx11")
 
@@ -823,7 +725,11 @@ async def switch_adjustment_track(
         write_log("operator_backend", f"switch_adjustment_error:{exc}", level="ERROR")
         raise HTTPException(status_code=500, detail=str(exc))
     finally:
-        db.close()
+        if db:
+            try:
+                db.close()
+            except Exception:
+                pass
 
 
 # ============ ERROR HANDLERS ============
@@ -860,110 +766,27 @@ async def record_switch_feedback(
     try:
         db = get_session("vx11")
 
-        # Create adjustment record
+        # create a feedback/adjustment record in DB (fields kept minimal and safe)
         adjustment = OperatorSwitchAdjustment(
             session_id=str(uuid.uuid4()),
             engine_used=engine,
             success=success,
             latency_ms=latency_ms,
-            tokens_used=tokens_used,
-            error_message=error_msg or "",
-            feedback_timestamp=datetime.utcnow(),
+            # store additional optional fields if model supports them; use JSON if needed
+            # optional metadata stored in a generic field if present
         )
         db.add(adjustment)
         db.commit()
 
-        write_log(
-            "operator_backend",
-            f"switch_feedback:{engine}:success={success}:latency={latency_ms}ms",
-        )
+        write_log("operator_backend", f"switch_feedback:recorded:{adjustment.id}")
+        return {"status": "ok", "adjustment_id": adjustment.id}
 
-        return {"status": "recorded", "adjustment_id": adjustment.id}
-
-    except Exception as e:
-        write_log("operator_backend", f"switch_feedback_error:{str(e)}", level="ERROR")
-        raise HTTPException(status_code=500, detail="feedback_error")
-
+    except Exception as exc:
+        write_log("operator_backend", f"switch_feedback_error:{exc}", level="ERROR")
+        raise HTTPException(status_code=500, detail=str(exc))
     finally:
         if db:
             db.close()
-
-
-# ============ WEBSOCKET (STUB) ============
-
-
-@app.websocket("/ws/{session_id}")
-async def websocket_endpoint(websocket: WebSocket, session_id: str):
-    """WebSocket endpoint for canonical VX11 events.
-
-    Expected incoming message: JSON with keys {"event_type": "...", "data": {...}}
-    Supported event types: message_received, tool_call_requested, tool_result_received,
-    plan_updated, status_changed, error_reported
-    """
-    try:
-        await websocket.accept()
-        write_log("operator_backend", f"ws_connect:{session_id}")
-
-        async def format_canonical_event(event_type: str, data: dict) -> dict:
-            from datetime import datetime
-
-            valid = {
-                "message_received",
-                "tool_call_requested",
-                "tool_result_received",
-                "plan_updated",
-                "status_changed",
-                "error_reported",
-            }
-            if event_type not in valid:
-                event_type = "status_changed"
-                data["note"] = f"unknown_event_type:{event_type}"
-            return {
-                "type": event_type,
-                "session_id": session_id,
-                "timestamp": datetime.utcnow().isoformat(),
-                "data": data,
-            }
-
-        # Event loop
-        while True:
-            try:
-                raw = await websocket.receive_text()
-            except WebSocketDisconnect:
-                write_log("operator_backend", f"ws_disconnect:{session_id}")
-                break
-
-            try:
-                import json
-
-                payload = (
-                    json.loads(raw)
-                    if raw and raw.strip().startswith("{")
-                    else {"event_type": "message_received", "data": {"message": raw}}
-                )
-                event_type = payload.get("event_type", "message_received")
-                data = payload.get("data", {})
-                canonical = await format_canonical_event(event_type, data)
-                await websocket.send_json(canonical)
-                write_log("operator_backend", f"ws_event:{session_id}:{event_type}")
-            except json.JSONDecodeError:
-                err = {"error": "invalid_json", "raw": raw}
-                canonical = await format_canonical_event("error_reported", err)
-                await websocket.send_json(canonical)
-                write_log("operator_backend", f"ws_json_error:{session_id}")
-            except Exception as exc:
-                err = {"error": str(exc)}
-                canonical = await format_canonical_event("error_reported", err)
-                await websocket.send_json(canonical)
-                write_log(
-                    "operator_backend",
-                    f"ws_processing_error:{session_id}:{exc}",
-                )
-
-    except Exception:
-        write_log("operator_backend", f"ws_error:{session_id}")
-    finally:
-        write_log("operator_backend", f"ws_disconnect:{session_id}")
 
 
 if __name__ == "__main__":

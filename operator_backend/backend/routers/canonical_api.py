@@ -420,6 +420,135 @@ async def get_status(
     )
 
 
+@router.get("/api/map")
+async def get_map(
+    _: Dict = Depends(policy_check),
+):
+    """
+    Get system architecture map (canonical).
+
+    Returns minimal graph: nodes (services) + edges (connections) + counts.
+    Canonical structure from CANONICAL_FLOWS_VX11.json.
+
+    NOTE: Uses policy_check only (not auth_check) to allow frontend MapTab
+    to poll /api/map in DEV mode (VX11_AUTH_MODE=off).
+
+    Response (200):
+      {
+        "nodes": [
+          {"id": "madre", "label": "Madre (v7)", "state": "up", "port": 8001},
+          ...
+        ],
+        "edges": [
+          {"from": "operator_backend", "to": "tentaculo_link", "label": "proxy"},
+          ...
+        ],
+        "counts": {
+          "services_up": 4,
+          "total_services": 4,
+          "routing_events": 1234
+        },
+        "timestamp": "2025-12-27T10:45:00Z"
+      }
+
+    Errors:
+      - 409: policy violation (low_power mode)
+    """
+    # Minimal canonical map
+    nodes = [
+        {"id": "madre", "label": "Madre (v7)", "state": "unknown", "port": 8001},
+        {
+            "id": "tentaculo_link",
+            "label": "Tentáculo Link (v7)",
+            "state": "unknown",
+            "port": 8000,
+        },
+        {"id": "redis", "label": "Redis Cache", "state": "unknown", "port": 6379},
+        {
+            "id": "operator_backend",
+            "label": "Operator Backend",
+            "state": "up",
+            "port": 8011,
+        },
+    ]
+
+    # Canonical edges (connections)
+    edges = [
+        {"from": "operator_backend", "to": "tentaculo_link", "label": "proxy"},
+        {"from": "tentaculo_link", "to": "madre", "label": "route"},
+        {"from": "madre", "to": "redis", "label": "cache"},
+    ]
+
+    # Check each node state
+    tentaculo_url = os.getenv("VX11_TENTACULO_URL", "http://tentaculo_link:8000")
+    madre_url = os.getenv("VX11_MADRE_URL", "http://madre:8001")
+
+    async with httpx.AsyncClient(timeout=1.5) as client:
+        # Check tentaculo_link
+        try:
+            resp = await client.get(f"{tentaculo_url}/health")
+            for node in nodes:
+                if node["id"] == "tentaculo_link":
+                    node["state"] = "up" if resp.status_code == 200 else "down"
+        except:
+            for node in nodes:
+                if node["id"] == "tentaculo_link":
+                    node["state"] = "down"
+
+        # Check madre
+        try:
+            resp = await client.get(f"{madre_url}/health")
+            for node in nodes:
+                if node["id"] == "madre":
+                    node["state"] = "up" if resp.status_code == 200 else "down"
+        except:
+            for node in nodes:
+                if node["id"] == "madre":
+                    node["state"] = "down"
+
+    # Redis check (simple TCP ping via tentaculo)
+    try:
+        async with httpx.AsyncClient(timeout=1.0) as client:
+            resp = await client.get(f"{tentaculo_url}/vx11/status")
+            if resp.status_code == 200:
+                data = resp.json()
+                redis_state = "up" if data.get("redis") == "ok" else "down"
+            else:
+                redis_state = "down"
+    except:
+        redis_state = "down"
+
+    for node in nodes:
+        if node["id"] == "redis":
+            node["state"] = redis_state
+
+    # Basic counts from DB (if available)
+    counts = {
+        "services_up": sum(1 for n in nodes if n.get("state") == "up"),
+        "total_services": len(nodes),
+    }
+
+    # Try to get routing events count
+    try:
+        from config.db_schema import get_session, RoutingEvent
+        from sqlalchemy import func
+
+        with get_session() as db:
+            count = db.query(func.count(RoutingEvent.id)).scalar() or 0
+            counts["routing_events"] = count
+    except:
+        counts["routing_events"] = 0
+
+    result = {
+        "nodes": nodes,
+        "edges": edges,
+        "counts": counts,
+        "timestamp": datetime.utcnow().isoformat(),
+    }
+
+    return result
+
+
 @router.get("/api/modules")
 async def get_modules(
     _: Dict = Depends(policy_check),
@@ -686,7 +815,9 @@ async def list_audits(
                 "level": item.level,
                 "message": item.message,
                 "created_at": (
-                    item.created_at.isoformat() + "Z" if item.created_at is not None else None
+                    item.created_at.isoformat() + "Z"
+                    if item.created_at is not None
+                    else None
                 ),
             }
             for item in items
@@ -728,7 +859,9 @@ async def get_audit(
         "component": item.component,
         "level": item.level,
         "message": item.message,
-        "created_at": item.created_at.isoformat() + "Z" if item.created_at is not None else None,
+        "created_at": (
+            item.created_at.isoformat() + "Z" if item.created_at is not None else None
+        ),
     }
 
 
@@ -1111,10 +1244,14 @@ async def list_jobs(
                 "payload": item.payload,
                 "result": item.result,
                 "created_at": (
-                    item.created_at.isoformat() + "Z" if item.created_at is not None else None
+                    item.created_at.isoformat() + "Z"
+                    if item.created_at is not None
+                    else None
                 ),
                 "updated_at": (
-                    item.updated_at.isoformat() + "Z" if item.updated_at is not None else None
+                    item.updated_at.isoformat() + "Z"
+                    if item.updated_at is not None
+                    else None
                 ),
             }
             for item in items
@@ -1179,9 +1316,7 @@ async def get_job(
     }
     # Cast status to str to satisfy type checkers that may expose SQLAlchemy Column types
     status_key = str(item.status) if item.status is not None else ""
-    progress = progress_map.get(
-        status_key, {"percent": 0, "message": "Unknown status"}
-    )
+    progress = progress_map.get(status_key, {"percent": 0, "message": "Unknown status"})
 
     return {
         "id": item.id,
@@ -1190,7 +1325,11 @@ async def get_job(
         "status": item.status,
         "payload": item.payload,
         "result": item.result,
-        "created_at": item.created_at.isoformat() + "Z" if item.created_at is not None else None,
-        "updated_at": item.updated_at.isoformat() + "Z" if item.updated_at is not None else None,
+        "created_at": (
+            item.created_at.isoformat() + "Z" if item.created_at is not None else None
+        ),
+        "updated_at": (
+            item.updated_at.isoformat() + "Z" if item.updated_at is not None else None
+        ),
         "progress": progress,
     }
