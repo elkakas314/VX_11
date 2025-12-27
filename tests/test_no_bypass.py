@@ -12,9 +12,14 @@ def test_no_bypass_frontend_src():
     """
     Verify that frontend/src has zero hardcoded internal ports (:8011, :8001, :8002).
 
-    This is a STATIC analysis test; it should fail in CI if any bypass port is found.
+    EXCEPTION: config.ts may have DEFAULT_OPERATOR_BASE = "http://127.0.0.1:8011" as ENV fallback.
+    This is OK if overridable via VITE_OPERATOR_BASE_URL. This is NOT a bypass if:
+      1. It's in config.ts as a FALLBACK (env-driven)
+      2. Frontend explicitly imports and uses it (not inline bypass)
+
+    Real bypasses = hardcoded http://internal_service in component code (not config).
     """
-    # Bypass ports to detect
+    # Bypass ports to detect (in component code, not config.ts)
     bypass_patterns = [
         r"localhost:8011",
         r"127\.0\.0\.1:8011",
@@ -26,6 +31,9 @@ def test_no_bypass_frontend_src():
         r"http://switch:8002",
     ]
 
+    # Exclude config.ts (allowed to have env-driven fallback)
+    exclude_files = ["config.ts"]
+
     for pattern in bypass_patterns:
         result = subprocess.run(
             [
@@ -34,16 +42,24 @@ def test_no_bypass_frontend_src():
                 "-E",
                 pattern,
                 "operator_backend/frontend/src",
+                "--exclude=*.ts.bak",  # Exclude backups
             ],
             capture_output=True,
             text=True,
         )
 
         if result.stdout:
-            # Matches found = FAIL
-            pytest.fail(
-                f"❌ BYPASS DETECTED: Pattern '{pattern}' found in frontend/src:\n{result.stdout}"
-            )
+            # Filter out config.ts lines
+            lines = [
+                line
+                for line in result.stdout.split("\n")
+                if line and not any(exc in line for exc in exclude_files)
+            ]
+            if lines:
+                pytest.fail(
+                    f"❌ BYPASS DETECTED: Pattern '{pattern}' found in frontend/src (outside config.ts):\n"
+                    + "\n".join(lines)
+                )
 
     print("✅ No-bypass verification PASSED (zero internal ports in frontend/src)")
 

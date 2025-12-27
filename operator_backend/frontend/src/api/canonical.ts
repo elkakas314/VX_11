@@ -14,7 +14,7 @@ import {
 
 const API_BASE = import.meta.env.VITE_OPERATOR_BASE_URL || "http://127.0.0.1:8000";
 
-let currentToken: string | null = null;let currentCsrfToken: string | null = null;
+let currentToken: string | null = null; let currentCsrfToken: string | null = null;
 // Load token from localStorage on app start
 export function initializeAuth() {
     currentToken = localStorage.getItem("vx11_jwt_token");

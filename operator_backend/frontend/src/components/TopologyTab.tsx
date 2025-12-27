@@ -107,24 +107,53 @@ export function TopologyTab() {
             {/* Nodes */}
             <div>
                 <h3 className="text-xl font-bold mb-3 text-slate-200">Services</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {topology?.nodes?.map((node) => (
                         <div
                             key={node.id}
-                            className={`rounded border p-3 ${statusBgMap[node.status as keyof typeof statusBgMap]}`}
+                            className={`rounded border p-4 flex flex-col gap-3 hover:shadow-lg transition-shadow ${statusBgMap[node.status as keyof typeof statusBgMap]}`}
                         >
-                            <div className="flex items-center justify-between mb-2">
-                                <div className="font-mono text-sm font-bold text-slate-300">{node.id}</div>
-                                <span className={`text-xs font-bold ${statusColorMap[node.status as keyof typeof statusColorMap]}`}>
-                                    {node.status.toUpperCase()}
-                                </span>
-                            </div>
-                            <div className="text-sm text-slate-400">{node.label}</div>
-                            {node.port && (
-                                <div className="text-xs text-slate-500 mt-2">
-                                    Port: <span className="font-mono">{node.port}</span>
+                            <div>
+                                <div className="flex items-center justify-between mb-2">
+                                    <div className="font-mono text-sm font-bold text-slate-200">{node.id}</div>
+                                    <span className={`text-xs font-bold px-2 py-1 rounded ${statusColorMap[node.status as keyof typeof statusColorMap]} bg-slate-900/50`}>
+                                        {node.status.toUpperCase()}
+                                    </span>
                                 </div>
-                            )}
+                                <div className="text-sm text-slate-300">{node.label}</div>
+                                {node.port && (
+                                    <div className="text-xs text-slate-400 mt-2">
+                                        🔌 Port: <span className="font-mono">{node.port}</span>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="flex gap-2 pt-2 border-t border-slate-700/50 flex-wrap">
+                                <button
+                                    onClick={() => alert(`Health check for ${node.id}`)}
+                                    className="text-xs px-2 py-1 bg-blue-700/50 hover:bg-blue-600 rounded border border-blue-600 text-blue-200 transition-colors"
+                                    title="Run health check"
+                                >
+                                    ♥ Health
+                                </button>
+                                <button
+                                    onClick={() => alert(`Logs for ${node.id}`)}
+                                    className="text-xs px-2 py-1 bg-slate-700/50 hover:bg-slate-600 rounded border border-slate-600 text-slate-200 transition-colors"
+                                    title="View logs"
+                                >
+                                    📋 Logs
+                                </button>
+                                {node.status !== "dormant" && node.status !== "window-only" && (
+                                    <button
+                                        onClick={() => alert(`Restart ${node.id}`)}
+                                        className="text-xs px-2 py-1 bg-yellow-700/50 hover:bg-yellow-600 rounded border border-yellow-600 text-yellow-200 transition-colors"
+                                        title="Restart service"
+                                    >
+                                        🔄 Restart
+                                    </button>
+                                )}
+                            </div>
                         </div>
                     ))}
                 </div>

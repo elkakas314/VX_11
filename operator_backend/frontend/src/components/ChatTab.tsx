@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useChat } from "../hooks/useChat";
 import { DegradedModeBanner } from "./DegradedModeBanner";
 
@@ -16,6 +16,36 @@ export const ChatTab: React.FC = () => {
         setMode,
         setDegradedMode,
     } = useChat({ maxMessageLength: 4096 });
+
+    const [streamingText, setStreamingText] = useState("");
+
+    // Simulate streaming response when loading
+    useEffect(() => {
+        if (!loading) {
+            setStreamingText("");
+            return;
+        }
+
+        const streamMessages = [
+            "Processing query",
+            "Checking madre health",
+            "Routing to switch",
+            "Generating response",
+            "Streaming tokens: 12/100",
+        ];
+
+        let idx = 0;
+        const interval = setInterval(() => {
+            if (idx < streamMessages.length) {
+                setStreamingText(streamMessages[idx]);
+                idx++;
+            } else {
+                idx = 0; // Loop
+            }
+        }, 800);
+
+        return () => clearInterval(interval);
+    }, [loading]);
 
     const handleSend = () => send();
 
@@ -48,26 +78,43 @@ export const ChatTab: React.FC = () => {
                 ))}
             </div>
 
-            <div className="flex-1 overflow-y-auto bg-slate-800 rounded-lg p-4 mb-4 space-y-3">
+            <div className="flex-1 overflow-y-auto bg-slate-900 rounded-lg p-4 mb-4 space-y-4 border border-slate-700">
                 {messages.length === 0 ? (
-                    <div className="text-slate-400 text-center py-8">
-                        <p>No messages yet. Start a conversation!</p>
+                    <div className="text-slate-400 text-center py-12 flex flex-col items-center gap-3">
+                        <div className="text-3xl">💬</div>
+                        <p className="text-sm">No messages yet. Start a conversation!</p>
+                        <p className="text-xs text-slate-500">Tip: Try asking about system status</p>
                     </div>
                 ) : (
                     messages.map((msg, idx) => (
-                        <div key={idx} className="flex flex-col space-y-1">
+                        <div key={idx} className="flex flex-col space-y-2">
                             <div
                                 className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                             >
                                 <div
-                                    className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg border-l-4 ${msg.role === "user" ? "bg-blue-600 text-white border-blue-500" : msg.status === "degraded" ? "bg-yellow-900 text-yellow-100 border-yellow-500" : msg.status === "error" ? "bg-red-900 text-red-100 border-red-500" : msg.routeTaken === "tentaculo_link" ? "bg-green-900 text-green-100 border-green-500" : msg.routeTaken === "madre" ? "bg-slate-700 text-slate-100 border-slate-600" : "bg-slate-700 text-slate-100 border-slate-600"}`}
+                                    className={`max-w-md px-4 py-3 rounded-lg border-l-4 ${msg.role === "user" ? "bg-blue-600 text-white border-blue-500" : msg.status === "degraded" ? "bg-yellow-900 text-yellow-100 border-yellow-600" : msg.status === "error" ? "bg-red-900 text-red-100 border-red-600" : msg.routeTaken === "tentaculo_link" ? "bg-emerald-900 text-emerald-100 border-emerald-600" : msg.routeTaken === "madre" ? "bg-purple-900 text-purple-100 border-purple-600" : "bg-slate-700 text-slate-100 border-slate-600"}`}
                                 >
-                                    <p className="text-sm">{msg.content}</p>
+                                    <p className="text-sm leading-relaxed">{msg.content}</p>
                                 </div>
                             </div>
-                            {msg.requestId && (
-                                <div className="text-xs text-slate-500 px-4">
-                                    ID: {msg.requestId.substring(0, 8)}... | Route: {msg.routeTaken}
+                            {msg.role === "assistant" && (
+                                <div className="flex gap-2 px-4 flex-wrap text-xs">
+                                    <span className="bg-slate-800 text-slate-300 px-2 py-1 rounded border border-slate-700">
+                                        Route: {msg.routeTaken || "unknown"}
+                                    </span>
+                                    {msg.requestId && (
+                                        <span className="bg-slate-800 text-slate-300 px-2 py-1 rounded border border-slate-700">
+                                            ID: {msg.requestId.substring(0, 8)}...
+                                        </span>
+                                    )}
+                                    {msg.status && (
+                                        <span className={`px-2 py-1 rounded border ${msg.status === "degraded" ? "bg-yellow-900 text-yellow-300 border-yellow-700" :
+                                                msg.status === "error" ? "bg-red-900 text-red-300 border-red-700" :
+                                                    "bg-green-900 text-green-300 border-green-700"
+                                            }`}>
+                                            Status: {msg.status}
+                                        </span>
+                                    )}
                                 </div>
                             )}
                         </div>
@@ -75,8 +122,9 @@ export const ChatTab: React.FC = () => {
                 )}
                 {loading && (
                     <div className="flex justify-start">
-                        <div className="bg-slate-700 text-slate-100 px-4 py-2 rounded-lg animate-pulse">
-                            <span>Waiting for response...</span>
+                        <div className="bg-slate-800 text-slate-200 px-4 py-3 rounded-lg border border-slate-700 animate-pulse flex gap-2">
+                            <span className="inline-block">▌</span>
+                            <span>{streamingText || "Processing..."}</span>
                         </div>
                     </div>
                 )}

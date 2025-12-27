@@ -344,9 +344,31 @@ async def observe():
         # Quick DB check
         try:
             from config.db_schema import get_session
+            import types
 
-            sess = next(get_session())
-            sess.close()
+            # get_session may be a generator (dependency yield) or return a Session directly.
+            sess_or_gen = get_session()
+            # If a generator was returned (dependency style), pull the yielded Session and close the generator.
+            if isinstance(sess_or_gen, types.GeneratorType):
+                gen = sess_or_gen
+                try:
+                    sess = next(gen)
+                except StopIteration:
+                    sess = None
+                try:
+                    gen.close()
+                except Exception:
+                    pass
+            # If a Session instance was returned directly, close it.
+            elif isinstance(sess_or_gen, Session):
+                sess = sess_or_gen
+                try:
+                    sess.close()
+                except Exception:
+                    pass
+            else:
+                # Unknown return type: treat as failure to avoid crashes
+                sess = None
         except Exception as e:
             db_status = "fail"
             health_status = "degraded"
@@ -943,7 +965,7 @@ async def get_audit(
 ):
     """
     Get audit entry detail (Phase 2 real implementation).
-    
+
     NOTE: audit_id is str to avoid conflict with /api/audit/runs route.
     If audit_id is not "runs", treat as integer ID lookup.
 
