@@ -29,15 +29,10 @@ export function MapTab() {
         setLoading(true);
         setError(null);
         try {
-            // Try to fetch from operator_backend (if running)
-            // Fallback: fetch through tentaculo_link proxy
-            const res = await fetch("http://localhost:8011/api/map", {
+            // SINGLE ENTRYPOINT: All requests via tentaculo_link:8000 (proxy to operator:8011 internally)
+            // Spec v7.0.1 invariant: No direct access to operator_backend:8011
+            const res = await fetch("http://localhost:8000/api/map", {
                 headers: { "X-VX11-Token": "vx11-local-token" },
-            }).catch(async () => {
-                // Fallback to tentaculo_link proxy if operator_backend not available
-                return fetch("http://localhost:8000/api/map", {
-                    headers: { "X-VX11-Token": "vx11-local-token" },
-                });
             });
 
             if (!res.ok) {
