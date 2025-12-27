@@ -1,7 +1,8 @@
 services:
   # ========== TENTACULO LINK (PORT 8000) ==========
   tentaculo_link:
-    profiles: ["core"]
+    # INVARIANTE: tentaculo_link is ALWAYS ON (single entrypoint for all clients)
+    # No profile means it runs in every context (default, --profile core, --profile operator)
     build:
       context: .
       dockerfile: tentaculo_link/Dockerfile
@@ -325,7 +326,9 @@ services:
 
   # ========== OPERATOR BACKEND (PORT 8011) ==========
   operator-backend:
-    profiles: ["core", "operator"]
+    # INVARIANTE: operator-backend ONLY active when --profile operator flag is used
+    # Otherwise OFF (part of E2E window, not SOLO_MADRE or core)
+    profiles: ["operator"]
     build:
       context: .
       dockerfile: operator_backend/backend/Dockerfile
@@ -375,7 +378,8 @@ services:
 
   # ========== OPERATOR FRONTEND (PORT 8020) ==========
   operator-frontend:
-    profiles: ["core", "operator"]
+    # INVARIANTE: operator-frontend ONLY active when --profile operator flag is used
+    profiles: ["operator"]
     build:
       context: operator_backend/frontend
       dockerfile: Dockerfile
