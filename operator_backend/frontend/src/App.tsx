@@ -17,7 +17,7 @@ import { TabName } from "./types/canonical";
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [activeTab, setActiveTab] = useState<TabName>("dashboard");
+  const [activeTab, setActiveTab] = useState<TabName>("overview");
   const [verifying, setVerifying] = useState(true);
   const [username, setUsername] = useState<string | null>(null);
   const [showLeftPanel, setShowLeftPanel] = useState(true);
@@ -63,6 +63,13 @@ export default function App() {
     } catch {
       setBackendHealth({ status: "offline", healthy: false });
     }
+  };
+
+  const handleLogout = () => {
+    clearAuth();
+    setIsLoggedIn(false);
+    setUsername(null);
+    setActiveTab("overview");
   };
 
   const tabs: { id: TabName; label: string; icon: string }[] = [
