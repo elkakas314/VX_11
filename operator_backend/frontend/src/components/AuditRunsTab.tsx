@@ -1,3 +1,4 @@
+import { OPERATOR_BASE_URL } from "../config";
 import React, { useState, useEffect } from "react";
 
 interface AuditRun {
@@ -25,7 +26,7 @@ export function AuditRunsTab() {
     const loadAuditRuns = async () => {
         try {
             setError(null);
-            const res = await fetch("http://localhost:8000/api/audit/runs?limit=20&offset=0");
+            const res = await fetch(`${OPERATOR_BASE_URL}/api/audit/runs?limit=20&offset=0`);
             if (res.ok) {
                 const data = await res.json();
                 setRuns(data.data || []);
@@ -43,7 +44,7 @@ export function AuditRunsTab() {
         try {
             setDetailLoading(true);
             setError(null);
-            const res = await fetch(`http://localhost:8000/api/audit/runs/${runId}`);
+            const res = await fetch(`${OPERATOR_BASE_URL}/api/audit/runs/${runId}`);
             if (res.ok) {
                 const data = await res.json();
                 setRunDetail(data.data || null);

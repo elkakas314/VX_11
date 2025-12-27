@@ -1,3 +1,4 @@
+import { OPERATOR_BASE_URL } from "./config";
 import React, { useState, useEffect } from "react";
 import { initializeAuth, clearAuth, verifyToken } from "./api/canonical";
 import { LoginPage } from "./components/LoginPage";
@@ -49,7 +50,7 @@ export default function App() {
     // Check health via tentaculo_link (single entrypoint 8000)
     // Proxied endpoints: madre, backend health accessible through 8000 only
     try {
-      const r = await fetch("http://localhost:8000/health", { method: "GET" });
+      const r = await fetch(`${OPERATOR_BASE_URL}/health`, { method: "GET" });
       if (r.ok) setMadreHealth({ status: "ok", healthy: true });
       else setMadreHealth({ status: "error", healthy: false });
     } catch {
@@ -57,7 +58,7 @@ export default function App() {
     }
     // Backend health also goes through tentaculo (8000)
     try {
-      const r = await fetch("http://localhost:8000/operator/observe", { method: "GET" });
+      const r = await fetch(`${OPERATOR_BASE_URL}/operator/observe`, { method: "GET" });
       if (r.ok) setBackendHealth({ status: "ok", healthy: true });
       else setBackendHealth({ status: "error", healthy: false });
     } catch {

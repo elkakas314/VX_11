@@ -1,3 +1,4 @@
+import { OPERATOR_BASE_URL } from "../config";
 import React, { useState, useEffect } from "react";
 
 interface OperatorSettings {
@@ -22,7 +23,7 @@ export function SettingsTab() {
     const loadSettings = async () => {
         try {
             setError(null);
-            const res = await fetch("http://localhost:8000/api/settings");
+            const res = await fetch(`${OPERATOR_BASE_URL}/api/settings`);
             if (res.ok) {
                 const data = await res.json();
                 setSettings(data.data || data);
@@ -46,7 +47,7 @@ export function SettingsTab() {
     const saveSettings = async () => {
         try {
             setError(null);
-            const res = await fetch("http://localhost:8000/api/settings", {
+            const res = await fetch(`${OPERATOR_BASE_URL}/api/settings`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(settings),

@@ -1,3 +1,4 @@
+import { OPERATOR_BASE_URL } from "../config";
 import React, { useState, useEffect } from "react";
 
 interface Percentages {
@@ -25,14 +26,14 @@ export function MetricsTab() {
             setError(null);
 
             // Fetch percentages
-            const percRes = await fetch("http://localhost:8000/api/percentages");
+            const percRes = await fetch(`${OPERATOR_BASE_URL}/api/percentages`);
             if (percRes.ok) {
                 const data = await percRes.json();
                 setPercentages(data.data || data);
             }
 
             // Fetch scorecard
-            const scoreRes = await fetch("http://localhost:8000/api/scorecard");
+            const scoreRes = await fetch(`${OPERATOR_BASE_URL}/api/scorecard`);
             if (scoreRes.ok) {
                 const data = await scoreRes.json();
                 setScorecard(data.data || data);

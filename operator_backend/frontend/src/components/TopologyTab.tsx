@@ -1,3 +1,4 @@
+import { OPERATOR_BASE_URL } from "../config";
 import React, { useState, useEffect } from "react";
 
 interface Node {
@@ -37,7 +38,7 @@ export function TopologyTab() {
     const loadTopology = async () => {
         try {
             setError(null);
-            const res = await fetch("http://localhost:8000/api/topology");
+            const res = await fetch(`${OPERATOR_BASE_URL}/api/topology`);
             if (res.ok) {
                 const data = await res.json();
                 setTopology(data.data || data);

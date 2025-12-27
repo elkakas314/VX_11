@@ -1,3 +1,4 @@
+import { OPERATOR_BASE_URL } from "../config";
 import React, { useState, useEffect } from "react";
 
 interface Node {
@@ -31,7 +32,7 @@ export function MapTab() {
         try {
             // SINGLE ENTRYPOINT: All requests via tentaculo_link:8000 (proxy to operator:8011 internally)
             // Spec v7.0.1 invariant: No direct access to operator_backend:8011
-            const res = await fetch("http://localhost:8000/api/map", {
+            const res = await fetch(`${OPERATOR_BASE_URL}/api/map`, {
                 headers: { "X-VX11-Token": "vx11-local-token" },
             });
 

@@ -1,3 +1,4 @@
+import { OPERATOR_BASE_URL } from "../config";
 import React, { useState, useEffect } from "react";
 
 interface HealthStatus {
@@ -42,20 +43,20 @@ export function OverviewTab() {
             setError(null);
 
             // Fetch status
-            const statusRes = await fetch("http://localhost:8000/api/status");
+            const statusRes = await fetch(`${OPERATOR_BASE_URL}/api/status`);
             if (statusRes.ok) {
                 setStatus(await statusRes.json());
             }
 
             // Fetch percentages
-            const percRes = await fetch("http://localhost:8000/api/percentages");
+            const percRes = await fetch(`${OPERATOR_BASE_URL}/api/percentages`);
             if (percRes.ok) {
                 const data = await percRes.json();
                 setPercentages(data.data || data);
             }
 
             // Fetch scorecard
-            const scoreRes = await fetch("http://localhost:8000/api/scorecard");
+            const scoreRes = await fetch(`${OPERATOR_BASE_URL}/api/scorecard`);
             if (scoreRes.ok) {
                 const data = await scoreRes.json();
                 setScorecard(data.data || data);
@@ -192,7 +193,7 @@ export function OverviewTab() {
                 <button
                     onClick={() => {
                         const link = document.createElement("a");
-                        link.href = "http://localhost:8000/api/audit/runs";
+                        link.href = `${OPERATOR_BASE_URL}/api/audit/runs`;
                         link.target = "_blank";
                         link.click();
                     }}
