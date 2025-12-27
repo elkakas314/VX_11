@@ -1,6 +1,6 @@
 # VX11 Database Map (generated)
 
-Generated at: 2025-12-26T21:45:59.738593Z
+Generated at: 2025-12-27T01:33:58.997430Z
 
 Database file: data/runtime/vx11.db
 
@@ -506,7 +506,7 @@ Database file: data/runtime/vx11.db
 ### intents_log — ACTIVE
 
 - Module: madre
-- Rows: 55
+- Rows: 52
 - Columns:
   - id (INTEGER) PK NOT NULL
   - source (VARCHAR(64)) NOT NULL
@@ -894,7 +894,7 @@ Database file: data/runtime/vx11.db
 ### scheduler_history — ACTIVE
 
 - Module: madre
-- Rows: 15911
+- Rows: 13337
 - Columns:
   - id (INTEGER) PK NOT NULL
   - timestamp (DATETIME)

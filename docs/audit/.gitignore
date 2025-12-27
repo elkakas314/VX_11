@@ -1,0 +1,22 @@
+# Archive directory
+
+# Do not track compressed archives or backups
+*.tar.gz
+*.tar.zst
+_archive/
+_archive/**/*.tar.gz
+
+# Legacy archived dirs
+archived_**/
+20251*T*Z_*/
+archived_bak_*/
+
+# EXCEPTIONS: Core files must be preserved
+!DB_SCHEMA_v7_FINAL.json
+!DB_MAP_v7_FINAL.md
+!DB_MAP_v7_META.txt
+!SCORECARD.json
+!CLEANUP_EXCLUDES_CORE.txt
+!INDICE_GLOBAL.md
+!_archive/.gitkeep
+!.gitignore
