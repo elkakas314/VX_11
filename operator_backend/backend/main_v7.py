@@ -205,30 +205,13 @@ app.include_router(operator_router)
 
 
 # ============ HEALTH ============
-
-
-@app.get("/health")
-async def health():
-    """Simple health check."""
-    return {
-        "status": "ok",
-        "module": "operator",
-        "version": "7.0",
-    }
-
-
-@app.get("/health")
-async def health():
-    """Simple health check."""
-    return {
-        "status": "ok",
-        "module": "operator",
-        "version": "7.0",
-    }
-
-
-# NOTE: /api/status moved to canonical_api router (canonical_api.py)
-# Keeping @app.get("/health") only for direct health checks
+# NOTE: /health and /api/status are now in canonical_api router (canonical_api.py)
+# This module includes canonical_api_router above, so these are available at:
+#   GET /health
+#   GET /api/status
+#   GET /api/map
+#   POST /api/chat
+#   etc.
 
 
 class IntentRequest(BaseModel):
@@ -280,102 +263,17 @@ async def intent_handler(
     raise HTTPException(status_code=400, detail=f"unknown target: {req.target}")
 
 
-# ============ CHAT ENDPOINT (FRONTEND API) ============
-
-
-@app.post("/api/chat")
-async def api_chat(
-    req: ChatRequest,
-    _: bool = Depends(token_guard),
-    __: Dict = Depends(policy_guard),
-):
-    """
-    Chat API endpoint for frontend.
-    Simple proxy to /operator/chat to allow frontend direct calls.
-    """
-    # Forward to /operator/chat handler
-    return await operator_chat(req, _, __)
-
-
-# ============ CHAT ENDPOINT (GATEWAY PROTOCOL) ============
-
-
-@app.post("/operator/chat")
-async def operator_chat(
-    req: ChatRequest,
-    _: bool = Depends(token_guard),
-    __: Dict = Depends(policy_guard),
-):
-    """Chat endpoint with BD persistence + Tentáculo Link integration."""
-    session_id = req.session_id or str(uuid.uuid4())
-    user_id = req.user_id or "local"
-
-    db = None
-    try:
-        db = get_session("vx11")
-
-        # Create/get session
-        session = db.query(OperatorSession).filter_by(session_id=session_id).first()
-        if not session:
-            session = OperatorSession(
-                session_id=session_id,
-                user_id=user_id,
-                source="api",
-            )
-            db.add(session)
-            db.commit()
-
-        # Store user message
-        user_msg = OperatorMessage(
-            session_id=session_id,
-            role="user",
-            content=req.message,
-            message_metadata=json.dumps(req.metadata or {}),
-        )
-        db.add(user_msg)
-        db.commit()
-
-        # Query Tentáculo Link for canonical routing to Switch
-        tentaculo_client = TentaculoLinkClient()
-        metadata = dict(req.metadata or {})
-        if req.context_summary:
-            metadata["context_summary"] = req.context_summary
-
-        switch_result = await tentaculo_client.query_chat(
-            message=req.message,
-            session_id=session_id,
-            user_id=user_id,
-            metadata=metadata,
-        )
-
-        response_text = (
-            switch_result.get("response")
-            or switch_result.get("message")
-            or f"Received: {req.message}"
-        )
-
-        # Store assistant response
-        assistant_msg = OperatorMessage(
-            session_id=session_id,
-            role="assistant",
-            content=response_text,
-        )
-        db.add(assistant_msg)
-        db.commit()
-
-        write_log("operator_backend", f"chat:{session_id}:success")
-
-        return ChatResponse(
-            session_id=session_id,
-            response=response_text,
-        )
-
-    except Exception as exc:
-        write_log("operator_backend", f"chat_error:{exc}", level="ERROR")
-        raise HTTPException(status_code=500, detail=str(exc))
-    finally:
-        if db:
-            db.close()
+# ============ CHAT ENDPOINT (CANONICAL) ============
+# NOTE: /api/chat is now canonical in routers/canonical_api.py
+# This is maintained here for backwards compatibility documentation only.
+#
+# The canonical implementation in canonical_api.py handles:
+#   - Session persistence in BD
+#   - Tentáculo Link integration for tentaculo_link proxy
+#   - Error handling and unified response format
+#   - Rate limiting and auth policy checks
+#
+# This router is included above via app.include_router(canonical_api_router)
 
 
 # ============ SESSION ENDPOINT ============

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import styles from "./MapTab.module.css";
 
 interface Node {
     id: string;
@@ -173,7 +172,7 @@ export function MapTab() {
                 <h3 className="font-semibold mb-4">Architecture Diagram</h3>
                 <svg
                     viewBox="0 0 800 300"
-                    className={`w-full bg-slate-700/30 rounded ${styles.svgMaxHeight}`}
+                    className="w-full bg-slate-700/30 rounded max-h-96"
                 >
                     {/* Nodes */}
                     {mapData.nodes.map((node, idx) => {

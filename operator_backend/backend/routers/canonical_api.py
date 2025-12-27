@@ -295,6 +295,24 @@ async def tentaculo_power_action(path: str) -> Dict[str, Any]:
         return resp.json()
 
 
+# ============ HEALTH ENDPOINT ============
+
+
+@router.get("/health")
+async def health():
+    """
+    Health check endpoint (no auth required, always 200).
+
+    Returns basic module status for liveness/readiness probes.
+    """
+    return {
+        "status": "ok",
+        "module": "operator",
+        "version": "7.0",
+        "timestamp": datetime.utcnow().isoformat() + "Z",
+    }
+
+
 # ============ AUTH ENDPOINTS ============
 
 
@@ -1355,3 +1373,102 @@ async def get_job(
         ),
         "progress": progress,
     }
+
+
+# ============ METRICS ENDPOINTS ============
+
+
+@router.get("/api/percentages")
+async def get_percentages(
+    _: Dict = Depends(policy_check),
+    ctx: Dict = Depends(request_context),
+):
+    """
+    Get current percentages metrics from docs/audit/PERCENTAGES.json.
+
+    Returns: normalized metrics JSON or 404 if file not found.
+    """
+    import json as json_lib
+    import os
+    from pathlib import Path
+
+    try:
+        # Default path: docs/audit/PERCENTAGES.json
+        percentages_path = Path(
+            os.getenv("VX11_PERCENTAGES_PATH", "docs/audit/PERCENTAGES.json")
+        )
+
+        if not percentages_path.exists():
+            return JSONResponse(
+                status_code=404,
+                content={"ok": False, "detail": "PERCENTAGES.json not found"},
+            )
+
+        with open(percentages_path, "r") as f:
+            data = json_lib.load(f)
+
+        write_log(
+            "operator_backend",
+            f"percentages:retrieved:{ctx.get('request_id', 'unknown')}",
+        )
+
+        return {
+            "ok": True,
+            "data": data,
+            "timestamp": data.get("generated_at", ""),
+        }
+
+    except Exception as exc:
+        write_log("operator_backend", f"percentages:error:{exc}", level="ERROR")
+        return JSONResponse(
+            status_code=500,
+            content={"ok": False, "detail": "Error reading PERCENTAGES"},
+        )
+
+
+@router.get("/api/scorecard")
+async def get_scorecard(
+    _: Dict = Depends(policy_check),
+    ctx: Dict = Depends(request_context),
+):
+    """
+    Get current scorecard metrics from docs/audit/SCORECARD.json.
+
+    Returns: normalized scorecard JSON or 404 if file not found.
+    """
+    import json as json_lib
+    import os
+    from pathlib import Path
+
+    try:
+        # Default path: docs/audit/SCORECARD.json
+        scorecard_path = Path(
+            os.getenv("VX11_SCORECARD_PATH", "docs/audit/SCORECARD.json")
+        )
+
+        if not scorecard_path.exists():
+            return JSONResponse(
+                status_code=404,
+                content={"ok": False, "detail": "SCORECARD.json not found"},
+            )
+
+        with open(scorecard_path, "r") as f:
+            data = json_lib.load(f)
+
+        write_log(
+            "operator_backend",
+            f"scorecard:retrieved:{ctx.get('request_id', 'unknown')}",
+        )
+
+        return {
+            "ok": True,
+            "data": data,
+            "timestamp": data.get("generated_ts", ""),
+        }
+
+    except Exception as exc:
+        write_log("operator_backend", f"scorecard:error:{exc}", level="ERROR")
+        return JSONResponse(
+            status_code=500,
+            content={"ok": False, "detail": "Error reading SCORECARD"},
+        )
