@@ -99,7 +99,12 @@ class ModuleClient:
             await self.client.aclose()
             self.client = None
 
-    async def get(self, path: str, timeout: Optional[float] = None) -> Dict[str, Any]:
+    async def get(
+        self,
+        path: str,
+        timeout: Optional[float] = None,
+        extra_headers: Optional[Dict[str, str]] = None,
+    ) -> Dict[str, Any]:
         """GET request with circuit breaker."""
         if not self.circuit_breaker.should_attempt_request():
             write_log("tentaculo_link", f"cb_open:{self.module_name}:{path}")
@@ -113,7 +118,13 @@ class ModuleClient:
             if not self.client:
                 await self.startup()
             url = f"{self.base_url}{path}"
-            resp = await self.client.get(url, timeout=timeout or self.timeout)
+            # Merge extra_headers with client default headers
+            headers = dict(self.client.headers)
+            if extra_headers:
+                headers.update(extra_headers)
+            resp = await self.client.get(
+                url, timeout=timeout or self.timeout, headers=headers
+            )
             if resp.status_code < 300:
                 self.circuit_breaker.record_success()
                 return resp.json()
@@ -134,7 +145,11 @@ class ModuleClient:
             }
 
     async def post(
-        self, path: str, payload: Dict[str, Any], timeout: Optional[float] = None
+        self,
+        path: str,
+        payload: Dict[str, Any],
+        timeout: Optional[float] = None,
+        extra_headers: Optional[Dict[str, str]] = None,
     ) -> Dict[str, Any]:
         """POST request with circuit breaker."""
         if not self.circuit_breaker.should_attempt_request():
@@ -149,8 +164,12 @@ class ModuleClient:
             if not self.client:
                 await self.startup()
             url = f"{self.base_url}{path}"
+            # Merge extra_headers with client default headers
+            headers = dict(self.client.headers)
+            if extra_headers:
+                headers.update(extra_headers)
             resp = await self.client.post(
-                url, json=payload, timeout=timeout or self.timeout
+                url, json=payload, timeout=timeout or self.timeout, headers=headers
             )
             if resp.status_code < 300:
                 self.circuit_breaker.record_success()

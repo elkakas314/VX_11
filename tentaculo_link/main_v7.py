@@ -1887,6 +1887,67 @@ async def auth_logout(_: bool = Depends(token_guard)):
     """Proxy logout to Operator Backend (requires token)."""
     clients = get_clients()
     operator = clients.get_client("operator-backend")
+    if not operator:
+        raise HTTPException(status_code=503, detail="operator_backend_unavailable")
+
+    result = await operator.post("/auth/logout", payload={})
+    write_log("tentaculo_link", "auth_logout")
+    return result
+
+
+# ============ GENERIC API PROXY (forward all /operator/api/* to operator-backend) ============
+
+
+@app.api_route("/operator/api/{path:path}", methods=["GET", "POST", "PUT", "DELETE"])
+async def operator_api_proxy(path: str, request: Request):
+    """
+    Generic proxy for /operator/api/* endpoints.
+    Forwards to operator-backend:8011/api/{path} with all method types.
+    Respects headers, body, query params. Passes Authorization header if present.
+    Auth is optional (backend handles auth_mode policy).
+    """
+    clients = get_clients()
+    operator = clients.get_client("operator-backend")
+    if not operator:
+        raise HTTPException(status_code=503, detail="operator_backend_unavailable")
+
+    # Build backend path
+    backend_path = f"/api/{path}"
+    if request.query_params:
+        query_string = "&".join(f"{k}={v}" for k, v in request.query_params.items())
+        backend_path = f"{backend_path}?{query_string}"
+
+    # Extract Authorization header from request (optional, pass-through)
+    auth_header = request.headers.get("authorization")
+    extra_headers = {}
+    if auth_header:
+        extra_headers["authorization"] = auth_header
+
+    try:
+        method = request.method.lower()
+
+        if method == "get":
+            result = await operator.get(backend_path, extra_headers=extra_headers)
+        elif method in ["post", "put"]:
+            body = await request.json()
+            result = await operator.post(
+                backend_path, payload=body, extra_headers=extra_headers
+            )
+        elif method == "delete":
+            result = await operator.post(
+                f"{backend_path}", payload={}, extra_headers=extra_headers
+            )
+        else:
+            raise HTTPException(status_code=405, detail="method_not_allowed")
+
+        write_log("tentaculo_link", f"operator_api_proxy:{method}:{path}")
+        return result
+    except Exception as exc:
+        write_log("tentaculo_link", f"operator_api_proxy_error:{exc}", level="WARNING")
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+if __name__ == "__main__":
     import uvicorn
 
     uvicorn.run(app, host="0.0.0.0", port=8000)
