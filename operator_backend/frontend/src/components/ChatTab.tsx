@@ -49,6 +49,13 @@ export const ChatTab: React.FC = () => {
 
     const handleSend = () => send();
 
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            handleSend();
+        }
+    };
+
     return (
         <div className="h-full flex flex-col">
             {/* Degraded Mode Banner */}
@@ -88,6 +95,9 @@ export const ChatTab: React.FC = () => {
                 ) : (
                     messages.map((msg, idx) => (
                         <div key={idx} className="flex flex-col space-y-2">
+                            <div className="text-xs text-slate-500">
+                                {msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString() : ""}
+                            </div>
                             <div
                                 className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                             >
@@ -109,8 +119,8 @@ export const ChatTab: React.FC = () => {
                                     )}
                                     {msg.status && (
                                         <span className={`px-2 py-1 rounded border ${msg.status === "degraded" ? "bg-yellow-900 text-yellow-300 border-yellow-700" :
-                                                msg.status === "error" ? "bg-red-900 text-red-300 border-red-700" :
-                                                    "bg-green-900 text-green-300 border-green-700"
+                                            msg.status === "error" ? "bg-red-900 text-red-300 border-red-700" :
+                                                "bg-green-900 text-green-300 border-green-700"
                                             }`}>
                                             Status: {msg.status}
                                         </span>
@@ -135,8 +145,8 @@ export const ChatTab: React.FC = () => {
                     type="text"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
-                    onKeyPress={(e) => e.key === "Enter" && handleSend()}
-                    placeholder="Type a message (max 4KB)..."
+                    onKeyDown={handleKeyDown}
+                    placeholder="Type a message (Ctrl+Enter to send, max 4KB)..."
                     disabled={loading}
                     className="flex-1 bg-slate-700 border border-slate-600 rounded px-4 py-2 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
                 />

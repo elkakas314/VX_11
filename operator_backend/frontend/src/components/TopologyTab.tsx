@@ -28,10 +28,11 @@ export function TopologyTab() {
     const [topology, setTopology] = useState<Topology | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [acting, setActing] = useState<string | null>(null);
 
     useEffect(() => {
         loadTopology();
-        const interval = setInterval(loadTopology, 15000); // Refresh every 15s
+        const interval = setInterval(loadTopology, 15000);
         return () => clearInterval(interval);
     }, []);
 
@@ -49,6 +50,23 @@ export function TopologyTab() {
         } catch (err) {
             setError(err instanceof Error ? err.message : "Failed to load topology");
             setLoading(false);
+        }
+    };
+
+    const handleNodeAction = async (nodeId: string, action: "health" | "logs" | "restart") => {
+        setActing(`${nodeId}_${action}`);
+        try {
+            // Call endpoint (stubbed with alert for now)
+            const endpoint = action === "health" ? `/api/power/status` : action === "logs" ? `/api/logs/${nodeId}` : `/api/module/${nodeId}/restart`;
+            console.log(`Action: ${action} on ${nodeId} (endpoint: ${endpoint})`);
+            alert(`✓ ${action.toUpperCase()} initiated for ${nodeId}`);
+            // Auto-refresh topology after action
+            loadTopology();
+        } catch (err) {
+            console.error(err);
+            alert(`❌ Action failed: ${err}`);
+        } finally {
+            setActing(null);
         }
     };
 
@@ -131,26 +149,29 @@ export function TopologyTab() {
                             {/* Action Buttons */}
                             <div className="flex gap-2 pt-2 border-t border-slate-700/50 flex-wrap">
                                 <button
-                                    onClick={() => alert(`Health check for ${node.id}`)}
-                                    className="text-xs px-2 py-1 bg-blue-700/50 hover:bg-blue-600 rounded border border-blue-600 text-blue-200 transition-colors"
+                                    onClick={() => handleNodeAction(node.id, "health")}
+                                    disabled={acting === `${node.id}_health`}
+                                    className="text-xs px-2 py-1 bg-blue-700/50 hover:bg-blue-600 rounded border border-blue-600 text-blue-200 transition-colors disabled:opacity-50"
                                     title="Run health check"
                                 >
-                                    ♥ Health
+                                    {acting === `${node.id}_health` ? "..." : "♥"} Health
                                 </button>
                                 <button
-                                    onClick={() => alert(`Logs for ${node.id}`)}
-                                    className="text-xs px-2 py-1 bg-slate-700/50 hover:bg-slate-600 rounded border border-slate-600 text-slate-200 transition-colors"
+                                    onClick={() => handleNodeAction(node.id, "logs")}
+                                    disabled={acting === `${node.id}_logs`}
+                                    className="text-xs px-2 py-1 bg-slate-700/50 hover:bg-slate-600 rounded border border-slate-600 text-slate-200 transition-colors disabled:opacity-50"
                                     title="View logs"
                                 >
-                                    📋 Logs
+                                    {acting === `${node.id}_logs` ? "..." : "📋"} Logs
                                 </button>
                                 {node.status !== "dormant" && node.status !== "window-only" && (
                                     <button
-                                        onClick={() => alert(`Restart ${node.id}`)}
-                                        className="text-xs px-2 py-1 bg-yellow-700/50 hover:bg-yellow-600 rounded border border-yellow-600 text-yellow-200 transition-colors"
+                                        onClick={() => handleNodeAction(node.id, "restart")}
+                                        disabled={acting === `${node.id}_restart`}
+                                        className="text-xs px-2 py-1 bg-yellow-700/50 hover:bg-yellow-600 rounded border border-yellow-600 text-yellow-200 transition-colors disabled:opacity-50"
                                         title="Restart service"
                                     >
-                                        🔄 Restart
+                                        {acting === `${node.id}_restart` ? "..." : "🔄"} Restart
                                     </button>
                                 )}
                             </div>
