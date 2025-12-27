@@ -1,6 +1,6 @@
 # VX11 Database Map (generated)
 
-Generated at: 2025-12-27T16:35:03.824183Z
+Generated at: 2025-12-27T19:06:31.514399Z
 
 Database file: data/runtime/vx11.db
 
@@ -654,6 +654,21 @@ Database file: data/runtime/vx11.db
   - notes (TEXT)
   - report_path (TEXT)
 
+### operator_audit_runs_cache — EMPTY (READY)
+
+- Module: operator
+- Rows: 0
+- Columns:
+  - run_id (TEXT) PK
+  - run_type (TEXT) NOT NULL
+  - status (TEXT) NOT NULL
+  - started_at (DATETIME)
+  - completed_at (DATETIME)
+  - result_json (TEXT)
+  - error_msg (TEXT)
+  - created_at (DATETIME)
+  - updated_at (DATETIME)
+
 ### operator_browser_task — ACTIVE
 
 - Module: operator
@@ -1049,7 +1064,7 @@ Database file: data/runtime/vx11.db
 ### task_queue — ACTIVE
 
 - Module: madre
-- Rows: 128
+- Rows: 134
 - Columns:
   - id (INTEGER) PK NOT NULL
   - source (VARCHAR(64)) NOT NULL

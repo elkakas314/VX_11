@@ -1,5 +1,5 @@
 {
-  "generated_at": "2025-12-27T16:35:03.687749Z",
+  "generated_at": "2025-12-27T19:06:31.432931Z",
   "database": "data/runtime/vx11.db",
   "tables": [
     {
@@ -3610,6 +3610,87 @@
       "module": "madre"
     },
     {
+      "table": "operator_audit_runs_cache",
+      "columns": [
+        {
+          "cid": 0,
+          "name": "run_id",
+          "type": "TEXT",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": true
+        },
+        {
+          "cid": 1,
+          "name": "run_type",
+          "type": "TEXT",
+          "notnull": true,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 2,
+          "name": "status",
+          "type": "TEXT",
+          "notnull": true,
+          "dflt_value": "'pending'",
+          "pk": false
+        },
+        {
+          "cid": 3,
+          "name": "started_at",
+          "type": "DATETIME",
+          "notnull": false,
+          "dflt_value": "CURRENT_TIMESTAMP",
+          "pk": false
+        },
+        {
+          "cid": 4,
+          "name": "completed_at",
+          "type": "DATETIME",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 5,
+          "name": "result_json",
+          "type": "TEXT",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 6,
+          "name": "error_msg",
+          "type": "TEXT",
+          "notnull": false,
+          "dflt_value": null,
+          "pk": false
+        },
+        {
+          "cid": 7,
+          "name": "created_at",
+          "type": "DATETIME",
+          "notnull": false,
+          "dflt_value": "CURRENT_TIMESTAMP",
+          "pk": false
+        },
+        {
+          "cid": 8,
+          "name": "updated_at",
+          "type": "DATETIME",
+          "notnull": false,
+          "dflt_value": "CURRENT_TIMESTAMP",
+          "pk": false
+        }
+      ],
+      "foreign_keys": [],
+      "rows": 0,
+      "status": "EMPTY (READY)",
+      "module": "operator"
+    },
+    {
       "table": "operator_browser_task",
       "columns": [
         {
@@ -5785,7 +5866,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 128,
+      "rows": 134,
       "status": "ACTIVE",
       "module": "madre"
     },

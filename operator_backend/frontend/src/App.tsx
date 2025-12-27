@@ -79,6 +79,7 @@ export default function App() {
     { id: "topology", label: "Topology", icon: "🗺️" },
     { id: "hormiguero", label: "Hormiguero", icon: "🐜" },
     { id: "jobs", label: "Jobs", icon: "⚡" },
+    { id: "events", label: "Events", icon: "📡" },
     { id: "audit", label: "Audit", icon: "📋" },
     { id: "explorer", label: "Explorer", icon: "🔍" },
     { id: "settings", label: "Settings", icon: "⚙️" },
@@ -178,6 +179,7 @@ export default function App() {
               {activeTab === "topology" && <TopologyTab />}
               {activeTab === "hormiguero" && <ModulesTab />}
               {activeTab === "jobs" && <JobsTab />}
+              {activeTab === "events" && <EventsTab />}
               {activeTab === "audit" && <AuditRunsTab />}
               {activeTab === "explorer" && <MapTab />}
               {activeTab === "settings" && <SettingsTab />}

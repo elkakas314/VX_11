@@ -314,6 +314,75 @@ async def health():
     }
 
 
+# ============ OBSERVE ENDPOINT (NO AUTH) ============
+
+
+@router.get("/operator/observe")
+async def observe():
+    """
+    Backend observe endpoint (no auth required, always 200).
+
+    Used by frontend to check if operator backend is operational.
+    Returns health status + timestamp.
+
+    Response (200):
+      {
+        "status": "operational|degraded",
+        "health": {
+          "db": "ok|fail",
+          "auth": "ok|fail",
+          "timestamp": "ISO8601Z"
+        },
+        "timestamp": "ISO8601Z"
+      }
+    """
+    try:
+        health_status = "operational"
+        db_status = "ok"
+        auth_status = "ok"
+
+        # Quick DB check
+        try:
+            from config.db_schema import get_session
+
+            sess = next(get_session())
+            sess.close()
+        except Exception as e:
+            db_status = "fail"
+            health_status = "degraded"
+            write_log(f"operator.observe: db check failed: {e}", "warning")
+
+        # Auth check (token secret loadable)
+        try:
+            if not OPERATOR_TOKEN_SECRET or len(OPERATOR_TOKEN_SECRET) < 8:
+                auth_status = "fail"
+                health_status = "degraded"
+        except Exception as e:
+            auth_status = "fail"
+            health_status = "degraded"
+
+        return {
+            "status": health_status,
+            "health": {
+                "db": db_status,
+                "auth": auth_status,
+                "timestamp": datetime.utcnow().isoformat() + "Z",
+            },
+            "timestamp": datetime.utcnow().isoformat() + "Z",
+        }
+    except Exception as e:
+        write_log(f"operator.observe: error: {e}", "error")
+        return {
+            "status": "degraded",
+            "health": {
+                "db": "unknown",
+                "auth": "unknown",
+                "timestamp": datetime.utcnow().isoformat() + "Z",
+            },
+            "timestamp": datetime.utcnow().isoformat() + "Z",
+        }
+
+
 # ============ AUTH ENDPOINTS ============
 
 
