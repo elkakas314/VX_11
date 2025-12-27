@@ -91,6 +91,7 @@ export function MetricsTab() {
         // Default fallback
         return "text-slate-300";
     };
+
     const getProgressBarColor = (value: number): string => {
         if (value >= 90) return "bg-green-600";
         if (value >= 70) return "bg-yellow-600";
@@ -100,6 +101,7 @@ export function MetricsTab() {
     const getRowBgColor = (idx: number): string => {
         return idx % 2 === 0 ? "bg-slate-800" : "bg-slate-800/50";
     };
+
     return (
         <div className="p-6 space-y-6">
             {/* Header */}
@@ -125,10 +127,8 @@ export function MetricsTab() {
                                     </div>
                                     {typeof value === "number" && key.includes("pct") && (
                                         <div className="mt-2 bg-slate-900 rounded h-1 w-full overflow-hidden">
-                                            {/* webhint-disable no-inline-styles */}
                                             <div
                                                 className={`h-full transition-all ${getProgressBarColor(value)}`}
-                                                // eslint-disable-next-line react/style-prop-object
                                                 style={{ width: `${Math.min(Math.max(value, 0), 100)}%` }}
                                             />
                                         </div>
