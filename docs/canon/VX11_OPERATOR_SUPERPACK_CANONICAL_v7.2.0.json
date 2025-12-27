@@ -1,0 +1,602 @@
+{
+    "metadata": {
+        "name": "VX11_OPERATOR_SUPERPACK_CANONICAL",
+        "version": "7.2.0",
+        "updated_at": "2025-12-27T15:59:00Z",
+        "author": "vx11-copilot-agent",
+        "description": "Canonical specification for VX11 Operator (Frontend + Backend) v7.2.0 — SOLO_MADRE enforced, E2E window real, no-bypass permanent, responses canonical"
+    },
+    "v7_2_0_changes": [
+        "SOLO_MADRE is HARD DEFAULT (operator services ALWAYS OFF unless explicitly activated)",
+        "E2E window is NOW REAL (docker compose --profile operator up; curl via 8000; docker compose down; verify SOLO_MADRE restored)",
+        "Responses ALWAYS include: request_id, route_taken, degraded, (errors array if applicable)",
+        "Operator DOWN is not an ERROR (it's OFF_BY_POLICY in SOLO_MADRE)",
+        "tentaculo_link proxy MANDATORY for all frontend calls (no fallback to direct ports)",
+        "No-bypass verification is STATIC TEST (must pass in CI: grep for :8011/:8001/:8002 in frontend/src)"
+    ],
+    "invariants": {
+        "single_entrypoint": {
+            "description": "Client (browser/frontend) ONLY communicates via tentaculo_link:8000. NO EXCEPTIONS.",
+            "rules": [
+                "Frontend baseUrl MUST default to http://localhost:8000 (tentaculo_link proxy)",
+                "ZERO direct calls to operator_backend:8011, madre:8001, or other internal ports from client",
+                "tentaculo_link proxies /api/*, /operator/*, and aggregated endpoints to operator_backend",
+                "If tentaculo_link unavailable: frontend displays degraded banner + limited UI",
+                "Static test enforces: NO grep matches for :8011, :8001, :8002 in operator_backend/frontend/src/**"
+            ]
+        },
+        "no_bypass_internal": {
+            "description": "operator_backend does NOT call madre/switch/spawner directly by hardcoded port. Single upstream: tentaculo_link.",
+            "rules": [
+                "All cross-module communication goes through tentaculo_link (proxy + circuit breaker)",
+                "Environment variables for madre_url, switch_url, etc. BUT proxy via tentaculo_link only",
+                "If tentaculo_link unreachable: return degraded=true + limited response (no fallback to madre direct)",
+                "Audit trail: route_taken field records actual path (operator_backend|tentaculo_link|degraded)",
+                "Static test enforces: NO grep matches for http://madre:8001, http://switch:8002 in operator_backend/backend/**"
+            ]
+        },
+        "runtime_default_solo_madre": {
+            "description": "SOLO_MADRE is the DEFAULT and ENFORCED state. Operator is OFF unless explicitly activated.",
+            "rules": [
+                "Default docker-compose.yml: ONLY madre, redis, tentaculo_link (NO operator-backend, NO operator-frontend)",
+                "Operator services REQUIRE explicit profile activation: docker compose --profile operator up -d",
+                "After E2E window: docker compose --profile operator down; verify SOLO_MADRE state (madre + tentaculo_link running, operator DOWN)",
+                "No persistent operator services in production; testing only",
+                "If operator_backend is DOWN in SOLO_MADRE: requests return degraded=true + OFF_BY_POLICY (not an error)"
+            ]
+        },
+        "ui_safety": {
+            "description": "Frontend UI is observational/safe. No direct shell, SQL, or FS mutation.",
+            "rules": [
+                "NO shell execution endpoint exposed (no /exec, /run_command, etc.)",
+                "Explorer DB: presets ONLY on operator_* and system-readonly tables (no SQL textbox)",
+                "FS Explorer: read-only, whitelisted paths (/docs/audit, /data/runtime, /logs). No write.",
+                "All mutations (settings, module restart) go through operator_backend with audit trail",
+                "Frontend validates all user inputs; backend enforces schema + auth"
+            ]
+        },
+        "db_ownership": {
+            "description": "operator_backend EXCLUSIVELY owns operator_* tables. No direct access to other module schemas.",
+            "rules": [
+                "Read/write: operator_sessions, operator_messages, operator_events, operator_settings, operator_audit_runs_cache",
+                "Read-only (via presets): system tables (madre_*, spawner_*, etc.) accessed via aggregated endpoints",
+                "Cross-module data: fetch via tentaculo_link aggregated endpoints (e.g., /api/modules returns madre state)",
+                "No direct ATTACH DATABASE or cross-schema JOINs from operator code"
+            ]
+        },
+        "secrets_no_hardcode": {
+            "description": "Secrets NEVER hardcoded in source; ALWAYS env or runtime config.",
+            "rules": [
+                "OPERATOR_ADMIN_PASSWORD, OPERATOR_TOKEN_SECRET, VX11_TENTACULO_LINK_TOKEN: via tokens.env (gitignored)",
+                "Default dev passwords: admin/admin (dev-only, disable in production via config)",
+                "tokens.env and tokens.env.master: gitignored; never checked in",
+                "CI/CD secrets: injected at runtime (e.g., CI=1 loads from env, not .env file)"
+            ]
+        },
+        "e2e_window_real": {
+            "description": "E2E window is REAL, not mocked. Services start/stop, curl via 8000.",
+            "rules": [
+                "Activation: docker compose --profile operator up -d operator-backend operator-frontend",
+                "Wait: sleep 2 for services to be ready",
+                "Test: curl http://localhost:8000/operator/api/status | jq .data.status (should be 'operational' or 'degraded', not offline)",
+                "Deactivation: docker compose --profile operator down",
+                "Verify: docker ps confirms ONLY madre, redis, tentaculo_link running",
+                "Post-window test must show degraded=true or OFF_BY_POLICY for operator endpoints"
+            ]
+        }
+    },
+    "architecture": {
+        "components": {
+            "frontend": {
+                "path": "operator_backend/frontend",
+                "framework": "React 18 + TypeScript + Vite + Tailwind CSS",
+                "baseUrl": "http://localhost:8000 (or relative URL)",
+                "entrypoint": "src/App.tsx",
+                "build_output": "dist/ (static)",
+                "tabs_canonical": [
+                    "Overview — System status, health, mode (low_power|operative_core)",
+                    "Chat — Conversational interface with route_taken + correlation_id per message",
+                    "Topology — Architecture diagram (nodes + edges)",
+                    "Hormiguero — Module browser (read-only)",
+                    "Jobs — Async job tracking, audit logs",
+                    "Audit — Audit run browser + download ZIPs",
+                    "Explorer — Safe FS (whitelist) + DB (presets only) read-only",
+                    "Settings — UI config (theme, polling, etc.)"
+                ],
+                "ux_requirements": {
+                    "degraded_banner": "Show prominent banner when degraded=true (yellow bg, 'Degraded Mode' label)",
+                    "per_message_chips": "Chat: display route_taken + correlation_id below each message",
+                    "keyboard_shortcuts": {
+                        "Ctrl+Enter": "Send message (chat tab)",
+                        "Ctrl+K": "Command palette (if implemented)",
+                        "Esc": "Close modal / clear search",
+                        "Alt+1/2/3": "Focus left/center/right panel (if applicable)"
+                    },
+                    "no_fake_data": "If endpoint fails or degraded: empty state + error message (no placeholder data)"
+                }
+            },
+            "backend": {
+                "path": "operator_backend/backend",
+                "framework": "FastAPI 0.100+",
+                "listen_port": 8011,
+                "upstream": "tentaculo_link:8000 (if calling other modules)",
+                "routers": [
+                    "routers/canonical_api.py (main P0 endpoints: auth, status, chat, topology, audit, explorer, settings)",
+                    "routes_operator.py (legacy; migrating to canonical)",
+                    "shub_api.py (shubniggurath aggregated endpoint)"
+                ],
+                "database": {
+                    "engine": "SQLite (data/runtime/vx11.db)",
+                    "tables_owned": [
+                        "operator_sessions (UUID pk, user_id, created_at, updated_at)",
+                        "operator_messages (UUID pk, session_id fk, user_id, message, route_taken, correlation_id, timestamp)",
+                        "operator_events (UUID pk, event_type, data, timestamp)",
+                        "operator_settings (key VARCHAR pk, value JSON)",
+                        "operator_audit_runs_cache (run_id UUID pk, timestamp, status, summary)"
+                    ]
+                },
+                "response_schema": {
+                    "structure": "{ ok: bool, request_id: UUID, route_taken: string, degraded: bool, errors?: array, data?: object }",
+                    "route_taken_values": [
+                        "operator_backend (normal path)",
+                        "tentaculo_link (proxied from operator_backend)",
+                        "degraded (fallback, limited response)"
+                    ],
+                    "degraded_true": "Indicates backend partially unavailable; frontend shows banner; user can continue with limited features"
+                }
+            },
+            "entrypoint_tentaculo_link": {
+                "service": "tentaculo_link",
+                "listen_port": 8000,
+                "responsibility": "HTTP proxy + circuit breaker + aggregator",
+                "routes": {
+                    "/health": "Proxy to madre or respond directly (no auth)",
+                    "/api/*": "Proxy to operator_backend:8011 (if running); if DOWN, return 503 or degraded response",
+                    "/operator/*": "Alias for /api/* (canonical namespace)",
+                    "/madre/*": "Proxy to madre:8001",
+                    "/ui/*": "Serve operator frontend static files (dist/)"
+                },
+                "behavior_operator_backend_down": "Return HTTP 503 or { degraded: true, errors: ['operator_backend unreachable'] }",
+                "timeouts": "Connection timeout 2s, read timeout 5s, write timeout 5s"
+            }
+        },
+        "deployment": {
+            "default_solo_madre": {
+                "description": "Default and enforced runtime state",
+                "active_services": [
+                    "madre:8001",
+                    "redis:6379",
+                    "tentaculo_link:8000"
+                ],
+                "inactive_services": [
+                    "operator_backend:8011 (OFF)",
+                    "operator_frontend:3000 (OFF)"
+                ],
+                "docker_compose_override": "Explicitly NO operator profile activation"
+            },
+            "e2e_window": {
+                "description": "Temporary activation for E2E testing",
+                "activation_command": "docker compose --profile operator up -d operator-backend operator-frontend",
+                "duration": "2-5 minutes (typical E2E window)",
+                "deactivation_command": "docker compose --profile operator down",
+                "active_services_during_window": [
+                    "madre:8001",
+                    "redis:6379",
+                    "tentaculo_link:8000",
+                    "operator_backend:8011",
+                    "operator_frontend:3000"
+                ],
+                "post_window_verification": "docker ps should show ONLY madre, redis, tentaculo_link (operator services DOWN)"
+            }
+        }
+    },
+    "endpoints_p0": {
+        "auth": {
+            "POST /auth/login": {
+                "description": "Admin login (dev-only; disabled in production)",
+                "method": "POST",
+                "auth_required": false,
+                "request_body": {
+                    "username": "string (default: 'admin')",
+                    "password": "string (default from OPERATOR_ADMIN_PASSWORD env, or 'admin')"
+                },
+                "response_schema": {
+                    "ok": true,
+                    "request_id": "uuid",
+                    "route_taken": "operator_backend",
+                    "degraded": false,
+                    "data": {
+                        "access_token": "JWT token",
+                        "csrf_token": "string",
+                        "token_type": "bearer",
+                        "expires_in": 86400
+                    }
+                },
+                "notes": "OPERATOR_ADMIN_PASSWORD env controls password; disable login by setting AUTH_MODE=off"
+            }
+        },
+        "status_and_modules": {
+            "GET /operator/api/status": {
+                "description": "Operator status + system overview",
+                "response_schema": {
+                    "ok": true,
+                    "request_id": "uuid",
+                    "route_taken": "operator_backend|degraded",
+                    "degraded": false,
+                    "data": {
+                        "status": "operational|degraded|offline",
+                        "mode": "low_power|operative_core",
+                        "modules": {
+                            "madre": "active",
+                            "switch": "inactive",
+                            "hormiguero": "active"
+                        },
+                        "uptime_seconds": 14400,
+                        "timestamp": "2025-12-27T16:00:00Z"
+                    }
+                }
+            },
+            "GET /operator/api/modules": {
+                "description": "List available modules",
+                "response_schema": {
+                    "ok": true,
+                    "request_id": "uuid",
+                    "route_taken": "operator_backend",
+                    "degraded": false,
+                    "data": {
+                        "modules": [
+                            {
+                                "name": "madre",
+                                "status": "active|inactive|error",
+                                "version": "7.0",
+                                "port": 8001
+                            },
+                            {
+                                "name": "switch",
+                                "status": "inactive",
+                                "reason": "OFF_BY_POLICY"
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        "chat": {
+            "POST /operator/api/chat": {
+                "description": "Send chat message (via operator_backend, persists session + messages)",
+                "request_body": {
+                    "session_id": "string (optional, generated if absent)",
+                    "user_id": "string (default: 'local')",
+                    "message": "string (user query)",
+                    "context_summary": "string (optional, previous context)",
+                    "metadata": "object (optional, custom data)"
+                },
+                "response_schema": {
+                    "ok": true,
+                    "request_id": "correlation_id (UUID)",
+                    "route_taken": "operator_backend|tentaculo_link|degraded",
+                    "degraded": false,
+                    "data": {
+                        "session_id": "UUID",
+                        "response": "LLM response or degraded placeholder",
+                        "tool_calls": [],
+                        "timestamp": "ISO 8601"
+                    },
+                    "errors": []
+                },
+                "persistence": "Logged in operator_sessions + operator_messages with request_id, user_id, route_taken, payload_hash"
+            }
+        },
+        "topology": {
+            "GET /operator/api/topology": {
+                "description": "System architecture (nodes + edges)",
+                "response_schema": {
+                    "ok": true,
+                    "request_id": "uuid",
+                    "route_taken": "operator_backend",
+                    "degraded": false,
+                    "data": {
+                        "mode": "operative_core|low_power",
+                        "nodes": [
+                            {
+                                "id": "madre",
+                                "label": "Madre (Core Orchestrator)",
+                                "status": "active",
+                                "type": "core",
+                                "port": 8001
+                            },
+                            {
+                                "id": "tentaculo_link",
+                                "label": "Tentáculo Link (Gateway)",
+                                "status": "active",
+                                "type": "gateway",
+                                "port": 8000
+                            },
+                            {
+                                "id": "operator",
+                                "label": "Operator (Control Panel)",
+                                "status": "inactive|active",
+                                "type": "operator",
+                                "port": 8011
+                            }
+                        ],
+                        "edges": [
+                            {
+                                "from": "frontend",
+                                "to": "tentaculo_link",
+                                "label": "HTTP (port 8000)",
+                                "color": "green"
+                            },
+                            {
+                                "from": "tentaculo_link",
+                                "to": "operator",
+                                "label": "HTTP proxy (port 8011)",
+                                "color": "green|red"
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        "metrics": {
+            "GET /operator/api/percentages": {
+                "description": "System percentages (from docs/audit/PERCENTAGES.json cache)",
+                "response_schema": {
+                    "ok": true,
+                    "request_id": "uuid",
+                    "route_taken": "operator_backend",
+                    "degraded": false,
+                    "data": {
+                        "orden_fs_pct": 95.5,
+                        "coherencia_routing_pct": 98.2,
+                        "automatizacion_pct": 87.0,
+                        "autonomia_pct": 92.1,
+                        "global_ponderado_pct": 93.2,
+                        "timestamp": "2025-12-27T16:00:00Z"
+                    }
+                },
+                "cache": "docs/audit/PERCENTAGES.json (refreshed post-maintenance)"
+            },
+            "GET /operator/api/scorecard": {
+                "description": "Database scorecard (from docs/audit/SCORECARD.json cache)",
+                "response_schema": {
+                    "ok": true,
+                    "request_id": "uuid",
+                    "route_taken": "operator_backend",
+                    "degraded": false,
+                    "data": {
+                        "size_gb": 0.591,
+                        "row_count": 1156614,
+                        "table_count": 70,
+                        "integrity_check": "ok",
+                        "quick_check": "ok",
+                        "foreign_key_check": "ok",
+                        "timestamp": "2025-12-27T16:00:00Z"
+                    }
+                },
+                "cache": "docs/audit/SCORECARD.json (refreshed post-maintenance)"
+            }
+        },
+        "audit": {
+            "GET /operator/api/audit": {
+                "description": "List audit runs from cache",
+                "query_params": {
+                    "limit": 50,
+                    "offset": 0
+                },
+                "response_schema": {
+                    "ok": true,
+                    "request_id": "uuid",
+                    "route_taken": "operator_backend",
+                    "degraded": false,
+                    "data": {
+                        "runs": [
+                            {
+                                "run_id": "uuid",
+                                "timestamp": "ISO 8601",
+                                "status": "completed|failed|in_progress",
+                                "summary": "Short description"
+                            }
+                        ],
+                        "total": 100
+                    }
+                }
+            },
+            "GET /operator/api/audit/{run_id}": {
+                "description": "Get details of specific audit run",
+                "response_schema": {
+                    "ok": true,
+                    "request_id": "uuid",
+                    "route_taken": "operator_backend",
+                    "degraded": false,
+                    "data": {
+                        "run_id": "uuid",
+                        "timestamp": "ISO 8601",
+                        "status": "completed",
+                        "files": [
+                            {
+                                "name": "git_log.txt",
+                                "size_bytes": 1024,
+                                "whitelisted": true
+                            }
+                        ]
+                    }
+                },
+                "notes": "Whitelisted paths ONLY: docs/audit/*.txt, *.md, *.json"
+            },
+            "GET /operator/api/audit/{run_id}/download": {
+                "description": "Download audit run as ZIP archive",
+                "response": "Binary ZIP file",
+                "headers": {
+                    "Content-Type": "application/zip",
+                    "Content-Disposition": "attachment; filename=audit_run_{run_id}.zip"
+                },
+                "notes": "Enforces whitelist; no arbitrary paths"
+            }
+        },
+        "explorer": {
+            "GET /operator/api/explorer/fs": {
+                "description": "Read-only file system explorer (whitelist enforced)",
+                "query_params": {
+                    "path": "string (e.g., '/docs/audit')"
+                },
+                "response_schema": {
+                    "ok": true,
+                    "request_id": "uuid",
+                    "route_taken": "operator_backend",
+                    "degraded": false,
+                    "data": {
+                        "path": "/docs/audit",
+                        "items": [
+                            {
+                                "name": "PERCENTAGES.json",
+                                "type": "file",
+                                "size_bytes": 2048
+                            }
+                        ]
+                    }
+                },
+                "whitelist": [
+                    "/docs/audit",
+                    "/data/runtime",
+                    "/logs"
+                ],
+                "notes": "No writes; no path traversal; no symlinks"
+            },
+            "GET /operator/api/explorer/db": {
+                "description": "Read-only database explorer (presets only, no SQL textbox)",
+                "query_params": {
+                    "preset": "string (e.g., 'operator_sessions')"
+                },
+                "response_schema": {
+                    "ok": true,
+                    "request_id": "uuid",
+                    "route_taken": "operator_backend",
+                    "degraded": false,
+                    "data": {
+                        "rows": [
+                            {
+                                "id": "uuid",
+                                "user_id": "string",
+                                "created_at": "ISO 8601"
+                            }
+                        ],
+                        "total": 42
+                    }
+                },
+                "presets_available": [
+                    "operator_sessions",
+                    "operator_messages",
+                    "operator_events",
+                    "madre_status (read-only view)"
+                ],
+                "notes": "Presets ONLY; no arbitrary SQL"
+            }
+        },
+        "settings": {
+            "GET /operator/api/settings": {
+                "description": "Get UI settings",
+                "response_schema": {
+                    "ok": true,
+                    "request_id": "uuid",
+                    "route_taken": "operator_backend",
+                    "degraded": false,
+                    "data": {
+                        "theme": "dark|light",
+                        "polling_interval_ms": 10000,
+                        "ws_enabled": false
+                    }
+                }
+            },
+            "POST /operator/api/settings": {
+                "description": "Update UI settings (strict schema)",
+                "request_body": {
+                    "theme": "dark|light (optional)",
+                    "polling_interval_ms": "number (optional, min 1000, max 60000)"
+                },
+                "response_schema": {
+                    "ok": true,
+                    "request_id": "uuid",
+                    "route_taken": "operator_backend",
+                    "degraded": false,
+                    "data": {
+                        "theme": "dark",
+                        "polling_interval_ms": 5000
+                    }
+                },
+                "validation": "Strict schema; no extra keys; range validation on intervals"
+            }
+        },
+        "module_control": {
+            "POST /operator/api/module/{name}/restart": {
+                "description": "Request module restart (emitted via tentaculo_link to madre power_manager, NOT executed directly)",
+                "path_params": {
+                    "name": "module name (e.g., 'switch', 'hormiguero')"
+                },
+                "response_schema": {
+                    "ok": true,
+                    "request_id": "uuid",
+                    "route_taken": "operator_backend|tentaculo_link",
+                    "degraded": false,
+                    "data": {
+                        "module": "switch",
+                        "action": "restart",
+                        "status": "pending|in_progress|completed",
+                        "window_ttl_seconds": 30
+                    }
+                },
+                "behavior": "Emits request via tentaculo_link to madre power_manager with TTL; does NOT block on completion"
+            }
+        }
+    },
+    "testing_gates": {
+        "build": [
+            "tsc --noEmit (TypeScript type check) → 0 errors",
+            "npm run build (Vite build) → 0 errors, dist/ produced",
+            "python3 -m py_compile *.py → 0 errors"
+        ],
+        "static_no_bypass": [
+            "grep -R ':8011' operator_backend/frontend/src → EMPTY (zero matches)",
+            "grep -R ':8001' operator_backend/frontend/src → EMPTY",
+            "grep -R 'http://madre:8001' operator_backend/backend → EMPTY (except env defaults)",
+            "grep -R 'http://switch:8002' operator_backend/backend → EMPTY"
+        ],
+        "pytest_p0": [
+            "test_operator_auth_policy_p0.py (8/8 PASS)",
+            "test_operator_api_map_status.py (5/5 PASS)",
+            "test_operator_db_schema_v7.py (5/5 PASS)",
+            "Total: 18/18 PASS or more (100%)"
+        ],
+        "e2e_window": [
+            "docker compose --profile operator up -d",
+            "curl http://localhost:8000/operator/api/status → { ok: true, data: { status: 'operational|degraded' } }",
+            "curl http://localhost:8000/operator/api/modules → { ok: true, data: { modules: [...] } }",
+            "curl http://localhost:8000/operator/api/topology → { ok: true, data: { nodes: [...], edges: [...] } }",
+            "docker compose --profile operator down",
+            "docker ps → ONLY madre, redis, tentaculo_link (operator services DOWN)",
+            "curl http://localhost:8000/operator/api/status → { degraded: true, errors: ['operator_backend unreachable'] } or 503"
+        ]
+    },
+    "known_issues_v7_0_1_fixed_in_v7_2_0": [
+        {
+            "issue": "SOLO_MADRE default not strictly enforced (Operator could be left running)",
+            "fix_v7_2_0": "docker-compose.yml NO operator profile by default; E2E window explicitly activated + deactivated"
+        },
+        {
+            "issue": "E2E tests mocked (not real curl via 8000)",
+            "fix_v7_2_0": "Real E2E window: docker compose --profile operator up; curl via 8000; docker compose down; verify SOLO_MADRE"
+        },
+        {
+            "issue": "Operator DOWN treated as ERROR (confusing UX in SOLO_MADRE)",
+            "fix_v7_2_0": "Operator DOWN returns degraded=true + OFF_BY_POLICY (not an error); UX banner explains"
+        },
+        {
+            "issue": "No static no-bypass test in CI",
+            "fix_v7_2_0": "pytest tests/test_no_bypass.py enforces grep checks; fails if :8011/:8001 found in frontend/src"
+        },
+        {
+            "issue": "Response schema inconsistent across endpoints",
+            "fix_v7_2_0": "All endpoints return: { ok, request_id, route_taken, degraded, [errors?], data }"
+        }
+    ]
+}
