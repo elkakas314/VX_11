@@ -23,7 +23,7 @@ class WarmUpEngine:
 
     def __init__(
         self,
-        hermes_endpoint: str = "http://switch:8003",
+        hermes_endpoint: str = "http://hermes:8003",
         config_path: str = "switch/warm_up_config.json",
     ):
         self.hermes_endpoint = hermes_endpoint

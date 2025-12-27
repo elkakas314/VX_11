@@ -98,7 +98,7 @@ class SwitchIntelligenceLayer:
         self.cli_selector = CLISelector()
         self.cli_fusion = CLIFusion()
         self.metrics_collector = get_metrics_collector()
-        self._hermes_endpoint = settings.hermes_url or "http://switch:8003"
+        self._hermes_endpoint = settings.hermes_url or "http://hermes:8003"
         self._priority_map = {
             "shub": 0,
             "operator": 1,

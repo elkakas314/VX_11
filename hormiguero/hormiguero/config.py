@@ -25,11 +25,13 @@ def _get_float(name: str, default: float) -> float:
 
 class Settings:
     db_path = os.getenv("HORMIGUERO_DB_PATH", "data/runtime/vx11.db")
-    tentaculo_url = os.getenv("HORMIGUERO_TENTACULO_URL", "http://127.0.0.1:8000")
-    madre_url = os.getenv("HORMIGUERO_MADRE_URL", "http://127.0.0.1:8001")
-    switch_url = os.getenv("HORMIGUERO_SWITCH_URL", "http://127.0.0.1:8002")
-    spawner_url = os.getenv("HORMIGUERO_SPAWNER_URL", "http://127.0.0.1:8008")
-    manifestator_url = os.getenv("HORMIGUERO_MANIFESTATOR_URL", "http://127.0.0.1:8005")
+    tentaculo_url = os.getenv("HORMIGUERO_TENTACULO_URL", "http://tentaculo_link:8000")
+    madre_url = os.getenv("HORMIGUERO_MADRE_URL", "http://madre:8001")
+    switch_url = os.getenv("HORMIGUERO_SWITCH_URL", "http://switch:8002")
+    spawner_url = os.getenv("HORMIGUERO_SPAWNER_URL", "http://spawner:8008")
+    manifestator_url = os.getenv(
+        "HORMIGUERO_MANIFESTATOR_URL", "http://manifestator:8005"
+    )
 
     scan_interval_sec = _get_int("HORMIGUERO_SCAN_INTERVAL_SEC", 120)
     scan_jitter_sec = _get_int("HORMIGUERO_SCAN_JITTER_SEC", 20)
