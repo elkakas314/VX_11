@@ -14,11 +14,11 @@ import {
 
 const API_BASE = import.meta.env.VITE_OPERATOR_BASE_URL || "http://127.0.0.1:8000";
 
-let currentToken: string | null = null;
-
+let currentToken: string | null = null;let currentCsrfToken: string | null = null;
 // Load token from localStorage on app start
 export function initializeAuth() {
     currentToken = localStorage.getItem("vx11_jwt_token");
+    currentCsrfToken = localStorage.getItem("vx11_csrf_token");
 }
 
 // Save token to localStorage
@@ -27,10 +27,12 @@ function saveToken(token: string) {
     localStorage.setItem("vx11_jwt_token", token);
 }
 
-// Clear token
+// Clear token and CSRF token
 export function clearAuth() {
     currentToken = null;
+    currentCsrfToken = null;
     localStorage.removeItem("vx11_jwt_token");
+    localStorage.removeItem("vx11_csrf_token");
 }
 
 // Get current token
@@ -51,6 +53,11 @@ async function fetchAPI<T>(
 
     if (currentToken) {
         headers["Authorization"] = `Bearer ${currentToken}`;
+    }
+
+    // Add CSRF token for POST/PUT/DELETE requests
+    if (currentCsrfToken && options.method && ["POST", "PUT", "DELETE"].includes(options.method)) {
+        headers["X-CSRF-Token"] = currentCsrfToken;
     }
 
     try {
@@ -82,9 +89,13 @@ export async function login(username: string, password: string): Promise<AuthTok
         return result;
     }
 
-    // Save token on successful login
+    // Save tokens on successful login
     if (result.access_token) {
         saveToken(result.access_token);
+        if (result.csrf_token) {
+            currentCsrfToken = result.csrf_token;
+            localStorage.setItem("vx11_csrf_token", result.csrf_token);
+        }
     }
 
     return result;

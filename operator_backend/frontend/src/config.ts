@@ -3,12 +3,13 @@
 export const TOKEN_HEADER = "X-VX11-Token";
 export const TOKEN_VALUE = import.meta.env.VITE_VX11_TOKEN || "vx11-local-token";
 
-// Operator Backend URL (default: http://127.0.0.1:8000 — SINGLE ENTRYPOINT VIA TENTACULO_LINK)
+// Operator Backend URL (default: http://127.0.0.1:8011 — DIRECT to operator-backend in dev)
+// NOTE: In production, use tentaculo_link:8000 proxy via VITE_OPERATOR_BASE_URL env var
 const DEFAULT_OPERATOR_BASE =
   import.meta.env.VITE_OPERATOR_BASE_URL ||
   import.meta.env.VITE_OPERATOR_API_URL ||
   import.meta.env.VITE_API_BASE_URL ||
-  "http://127.0.0.1:8000";
+  "http://127.0.0.1:8011";
 
 const normalizedBase = DEFAULT_OPERATOR_BASE.replace(/\/$/, "");
 

@@ -936,13 +936,16 @@ async def list_audits(
 
 @router.get("/api/audit/{audit_id}")
 async def get_audit(
-    audit_id: int,
+    audit_id: str,
     _: Dict = Depends(policy_check),
     user: Dict = Depends(auth_check),
     db: Session = Depends(get_session),
 ):
     """
     Get audit entry detail (Phase 2 real implementation).
+    
+    NOTE: audit_id is str to avoid conflict with /api/audit/runs route.
+    If audit_id is not "runs", treat as integer ID lookup.
 
     Response (200):
       {
@@ -958,7 +961,7 @@ async def get_audit(
       - 404: audit not found
       - 409: policy violation (low_power mode)
     """
-    item = db.query(AuditLogs).filter(AuditLogs.id == audit_id).first()
+    item = db.query(AuditLogs).filter(AuditLogs.id == int(audit_id)).first()
 
     if not item:
         raise HTTPException(status_code=404, detail=f"Audit {audit_id} not found")
@@ -1622,7 +1625,7 @@ async def get_topology(
         )
 
 
-@router.get("/api/audit/runs")
+@router.get("/api/audit/runs-list")
 async def list_audit_runs(
     _: Dict = Depends(auth_check),
     ctx: Dict = Depends(request_context),
