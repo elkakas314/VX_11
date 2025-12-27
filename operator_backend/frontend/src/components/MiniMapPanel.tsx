@@ -1,4 +1,5 @@
 import * as React from "react";
+import "./MiniMapPanel.css";
 
 type Props = {
     status: any;
@@ -28,26 +29,11 @@ export function MiniMapPanel({ status }: Props) {
     return (
         <div className="card">
             <h3>Sistema - MiniMap</h3>
-            <div
-                style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(3, 1fr)",
-                    gap: "5px",
-                    marginBottom: "10px",
-                }}
-            >
+            <div className="minimap-grid">
                 {modules.map((mod) => (
                     <div
                         key={mod.port}
-                        style={{
-                            padding: "8px",
-                            textAlign: "center",
-                            borderRadius: "4px",
-                            fontSize: "11px",
-                            fontWeight: "bold",
-                            background: mod.ok ? "#4caf50" : "#f44336",
-                            color: "white",
-                        }}
+                        className={`minimap-item ${mod.ok ? "minimap-ok" : "minimap-fail"}`}
                         title={`${mod.name} (${mod.port})`}
                     >
                         <div>{mod.name}</div>
@@ -55,7 +41,7 @@ export function MiniMapPanel({ status }: Props) {
                     </div>
                 ))}
             </div>
-            <div style={{ fontSize: "11px", color: "#666" }}>
+            <div className="minimap-footer">
                 Operador: <strong>🟢</strong> | Total módulos: <strong>{modules.length}</strong> |
                 OK: <strong>{modules.filter((m) => m.ok).length}/{modules.length}</strong>
             </div>
