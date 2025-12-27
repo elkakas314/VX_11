@@ -174,6 +174,46 @@ async def health():
     }
 
 
+@app.get("/api/status")
+async def api_status(_: bool = Depends(token_guard)):
+    """
+    System status for frontend dashboard.
+    Returns: madre, tentaculo_link, redis health + core services.
+    """
+    import httpx
+
+    status = {
+        "operator_backend": "ok",
+        "services": {},
+        "timestamp": datetime.utcnow().isoformat(),
+    }
+
+    # Check core services
+    tentaculo_url = os.getenv("VX11_TENTACULO_URL", "http://localhost:8000")
+    madre_url = os.getenv("VX11_MADRE_URL", "http://localhost:8001")
+
+    # Check tentaculo_link
+    try:
+        async with httpx.AsyncClient(timeout=2.0) as client:
+            resp = await client.get(f"{tentaculo_url}/health")
+            status["services"]["tentaculo_link"] = (
+                "ok" if resp.status_code == 200 else "error"
+            )
+    except Exception as e:
+        status["services"]["tentaculo_link"] = f"offline: {str(e)[:30]}"
+
+    # Check madre
+    try:
+        async with httpx.AsyncClient(timeout=2.0) as client:
+            resp = await client.get(f"{madre_url}/health")
+            status["services"]["madre"] = "ok" if resp.status_code == 200 else "error"
+    except Exception as e:
+        status["services"]["madre"] = f"offline: {str(e)[:30]}"
+
+    write_log("operator_backend", "api_status:ok")
+    return status
+
+
 # ============ INTENT ENDPOINT (for legacy test compat) ============
 
 
@@ -226,7 +266,24 @@ async def intent_handler(
     raise HTTPException(status_code=400, detail=f"unknown target: {req.target}")
 
 
-# ============ CHAT ENDPOINT ============
+# ============ CHAT ENDPOINT (FRONTEND API) ============
+
+
+@app.post("/api/chat")
+async def api_chat(
+    req: ChatRequest,
+    _: bool = Depends(token_guard),
+    __: Dict = Depends(policy_guard),
+):
+    """
+    Chat API endpoint for frontend.
+    Simple proxy to /operator/chat to allow frontend direct calls.
+    """
+    # Forward to /operator/chat handler
+    return await operator_chat(req, _, __)
+
+
+# ============ CHAT ENDPOINT (GATEWAY PROTOCOL) ============
 
 
 @app.post("/operator/chat")

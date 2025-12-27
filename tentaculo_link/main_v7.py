@@ -644,7 +644,10 @@ async def operator_chat(
     req: OperatorChatRequest,
     _: bool = Depends(token_guard),
 ):
-    """Route chat to Operator backend with CONTEXT-7 integration."""
+    """
+    Route chat to Operator backend with CONTEXT-7 integration.
+    P1 fallback: if switch is offline, use madre chat.
+    """
     session_id = req.session_id or str(uuid.uuid4())
     user_id = req.user_id or "local"
 
@@ -653,14 +656,24 @@ async def operator_chat(
     context7.add_message(session_id, "user", req.message, req.metadata)
     context_hint = context7.get_hint_for_llm(session_id)
 
-    # Route to Switch (canonical pipeline)
+    # Route to Switch (canonical pipeline) with fallback to madre
     clients = get_clients()
     metadata = dict(req.metadata or {})
     if context_hint:
         metadata["context_summary"] = context_hint
+
+    # Try switch first
     result = await clients.route_to_switch(
         prompt=req.message, session_id=session_id, metadata=metadata
     )
+
+    # P1 Fallback: if switch is offline (solo_madre mode), use madre chat
+    write_log("tentaculo_link", f"operator_chat:result_after_switch={result}")
+    if result.get("status") == "service_offline" and result.get("module") == "switch":
+        write_log("tentaculo_link", "operator_chat:triggering_fallback_to_madre")
+        result = await clients.route_to_madre_chat(
+            message=req.message, session_id=session_id, metadata=metadata
+        )
 
     # Track response in CONTEXT-7
     assistant_msg = (
