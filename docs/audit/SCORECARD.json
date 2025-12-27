@@ -1,39 +1,9 @@
 {
-  "generated_ts": "20251227T015301Z",
-  "db": {
-    "size_bytes": 619692032,
-    "total_rows": 0,
-    "quick_check": "ok",
-    "integrity_check": "ok",
-    "foreign_key_check": "violations: 1",
-    "total_tables": 70
-  },
-  "percentages": {
-    "Orden_fs_pct": 57.8947,
-    "Coherencia_routing_pct": null,
-    "Automatizacion_pct": 18.75,
-    "Autonomia_pct": 100.0,
-    "Global_ponderado_pct": 58.8816
-  },
-  "percentages_notes": {
-    "Orden_fs_pct": "File system canonical compliance (roots order)",
-    "Coherencia_routing_pct": "Switch service down or no routing events available",
-    "Automatizacion_pct": "Automation readiness (DB_MAP + pytest + SCORECARD)",
-    "Autonomia_pct": "solo_madre autonomy + service health",
-    "Global_ponderado_pct": "Weighted average of Orden_fs, Coherencia, Automatizacion, Autonomia"
-  },
-  "order_fs_pct": 57.8947,
-  "coherencia_routing_pct": 0.0,
-  "automatizacion_pct": 18.75,
-  "autonomia_pct": 100.0,
-  "canonicalizacion_pct": 100.0,
-  "global_ponderado_pct": 58.8816,
-  "methodology": {
-    "orden_fs_pct": "FS canonical compliance (expected vs present roots)",
-    "coherencia_routing_pct": "Routing event quality (route_taken non-null, no contract errors)",
-    "automatizacion_pct": "Automation checklist: DB_MAP OK + SCORECARD complete + pytest basic + pytest integration",
-    "autonomia_pct": "solo_madre capability + service health checks (tentaculo_link 8000)",
-    "canonicalizacion_pct": "Valid canonical JSON files in docs/canon/ (100% if all valid)",
-    "global_ponderado_pct": "Weighted average of non-null metrics"
-  }
+  "generated_ts": "20251227T021725Z",
+  "integrity": "5000",
+  "total_tables": 70,
+  "total_rows": 1162711,
+  "db_size_bytes": 619692032,
+  "backup_db_count": 2,
+  "backups_archived_count": 23
 }

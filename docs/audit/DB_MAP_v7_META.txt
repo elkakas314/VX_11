@@ -1,4 +1,4 @@
-integrity:ok
+integrity:ERROR: interrupted
 integrity_skipped:0
 integrity_timeout_secs:60
 size_bytes:619692032
