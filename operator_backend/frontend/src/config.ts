@@ -3,12 +3,12 @@
 export const TOKEN_HEADER = "X-VX11-Token";
 export const TOKEN_VALUE = import.meta.env.VITE_VX11_TOKEN || "vx11-local-token";
 
-// Operator Backend URL (default: http://127.0.0.1:8011 in dev, http://operator_backend:8011 in docker)
+// Operator Backend URL (default: http://127.0.0.1:8000 — SINGLE ENTRYPOINT VIA TENTACULO_LINK)
 const DEFAULT_OPERATOR_BASE =
   import.meta.env.VITE_OPERATOR_BASE_URL ||
   import.meta.env.VITE_OPERATOR_API_URL ||
   import.meta.env.VITE_API_BASE_URL ||
-  "http://127.0.0.1:8011";
+  "http://127.0.0.1:8000";
 
 const normalizedBase = DEFAULT_OPERATOR_BASE.replace(/\/$/, "");
 

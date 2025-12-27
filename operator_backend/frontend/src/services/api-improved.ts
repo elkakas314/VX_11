@@ -15,7 +15,7 @@
  */
 
 // Configuration
-const API_BASE = import.meta.env.VITE_OPERATOR_API_URL || "http://localhost:8011";
+const API_BASE = import.meta.env.VITE_OPERATOR_API_URL || "http://localhost:8000";
 const API_TOKEN = import.meta.env.VITE_VX11_TOKEN || "vx11-local-token";
 const CHAT_ENDPOINT = `${API_BASE}/operator/chat`;
 const WEBSOCKET_URL = `${API_BASE.replace(/^http/, "ws")}/ws`;

@@ -93,7 +93,7 @@ export const LoginPage: React.FC<LoginProps> = ({ onLoginSuccess }: LoginProps) 
 
                     {/* Footer */}
                     <div className="mt-6 text-center text-xs text-slate-400">
-                        <p>Backend: {import.meta.env.VITE_OPERATOR_BASE_URL || "http://127.0.0.1:8011"}</p>
+                        <p>Backend: {import.meta.env.VITE_OPERATOR_BASE_URL || "http://127.0.0.1:8000"}</p>
                     </div>
                 </div>
             </div>

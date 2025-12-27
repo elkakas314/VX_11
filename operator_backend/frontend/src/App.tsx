@@ -74,9 +74,12 @@ export default function App() {
 
   const tabs: { id: TabName; label: string; icon: string }[] = [
     { id: "overview", label: "Overview", icon: "📊" },
+    { id: "chat", label: "Chat", icon: "💬" },
     { id: "topology", label: "Topology", icon: "🗺️" },
-    { id: "metrics", label: "Metrics", icon: "📈" },
+    { id: "hormiguero", label: "Hormiguero", icon: "🐜" },
+    { id: "jobs", label: "Jobs", icon: "⚡" },
     { id: "audit", label: "Audit", icon: "📋" },
+    { id: "explorer", label: "Explorer", icon: "🔍" },
     { id: "settings", label: "Settings", icon: "⚙️" },
   ];
 
@@ -170,9 +173,12 @@ export default function App() {
           <div className="flex-1 overflow-auto p-6">
             <div className="max-w-full">
               {activeTab === "overview" && <OverviewTab />}
+              {activeTab === "chat" && <ChatTab />}
               {activeTab === "topology" && <TopologyTab />}
-              {activeTab === "metrics" && <MetricsTab />}
+              {activeTab === "hormiguero" && <ModulesTab />}
+              {activeTab === "jobs" && <JobsTab />}
               {activeTab === "audit" && <AuditRunsTab />}
+              {activeTab === "explorer" && <MapTab />}
               {activeTab === "settings" && <SettingsTab />}
             </div>
           </div>
