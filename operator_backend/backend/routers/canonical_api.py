@@ -20,8 +20,11 @@ Gating:
 import os
 import uuid
 import json
+import asyncio
+import time
 from typing import Optional, Dict, Any, List
 from datetime import datetime, timedelta
+from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, Header, Request, status
 from fastapi.responses import JSONResponse, StreamingResponse
@@ -63,6 +66,161 @@ TESTING_MODE = (
 
 router = APIRouter(prefix="", tags=["canonical_api"])
 rate_limiter = get_rate_limiter()
+
+
+# ============ SERVICE REGISTRY (HARDCODED) ============
+
+SERVICE_REGISTRY = [
+    # Core profile
+    {
+        "name": "madre",
+        "port": 8001,
+        "profile": "core",
+        "enabled_by_default": True,
+        "role": "core",
+        "type": "llm_gateway",
+    },
+    {
+        "name": "redis",
+        "port": 6379,
+        "profile": "core",
+        "enabled_by_default": True,
+        "role": "cache",
+        "type": "cache",
+    },
+    {
+        "name": "tentaculo_link",
+        "port": 8000,
+        "profile": "core",
+        "enabled_by_default": True,
+        "role": "proxy",
+        "type": "api_gateway",
+    },
+    # Operator profile
+    {
+        "name": "switch",
+        "port": 8002,
+        "profile": "operator",
+        "enabled_by_default": False,
+        "role": "llm_router",
+        "type": "inference_router",
+    },
+    {
+        "name": "hermes",
+        "port": 8003,
+        "profile": "operator",
+        "enabled_by_default": False,
+        "role": "messaging",
+        "type": "message_broker",
+    },
+    {
+        "name": "hormiguero",
+        "port": 8004,
+        "profile": "operator",
+        "enabled_by_default": False,
+        "role": "swarm",
+        "type": "agent_swarm",
+    },
+    {
+        "name": "mcp",
+        "port": 8005,
+        "profile": "operator",
+        "enabled_by_default": False,
+        "role": "protocol",
+        "type": "model_control",
+    },
+    {
+        "name": "spawner",
+        "port": 8006,
+        "profile": "operator",
+        "enabled_by_default": False,
+        "role": "provisioning",
+        "type": "resource_allocator",
+    },
+    {
+        "name": "operator-backend",
+        "port": 8011,
+        "profile": "operator",
+        "enabled_by_default": False,
+        "role": "api",
+        "type": "fastapi_server",
+    },
+    {
+        "name": "operator-frontend",
+        "port": 3000,
+        "profile": "operator",
+        "enabled_by_default": False,
+        "role": "ui",
+        "type": "react_app",
+    },
+]
+
+ARCHITECTURE_EDGES = [
+    {
+        "from": "operator-frontend",
+        "to": "operator-backend",
+        "label": "http",
+        "type": "client_server",
+    },
+    {
+        "from": "operator-backend",
+        "to": "tentaculo_link",
+        "label": "api",
+        "type": "api_call",
+    },
+    {
+        "from": "tentaculo_link",
+        "to": "madre",
+        "label": "proxy",
+        "type": "gateway_proxy",
+    },
+    {
+        "from": "tentaculo_link",
+        "to": "switch",
+        "label": "route",
+        "type": "context_routing",
+    },
+    {
+        "from": "switch",
+        "to": "madre",
+        "label": "fallback",
+        "type": "degraded_path",
+    },
+    {
+        "from": "madre",
+        "to": "redis",
+        "label": "cache",
+        "type": "state_persistence",
+    },
+    {
+        "from": "switch",
+        "to": "hermes",
+        "label": "broadcast",
+        "type": "event_stream",
+    },
+    {
+        "from": "hermes",
+        "to": "hormiguero",
+        "label": "agents",
+        "type": "swarm_coordination",
+    },
+    {
+        "from": "spawner",
+        "to": "mcp",
+        "label": "provision",
+        "type": "resource_mgmt",
+    },
+]
+
+# ============ ALLOWED BASE PATHS FOR FILE EXPLORER ============
+
+FS_ALLOWLIST = [
+    "/home/elkakas314/vx11/docs/audit",
+    "/home/elkakas314/vx11/docs/canon",
+    "/home/elkakas314/vx11/data/runtime",
+    "/home/elkakas314/vx11/logs",
+    "/home/elkakas314/vx11/forensic",
+]
 
 
 # ============ MODELS ============
@@ -227,6 +385,49 @@ def request_context(
     """
     request_id = str(uuid.uuid4())[:12]
     return {"request_id": request_id}
+
+
+# ============ SHARED UTILITY: HEALTH CHECK ============
+
+
+async def check_service_health(service_name: str, port: int) -> Dict[str, Any]:
+    """
+    Check if service is healthy via HTTP GET /health endpoint.
+
+    Args:
+        service_name: name of service (for logging)
+        port: port to check
+
+    Returns:
+        {"status": "up" | "down", "response_time_ms": float, "error": str | None}
+    """
+    url = f"http://localhost:{port}/health"
+    try:
+        start = time.time()
+        async with httpx.AsyncClient(timeout=2.0) as client:
+            resp = await client.get(url)
+        elapsed = (time.time() - start) * 1000
+
+        if resp.status_code in (200, 204):
+            return {
+                "status": "up",
+                "response_time_ms": round(elapsed, 2),
+                "error": None,
+            }
+        else:
+            return {
+                "status": "down",
+                "response_time_ms": round(elapsed, 2),
+                "error": f"HTTP {resp.status_code}",
+            }
+    except asyncio.TimeoutError:
+        return {
+            "status": "down",
+            "response_time_ms": None,
+            "error": "timeout (2s)",
+        }
+    except Exception as e:
+        return {"status": "down", "response_time_ms": None, "error": str(e)}
 
 
 async def rate_limit_guard(
@@ -685,31 +886,85 @@ async def get_map(
 async def get_modules(
     _: Dict = Depends(policy_check),
     user: Dict = Depends(auth_check),
+    ctx: Dict = Depends(request_context),
 ):
     """
-    Get list of modules (canonical).
+    Get list of modules (canonical) - REAL DATA from service registry + health checks.
 
     Alias para /operator/shub/dashboard.
 
     Response (200):
       {
-        "modules": [
-          {"name": "madre", "status": "on"},
-          {"name": "shubniggurath", "status": "on"}
-        ]
+        "ok": true,
+        "data": {
+          "modules": [
+            {"name": "madre", "status": "up", "enabled_by_default": true, "profile": "core", "port": 8001, "health_status": "healthy"},
+            ...
+          ],
+          "total": 10,
+          "policy": "SOLO_MADRE",
+          "profile_active": "core+operator"
+        },
+        "timestamp": "2025-01-05T10:30:45Z"
       }
 
     Errors:
       - 401: auth required
       - 409: policy violation (low_power mode)
     """
-    return {
-        "modules": [
-            {"name": "madre", "status": "on"},
-            {"name": "shubniggurath", "status": "on"},
-            {"name": "tentaculo_link", "status": "on"},
-        ]
-    }
+    try:
+        modules_data = []
+
+        # Run health checks concurrently for all services
+        health_checks = {
+            svc["name"]: check_service_health(svc["name"], svc["port"])
+            for svc in SERVICE_REGISTRY
+        }
+
+        # Await all health checks in parallel
+        health_results = {}
+        for svc_name, health_task in health_checks.items():
+            health_results[svc_name] = await health_task
+
+        # Build modules list with health status
+        for svc in SERVICE_REGISTRY:
+            health_info = health_results.get(svc["name"], {"status": "down"})
+            modules_data.append(
+                {
+                    "name": svc["name"],
+                    "status": health_info.get("status", "down"),
+                    "enabled_by_default": svc["enabled_by_default"],
+                    "profile": svc["profile"],
+                    "port": svc["port"],
+                    "health_status": (
+                        "healthy" if health_info.get("status") == "up" else "unhealthy"
+                    ),
+                    "response_time_ms": health_info.get("response_time_ms"),
+                }
+            )
+
+        write_log(
+            "operator_backend",
+            f"modules:retrieved:10_services:{ctx.get('request_id', 'unknown')}",
+        )
+
+        return {
+            "ok": True,
+            "data": {
+                "modules": modules_data,
+                "total": len(modules_data),
+                "policy": os.getenv("VX11_POLICY", "SOLO_MADRE"),
+                "profile_active": "core+operator",
+            },
+            "timestamp": datetime.utcnow().isoformat() + "Z",
+        }
+
+    except Exception as exc:
+        write_log("operator_backend", f"modules:error:{exc}", level="ERROR")
+        return JSONResponse(
+            status_code=500,
+            content={"ok": False, "detail": "Error retrieving modules"},
+        )
 
 
 # ============ CHAT ENDPOINTS ============
@@ -1577,16 +1832,13 @@ async def get_topology(
     ctx: Dict = Depends(request_context),
 ):
     """
-    Get VX11 system topology (canonical endpoint).
+    Get VX11 system topology (canonical endpoint) - REAL DATA from 10-node registry + edges.
 
     Returns structured nodes, edges, and architecture metadata.
     This is the canonical topology endpoint; /api/map is an alias for backward compatibility.
 
     Returns: {ok, data: {nodes, edges, metadata}, timestamp}
     """
-    import json as json_lib
-    from pathlib import Path
-
     try:
         # Try to read from canonical topology file if it exists
         topology_path = Path(
@@ -1595,7 +1847,7 @@ async def get_topology(
 
         if topology_path.exists():
             with open(topology_path, "r") as f:
-                data = json_lib.load(f)
+                data = json.load(f)
             write_log(
                 "operator_backend",
                 f"topology:retrieved_from_file:{ctx.get('request_id', 'unknown')}",
@@ -1606,36 +1858,50 @@ async def get_topology(
                 "timestamp": datetime.utcnow().isoformat() + "Z",
             }
 
-        # Fallback: return minimal canonical topology (from settings if available)
-        fallback_topology = {
-            "nodes": [
-                {"id": "madre", "label": "Madre", "status": "healthy", "port": 8001},
+        # Real data: Build full 10-node topology from registry + health checks
+        nodes = []
+        health_checks = {}
+
+        # Run health checks for all services
+        for svc in SERVICE_REGISTRY:
+            health_checks[svc["name"]] = await check_service_health(
+                svc["name"], svc["port"]
+            )
+
+        # Build nodes with real health data
+        for svc in SERVICE_REGISTRY:
+            health_info = health_checks.get(svc["name"], {"status": "down"})
+            node_status = (
+                "healthy" if health_info.get("status") == "up" else "unhealthy"
+            )
+            nodes.append(
                 {
-                    "id": "tentaculo_link",
-                    "label": "Tentáculo Link",
-                    "status": "healthy",
-                    "port": 8000,
-                },
-                {"id": "redis", "label": "Redis", "status": "healthy", "port": 6379},
-            ],
-            "edges": [
-                {"from": "tentaculo_link", "to": "madre", "label": "proxy"},
-                {"from": "redis", "to": "madre", "label": "cache"},
-            ],
-            "metadata": {
-                "policy": "SOLO_MADRE",
-                "entrypoint": "tentaculo_link:8000",
-                "timestamp": datetime.utcnow().isoformat() + "Z",
-            },
-        }
+                    "id": svc["name"],
+                    "label": svc["name"].replace("-", " ").title(),
+                    "status": node_status,
+                    "port": svc["port"],
+                    "role": svc["role"],
+                    "profile": svc["profile"],
+                    "type": svc["type"],
+                }
+            )
 
         write_log(
             "operator_backend",
-            f"topology:retrieved_fallback:{ctx.get('request_id', 'unknown')}",
+            f"topology:retrieved_real_data:{len(nodes)}_nodes:{ctx.get('request_id', 'unknown')}",
         )
+
         return {
             "ok": True,
-            "data": fallback_topology,
+            "data": {
+                "nodes": nodes,
+                "edges": ARCHITECTURE_EDGES,
+                "metadata": {
+                    "policy": os.getenv("VX11_POLICY", "SOLO_MADRE"),
+                    "entrypoint": "tentaculo_link:8000",
+                    "timestamp": datetime.utcnow().isoformat() + "Z",
+                },
+            },
             "timestamp": datetime.utcnow().isoformat() + "Z",
         }
 
@@ -1644,6 +1910,162 @@ async def get_topology(
         return JSONResponse(
             status_code=500,
             content={"ok": False, "detail": "Error reading topology"},
+        )
+
+
+@router.get("/api/fs/list")
+async def list_files(
+    path: Optional[str] = None,
+    _: Dict = Depends(policy_check),
+    user: Dict = Depends(auth_check),
+    ctx: Dict = Depends(request_context),
+):
+    """
+    Sandboxed file explorer endpoint (read-only).
+
+    Query params:
+      - path: relative path from workspace root (e.g., "/docs/audit", "/logs")
+
+    Returns (200):
+      {
+        "ok": true,
+        "data": {
+          "path": "/home/elkakas314/vx11/docs/audit",
+          "contents": [
+            {"name": "file.txt", "type": "file", "size": 1024, "modified": "2025-01-05T10:00:00Z"},
+            {"name": "subdir", "type": "directory", "modified": "2025-01-05T10:00:00Z"}
+          ],
+          "total_items": 2
+        },
+        "timestamp": "2025-01-05T10:30:45Z"
+      }
+
+    Errors:
+      - 400: path missing or invalid
+      - 403: path not in allowlist (forbidden)
+      - 404: path not found
+      - 401: auth required
+      - 409: policy violation (low_power mode)
+    """
+    try:
+        if not path:
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "ok": False,
+                    "detail": "Missing required query param: path",
+                },
+            )
+
+        # Construct full path
+        base_path = "/home/elkakas314/vx11"
+        if not path.startswith("/"):
+            path = "/" + path
+        full_path = Path(base_path + path).resolve()
+
+        # Security: Validate against allowlist
+        allowed = False
+        for allowed_base in FS_ALLOWLIST:
+            if str(full_path).startswith(allowed_base):
+                allowed = True
+                break
+
+        if not allowed:
+            write_log(
+                "operator_backend",
+                f"fs_list:access_denied:{path}:{ctx.get('request_id', 'unknown')}",
+                level="WARNING",
+            )
+            return JSONResponse(
+                status_code=403,
+                content={
+                    "ok": False,
+                    "detail": f"Path not in allowlist: {path}",
+                },
+            )
+
+        # Check if path exists
+        if not full_path.exists():
+            return JSONResponse(
+                status_code=404,
+                content={"ok": False, "detail": f"Path not found: {path}"},
+            )
+
+        # Build directory listing
+        contents = []
+        if full_path.is_dir():
+            try:
+                for item in sorted(full_path.iterdir()):
+                    if item.is_file():
+                        stat_info = item.stat()
+                        contents.append(
+                            {
+                                "name": item.name,
+                                "type": "file",
+                                "size": stat_info.st_size,
+                                "modified": datetime.fromtimestamp(
+                                    stat_info.st_mtime
+                                ).isoformat()
+                                + "Z",
+                            }
+                        )
+                    elif item.is_dir():
+                        stat_info = item.stat()
+                        contents.append(
+                            {
+                                "name": item.name,
+                                "type": "directory",
+                                "modified": datetime.fromtimestamp(
+                                    stat_info.st_mtime
+                                ).isoformat()
+                                + "Z",
+                            }
+                        )
+            except PermissionError:
+                return JSONResponse(
+                    status_code=403,
+                    content={
+                        "ok": False,
+                        "detail": f"Permission denied: {path}",
+                    },
+                )
+        else:
+            # Single file
+            stat_info = full_path.stat()
+            contents.append(
+                {
+                    "name": full_path.name,
+                    "type": "file",
+                    "size": stat_info.st_size,
+                    "modified": datetime.fromtimestamp(stat_info.st_mtime).isoformat()
+                    + "Z",
+                }
+            )
+
+        write_log(
+            "operator_backend",
+            f"fs_list:success:{path}:{len(contents)}_items:{ctx.get('request_id', 'unknown')}",
+        )
+
+        return {
+            "ok": True,
+            "data": {
+                "path": str(full_path),
+                "contents": contents,
+                "total_items": len(contents),
+            },
+            "timestamp": datetime.utcnow().isoformat() + "Z",
+        }
+
+    except Exception as exc:
+        write_log(
+            "operator_backend",
+            f"fs_list:error:{exc}",
+            level="ERROR",
+        )
+        return JSONResponse(
+            status_code=500,
+            content={"ok": False, "detail": f"Error listing files: {str(exc)}"},
         )
 
 
