@@ -1861,7 +1861,32 @@ async def operator_observe():
     return response
 
 
-if __name__ == "__main__":
+# ============ AUTH ENDPOINTS (Public, Proxy to Operator Backend) ============
+
+
+@app.post("/auth/login")
+async def auth_login(request: dict):
+    """
+    Proxy login to Operator Backend.
+
+    Request: {"username": "admin", "password": "admin"}
+    Response: {"access_token": "...", "token_type": "bearer", "expires_in": 3600}
+    """
+    clients = get_clients()
+    operator = clients.get_client("operator-backend")
+    if not operator:
+        raise HTTPException(status_code=503, detail="operator_backend_unavailable")
+
+    result = await operator.post("/auth/login", payload=request)
+    write_log("tentaculo_link", "auth_login")
+    return result
+
+
+@app.post("/auth/logout")
+async def auth_logout(_: bool = Depends(token_guard)):
+    """Proxy logout to Operator Backend (requires token)."""
+    clients = get_clients()
+    operator = clients.get_client("operator-backend")
     import uvicorn
 
     uvicorn.run(app, host="0.0.0.0", port=8000)
