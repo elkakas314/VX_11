@@ -1,6 +1,6 @@
 # VX11 Database Map (generated)
 
-Generated at: 2025-12-27T11:16:05.923101Z
+Generated at: 2025-12-27T16:35:03.824183Z
 
 Database file: data/runtime/vx11.db
 
@@ -158,7 +158,7 @@ Database file: data/runtime/vx11.db
 ### context — ACTIVE
 
 - Module: madre
-- Rows: 63
+- Rows: 72
 - Columns:
   - id (INTEGER) PK NOT NULL
   - task_id (VARCHAR(36)) NOT NULL
@@ -506,7 +506,7 @@ Database file: data/runtime/vx11.db
 ### intents_log — ACTIVE
 
 - Module: madre
-- Rows: 61
+- Rows: 62
 - Columns:
   - id (INTEGER) PK NOT NULL
   - source (VARCHAR(64)) NOT NULL
@@ -539,7 +539,7 @@ Database file: data/runtime/vx11.db
 ### madre_actions — ACTIVE
 
 - Module: madre
-- Rows: 140
+- Rows: 149
 - Columns:
   - id (INTEGER) PK NOT NULL
   - module (VARCHAR(64)) NOT NULL
@@ -657,7 +657,7 @@ Database file: data/runtime/vx11.db
 ### operator_browser_task — ACTIVE
 
 - Module: operator
-- Rows: 65
+- Rows: 67
 - Columns:
   - id (INTEGER) PK NOT NULL
   - session_id (VARCHAR(64)) NOT NULL
@@ -688,7 +688,7 @@ Database file: data/runtime/vx11.db
 ### operator_message — ACTIVE
 
 - Module: operator
-- Rows: 168
+- Rows: 172
 - Columns:
   - id (INTEGER) PK NOT NULL
   - session_id (VARCHAR(64)) NOT NULL
@@ -702,7 +702,7 @@ Database file: data/runtime/vx11.db
 ### operator_session — ACTIVE
 
 - Module: operator
-- Rows: 235
+- Rows: 245
 - Columns:
   - id (INTEGER) PK NOT NULL
   - session_id (VARCHAR(64)) NOT NULL
@@ -714,7 +714,7 @@ Database file: data/runtime/vx11.db
 ### operator_switch_adjustment — ACTIVE
 
 - Module: operator
-- Rows: 65
+- Rows: 67
 - Columns:
   - id (INTEGER) PK NOT NULL
   - session_id (VARCHAR(64)) NOT NULL
@@ -732,7 +732,7 @@ Database file: data/runtime/vx11.db
 ### operator_tool_call — ACTIVE
 
 - Module: operator
-- Rows: 65
+- Rows: 67
 - Columns:
   - id (INTEGER) PK NOT NULL
   - message_id (INTEGER) NOT NULL
@@ -894,7 +894,7 @@ Database file: data/runtime/vx11.db
 ### scheduler_history — ACTIVE
 
 - Module: madre
-- Rows: 6706
+- Rows: 3088
 - Columns:
   - id (INTEGER) PK NOT NULL
   - timestamp (DATETIME)
@@ -1064,7 +1064,7 @@ Database file: data/runtime/vx11.db
 ### tasks — ACTIVE
 
 - Module: madre
-- Rows: 40
+- Rows: 43
 - Columns:
   - id (INTEGER) PK NOT NULL
   - uuid (VARCHAR(36)) NOT NULL
