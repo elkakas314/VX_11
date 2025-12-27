@@ -76,7 +76,7 @@ export interface ChatResponse {
     metadata?: Record<string, any>;
 }
 
-export type TabName = "dashboard" | "chat" | "modules" | "jobs" | "events" | "audit";
+export type TabName = "dashboard" | "chat" | "map" | "modules" | "jobs" | "events" | "audit";
 
 export interface ErrorResponse {
     detail?: string;

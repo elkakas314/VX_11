@@ -34,6 +34,7 @@ from .core import (
     DelegationClient,
 )
 from . import rails_router
+from .llm.deepseek_client import call_deepseek_r1, is_deepseek_available
 
 log = logging.getLogger("vx11.madre")
 logger = log
@@ -99,11 +100,17 @@ async def health():
 # ============ CHAT ENDPOINT ============
 
 
-@app.post("/madre/chat", response_model=ChatResponse)
+@app.post("/madre/chat", response_model=ChatResponse, response_model_exclude_none=False)
 async def madre_chat(req: ChatRequest):
     """
     POST /madre/chat: Main chat endpoint.
 
+    With DeepSeek R1 feature-flag:
+    1. If DEEPSEEK_API_KEY env var present, try to call DeepSeek R1 first
+    2. On error/timeout/no-token, fallback to MADRE plan execution
+    3. Response includes provider field to indicate which backend was used
+
+    Plan-based flow:
     1. Create/load session
     2. Parse intent (via Switch or fallback)
     3. Classify risk + confirm if needed
@@ -117,6 +124,8 @@ async def madre_chat(req: ChatRequest):
     warnings = []
     targets = []
     actions = []
+    provider = "fallback_local"  # default
+    model = "local"
 
     # Create intent log entry
     intent_log_id = MadreDB.create_intent_log(
@@ -130,6 +139,50 @@ async def madre_chat(req: ChatRequest):
     )
 
     try:
+        # === PHASE 1: TRY DeepSeek R1 if available (FEATURE-FLAG) ===
+        if is_deepseek_available():
+            try:
+                log.info("DeepSeek available, attempting R1 call")
+                deepseek_result = await call_deepseek_r1(
+                    req.message, timeout_seconds=30
+                )
+
+                if deepseek_result["status"] == "DONE":
+                    # SUCCESS: Use DeepSeek response
+                    response = ChatResponse(
+                        response=deepseek_result["response"],
+                        session_id=session_id,
+                        intent_id=intent_id,
+                        plan_id=plan_id,
+                        status="DONE",
+                        mode="MADRE",
+                        provider=deepseek_result["provider"],  # "deepseek"
+                        model=deepseek_result["model"],  # "deepseek-reasoner"
+                        warnings=warnings,
+                        targets=targets,
+                        actions=actions,
+                    )
+                    MadreDB.close_intent_log(
+                        intent_log_id,
+                        result_status="done",
+                        notes=f"Processed via {deepseek_result['provider']}",
+                    )
+                    return response
+                else:
+                    # DEGRADED/ERROR: Log and fallback
+                    log.warning(
+                        f"DeepSeek degraded/error: {deepseek_result['status']}, falling back to MADRE"
+                    )
+                    warnings.append(f"deepseek_fallback:{deepseek_result['status']}")
+
+            except Exception as e:
+                log.error(f"DeepSeek integration exception, falling back: {e}")
+                warnings.append("deepseek_exception")
+
+        # === PHASE 2: FALLBACK to MADRE plan-based execution ===
+        provider = "fallback_local"
+        model = "local"
+
         # Step 1: Load or create session
         if session_id not in _SESSIONS:
             _SESSIONS[session_id] = {"mode": "MADRE", "created_at": datetime.utcnow()}
@@ -203,6 +256,8 @@ async def madre_chat(req: ChatRequest):
                 plan_id=plan_id,
                 status="WAITING",
                 mode=session_mode,
+                provider=provider,
+                model=model,
                 warnings=warnings,
                 targets=targets,
                 actions=[
@@ -236,6 +291,8 @@ async def madre_chat(req: ChatRequest):
             plan_id=plan_id,
             status=plan.status,
             mode=mode_enum,
+            provider=provider,
+            model=model,
             warnings=warnings,
             targets=targets,
             actions=actions,

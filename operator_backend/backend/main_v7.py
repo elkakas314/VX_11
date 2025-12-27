@@ -214,7 +214,112 @@ async def api_status(_: bool = Depends(token_guard)):
     return status
 
 
-# ============ INTENT ENDPOINT (for legacy test compat) ============
+@app.get("/api/map")
+async def api_map(_: bool = Depends(token_guard)):
+    """
+    System architecture map for frontend visualization.
+
+    Returns minimal graph: nodes (services) + edges (connections) + counts from DB.
+    Canonical structure from CANONICAL_FLOWS_VX11.json.
+    """
+    import httpx
+
+    # Minimal canonical map
+    nodes = [
+        {"id": "madre", "label": "Madre (v7)", "state": "unknown", "port": 8001},
+        {
+            "id": "tentaculo_link",
+            "label": "Tentáculo Link (v7)",
+            "state": "unknown",
+            "port": 8000,
+        },
+        {"id": "redis", "label": "Redis Cache", "state": "unknown", "port": 6379},
+        {
+            "id": "operator_backend",
+            "label": "Operator Backend",
+            "state": "up",
+            "port": 8011,
+        },
+    ]
+
+    # Canonical edges (connections)
+    edges = [
+        {"from": "operator_backend", "to": "tentaculo_link", "label": "proxy"},
+        {"from": "tentaculo_link", "to": "madre", "label": "route"},
+        {"from": "madre", "to": "redis", "label": "cache"},
+    ]
+
+    # Check each node state
+    tentaculo_url = os.getenv("VX11_TENTACULO_URL", "http://localhost:8000")
+    madre_url = os.getenv("VX11_MADRE_URL", "http://localhost:8001")
+    redis_url = os.getenv("VX11_REDIS_URL", "http://localhost:6379")
+
+    async with httpx.AsyncClient(timeout=1.5) as client:
+        # Check tentaculo_link
+        try:
+            resp = await client.get(f"{tentaculo_url}/health")
+            for node in nodes:
+                if node["id"] == "tentaculo_link":
+                    node["state"] = "up" if resp.status_code == 200 else "down"
+        except:
+            for node in nodes:
+                if node["id"] == "tentaculo_link":
+                    node["state"] = "down"
+
+        # Check madre
+        try:
+            resp = await client.get(f"{madre_url}/health")
+            for node in nodes:
+                if node["id"] == "madre":
+                    node["state"] = "up" if resp.status_code == 200 else "down"
+        except:
+            for node in nodes:
+                if node["id"] == "madre":
+                    node["state"] = "down"
+
+    # Redis check (simple TCP ping)
+    try:
+        async with httpx.AsyncClient(timeout=1.0) as client:
+            # Try redis via tentaculo if available
+            resp = await client.get(f"{tentaculo_url}/vx11/status")
+            if resp.status_code == 200:
+                data = resp.json()
+                redis_state = "up" if data.get("redis") == "ok" else "down"
+            else:
+                redis_state = "down"
+    except:
+        redis_state = "down"
+
+    for node in nodes:
+        if node["id"] == "redis":
+            node["state"] = redis_state
+
+    # Basic counts from DB (if available)
+    counts = {
+        "services_up": sum(1 for n in nodes if n.get("state") == "up"),
+        "total_services": len(nodes),
+    }
+
+    # Try to get routing events count
+    try:
+        from config.db_schema import get_session, RoutingEvent
+        from sqlalchemy import func
+
+        with get_session() as db:
+            count = db.query(func.count(RoutingEvent.id)).scalar() or 0
+            counts["routing_events"] = count
+    except:
+        counts["routing_events"] = 0
+
+    result = {
+        "nodes": nodes,
+        "edges": edges,
+        "counts": counts,
+        "timestamp": datetime.utcnow().isoformat(),
+    }
+
+    write_log("operator_backend", "api_map:ok")
+    return result
 
 
 class IntentRequest(BaseModel):

@@ -112,6 +112,8 @@ class ChatResponse(BaseModel):
     plan_id: str
     status: StatusEnum
     mode: ModeEnum
+    provider: Optional[str] = None  # "deepseek" | "fallback_local" | etc
+    model: Optional[str] = None  # "deepseek-reasoner" | "local" | etc
     warnings: List[str] = []
     targets: List[str] = []
     actions: List[Dict[str, Any]] = []

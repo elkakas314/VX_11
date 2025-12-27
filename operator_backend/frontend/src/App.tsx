@@ -3,6 +3,7 @@ import { initializeAuth, clearAuth, verifyToken } from "./api/canonical";
 import { LoginPage } from "./components/LoginPage";
 import { DashboardTab } from "./components/DashboardTab";
 import { ChatTab } from "./components/ChatTab";
+import { MapTab } from "./components/MapTab";
 import { ModulesTab } from "./components/ModulesTab";
 import { JobsTab } from "./components/JobsTab";
 import { EventsTab } from "./components/EventsTab";
@@ -69,6 +70,7 @@ export default function App() {
   const tabs: { id: TabName; label: string; icon: string }[] = [
     { id: "dashboard", label: "Dashboard", icon: "📊" },
     { id: "chat", label: "Chat", icon: "💬" },
+    { id: "map", label: "Map", icon: "🗺️" },
     { id: "modules", label: "Modules", icon: "🧩" },
     { id: "jobs", label: "Jobs", icon: "⚙️" },
     { id: "events", label: "Events", icon: "📢" },
@@ -166,6 +168,7 @@ export default function App() {
             <div className="max-w-full">
               {activeTab === "dashboard" && <DashboardTab />}
               {activeTab === "chat" && <ChatTab />}
+              {activeTab === "map" && <MapTab />}
               {activeTab === "modules" && <ModulesTab />}
               {activeTab === "jobs" && <JobsTab />}
               {activeTab === "events" && <EventsTab />}
