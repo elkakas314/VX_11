@@ -686,7 +686,7 @@ async def list_audits(
                 "level": item.level,
                 "message": item.message,
                 "created_at": (
-                    item.created_at.isoformat() + "Z" if item.created_at else None
+                    item.created_at.isoformat() + "Z" if item.created_at is not None else None
                 ),
             }
             for item in items
@@ -728,7 +728,7 @@ async def get_audit(
         "component": item.component,
         "level": item.level,
         "message": item.message,
-        "created_at": item.created_at.isoformat() + "Z" if item.created_at else None,
+        "created_at": item.created_at.isoformat() + "Z" if item.created_at is not None else None,
     }
 
 
@@ -975,8 +975,7 @@ async def get_events(
         from datetime import datetime
 
         # Generate request context for this SSE stream
-        req_ctx = request_context()
-        request_id = req_ctx["request_id"]
+        request_id = str(uuid.uuid4())[:12]
         last_event_id = 0
         heartbeat_interval = 30  # Send heartbeat every 30 seconds
         last_heartbeat = datetime.utcnow()
@@ -1005,7 +1004,7 @@ async def get_events(
                         "payload": event.payload,
                         "timestamp": (
                             event.timestamp.isoformat() + "Z"
-                            if event.timestamp
+                            if event.timestamp is not None
                             else None
                         ),
                     }
@@ -1112,10 +1111,10 @@ async def list_jobs(
                 "payload": item.payload,
                 "result": item.result,
                 "created_at": (
-                    item.created_at.isoformat() + "Z" if item.created_at else None
+                    item.created_at.isoformat() + "Z" if item.created_at is not None else None
                 ),
                 "updated_at": (
-                    item.updated_at.isoformat() + "Z" if item.updated_at else None
+                    item.updated_at.isoformat() + "Z" if item.updated_at is not None else None
                 ),
             }
             for item in items
@@ -1178,8 +1177,10 @@ async def get_job(
         "completed": {"percent": 100, "message": "Job completed successfully"},
         "failed": {"percent": 100, "message": "Job failed"},
     }
+    # Cast status to str to satisfy type checkers that may expose SQLAlchemy Column types
+    status_key = str(item.status) if item.status is not None else ""
     progress = progress_map.get(
-        item.status, {"percent": 0, "message": "Unknown status"}
+        status_key, {"percent": 0, "message": "Unknown status"}
     )
 
     return {
@@ -1189,7 +1190,7 @@ async def get_job(
         "status": item.status,
         "payload": item.payload,
         "result": item.result,
-        "created_at": item.created_at.isoformat() + "Z" if item.created_at else None,
-        "updated_at": item.updated_at.isoformat() + "Z" if item.updated_at else None,
+        "created_at": item.created_at.isoformat() + "Z" if item.created_at is not None else None,
+        "updated_at": item.updated_at.isoformat() + "Z" if item.updated_at is not None else None,
         "progress": progress,
     }
