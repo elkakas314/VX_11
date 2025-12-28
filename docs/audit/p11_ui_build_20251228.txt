@@ -1,0 +1,14 @@
+P11 UI build verification
+==========================
+
+Date: 2025-12-28T00:00:00Z
+
+Action: Frontend build for operator UI
+
+Result: SUCCESS
+
+Artifacts:
+- dist/ (Vite production build) created in operator/frontend/dist
+
+Notes:
+- Built with `npm run build` in `operator/frontend`.
