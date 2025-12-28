@@ -33,11 +33,12 @@
     "**/docs/audit": false
   },
   // Python / Pylance tuning
+  // NOTE: pyrightconfig.json and pyproject.toml manage type checking
+  // Only set diagnosticMode here (doesn't conflict)
   "python.analysis.diagnosticMode": "openFilesOnly",
-  "python.analysis.typeCheckingMode": "basic",
-  "python.analysis.autoSearchPaths": false,
-  "python.analysis.useLibraryCodeForTypes": false,
   // TypeScript tuning
+  "typescript.tsdk": "operator/frontend/node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
   "typescript.tsserver.maxTsServerMemory": 3072,
   "typescript.suggest.autoImports": false,
   // Disable automatic extension recommendations (optional)
