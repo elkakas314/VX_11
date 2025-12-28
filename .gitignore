@@ -19,10 +19,13 @@ venv/
 
 # Secrets (never commit)
 tokens.env*
+.env
 .env.local
 .env.*.local
 .env.dev.local
 .env.production.local
+.env.deepseek
+.env.*
 secrets/*.env
 
 # VS Code / GitHub local-only backups (do not modify those dirs; just ignore noise)

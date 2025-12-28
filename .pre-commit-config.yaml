@@ -1,0 +1,79 @@
+# VX11 Pre-Commit Hooks Configuration
+# P11: Secret Detection + Code Quality
+#
+# Install: pip install pre-commit && pre-commit install
+# Run: pre-commit run -a
+
+repos:
+  # === SECURITY: Secret Detection ===
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.4.0
+    hooks:
+      - id: detect-secrets
+        name: Detect secrets (entropy-based)
+        entry: detect-secrets scan
+        language: python
+        types: [python]
+        args:
+          - --baseline
+          - .secrets.baseline
+        stages: [commit]
+
+  # TruffleHog: High-entropy string scanner
+  - repo: https://github.com/trufflesecurity/trufflehog
+    rev: v3.63.0
+    hooks:
+      - id: trufflehog
+        name: TruffleHog (filesystem scan)
+        description: Detects secrets and PII in committed files
+        entry: trufflehog filesystem
+        language: python
+        types: [text]
+        stages: [commit]
+        args:
+          - --json
+          - --fail
+          - .
+
+  # === CODE QUALITY ===
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+        name: Trim trailing whitespace
+      - id: end-of-file-fixer
+        name: Fix end of file fixer
+      - id: check-yaml
+        name: Check YAML validity
+      - id: check-json
+        name: Check JSON validity
+      - id: check-added-large-files
+        name: Check for large files (>1MB)
+        args:
+          - --maxkb=1024
+      - id: check-case-conflict
+        name: Check for case conflicts
+      - id: check-merge-conflict
+        name: Check for merge conflicts
+
+  # === PYTHON: Linting ===
+  - repo: https://github.com/charliermarsh/ruff
+    rev: v0.1.9
+    hooks:
+      - id: ruff
+        name: Ruff (Python linter)
+        args:
+          - --fix
+      - id: ruff-format
+        name: Ruff (Python formatter)
+
+  # === ENVIRONMENT: Secrets in .env files ===
+  - repo: local
+    hooks:
+      - id: no-dotenv-secrets
+        name: No secrets in .env files
+        entry: bash -c 'if grep -E "^(DEEPSEEK_API_KEY|TOKEN|PASSWORD|SECRET)" .env* 2>/dev/null; then echo "ERROR: Secrets detected in .env files!"; exit 1; fi'
+        language: system
+        types: [text]
+        stages: [commit]
+        always_run: true
