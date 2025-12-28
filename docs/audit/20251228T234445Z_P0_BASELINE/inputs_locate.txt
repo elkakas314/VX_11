@@ -1,0 +1,22 @@
+docs/Documentos_1.zip
+docs/audit/canonize_20251220T172410Z/canonical_bundle_20251220T172410Z.zip
+docs/audit/audit.zip
+docs/audit/run_20251220T211755Z/CANONICAL_BUNDLE_20251220T213045Z.zip
+docs/audit/operator_superpack_close_20251227_192307Z.zip
+docs/audit/run_20251220T221745Z/CANONICAL_BUNDLE_20251220T223247Z.zip
+docs/audit/archive/2025-12-18/full_audit_20251218T172851Z.zip
+docs/audit/archive/2025-12-18/audit.zip
+docs/audit/archive/2025-12-18/scan_20251217T172633Z.zip
+docs/audit/archive/2025-12-18/archived_copilot.zip
+docs/audit/archive/2025-12-18/codex_megafix_20251218T192045Z.zip
+docs/audit/archive/2025-12-18/madre_power_saver_status_20251218T023344Z.zip
+docs/audit/archive/2025-12-18/.copilot-audit.zip
+docs/audit/archive/2025-12-18/cleanup_20251217T191923Z.zip
+docs/audit/archive/2025-12-18/.github.zip
+docs/audit/audit_2.zip
+docs/audit/madre_power_maintenance_post_task_post_task_20251228T180359Z.zip
+docs/audit/20251228T183554Z_OPERATOR_P9_EVIDENCE.zip
+docs/audit/audit_1.zip
+docs/Informe de Auditoría Remoto (A).pdf
+-rw-rw-r-- 1 elkakas314 elkakas314 90K dic 29 00:31 docs/Informe de Auditoría Remoto (A).pdf
+-rw-rw-r-- 1 elkakas314 elkakas314 78K dic 29 00:35 docs/Documentos_1.zip

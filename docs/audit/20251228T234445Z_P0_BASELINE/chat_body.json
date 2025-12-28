@@ -1,0 +1,1 @@
+{"message_id":"msg_f240dbb6","session_id":"baseline","response":"[LOCAL LLM DEGRADED] Received message (13 chars). Switch unavailable in solo_madre mode.","model":"local_llm_degraded","fallback_source":"local_llm_degraded","degraded":true}

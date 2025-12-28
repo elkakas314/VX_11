@@ -1,0 +1,5 @@
+NAMES                 STATUS                    PORTS
+vx11-tentaculo-link   Up 36 minutes (healthy)   0.0.0.0:8000->8000/tcp, [::]:8000->8000/tcp
+vx11-madre            Up 36 minutes (healthy)   0.0.0.0:8001->8001/tcp, [::]:8001->8001/tcp
+vx11-switch           Up 36 minutes (healthy)   0.0.0.0:8002->8002/tcp, [::]:8002->8002/tcp
+vx11-redis            Up 36 minutes (healthy)   0.0.0.0:6379->6379/tcp, [::]:6379->6379/tcp

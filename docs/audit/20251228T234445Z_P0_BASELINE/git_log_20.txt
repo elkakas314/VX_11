@@ -1,0 +1,20 @@
+26be729 vx11: P13: FINAL SIGN-OFF — all 6 FASES complete + smoke tests green + gates enforced
+c39b800 vx11: P13: Complete delivery (FASE 6) — all gates + evidence + SIGN-OFF
+ea6c2f5 vx11: P13: Operator UI (FASE 5) — ChatView window + CoDevView panel + styles
+80f1ef4 vx11: P13: Switch free-models-only (FASE 4) — allowlist validation + policy logging
+ff9dc53 vx11: P13: Baseline + Smoke test + Implementation status (FASE 0-3 evidence)
+7911ca5 vx11: P13: Endpoints (FASE 2+3) — Co-Dev assist + Power Windows proxy
+a82eeb4 vx11: P13: DeepSeek R1 Co-Dev Client (FASE 2) — rate limit + retry + DB logging
+fa1c344 vx11: P12: Evidence & gates (FASE F) — smoke tests + verification
+21c571c vx11: P12: Canvas design (FASE D, E) — documented architecture
+cb1e2f2 vx11: P12: Chat endpoint Switch-only (FASE C) — no DeepSeek by default
+fa0c349 vx11: P12: Fix Operator UI (FASE B) — relative BASE_URL + vite proxy
+0c5e89c vx11: P12: AUDIT Operator UI flow (FASE A)
+0314e3d vx11: audit: regenerate DB_MAP + DB_SCHEMA + SCORECARD post-status (integrity=ok, health=100%)
+5d7f5dc vx11: workspace: commit atomico
+71866d4 vx11: workspace: commit atomico
+bd99b52 vx11: P11 — operator UI views present + frontend build verified
+8995323 vx11: P11 — implement health endpoint + reorganize scripts and archive PROMPT docs
+2f7721a vx11: PROMPT 11 Index — Navigation guide for all P11 deliverables
+5e1ce94 vx11: PROMPT 11 Delivery Summary (4 TASKs A-D complete)
+b399dfc vx11: Operator Chat Quick Reference (P0+P1 usage guide)

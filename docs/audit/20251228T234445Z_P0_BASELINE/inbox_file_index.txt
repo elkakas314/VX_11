@@ -1,0 +1,4 @@
+docs/inbox/20251228T234445Z_inputs/unzipped/hormiguero_manifetsaator.txt
+docs/inbox/20251228T234445Z_inputs/unzipped/operatorjson.txt
+docs/inbox/20251228T234445Z_inputs/unzipped/shubjson.txt
+docs/inbox/20251228T234445Z_inputs/unzipped/diagrams.txt
