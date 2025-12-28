@@ -106,7 +106,7 @@ export function ChatPanel() {
             </div>
 
             {error && (
-                <div className="error-box" style={{ margin: '12px' }}>
+                <div className="error-box">
                     <span>⚠</span> {error}
                 </div>
             )}

@@ -66,14 +66,14 @@ export function HormigueroPanel() {
                 <>
                     <div className="status-row">
                         <span>Status:</span>
-                        <span style={{ color: 'var(--accent-green)' }}>
+                        <span className="status-ok">
                             {hormiguero.status || 'ok'}
                         </span>
                     </div>
 
                     <div className="status-row">
                         <span>Actions Enabled:</span>
-                        <span style={{ color: hormiguero.actions_enabled ? 'var(--accent-green)' : 'var(--accent-red)' }}>
+                        <span className={hormiguero.actions_enabled ? 'actions-enabled' : 'actions-disabled'}>
                             {hormiguero.actions_enabled ? 'Yes' : 'No'}
                         </span>
                     </div>
@@ -81,7 +81,7 @@ export function HormigueroPanel() {
                     {hormiguero.last_scan && (
                         <div className="status-row">
                             <span>Last Scan:</span>
-                            <code style={{ fontSize: '0.85em' }}>{hormiguero.last_scan}</code>
+                            <code className="last-scan">{hormiguero.last_scan}</code>
                         </div>
                     )}
 
@@ -95,8 +95,7 @@ export function HormigueroPanel() {
                         <small>Last refresh: {lastRefresh.toLocaleTimeString()}</small>
                         <button
                             onClick={() => setDebugMode(!debugMode)}
-                            className="btn-small"
-                            style={{ marginLeft: 'auto' }}
+                            className="btn-small btn-auto-margin"
                         >
                             {debugMode ? 'Hide' : 'Show'} JSON
                         </button>

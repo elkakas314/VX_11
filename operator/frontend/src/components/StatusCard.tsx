@@ -63,7 +63,7 @@ export function StatusCard() {
                 <>
                     <div className="status-row">
                         <span>Status:</span>
-                        <span style={{ color: statusColor }}>
+                        <span className="status-value">
                             {status.status || 'ok'} {status.degraded ? '(degraded)' : ''}
                         </span>
                     </div>
@@ -71,16 +71,7 @@ export function StatusCard() {
                     {status.circuit_breaker && (
                         <div className="status-row">
                             <span>Circuit Breaker:</span>
-                            <span
-                                style={{
-                                    color:
-                                        status.circuit_breaker.state === 'open'
-                                            ? 'var(--accent-red)'
-                                            : status.circuit_breaker.state === 'half_open'
-                                                ? 'var(--accent-yellow)'
-                                                : 'var(--accent-green)',
-                                }}
-                            >
+                            <span className="circuit-breaker-state">
                                 {status.circuit_breaker.state} ({status.circuit_breaker.failure_count} failures)
                             </span>
                         </div>
@@ -90,7 +81,7 @@ export function StatusCard() {
                         <div className="components-grid">
                             {Object.entries(status.components).map(([name, up]) => (
                                 <div key={name} className="component-badge">
-                                    <span style={{ color: up ? 'var(--accent-green)' : 'var(--accent-red)' }}>
+                                    <span className={up ? 'status-up' : 'status-down'}>
                                         ●
                                     </span>
                                     {name}

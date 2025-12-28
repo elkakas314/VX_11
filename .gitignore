@@ -1,5 +1,7 @@
 node_modules
 node_modules
+operator/**/node_modules
+operator/**/dist
 __pycache__/
 *.pyc
 
@@ -48,6 +50,8 @@ docs/audit/**
 !docs/audit/DIAGNOSTIC_ASSESSMENT_20251222.md
 !docs/audit/OPERATOR_UI_COMPLETE_20251228/
 !docs/audit/OPERATOR_UI_COMPLETE_20251228/*.md
+!docs/audit/20251228_OPERATOR_UI_FINAL/
+!docs/audit/20251228_OPERATOR_UI_FINAL/*.md
 
 # Public audit artifacts allowed for remote sync
 !docs/audit/_public/**

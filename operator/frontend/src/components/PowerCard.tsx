@@ -63,14 +63,14 @@ export function PowerCard() {
                         <>
                             <div className="status-row">
                                 <span>Policy:</span>
-                                <span style={{ color: policyColor, fontWeight: 'bold' }}>
+                                <span className="policy-value">
                                     {power.power_window.policy}
                                 </span>
                             </div>
 
                             <div className="status-row">
                                 <span>Window ID:</span>
-                                <code style={{ fontSize: '0.85em' }}>{power.power_window.window_id}</code>
+                                <code className="window-id">{power.power_window.window_id}</code>
                             </div>
 
                             {power.power_window.ttl_remaining !== undefined && (
@@ -87,12 +87,12 @@ export function PowerCard() {
                                         <ul>
                                             {power.power_window.running_services.map((svc) => (
                                                 <li key={svc}>
-                                                    <span style={{ color: 'var(--accent-green)' }}>●</span> {svc}
+                                                    <span className="service-indicator">●</span> {svc}
                                                 </li>
                                             ))}
                                         </ul>
                                     ) : (
-                                        <em style={{ color: 'var(--text-secondary)' }}>None</em>
+                                        <em className="text-secondary">None</em>
                                     )}
                                 </div>
                             )}

@@ -454,3 +454,99 @@ details pre {
     border-radius: 4px;
     overflow-x: auto;
 }
+
+/* Inline Styles to Classes */
+
+.status-value,
+.status-ok {
+    color: var(--accent-green);
+}
+
+.status-up {
+    color: var(--accent-green);
+}
+
+.status-down {
+    color: var(--accent-red);
+}
+
+.circuit-breaker-state {
+    color: var(--accent-yellow);
+}
+
+.policy-value {
+    color: var(--accent-blue);
+    font-weight: bold;
+}
+
+.window-id {
+    font-size: 0.85em;
+}
+
+.last-scan {
+    font-size: 0.85em;
+}
+
+.service-indicator {
+    color: var(--accent-green);
+}
+
+.text-secondary {
+    color: var(--text-secondary);
+}
+
+.check-pass {
+    color: var(--accent-green);
+    font-weight: 700;
+}
+
+.check-fail {
+    color: var(--accent-red);
+    font-weight: 700;
+}
+
+.check-optional-pass {
+    color: var(--accent-blue);
+    font-weight: 700;
+}
+
+.check-optional-fail {
+    color: var(--text-secondary);
+    font-weight: 700;
+}
+
+.result-margin {
+    margin-top: 12px;
+}
+
+.btn-full-width {
+    width: 100%;
+    margin-bottom: 12px;
+}
+
+.btn-auto-margin {
+    margin-left: auto;
+}
+
+.details-margin {
+    margin-top: 12px;
+}
+
+.details-summary {
+    cursor: pointer;
+    color: var(--text-secondary);
+}
+
+.details-pre {
+    margin-top: 8px;
+    font-size: 0.75em;
+    overflow: auto;
+}
+
+.actions-enabled {
+    color: var(--accent-green);
+}
+
+.actions-disabled {
+    color: var(--accent-red);
+}
