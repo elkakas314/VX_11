@@ -127,6 +127,22 @@ C) Crear matriz trazable: `docs/audit/<TIMESTAMP>_OPERATOR_P9_VISOR_REQUIREMENTS
 
 ---
 
+## POLÍTICA DE EJECUCIÓN (OBLIGATORIA) — SIN ESTIMACIONES DE HORAS
+
+```
+- Prohibido dar estimaciones tipo "X horas".
+- Trabajar por TAREAS ATÓMICAS con COMMITS atómicos.
+- Timebox por tarea: 60–90 minutos.
+  - Si no se completa en el timebox: PARAR y entregar:
+    1) qué falta,
+    2) cuál es el bloqueo real,
+    3) siguiente comando/cambio exacto para continuar.
+- P0 primero. P1/P2 solo si P0 pasa todos los gates.
+- Cada tarea termina con evidencia en docs/audit/<TIMESTAMP>_...
+```
+
+---
+
 ## 4) TRABAJO: 4 TAREAS ATÓMICAS
 
 ### TAREA 1 — Auditoría + Plan Ejecutable (SIN CAMBIOS)
@@ -338,7 +354,24 @@ $ git push vx_11_remote main
 
 ---
 
-## 5) RESTRICCIONES DE DEPENDENCIAS
+## 5) TIMEBOX + BLOQUEOS
+
+**Regla crítica**: Si una tarea no termina en 60–90 minutos:
+1. NO continuar "un poquito más"
+2. PARAR limpiamente (git stash o commit WIP si aplica)
+3. Entregar BLOQUEO en docs/audit/<TIMESTAMP>_BLOCKED/:
+   ```
+   Tarea: [nombre]
+   Tiempo usado: [minutos]
+   Falta: [qué específicamente]
+   Bloqueo: [impedimento concreto]
+   Siguiente paso: [comando o acción exacta]
+   ```
+4. Retomar en sesión siguiente
+
+---
+
+## 6) RESTRICCIONES DE DEPENDENCIAS
 
 ✅ PERMITIDAS:
 - Librerías ya en `package.json` (React, TypeScript, Vite, etc.)
@@ -357,7 +390,7 @@ $ git push vx_11_remote main
 
 ---
 
-## 6) SALIDA FINAL (QUÉ ENTREGARÉ AL USUARIO)
+## 7) SALIDA FINAL (QUÉ ENTREGARÉ AL USUARIO)
 
 ### 1️⃣ **Resumen Ejecutivo** (~1 página)
 
@@ -422,7 +455,7 @@ operator/frontend/tsconfig.json (si necesitó fixes)
 
 ---
 
-## 7) NOTAS FINALES
+## 8) NOTAS FINALES
 
 - **Paranoia VX11**: Cada cambio auditado, nada hecho "a ciegas"
 - **Fallback Graceful**: Si switch OFF, UI no rompe
@@ -432,16 +465,18 @@ operator/frontend/tsconfig.json (si necesitó fixes)
 
 ---
 
-## 8) INICIAR
+## 9) INICIAR
 
 1. Lee bootstrap obligatorio ✓
 2. Ejecuta snapshot ✓
 3. **PIDE AL USUARIO**: TXT del visor avanzado
 4. Parsearlo y crear matriz ✓
-5. TAREA 1: Plan (sin cambios) ✓
-6. TAREA 2: Frontend polish ✓
-7. TAREA 3: API + visor integration ✓
-8. TAREA 4: P0 gates + commits ✓
-9. Entregar salida final
+5. TAREA 1: Plan (sin cambios, timebox 60-90 min) ✓
+6. TAREA 2: Frontend polish (timebox 60-90 min) ✓
+7. TAREA 3: API + visor integration (timebox 60-90 min) ✓
+8. TAREA 4: P0 gates + commits (timebox 60-90 min) ✓
+9. Entregar: Resumen + commits + evidencia (por tarea)
+
+**Duración**: variable. Se mide por tareas completadas, commits limpios, gates pasados; no por horas.
 
 **START AQUÍ** (ejecuta bootstrap snapshot primero).

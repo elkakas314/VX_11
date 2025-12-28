@@ -121,6 +121,20 @@ Extraído del JSON spec, clasificado por prioridad:
 
 **REGLA**: Ninguna nueva sin justificación en PLAN.md
 
+## POLÍTICA DE EJECUCIÓN (OBLIGATORIA) — SIN ESTIMACIONES DE HORAS
+
+```
+- Prohibido dar estimaciones tipo "X horas".
+- Trabajar por TAREAS ATÓMICAS con COMMITS atómicos.
+- Timebox por tarea: 60–90 minutos.
+  - Si no se completa en el timebox: PARAR y entregar:
+    1) qué falta,
+    2) cuál es el bloqueo real,
+    3) siguiente comando/cambio exacto para continuar.
+- P0 primero. P1/P2 solo si P0 pasa todos los gates.
+- Cada tarea termina con evidencia en docs/audit/<TIMESTAMP>_...
+```
+
 ---
 
 ## FASE 1: BOOTSTRAP OBLIGATORIO (Copilot/DeepSeek debe ejecutar primero)
@@ -343,6 +357,21 @@ git commit -m "vx11: Operator P9 — verification + evidence + summary"
 git push vx_11_remote main
 ```
 
+## FASE 2B: TIMEBOX + BLOQUEOS
+
+**Regla crítica**: Si una tarea no termina en 60–90 minutos:
+1. NO continuar "un poquito más"
+2. PARAR limpiamente (git stash o commit WIP si aplica)
+3. Entregar BLOQUEO en docs/audit/<TIMESTAMP>_BLOCKED/:
+   ```
+   Tarea: [nombre]
+   Tiempo usado: [minutos]
+   Falta: [qué específicamente]
+   Bloqueo: [impedimento concreto]
+   Siguiente paso: [comando o acción exacta]
+   ```
+4. Retomar en sesión siguiente
+
 ---
 
 ## FASE 3: SALIDA FINAL (QUÉ ENTREGAR)
@@ -483,13 +512,13 @@ docs/audit/
 
 1. **Lee bootstrap** ✓ (10 archivos)
 2. **Ejecuta snapshot** → guardar en BASELINE/
-3. **TAREA 1**: Auditoría + Plan (0 cambios de código)
-4. **TAREA 2**: Frontend polish (5-6 horas)
-5. **TAREA 3**: API integration (2-3 horas)
-6. **TAREA 4**: P0 gates + commits (1-2 horas)
-7. **Entregar**: Resumen + commits + evidencia
+3. **TAREA 1**: Auditoría + Plan (0 cambios de código, timebox 60-90 min)
+4. **TAREA 2**: Frontend polish (timebox 60-90 min)
+5. **TAREA 3**: API integration (timebox 60-90 min)
+6. **TAREA 4**: P0 gates + commits (timebox 60-90 min)
+7. **Entregar**: Resumen + commits + evidencia (por tarea)
 
-**TOTAL**: ~9-12 horas de trabajo puro.
+**Duración**: variable. Se mide por tareas completadas, commits limpios, gates pasados; no por horas.
 
 ---
 

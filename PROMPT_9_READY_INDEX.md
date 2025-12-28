@@ -74,7 +74,7 @@
 6. DeepSeek parseamatriz + procede
 ```
 
-**Tiempo interactivo**: 1 pausa (sección 3)
+**Tiempo interactivo**: 1 pausa (sección 3) + 4 tareas atómicas con timeboxes de 60-90 min cada una
 
 ---
 
@@ -87,7 +87,7 @@
 5. Procede con 4 tareas atómicas
 ```
 
-**Tiempo interactivo**: 0 pausas (automático end-to-end)
+**Tiempo interactivo**: 0 pausas (automático) + 4 tareas atómicas con timeboxes de 60-90 min cada una
 
 ---
 
@@ -125,7 +125,7 @@
 **Recomendación**: **OPCIÓN B (PROMPT_9_INTEGRATED_DEEPSEEK_R1.md)** porque:
 - Sin pausas innecesarias
 - Matriz ya lista
-- DeepSeek puede trabajar end-to-end en ~9-12 horas
+- 4 tareas atómicas con timeboxes 60-90 min (variable según gates y bloqueos)
 - Entrega final: resumen + commits + evidencia
 
 ---
