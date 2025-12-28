@@ -46,6 +46,7 @@ from config.rate_limit import get_rate_limiter, set_redis_for_limiter
 from config.metrics_prometheus import get_prometheus_metrics
 from tentaculo_link.clients import get_clients
 from tentaculo_link.context7_middleware import get_context7_manager
+from tentaculo_link.deepseek_client import DeepSeekClient, save_chat_to_db
 
 # Load environment tokens
 load_tokens()
@@ -1943,12 +1944,17 @@ async def operator_api_modules(_: bool = Depends(token_guard)):
 @app.post("/operator/api/chat", tags=["operator-api-p0"])
 async def operator_api_chat(req: OperatorChatRequest, _: bool = Depends(token_guard)):
     """
-    P0: Chat endpoint (degraded mode in solo_madre).
-    If switch is available, route to it; otherwise return degraded response.
+    P0: Chat endpoint with fallback to DeepSeek API.
+
+    Flow:
+    1. Try switch service (if available).
+    2. If switch fails, try DeepSeek API (if DEEPSEEK_API_KEY is set).
+    3. If both fail, return degraded response.
     """
     session_id = req.session_id or f"session_{int(time.time())}"
+    message_id = f"msg_{uuid.uuid4().hex[:8]}"
 
-    # Attempt to use switch if available, else fallback to degraded
+    # Step 1: Attempt to use switch if available
     clients = get_clients()
     switch_client = clients.get_client("switch")
 
@@ -1959,17 +1965,73 @@ async def operator_api_chat(req: OperatorChatRequest, _: bool = Depends(token_gu
                 payload={"message": req.message, "session_id": session_id},
                 timeout=4.0,
             )
-            return result
+            # If we got a valid response from switch, return it
+            if result and result.get("status") != "service_offline":
+                return result
         except Exception as e:
             write_log("tentaculo_link", f"chat_switch_failed:{str(e)}", level="WARNING")
 
-    # Degraded response
+    # Step 2: Fallback to DeepSeek API
+    try:
+        deepseek = DeepSeekClient()
+        await deepseek.startup()
+
+        response = await deepseek.chat(message=req.message)
+
+        if response.get("status") == "ok" and response.get("text"):
+            assistant_text = response.get("text", "")
+
+            # Try to save to DB
+            await save_chat_to_db(
+                session_id=session_id,
+                user_message=req.message,
+                assistant_response=assistant_text,
+            )
+
+            write_log(
+                "tentaculo_link",
+                f"chat_deepseek_fallback_success:session={session_id}",
+                level="INFO",
+            )
+
+            return {
+                "message_id": message_id,
+                "session_id": session_id,
+                "response": assistant_text,
+                "model": response.get("model", "deepseek-chat"),
+                "fallback_source": "deepseek_api",
+                "degraded": False,
+            }
+        else:
+            # DeepSeek failed
+            error_msg = response.get("error", "Unknown error")
+            write_log(
+                "tentaculo_link",
+                f"chat_deepseek_failed:{error_msg}",
+                level="WARNING",
+            )
+
+    except ValueError as e:
+        # DEEPSEEK_API_KEY not set
+        write_log(
+            "tentaculo_link",
+            f"chat_deepseek_not_configured:{str(e)}",
+            level="WARNING",
+        )
+    except Exception as e:
+        write_log(
+            "tentaculo_link",
+            f"chat_deepseek_exception:{type(e).__name__}:{str(e)[:100]}",
+            level="WARNING",
+        )
+
+    # Step 3: Both switch and DeepSeek failed; return degraded response
     return {
-        "message_id": f"msg_{int(time.time())}",
+        "message_id": message_id,
         "session_id": session_id,
-        "response": f"[DEGRADED MODE] Switch service unavailable (solo_madre policy). Your message: {req.message}",
+        "response": f"[DEGRADED MODE] Services unavailable (solo_madre policy). Message echoed: {req.message[:100]}",
         "degraded": True,
-        "reason": "Switch service OFF_BY_POLICY in solo_madre mode",
+        "reason": "Switch and DeepSeek fallback both unavailable",
     }
 
 

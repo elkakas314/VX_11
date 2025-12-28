@@ -40,6 +40,9 @@ services:
       - VX11_RATE_LIMIT_PROTECTED=100
       - VX11_METRICS_ENABLED=true
       - VX11_METRICS_PORT=9090
+      # P0: DeepSeek API fallback for chat (solo_madre policy)
+      - DEEPSEEK_API_KEY=sk-a51dc3781393456e85ea56851b167af0
+      - DEEPSEEK_BASE_URL=https://api.deepseek.com/v1
     mem_limit: 512m
     depends_on:
       redis:
