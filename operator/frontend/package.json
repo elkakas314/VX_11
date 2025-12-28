@@ -1,0 +1,28 @@
+{
+    "name": "@vx11/operator-frontend",
+    "private": true,
+    "version": "7.0.0",
+    "type": "module",
+    "description": "VX11 Operator UI - Dark theme dashboard for power windows, chat, and monitoring",
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build",
+        "preview": "vite preview",
+        "test": "vitest",
+        "test:ui": "vitest --ui"
+    },
+    "dependencies": {
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0"
+    },
+    "devDependencies": {
+        "@types/node": "^20.10.0",
+        "@types/react": "^18.2.37",
+        "@types/react-dom": "^18.2.15",
+        "@vitejs/plugin-react": "^4.2.0",
+        "@vitest/ui": "^0.34.6",
+        "typescript": "^5.3.3",
+        "vite": "^5.0.0",
+        "vitest": "^0.34.6"
+    }
+}
