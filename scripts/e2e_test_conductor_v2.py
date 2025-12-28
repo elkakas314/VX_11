@@ -109,7 +109,7 @@ def get_service_state(service_name: str) -> Optional[Dict[str, Any]]:
     return None
 
 
-def get_cpu_memory_metrics() -> Dict[str, float]:
+def get_cpu_memory_metrics() -> Dict[str, Any]:
     """Get system-wide CPU and memory metrics."""
     try:
         cpu_percent = psutil.cpu_percent(interval=0.1)
