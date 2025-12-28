@@ -67,20 +67,25 @@ class ApiClient {
         }
     }
 
-    // Chat endpoint
+    // Chat endpoint (P0: via /operator/api/chat)
     async chat(message: string, sessionId?: string): Promise<ApiResponse<any>> {
-        return this.request('POST', '/operator/chat/ask', {
+        return this.request('POST', '/operator/api/chat', {
             message,
             session_id: sessionId,
         })
     }
 
-    // Status endpoint
+    // Status endpoint (P0: via /operator/api/status)
     async status(): Promise<ApiResponse<any>> {
-        return this.request('GET', '/operator/status')
+        return this.request('GET', '/operator/api/status')
     }
 
-    // Power state endpoint
+    // Modules endpoint (P0: via /operator/api/modules)
+    async modules(): Promise<ApiResponse<any>> {
+        return this.request('GET', '/operator/api/modules')
+    }
+
+    // Power state endpoint (legacy, still available)
     async powerState(): Promise<ApiResponse<any>> {
         return this.request('GET', '/operator/power/state')
     }

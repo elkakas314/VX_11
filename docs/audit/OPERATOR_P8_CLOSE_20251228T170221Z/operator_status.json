@@ -1,0 +1,1 @@
+{"status":"degraded","components":{"tentaculo_link":{"status":"ok","port":8000},"madre":{"status":"ok","port":8001},"redis":{"status":"unreachable","error":"Server disconnected without sending a response."},"switch":{"status":"available","port":8002}},"windows":{"policy":"solo_madre","active_count":0}}

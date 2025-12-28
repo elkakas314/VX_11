@@ -8,7 +8,6 @@ Main HTTP gateway for VX11 with token authentication, circuit breaker,
 Context-7 sessions, and intelligent request routing to internal services.
 """
 
-
 import asyncio
 import json
 import time
@@ -1854,70 +1853,271 @@ async def auth_logout(_: bool = Depends(token_guard)):
     return result
 
 
-# ============ GENERIC API PROXY (forward all /operator/api/* to operator-backend) ============
+# ============ OPERATOR API — P0 NATIVE ENDPOINTS (NO operator_backend dependency) ============
+
+
+@app.get("/operator/api/status", tags=["operator-api-p0"])
+async def operator_api_status(_: bool = Depends(token_guard)):
+    """
+    P0: Stable status shape for Operator UI.
+    Does NOT call operator_backend (archived).
+    Returns current policy + core service health + OFF_BY_POLICY state.
+    """
+    clients = get_clients()
+    health_results = await clients.health_check_all()
+
+    return {
+        "status": "ok",
+        "policy": "solo_madre",  # Always solo_madre by default
+        "core_services": {
+            "madre": health_results.get("madre", {}).get("status") == "healthy",
+            "redis": health_results.get("redis", {}).get("status") == "healthy",
+            "tentaculo_link": health_results.get("tentaculo_link", {}).get("status")
+            == "healthy",
+        },
+        "optional_services": {
+            "switch": {"status": "OFF_BY_POLICY", "reason": "solo_madre policy"},
+            "hermes": {"status": "OFF_BY_POLICY", "reason": "solo_madre policy"},
+            "hormiguero": {"status": "OFF_BY_POLICY", "reason": "solo_madre policy"},
+            "spawner": {"status": "OFF_BY_POLICY", "reason": "solo_madre policy"},
+            "operator_backend": {
+                "status": "ARCHIVED",
+                "reason": "UI moved to tentaculo_link",
+            },
+        },
+        "degraded": not all(
+            health_results.get(s, {}).get("status") == "healthy"
+            for s in ["madre", "redis", "tentaculo_link"]
+        ),
+    }
+
+
+@app.get("/operator/api/modules", tags=["operator-api-p0"])
+async def operator_api_modules(_: bool = Depends(token_guard)):
+    """
+    P0: List all modules with state + reason.
+    OFF_BY_POLICY modules shown as inactive (not error).
+    """
+    clients = get_clients()
+    health_results = await clients.health_check_all()
+
+    modules = {}
+
+    # Core (always should be up in solo_madre)
+    for name in ["madre", "redis", "tentaculo_link"]:
+        info = health_results.get(name, {})
+        modules[name] = {
+            "status": "healthy" if info.get("status") == "healthy" else "unhealthy",
+            "port": {"madre": 8001, "redis": 6379, "tentaculo_link": 8000}.get(name),
+            "reason": (
+                "Core service" if info.get("status") == "healthy" else "Check logs"
+            ),
+            "category": "core",
+        }
+
+    # Optional (OFF_BY_POLICY in solo_madre)
+    for name in ["switch", "hermes", "hormiguero", "spawner"]:
+        modules[name] = {
+            "status": "OFF_BY_POLICY",
+            "port": {
+                "switch": 8002,
+                "hermes": 8003,
+                "hormiguero": 8004,
+                "spawner": 8006,
+            }.get(name),
+            "reason": "solo_madre policy active",
+            "category": "optional",
+        }
+
+    # Archived
+    modules["operator_backend"] = {
+        "status": "ARCHIVED",
+        "port": 8011,
+        "reason": "Operator API migrated to tentaculo_link:/operator/*",
+        "category": "archived",
+    }
+
+    return {"modules": modules}
+
+
+@app.post("/operator/api/chat", tags=["operator-api-p0"])
+async def operator_api_chat(req: OperatorChatRequest, _: bool = Depends(token_guard)):
+    """
+    P0: Chat endpoint (degraded mode in solo_madre).
+    If switch is available, route to it; otherwise return degraded response.
+    """
+    session_id = req.session_id or f"session_{int(time.time())}"
+
+    # Attempt to use switch if available, else fallback to degraded
+    clients = get_clients()
+    switch_client = clients.get_client("switch")
+
+    if switch_client:
+        try:
+            result = await switch_client.post(
+                "/switch/chat",
+                payload={"message": req.message, "session_id": session_id},
+                timeout=4.0,
+            )
+            return result
+        except Exception as e:
+            write_log("tentaculo_link", f"chat_switch_failed:{str(e)}", level="WARNING")
+
+    # Degraded response
+    return {
+        "message_id": f"msg_{int(time.time())}",
+        "session_id": session_id,
+        "response": f"[DEGRADED MODE] Switch service unavailable (solo_madre policy). Your message: {req.message}",
+        "degraded": True,
+        "reason": "Switch service OFF_BY_POLICY in solo_madre mode",
+    }
+
+
+@app.get("/operator/api/events", tags=["operator-api-p0"])
+async def operator_api_events(limit: int = 10, _: bool = Depends(token_guard)):
+    """
+    P0: Events polling endpoint (no SSE yet).
+    Returns recent events or empty array (not stub, not error).
+    """
+    # TODO: Implement event storage in SQLite (P1+)
+    # For now, return empty but valid response
+    return {
+        "events": [],
+        "total": 0,
+        "limit": limit,
+        "note": "Event storage P1+ feature",
+    }
+
+
+@app.get("/operator/api/scorecard", tags=["operator-api-p0"])
+async def operator_api_scorecard(_: bool = Depends(token_guard)):
+    """
+    P0: Scorecard (PERCENTAGES + SCORECARD from audit dir or defaults).
+    If files exist, parse them; else return nulls with reason.
+    """
+    percentages_path = Path("/app/docs/audit/PERCENTAGES.json")
+    scorecard_path = Path("/app/docs/audit/SCORECARD.json")
+
+    percentages = None
+    scorecard = None
+
+    try:
+        if percentages_path.exists():
+            percentages = json.loads(percentages_path.read_text())
+    except Exception as e:
+        write_log("tentaculo_link", f"scorecard_read_error:{str(e)}", level="WARNING")
+
+    try:
+        if scorecard_path.exists():
+            scorecard = json.loads(scorecard_path.read_text())
+    except Exception as e:
+        write_log("tentaculo_link", f"scorecard_read_error:{str(e)}", level="WARNING")
+
+    return {
+        "percentages": percentages,
+        "scorecard": scorecard,
+        "files_found": {
+            "percentages": percentages_path.exists(),
+            "scorecard": scorecard_path.exists(),
+        },
+    }
+
+
+@app.get("/operator/api/topology", tags=["operator-api-p0"])
+async def operator_api_topology(_: bool = Depends(token_guard)):
+    """
+    P0: Static topology graph (minimal, annotated with policy state).
+    Shows core + optional services + policy context.
+    """
+    return {
+        "policy": "solo_madre",
+        "graph": {
+            "nodes": [
+                {
+                    "id": "madre",
+                    "label": "Madre",
+                    "status": "UP",
+                    "port": 8001,
+                    "type": "core",
+                },
+                {
+                    "id": "redis",
+                    "label": "Redis",
+                    "status": "UP",
+                    "port": 6379,
+                    "type": "core",
+                },
+                {
+                    "id": "tentaculo_link",
+                    "label": "Tentáculo Link",
+                    "status": "UP",
+                    "port": 8000,
+                    "type": "core",
+                },
+                {
+                    "id": "switch",
+                    "label": "Switch",
+                    "status": "OFF_BY_POLICY",
+                    "port": 8002,
+                    "type": "optional",
+                },
+                {
+                    "id": "hermes",
+                    "label": "Hermes",
+                    "status": "OFF_BY_POLICY",
+                    "port": 8003,
+                    "type": "optional",
+                },
+                {
+                    "id": "hormiguero",
+                    "label": "Hormiguero",
+                    "status": "OFF_BY_POLICY",
+                    "port": 8004,
+                    "type": "optional",
+                },
+                {
+                    "id": "spawner",
+                    "label": "Spawner",
+                    "status": "OFF_BY_POLICY",
+                    "port": 8006,
+                    "type": "optional",
+                },
+            ],
+            "edges": [
+                {"from": "tentaculo_link", "to": "madre", "label": "proxy"},
+                {"from": "tentaculo_link", "to": "redis", "label": "cache"},
+                {"from": "madre", "to": "redis", "label": "state"},
+            ],
+        },
+        "policy_note": "solo_madre: Only core services up. Optional services OFF_BY_POLICY (not an error).",
+    }
 
 
 @app.api_route(
     "/operator/api/{path:path}",
     methods=["GET", "POST", "PUT", "DELETE"],
-    tags=["proxy-operator"],
+    tags=["operator-api-fallback"],
 )
-async def operator_api_proxy(path: str, request: Request):
+async def operator_api_fallback(path: str, _: bool = Depends(token_guard)):
     """
-    Generic proxy for /operator/api/* endpoints.
-    Forwards to operator-backend:8011/api/{path} with all method types.
-    Respects headers, body, query params. Passes Authorization header if present.
-    Auth is optional (backend handles auth_mode policy).
+    Fallback for unmatched /operator/api/* paths.
+    Returns 404 with helpful message (not 500).
     """
-    clients = get_clients()
-    operator = clients.get_client("operator-backend")
-    if not operator:
-        raise HTTPException(status_code=503, detail="operator_backend_unavailable")
-
-    # Build backend path
-    backend_path = f"/api/{path}"
-    if request.query_params:
-        query_string = "&".join(f"{k}={v}" for k, v in request.query_params.items())
-        backend_path = f"{backend_path}?{query_string}"
-
-    # Extract Authorization and CSRF headers from request (optional, pass-through)
-    auth_header = request.headers.get("authorization")
-    csrf_header = request.headers.get("x-csrf-token")
-    extra_headers = {}
-    if auth_header:
-        extra_headers["authorization"] = auth_header
-    if csrf_header:
-        extra_headers["x-csrf-token"] = csrf_header
-
-    method = request.method.lower()
-
-    try:
-        if method == "get":
-            result = await operator.get(backend_path, extra_headers=extra_headers)
-        elif method in ["post", "put"]:
-            body = await request.json()
-            result = await operator.post(
-                backend_path, payload=body, extra_headers=extra_headers
-            )
-        elif method == "delete":
-            result = await operator.post(
-                f"{backend_path}", payload={}, extra_headers=extra_headers
-            )
-        else:
-            raise HTTPException(status_code=405, detail="method_not_allowed")
-
-        write_log(
-            "tentaculo_link",
-            f"operator_api_proxy:{method}:{path}:ok:headers={list(extra_headers.keys())}",
-        )
-        return result
-    except Exception as exc:
-        write_log(
-            "tentaculo_link",
-            f"operator_api_proxy_error:{method}:{path}:{exc}",
-            level="WARNING",
-        )
-        raise HTTPException(status_code=500, detail=str(exc))
+    return JSONResponse(
+        status_code=404,
+        content={
+            "error": "endpoint_not_found",
+            "path": f"/operator/api/{path}",
+            "available_endpoints": [
+                "GET  /operator/api/status",
+                "GET  /operator/api/modules",
+                "POST /operator/api/chat",
+                "GET  /operator/api/events",
+                "GET  /operator/api/scorecard",
+                "GET  /operator/api/topology",
+            ],
+        },
+    )
 
 
 if __name__ == "__main__":

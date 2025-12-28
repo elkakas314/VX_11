@@ -1,0 +1,52 @@
+{
+  "modules": {
+    "madre": {
+      "status": "unhealthy",
+      "port": 8001,
+      "reason": "Check logs",
+      "category": "core"
+    },
+    "redis": {
+      "status": "unhealthy",
+      "port": 6379,
+      "reason": "Check logs",
+      "category": "core"
+    },
+    "tentaculo_link": {
+      "status": "unhealthy",
+      "port": 8000,
+      "reason": "Check logs",
+      "category": "core"
+    },
+    "switch": {
+      "status": "OFF_BY_POLICY",
+      "port": 8002,
+      "reason": "solo_madre policy active",
+      "category": "optional"
+    },
+    "hermes": {
+      "status": "OFF_BY_POLICY",
+      "port": 8003,
+      "reason": "solo_madre policy active",
+      "category": "optional"
+    },
+    "hormiguero": {
+      "status": "OFF_BY_POLICY",
+      "port": 8004,
+      "reason": "solo_madre policy active",
+      "category": "optional"
+    },
+    "spawner": {
+      "status": "OFF_BY_POLICY",
+      "port": 8006,
+      "reason": "solo_madre policy active",
+      "category": "optional"
+    },
+    "operator_backend": {
+      "status": "ARCHIVED",
+      "port": 8011,
+      "reason": "Operator API migrated to tentaculo_link:/operator/*",
+      "category": "archived"
+    }
+  }
+}

@@ -1,0 +1,8 @@
+ M docs/audit/DB_MAP_v7_FINAL.md
+ M docs/audit/DB_SCHEMA_v7_FINAL.json
+ M docs/audit/SCORECARD.json
+?? docs/canonical/modules/operator/
+?? operator/README.md
+?? operator/__init__.py.disabled.20251217T144725Z
+?? operator/backend/
+?? operator/frontend/index.html

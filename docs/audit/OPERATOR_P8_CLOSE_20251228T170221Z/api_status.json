@@ -1,0 +1,32 @@
+{
+  "status": "ok",
+  "policy": "solo_madre",
+  "core_services": {
+    "madre": false,
+    "redis": false,
+    "tentaculo_link": false
+  },
+  "optional_services": {
+    "switch": {
+      "status": "OFF_BY_POLICY",
+      "reason": "solo_madre policy"
+    },
+    "hermes": {
+      "status": "OFF_BY_POLICY",
+      "reason": "solo_madre policy"
+    },
+    "hormiguero": {
+      "status": "OFF_BY_POLICY",
+      "reason": "solo_madre policy"
+    },
+    "spawner": {
+      "status": "OFF_BY_POLICY",
+      "reason": "solo_madre policy"
+    },
+    "operator_backend": {
+      "status": "ARCHIVED",
+      "reason": "UI moved to tentaculo_link"
+    }
+  },
+  "degraded": true
+}

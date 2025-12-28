@@ -1,0 +1,74 @@
+{
+  "policy": "solo_madre",
+  "graph": {
+    "nodes": [
+      {
+        "id": "madre",
+        "label": "Madre",
+        "status": "UP",
+        "port": 8001,
+        "type": "core"
+      },
+      {
+        "id": "redis",
+        "label": "Redis",
+        "status": "UP",
+        "port": 6379,
+        "type": "core"
+      },
+      {
+        "id": "tentaculo_link",
+        "label": "Tentáculo Link",
+        "status": "UP",
+        "port": 8000,
+        "type": "core"
+      },
+      {
+        "id": "switch",
+        "label": "Switch",
+        "status": "OFF_BY_POLICY",
+        "port": 8002,
+        "type": "optional"
+      },
+      {
+        "id": "hermes",
+        "label": "Hermes",
+        "status": "OFF_BY_POLICY",
+        "port": 8003,
+        "type": "optional"
+      },
+      {
+        "id": "hormiguero",
+        "label": "Hormiguero",
+        "status": "OFF_BY_POLICY",
+        "port": 8004,
+        "type": "optional"
+      },
+      {
+        "id": "spawner",
+        "label": "Spawner",
+        "status": "OFF_BY_POLICY",
+        "port": 8006,
+        "type": "optional"
+      }
+    ],
+    "edges": [
+      {
+        "from": "tentaculo_link",
+        "to": "madre",
+        "label": "proxy"
+      },
+      {
+        "from": "tentaculo_link",
+        "to": "redis",
+        "label": "cache"
+      },
+      {
+        "from": "madre",
+        "to": "redis",
+        "label": "state"
+      }
+    ]
+  },
+  "policy_note": "solo_madre: Only core services up. Optional services OFF_BY_POLICY (not an error)."
+}
