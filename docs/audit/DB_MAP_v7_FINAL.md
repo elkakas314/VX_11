@@ -1,6 +1,6 @@
 # VX11 Database Map (generated)
 
-Generated at: 2025-12-27T19:14:12.065613Z
+Generated at: 2025-12-28T03:28:10.773685Z
 
 Database file: data/runtime/vx11.db
 
@@ -539,7 +539,7 @@ Database file: data/runtime/vx11.db
 ### madre_actions — ACTIVE
 
 - Module: madre
-- Rows: 149
+- Rows: 160
 - Columns:
   - id (INTEGER) PK NOT NULL
   - module (VARCHAR(64)) NOT NULL

@@ -650,7 +650,9 @@ async def proxy_hermes_get_engine(
                 media_type="application/json",
             )
     except Exception as exc:
-        write_log("tentaculo_link", f"proxy_hermes_get_engine_error:{exc}", level="ERROR")
+        write_log(
+            "tentaculo_link", f"proxy_hermes_get_engine_error:{exc}", level="ERROR"
+        )
         raise HTTPException(status_code=502, detail="hermes_proxy_error")
 
 
@@ -854,6 +856,24 @@ async def operator_power_restart(name: str, _: bool = Depends(token_guard)):
     result = await madre.post(f"/madre/power/service/{name}/restart", payload={})
     write_log("tentaculo_link", f"operator_power_restart:{name}")
     return result
+
+
+# ============= POWER WINDOWS (Phase 2) =============
+# TODO: These endpoints cannot be fully implemented in Phase 1 due to
+# architectural constraints: tentaculo_link runs in Docker and does not
+# have access to docker daemon or host-level docker compose execution.
+#
+# For Phase 1, use the metadata-only power windows API in madre:
+#   POST /madre/power/window/open
+#   POST /madre/power/window/close
+#   GET /madre/power/state
+#
+# Phase 2 will implement full execution via:
+#   - Host-level daemon wrapper, OR
+#   - SSH delegation, OR
+#   - New power-daemon microservice on host
+
+# See: docs/audit/*/ARCHITECTURE_ANALYSIS.md
 
 
 @app.get("/operator/session/{session_id}")

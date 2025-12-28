@@ -13,6 +13,8 @@ import os
 
 from . import power_saver as power_saver_module
 from . import power_manager as power_manager_module
+from . import power_windows
+from . import routes_power
 
 from config.settings import settings
 from config.tokens import get_token
@@ -64,14 +66,57 @@ _delegator = DelegationClient()
 # Session store: {session_id -> {mode, last_activity, ...}}
 _SESSIONS: Dict[str, Dict[str, Any]] = {}
 
+# Global TTL checker task
+_ttl_checker_task: Optional[asyncio.Task] = None
+
+
+async def _ttl_checker_background():
+    """Background task: chequea TTL cada 1 segundo."""
+    wm = power_windows.get_window_manager()
+    while True:
+        try:
+            await asyncio.sleep(1)
+            expired = wm.check_ttl_expiration()
+            if expired:
+                log.warning(f"TTL enforcement: window {expired.window_id} expired")
+                # Detener servicios
+                services = list(expired.services)
+                cmd = ["docker", "compose", "stop"] + services
+                try:
+                    subprocess.run(cmd, capture_output=True, timeout=30)
+                    log.info(f"Stopped services: {services}")
+                except Exception as e:
+                    log.error(f"Failed to stop services: {e}")
+        except asyncio.CancelledError:
+            break
+        except Exception as e:
+            log.error(f"TTL checker error: {e}")
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Startup/shutdown."""
+    global _ttl_checker_task
+
+    # Startup
     write_log("madre", "startup:v7_initialized")
+    power_windows.init_window_manager()
+    log.info("Power Windows Manager initialized")
+
+    # Inicia background task de TTL
+    _ttl_checker_task = asyncio.create_task(_ttl_checker_background())
+    log.info("TTL checker task started")
+
     try:
         yield
     finally:
+        # Shutdown
+        if _ttl_checker_task:
+            _ttl_checker_task.cancel()
+            try:
+                await _ttl_checker_task
+            except asyncio.CancelledError:
+                pass
         write_log("madre", "shutdown:v7_closed")
 
 
@@ -928,3 +973,7 @@ else:
                 pass
     except Exception:
         pass
+
+
+# ============ POWER MANAGER ROUTER (FASE 2) ============
+app.include_router(routes_power.router, prefix="/madre/power", tags=["power-manager"])

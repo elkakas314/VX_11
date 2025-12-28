@@ -166,7 +166,10 @@ class TestNoBypass:
         # all HTTP requests should use localhost:8000 only.
         # In practice, we verify this by inspecting network traffic.
         import pytest
-        pytest.skip("Informational test: bypass prevention is by architecture, not enforcement")
+
+        pytest.skip(
+            "Informational test: bypass prevention is by architecture, not enforcement"
+        )
 
     def test_no_direct_hermes_port(self):
         """Direct access to localhost:8003 should NOT work via front-door tests"""
