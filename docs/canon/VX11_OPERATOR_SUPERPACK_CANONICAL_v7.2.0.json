@@ -151,12 +151,12 @@
                 "responsibility": "HTTP proxy + circuit breaker + aggregator",
                 "routes": {
                     "/health": "Proxy to madre or respond directly (no auth)",
-                    "/api/*": "Proxy to operator_backend:8011 (if running); if DOWN, return 503 or degraded response",
+                    "/api/*": "Aggregated endpoints (operator UI, health, module status). No direct backend :8011 calls (operator_backend archived).",
                     "/operator/*": "Alias for /api/* (canonical namespace)",
                     "/madre/*": "Proxy to madre:8001",
                     "/ui/*": "Serve operator frontend static files (dist/)"
                 },
-                "behavior_operator_backend_down": "Return HTTP 503 or { degraded: true, errors: ['operator_backend unreachable'] }",
+                "behavior_operator_down": "Frontend shows limited UI + degraded banner; all requests go through tentaculo_link only",
                 "timeouts": "Connection timeout 2s, read timeout 5s, write timeout 5s"
             }
         },
