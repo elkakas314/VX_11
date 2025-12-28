@@ -1,0 +1,1281 @@
+{
+    "metadata": {
+        "name": "VX11_OPERATOR_SUPERPACK_CANONICAL",
+        "version": "7.0.0-superpack",
+        "generated_at": "2025-12-27",
+        "target_repo": "elkakas314/VX_11",
+        "scope": "Operator frontend + operator_backend (+ minimal tentaculo_link/madre/power_manager wiring for E2E)",
+        "canon_sources": [
+            "Arquitectura Ideal del Sistema VX11 y Plan de Pruebas.pdf",
+            "Tentaculo_link Auditoría VX11.pdf",
+            "1. Auditoría del código y estado actual.pdf"
+        ]
+    },
+    "canon_invariants": {
+        "single_entrypoint": {
+            "rule": "Frontend MUST ONLY call operator_backend. operator_backend MUST proxy to tentaculo_link and/or madre. No direct calls from frontend to internal modules.",
+            "enforcement": [
+                "CORS allowlist",
+                "network policy / compose isolation",
+                "frontend baseUrl locked to operator_backend"
+            ]
+        },
+        "runtime_default": {
+            "mode": "solo_madre",
+            "rule": "Default runtime keeps full_profile OFF. Any module activation must be time-boxed via 'maintenance window' controlled by madre.",
+            "ui_requirement": "OFF must be displayed as 'OFF by policy' (not as failure)."
+        },
+        "no_unsafe_ui": {
+            "rule": "No arbitrary shell execution from UI. Only runbooks/actions approved and executed via madre with audit trail.",
+            "allowed": [
+                "request audit",
+                "request restart module",
+                "open/close window",
+                "spawn daughter task",
+                "download artifacts"
+            ],
+            "denied": [
+                "free-form bash/pwsh",
+                "direct FS writes",
+                "direct DB writes",
+                "bypass to ports"
+            ]
+        },
+        "db_ownership": {
+            "rule": "Operator stores only operator data. Cross-module data access is via module APIs or madre aggregation, never raw table poking from frontend.",
+            "operator_tables_only": [
+                "operator_sessions",
+                "operator_messages",
+                "operator_events",
+                "operator_settings",
+                "operator_audit_runs_cache"
+            ]
+        },
+        "security_minimum": {
+            "auth": "JWT (or token) + roles",
+            "rate_limit": "on /api/chat and mutating endpoints",
+            "csrf": "required if cookie-based auth is used",
+            "secrets": "env/tokens.env only, never committed"
+        }
+    },
+    "current_state_observed": {
+        "backend": {
+            "service": "operator_backend (FastAPI v7)",
+            "noted_routes_existing": [
+                "/health",
+                "/operator/chat",
+                "/operator/session/{id}",
+                "/operator/vx11/overview",
+                "/ws",
+                "/ws/{session_id}",
+                "/api/chat (alias)",
+                "/api/status (alias)"
+            ],
+            "noted_gaps": [
+                "/api/audit (stub)",
+                "/api/audit/{id}/download (stub)",
+                "/api/module/{name}/restart (stub)",
+                "/api/events (missing or incomplete)",
+                "/api/settings (missing)"
+            ],
+            "routing_behavior": {
+                "fallback_order": [
+                    "tentaculo_link:8000",
+                    "madre:8001",
+                    "degraded"
+                ],
+                "required_response_fields": [
+                    "request_id",
+                    "route_taken",
+                    "degraded",
+                    "errors[]"
+                ]
+            }
+        },
+        "frontend": {
+            "stack": "React 18 + TypeScript + Tailwind + Zustand",
+            "layout": "3-panel dark tentacular",
+            "functional_panels": [
+                "ChatPanel",
+                "StatusBar",
+                "LogsPanel",
+                "SwitchQueuePanel",
+                "HermesPanel",
+                "MCPPanel",
+                "SpawnerPanel"
+            ],
+            "stub_or_basic_panels": [
+                "Dashboard",
+                "MadrePanel",
+                "ShubPanel",
+                "HormigueroMapPanel",
+                "ManifestatorPanel"
+            ],
+            "realtime": {
+                "ws_client": "present",
+                "missing": [
+                    "reconnect strategy",
+                    "heartbeat",
+                    "backoff",
+                    "offline banner integration"
+                ]
+            }
+        }
+    },
+    "target_operator_product": {
+        "name": "Operator VX11 — Advanced Chat + Dashboard + Ant Visualization",
+        "design_goal": "Visually striking dark tentacular UI; operationally complete and canon-aligned; usable in solo_madre mode; real-time observability with safe controls.",
+        "delivery_definition": {
+            "prod_ready_requires": [
+                "npm run build OK",
+                "python -m py_compile OK",
+                "P0 tests green (auth/status/chat/restart/audit download)",
+                "degraded mode UX works (tentaculo_link down + madre down)",
+                "no stubs remain for canonic endpoints (either implemented or removed)"
+            ]
+        }
+    },
+    "frontend_spec": {
+        "information_architecture": {
+            "primary_nav": [
+                {
+                    "id": "overview",
+                    "label": "Overview",
+                    "icon": "grid"
+                },
+                {
+                    "id": "chat",
+                    "label": "Chat",
+                    "icon": "message-square"
+                },
+                {
+                    "id": "topology",
+                    "label": "Topology",
+                    "icon": "share-2"
+                },
+                {
+                    "id": "hormiguero",
+                    "label": "Hormiguero",
+                    "icon": "activity"
+                },
+                {
+                    "id": "jobs",
+                    "label": "Jobs",
+                    "icon": "list"
+                },
+                {
+                    "id": "audit",
+                    "label": "Audit",
+                    "icon": "shield"
+                },
+                {
+                    "id": "explorer",
+                    "label": "Explorer",
+                    "icon": "folder"
+                },
+                {
+                    "id": "settings",
+                    "label": "Settings",
+                    "icon": "sliders"
+                }
+            ],
+            "left_rail": {
+                "sections": [
+                    "global_status_chip",
+                    "session_list (chat sessions)",
+                    "module_quick_list (core first)",
+                    "search (sessions/modules/events)"
+                ]
+            },
+            "center_panel": {
+                "default_view": "chat",
+                "view_container": "switchable main content by nav"
+            },
+            "right_drawer_context": {
+                "sections": [
+                    "current_mode (solo_madre/window_active)",
+                    "active_modules + reason chips",
+                    "active_daughters (from spawner) mini-list",
+                    "recent_events (last 20)",
+                    "alerts (P0/P1)",
+                    "quick_actions (safe runbooks)"
+                ]
+            }
+        },
+        "visual_design": {
+            "theme": {
+                "mode": "dark",
+                "tokens": {
+                    "bg_0": "#070A12",
+                    "bg_1": "#0B1020",
+                    "panel": "#0F172A",
+                    "panel_2": "#111B33",
+                    "border": "rgba(148, 163, 184, 0.15)",
+                    "text": "#E5E7EB",
+                    "muted": "#94A3B8",
+                    "accent_primary": "#7C3AED",
+                    "accent_secondary": "#06B6D4",
+                    "ok": "#22C55E",
+                    "warn": "#F59E0B",
+                    "crit": "#EF4444",
+                    "info": "#38BDF8"
+                },
+                "typography": {
+                    "font_ui": "system-ui",
+                    "font_mono": "ui-monospace",
+                    "scale": {
+                        "h1": 22,
+                        "h2": 18,
+                        "body": 14,
+                        "small": 12,
+                        "micro": 11
+                    }
+                },
+                "density_modes": [
+                    "comfortable",
+                    "compact"
+                ],
+                "shadows": {
+                    "card": "soft",
+                    "modal": "soft+glow"
+                },
+                "corner_radius": {
+                    "card": 16,
+                    "button": 14,
+                    "chip": 999
+                }
+            },
+            "motion": {
+                "rules": [
+                    "Animations must be subtle (150–220ms).",
+                    "Only status-driven motion: pulse for OK, shimmer for loading, slow red pulse for critical.",
+                    "Respect prefers-reduced-motion."
+                ],
+                "status_animations": {
+                    "ok": "slow_pulse_very_subtle",
+                    "degraded": "breathing_border",
+                    "critical": "slow_red_pulse + shake_on_transition_only"
+                }
+            },
+            "components_visual_library": {
+                "base": [
+                    "Tailwind UI primitives",
+                    "shadcn/ui optional"
+                ],
+                "charts": [
+                    "Recharts"
+                ],
+                "topology": [
+                    "React Flow (preferred) or SVG canvas"
+                ],
+                "virtualization": [
+                    "react-virtual (chat/log lists)"
+                ]
+            }
+        },
+        "ux_behaviors": {
+            "global_degraded_mode": {
+                "trigger": "operator_backend cannot reach both tentaculo_link and madre",
+                "ui": [
+                    "persistent banner: 'Degraded mode: offline/cache'",
+                    "per-message status chips show route_taken",
+                    "queue pending messages locally (optional setting)",
+                    "offer 'resend pending' when recovered"
+                ]
+            },
+            "chat": {
+                "message_states": [
+                    "draft",
+                    "sending",
+                    "delivered",
+                    "routed",
+                    "degraded",
+                    "failed"
+                ],
+                "features": [
+                    "typing indicator",
+                    "timestamps",
+                    "copy message / copy JSON payload",
+                    "retry per-message",
+                    "pin important messages",
+                    "session rename/tag/search",
+                    "command palette integration (/status /audit /window 5m switch /spawn diag)"
+                ],
+                "attachments": {
+                    "dropzone": true,
+                    "allowed_types": [
+                        "zip",
+                        "txt",
+                        "json",
+                        "md",
+                        "log"
+                    ],
+                    "policy": "upload to operator_backend -> madre decides analysis -> results returned as structured sections"
+                },
+                "explainability": {
+                    "show_intent_chip": true,
+                    "show_modules_involved": true,
+                    "show_correlation_id": true
+                }
+            },
+            "accessibility": {
+                "keyboard_nav": {
+                    "send": "Ctrl+Enter",
+                    "palette": "Ctrl+K",
+                    "close_modal": "Esc",
+                    "jump_panels": [
+                        "Alt+1 left",
+                        "Alt+2 center",
+                        "Alt+3 right"
+                    ]
+                },
+                "aria": [
+                    "aria-label for icon buttons",
+                    "role=log for live event feed"
+                ],
+                "focus": "visible focus ring (accent_secondary)"
+            }
+        },
+        "feature_sets": {
+            "overview_dashboard": {
+                "widgets": [
+                    {
+                        "id": "module_cards",
+                        "data": "/api/status + /api/modules",
+                        "behavior": "Show OK/OFF_BY_POLICY/DEGRADED/UNKNOWN; click -> module detail"
+                    },
+                    {
+                        "id": "alerts_strip",
+                        "data": "/api/status",
+                        "behavior": "Only shows P0/P1, collapsible"
+                    },
+                    {
+                        "id": "score_radar",
+                        "data": "/api/scorecard",
+                        "behavior": "Radar: Orden/E2E/Coherencia/Automatizacion/Autonomia (only if real data)"
+                    },
+                    {
+                        "id": "recent_runs",
+                        "data": "/api/audit?limit=10",
+                        "behavior": "Last audits + download artifacts"
+                    }
+                ],
+                "no_fake_data": true
+            },
+            "topology_view": {
+                "goal": "Interactive VX11 map (modules + flows + live health).",
+                "nodes": [
+                    "operator_frontend",
+                    "operator_backend",
+                    "tentaculo_link",
+                    "madre",
+                    "switch",
+                    "spawner",
+                    "hormiguero",
+                    "mcp",
+                    "manifestator (full_profile)",
+                    "shub (full_profile)"
+                ],
+                "edges": [
+                    {
+                        "from": "operator_frontend",
+                        "to": "operator_backend",
+                        "label": "UI API"
+                    },
+                    {
+                        "from": "operator_backend",
+                        "to": "tentaculo_link",
+                        "label": "proxy primary"
+                    },
+                    {
+                        "from": "operator_backend",
+                        "to": "madre",
+                        "label": "proxy fallback/control"
+                    },
+                    {
+                        "from": "madre",
+                        "to": "switch",
+                        "label": "routing/intents"
+                    },
+                    {
+                        "from": "madre",
+                        "to": "spawner",
+                        "label": "spawn daughters"
+                    },
+                    {
+                        "from": "hormiguero",
+                        "to": "spawner",
+                        "label": "scan tasks"
+                    }
+                ],
+                "interactions": [
+                    "click node -> detail drawer (endpoints, last health, last 20 events)",
+                    "hover edge -> latency + last route stats",
+                    "toggle: show only core vs show full_profile"
+                ],
+                "data_sources": [
+                    "/api/topology",
+                    "/api/status",
+                    "/api/routing/events (optional)"
+                ]
+            },
+            "hormiguero_visualization": {
+                "goal": "Make the ant colony visible: queen, daughters, pheromones, scan progress.",
+                "panels": [
+                    {
+                        "id": "colony_status",
+                        "data": "/api/hormiguero/status",
+                        "shows": [
+                            "queen_state",
+                            "active_daughters",
+                            "current_scopes",
+                            "recent_pheromones",
+                            "scan_progress"
+                        ]
+                    },
+                    {
+                        "id": "pheromone_heatmap",
+                        "data": "/api/hormiguero/pheromones?window=60m",
+                        "visual": "heatmap by scope/path/category",
+                        "rules": "Only show what hormiguero actually reports. No invented categories."
+                    },
+                    {
+                        "id": "daughter_fleet",
+                        "data": "/api/spawner/daughters?source=hormiguero",
+                        "visual": "list + mini-timeline per daughter",
+                        "actions": [
+                            "request_kill (via madre)",
+                            "request_extend_ttl (via madre)"
+                        ]
+                    },
+                    {
+                        "id": "scan_control",
+                        "data": "mutating endpoints",
+                        "actions": [
+                            {
+                                "label": "On-demand scan",
+                                "call": "POST /api/hormiguero/scan",
+                                "requires_confirm": true,
+                                "options": [
+                                    "scope=full",
+                                    "scope=path",
+                                    "scope=incremental"
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "visual_language": {
+                    "queen": "central node",
+                    "daughters": "orbiting nodes",
+                    "pheromones": "flow particles / event stream",
+                    "severity": "color chips only (no flashing spam)"
+                }
+            },
+            "jobs_board": {
+                "goal": "Unified jobs: shub renders, spawner tasks, audits.",
+                "views": [
+                    "table",
+                    "kanban"
+                ],
+                "filters": [
+                    "module",
+                    "status",
+                    "severity",
+                    "tag",
+                    "time_range"
+                ],
+                "data_sources": [
+                    "/api/jobs",
+                    "/api/job/{id}"
+                ],
+                "live_updates": "SSE/WS if enabled"
+            },
+            "audit_center": {
+                "goal": "Audits + drift + patch plans as first-class artifacts.",
+                "views": [
+                    "run list",
+                    "run detail (P0/P1/P2 findings)",
+                    "download artifacts",
+                    "apply patch plan (only via madre, confirm required)"
+                ],
+                "data_sources": [
+                    "/api/audit",
+                    "/api/audit/{id}",
+                    "/api/audit/{id}/download"
+                ]
+            },
+            "explorer_read_only": {
+                "goal": "Safe read-only browsing of whitelisted artifacts.",
+                "fs_ro": {
+                    "whitelist_roots": [
+                        "docs/audit",
+                        "data/runtime",
+                        "logs"
+                    ],
+                    "endpoints": [
+                        "/api/explorer/fs/tree",
+                        "/api/explorer/fs/file"
+                    ]
+                },
+                "db_ro": {
+                    "whitelist_tables": [
+                        "operator_sessions",
+                        "operator_messages",
+                        "operator_events",
+                        "audit_runs",
+                        "jobs",
+                        "incidents"
+                    ],
+                    "endpoints": [
+                        "/api/explorer/db/tables",
+                        "/api/explorer/db/query_preset"
+                    ]
+                },
+                "policy": "No raw SQL text box by default. Presets only."
+            },
+            "settings": {
+                "sections": [
+                    "appearance (density, theme variations)",
+                    "live events (on/off, SSE vs WS, polling interval)",
+                    "chat (max length, local queue on degrade)",
+                    "security (role view, token status)",
+                    "developer (debug route selection, only if admin)"
+                ],
+                "data_sources": [
+                    "/api/settings (GET/POST)"
+                ]
+            }
+        },
+        "state_management": {
+            "stores": [
+                "sessionsStore (sessions/messages/pins/tags)",
+                "statusStore (modules/status/alerts/scorecard)",
+                "eventsStore (SSE/WS feed, filters, unread counts)",
+                "settingsStore (persisted UI + behavior flags)"
+            ],
+            "persistence": {
+                "local": [
+                    "ui_settings",
+                    "draft_message",
+                    "pending_queue_if_enabled"
+                ],
+                "server": [
+                    "operator_sessions",
+                    "operator_messages",
+                    "operator_settings"
+                ]
+            }
+        }
+    },
+    "backend_spec": {
+        "service": {
+            "name": "operator_backend",
+            "framework": "FastAPI",
+            "port": 8080,
+            "mode_awareness": [
+                "VX11_MODE=solo_madre",
+                "maintenance_window_active"
+            ],
+            "fallback_proxy": {
+                "primary": "tentaculo_link:8000",
+                "secondary": "madre:8001",
+                "degraded": "local cache/limited responses"
+            }
+        },
+        "auth_and_roles": {
+            "modes": [
+                "token_header",
+                "jwt_login"
+            ],
+            "endpoints": [
+                {
+                    "method": "POST",
+                    "path": "/auth/login",
+                    "req": {
+                        "username": "string",
+                        "password": "string"
+                    },
+                    "res": {
+                        "token": "string",
+                        "role": "admin|operator|readonly"
+                    }
+                },
+                {
+                    "method": "GET",
+                    "path": "/auth/me",
+                    "res": {
+                        "user": "string",
+                        "role": "admin|operator|readonly"
+                    }
+                }
+            ],
+            "authorization_matrix": {
+                "readonly": [
+                    "GET /api/status",
+                    "GET /api/modules",
+                    "GET /api/events",
+                    "GET /api/audit",
+                    "GET /api/jobs",
+                    "GET /api/explorer/*"
+                ],
+                "operator": [
+                    "POST /api/chat",
+                    "POST /api/audit",
+                    "POST /api/hormiguero/scan (confirm)",
+                    "POST /api/power/window/request"
+                ],
+                "admin": [
+                    "POST /api/module/{name}/restart",
+                    "POST /api/module/{name}/power",
+                    "POST /api/audit/apply_patchplan"
+                ]
+            }
+        },
+        "security_controls": {
+            "rate_limit": {
+                "enabled": true,
+                "rules": [
+                    {
+                        "path": "/api/chat",
+                        "limit": "20/min per session"
+                    },
+                    {
+                        "path": "/api/module/*",
+                        "limit": "5/min per user"
+                    }
+                ]
+            },
+            "csrf": {
+                "enabled_if_cookie_auth": true,
+                "strategy": "double-submit token"
+            },
+            "audit_trail": {
+                "log_every_mutation": true,
+                "fields": [
+                    "request_id",
+                    "user",
+                    "role",
+                    "action",
+                    "target",
+                    "payload_hash",
+                    "route_taken",
+                    "timestamp"
+                ]
+            }
+        },
+        "canonical_api_surface": {
+            "principle": "Expose stable /api/* endpoints; keep legacy /operator/* as backward compatible aliases where needed.",
+            "endpoints": [
+                {
+                    "method": "GET",
+                    "path": "/api/status",
+                    "desc": "Global status summary (modules + mode + alerts + uptime).",
+                    "res": {
+                        "mode": "solo_madre|window_active|full_profile",
+                        "modules": [
+                            {
+                                "name": "string",
+                                "role": "core|support|full_profile",
+                                "status": "OK|OFF_BY_POLICY|DEGRADED|RESTARTING|UNKNOWN",
+                                "uptime_s": "number",
+                                "latency_ms": "number",
+                                "last_error": "string|null",
+                                "reason": "string|null"
+                            }
+                        ],
+                        "alerts": [
+                            {
+                                "severity": "P0|P1|P2",
+                                "title": "string",
+                                "detail": "string",
+                                "hint": "string"
+                            }
+                        ],
+                        "scorecard": {
+                            "orden_pct": "number|null",
+                            "coherencia_pct": "number|null",
+                            "estabilidad_pct": "number|null",
+                            "automatizacion_pct": "number|null",
+                            "autonomia_pct": "number|null",
+                            "global_pct": "number|null"
+                        }
+                    }
+                },
+                {
+                    "method": "GET",
+                    "path": "/api/modules",
+                    "desc": "Module list with basic info.",
+                    "res": {
+                        "modules": "same shape as /api/status.modules"
+                    }
+                },
+                {
+                    "method": "GET",
+                    "path": "/api/modules/{name}",
+                    "desc": "Module details + logs tail + endpoints list (if available).",
+                    "res": {
+                        "module": "module object",
+                        "logs_tail": [
+                            "string"
+                        ],
+                        "endpoints": [
+                            {
+                                "method": "GET|POST",
+                                "path": "string",
+                                "desc": "string"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "method": "POST",
+                    "path": "/api/chat",
+                    "desc": "Chat message -> proxy to tentaculo_link or madre; persists session/messages.",
+                    "req": {
+                        "session_id": "string|null",
+                        "message": "string",
+                        "attachments": [
+                            {
+                                "id": "string",
+                                "name": "string",
+                                "type": "string",
+                                "size": "number"
+                            }
+                        ],
+                        "client_context": {
+                            "active_view": "string",
+                            "selected_module": "string|null"
+                        }
+                    },
+                    "res": {
+                        "request_id": "string",
+                        "route_taken": "tentaculo_link|madre|degraded",
+                        "degraded": "boolean",
+                        "correlation_id": "string|null",
+                        "intent": {
+                            "type": "string",
+                            "targets": [
+                                "string"
+                            ],
+                            "risk": "low|medium|high"
+                        },
+                        "reply": "string",
+                        "structured": {
+                            "sections": [
+                                {
+                                    "title": "string",
+                                    "content": "string",
+                                    "kind": "text|json|md"
+                                }
+                            ]
+                        },
+                        "errors": [
+                            "string"
+                        ]
+                    }
+                },
+                {
+                    "method": "GET",
+                    "path": "/api/events",
+                    "desc": "SSE stream or events polling feed (depending on mode).",
+                    "res": {
+                        "events": [
+                            {
+                                "id": "string",
+                                "ts": "iso8601",
+                                "type": "status|audit|job|log|hormiguero|spawner|routing",
+                                "severity": "info|warn|crit",
+                                "module": "string",
+                                "correlation_id": "string|null",
+                                "summary": "string",
+                                "payload": "object"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "method": "POST",
+                    "path": "/api/audit",
+                    "desc": "Trigger manual audit (requests madre/manifestator/hormiguero).",
+                    "req": {
+                        "scope": "core|full",
+                        "include_fs_drift": "boolean",
+                        "include_db_map": "boolean"
+                    },
+                    "res": {
+                        "audit_id": "string",
+                        "status": "queued|running",
+                        "request_id": "string"
+                    }
+                },
+                {
+                    "method": "GET",
+                    "path": "/api/audit",
+                    "desc": "List audit runs.",
+                    "res": {
+                        "runs": [
+                            {
+                                "audit_id": "string",
+                                "ts": "iso8601",
+                                "status": "done|error|running",
+                                "p0_count": "number",
+                                "summary": "string"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "method": "GET",
+                    "path": "/api/audit/{id}",
+                    "desc": "Audit run details.",
+                    "res": {
+                        "audit_id": "string",
+                        "findings": [
+                            {
+                                "severity": "P0|P1|P2",
+                                "title": "string",
+                                "detail": "string",
+                                "evidence_paths": [
+                                    "string"
+                                ]
+                            }
+                        ],
+                        "artifacts": [
+                            "string"
+                        ]
+                    }
+                },
+                {
+                    "method": "GET",
+                    "path": "/api/audit/{id}/download",
+                    "desc": "Download audit artifact bundle.",
+                    "res": {
+                        "content_type": "application/zip",
+                        "bytes": "binary"
+                    }
+                },
+                {
+                    "method": "POST",
+                    "path": "/api/module/{name}/restart",
+                    "desc": "Safe restart request via madre power_manager; requires admin.",
+                    "req": {
+                        "reason": "string",
+                        "window_ttl_s": "number"
+                    },
+                    "res": {
+                        "request_id": "string",
+                        "status": "accepted|rejected",
+                        "detail": "string"
+                    }
+                },
+                {
+                    "method": "POST",
+                    "path": "/api/module/{name}/power",
+                    "desc": "Request power up/down via madre (time-boxed).",
+                    "req": {
+                        "action": "power_up|power_down",
+                        "ttl_s": "number",
+                        "reason": "string"
+                    },
+                    "res": {
+                        "request_id": "string",
+                        "status": "accepted|rejected",
+                        "detail": "string"
+                    }
+                },
+                {
+                    "method": "GET",
+                    "path": "/api/jobs",
+                    "desc": "Unified jobs list (shub/spawner/audit).",
+                    "res": {
+                        "jobs": [
+                            {
+                                "job_id": "string",
+                                "module": "string",
+                                "status": "queued|running|done|error",
+                                "progress": "number|null",
+                                "ts": "iso8601",
+                                "summary": "string"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "method": "GET",
+                    "path": "/api/job/{id}",
+                    "desc": "Job details + logs + artifacts.",
+                    "res": {
+                        "job_id": "string",
+                        "status": "string",
+                        "logs_tail": [
+                            "string"
+                        ],
+                        "artifacts": [
+                            "string"
+                        ]
+                    }
+                },
+                {
+                    "method": "GET",
+                    "path": "/api/hormiguero/status",
+                    "desc": "Hormiguero status: queen, daughters, pheromones, active scans.",
+                    "res": {
+                        "queen": {
+                            "state": "idle|planning|dispatching|aggregating",
+                            "last_intent": "string|null"
+                        },
+                        "active_daughters": [
+                            {
+                                "id": "string",
+                                "task": "string",
+                                "ttl_s": "number",
+                                "status": "running|done|error"
+                            }
+                        ],
+                        "recent_pheromones": [
+                            {
+                                "ts": "iso8601",
+                                "scope": "string",
+                                "signal": "string",
+                                "severity": "info|warn|crit"
+                            }
+                        ],
+                        "progress": {
+                            "scope": "string",
+                            "pct": "number|null",
+                            "eta_s": "number|null"
+                        }
+                    }
+                },
+                {
+                    "method": "POST",
+                    "path": "/api/hormiguero/scan",
+                    "desc": "On-demand scan request (proxy to hormiguero via madre).",
+                    "req": {
+                        "scope": "full|path|incremental",
+                        "path": "string|null"
+                    },
+                    "res": {
+                        "request_id": "string",
+                        "scan_id": "string",
+                        "status": "accepted|rejected"
+                    }
+                },
+                {
+                    "method": "GET",
+                    "path": "/api/settings",
+                    "desc": "Get operator settings (UI + behavior).",
+                    "res": {
+                        "settings": "object"
+                    }
+                },
+                {
+                    "method": "POST",
+                    "path": "/api/settings",
+                    "desc": "Update operator settings (validated).",
+                    "req": {
+                        "settings": "object"
+                    },
+                    "res": {
+                        "ok": "boolean"
+                    }
+                },
+                {
+                    "method": "GET",
+                    "path": "/api/topology",
+                    "desc": "Topology graph definition (nodes/edges + live annotations).",
+                    "res": {
+                        "nodes": [
+                            "object"
+                        ],
+                        "edges": [
+                            "object"
+                        ],
+                        "mode": "string"
+                    }
+                }
+            ],
+            "legacy_aliases": [
+                {
+                    "from": "/operator/chat",
+                    "to": "/api/chat"
+                },
+                {
+                    "from": "/operator/vx11/overview",
+                    "to": "/api/status"
+                },
+                {
+                    "from": "/ws/{session_id}",
+                    "to": "/api/events (or ws)"
+                }
+            ]
+        },
+        "realtime": {
+            "preferred": "SSE for events + WS optional for chat streaming",
+            "sse": {
+                "path": "/api/events/stream",
+                "heartbeat_s": 15,
+                "retry_backoff": "client exponential"
+            },
+            "ws": {
+                "paths": [
+                    "/ws",
+                    "/ws/{session_id}"
+                ],
+                "client_requirements": [
+                    "auto-reconnect",
+                    "heartbeat ping/pong",
+                    "server close codes",
+                    "backoff jitter"
+                ]
+            }
+        },
+        "data_model": {
+            "tables": {
+                "operator_sessions": {
+                    "fields": [
+                        "id",
+                        "created_at",
+                        "updated_at",
+                        "title",
+                        "tags",
+                        "pinned",
+                        "last_route_taken"
+                    ]
+                },
+                "operator_messages": {
+                    "fields": [
+                        "id",
+                        "session_id",
+                        "ts",
+                        "role(user|assistant|system)",
+                        "content",
+                        "request_id",
+                        "route_taken",
+                        "degraded",
+                        "correlation_id",
+                        "intent_json"
+                    ]
+                },
+                "operator_events": {
+                    "fields": [
+                        "id",
+                        "ts",
+                        "type",
+                        "severity",
+                        "module",
+                        "correlation_id",
+                        "summary",
+                        "payload_json"
+                    ]
+                },
+                "operator_settings": {
+                    "fields": [
+                        "key",
+                        "value_json",
+                        "updated_at"
+                    ]
+                },
+                "operator_audit_runs_cache": {
+                    "fields": [
+                        "audit_id",
+                        "ts",
+                        "status",
+                        "summary",
+                        "p0_count",
+                        "artifact_paths_json"
+                    ]
+                }
+            }
+        }
+    },
+    "module_integration_contracts": {
+        "tentaculo_link": {
+            "operator_uses": [
+                "health",
+                "proxy routing primary",
+                "global auth/rate-limit if configured"
+            ],
+            "must_support_for_operator_e2e": [
+                "/health",
+                "proxy to madre/switch/spawner routes as canon"
+            ]
+        },
+        "madre": {
+            "operator_uses": [
+                "status aggregation fallback",
+                "power_manager windows",
+                "orchestrate intents",
+                "audit scheduling"
+            ],
+            "must_support_for_operator_tests": [
+                "open/close maintenance window",
+                "start/stop module within window",
+                "report current mode + window TTL"
+            ]
+        },
+        "hormiguero": {
+            "operator_uses": [
+                "GET /hormiguero/status",
+                "POST /hormiguero/scan/{scope}"
+            ],
+            "ui_priority": "very high (ant visualization)"
+        },
+        "spawner": {
+            "operator_uses": [
+                "list daughters",
+                "spawn/kill requests via madre"
+            ],
+            "ui_priority": "high"
+        },
+        "switch": {
+            "operator_uses": [
+                "routing events (optional)",
+                "queue view",
+                "provider selection debug (admin-only)"
+            ]
+        },
+        "manifestator": {
+            "operator_uses": [
+                "validate/patchplan/apply via madre (time-boxed)"
+            ],
+            "default": "OFF (full_profile)"
+        },
+        "shubniggurath": {
+            "operator_uses": [
+                "jobs board + job detail + artifacts"
+            ],
+            "default": "OFF (full_profile)"
+        },
+        "mcp": {
+            "operator_uses": [
+                "read-only actions log, optional devops assist pipeline"
+            ],
+            "default": "support"
+        }
+    },
+    "testing_and_quality_gates": {
+        "unit_backend": [
+            {
+                "name": "auth_requires_token",
+                "assert": "401 without credentials"
+            },
+            {
+                "name": "login_ok",
+                "assert": "POST /auth/login returns token"
+            },
+            {
+                "name": "status_shape",
+                "assert": "GET /api/status returns modules[] + mode + alerts"
+            },
+            {
+                "name": "chat_ok",
+                "assert": "POST /api/chat returns request_id + route_taken + reply"
+            },
+            {
+                "name": "restart_404",
+                "assert": "POST /api/module/nonexistent/restart returns 404"
+            },
+            {
+                "name": "audit_download_headers",
+                "assert": "GET /api/audit/{id}/download returns file with correct headers"
+            }
+        ],
+        "integration_e2e": [
+            {
+                "name": "windowed_service_lifecycle",
+                "requires": "fixtures that call madre power_manager start/stop during tests",
+                "assert": "services started only inside window; end state returns to solo_madre"
+            },
+            {
+                "name": "chat_route_fallback",
+                "assert": "tentaculo_link down -> routes to madre; both down -> degraded"
+            },
+            {
+                "name": "hormiguero_scan_flow",
+                "assert": "POST /api/hormiguero/scan triggers scan_id and events appear in /api/events"
+            }
+        ],
+        "frontend_tests": [
+            {
+                "name": "no_infinite_placeholder",
+                "assert": "loading ends in success/error states"
+            },
+            {
+                "name": "keyboard_send",
+                "assert": "Ctrl+Enter sends message"
+            },
+            {
+                "name": "degraded_banner",
+                "assert": "banner visible when backend returns degraded=true"
+            }
+        ],
+        "quality_gates": [
+            {
+                "name": "no_bypass",
+                "method": "static check: frontend baseUrl only operator_backend"
+            },
+            {
+                "name": "no_secrets",
+                "method": "repo scan: tokens only in env"
+            },
+            {
+                "name": "db_ownership",
+                "method": "operator touches only operator tables"
+            },
+            {
+                "name": "coverage_min",
+                "value": 0.8
+            }
+        ]
+    },
+    "implementation_phases": [
+        {
+            "phase": "P0",
+            "goal": "Production-minimum Operator",
+            "deliver": [
+                "finish /api/status, /api/chat, /api/modules, /api/module/{name}/restart, /api/audit + download, /api/settings",
+                "frontend: Overview real + chat polished + degraded mode + settings + accessibility basics",
+                "fixtures: window lifecycle for tests (madre power_manager)",
+                "remove/implement stubs",
+                "docs/audit report"
+            ]
+        },
+        {
+            "phase": "P1",
+            "goal": "Advanced dashboard + topology + hormiguero visualization",
+            "deliver": [
+                "React Flow topology + node drawers",
+                "Hormiguero colony view (queen/daughters/pheromones)",
+                "Jobs board unified + live events feed",
+                "SSE/WS reconnect/heartbeat complete"
+            ]
+        },
+        {
+            "phase": "P2",
+            "goal": "Operator becomes 'director' without becoming dangerous",
+            "deliver": [
+                "runbooks safe actions (confirmed + audited)",
+                "file dropzone pipeline for audits/analysis",
+                "voice optional input (no auto-exec)",
+                "timeline playback per correlation_id"
+            ]
+        }
+    ],
+    "acceptance_criteria": {
+        "must": [
+            "No /api/* stubs remain for required canonic endpoints.",
+            "UI works in solo_madre: shows OFF_BY_POLICY correctly.",
+            "Fallback routing is visible per-message and globally.",
+            "All P0 tests pass + build passes.",
+            "No secrets committed.",
+            "No direct frontend calls to internal modules."
+        ],
+        "should": [
+            "Topology view reflects real status.",
+            "Hormiguero visualization shows real queen/daughters/pheromones.",
+            "SSE/WS live events robust under reconnect."
+        ]
+    }
+}
