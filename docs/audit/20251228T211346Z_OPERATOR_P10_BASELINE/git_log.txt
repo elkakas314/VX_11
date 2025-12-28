@@ -1,0 +1,5 @@
+4be2fb7 SECURITY: Scrub exposed DeepSeek token + update deployment model
+ab38978 vx11: P0 DeepSeek fallback for chat (solo_madre policy)
+f0107cc vx11: post-task maintenance (metrics regen + DB integrity verified)
+a5ee389 vx11: status audit + DB regeneration
+f5185e5 vx11: PROMPT 9 quick summary (delivery complete)
