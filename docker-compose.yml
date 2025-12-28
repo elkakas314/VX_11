@@ -332,85 +332,11 @@ services:
   # but NOT integrated into single entrypoint. Operator UI now served via tentaculo_link:8000/operator/ui
   # Rationale: Single entrypoint invariant = tentaculo_link:8000 only. API endpoints (/operator/status,
   # /operator/chat/ask, /operator/power/state) proxied through tentaculo_link, not this backend.
-  # To use (for testing): docker compose --profile operator up operator-backend
-  operator-backend:
-    # INVARIANTE: operator-backend ONLY active when --profile operator flag is used
-    # Otherwise OFF (SOLO_MADRE_CORE default)
-    profiles: ["operator"]
-    build:
-      context: .
-      dockerfile: operator_backend/backend/Dockerfile
-    image: vx11-operator-backend:v7.0
-    container_name: vx11-operator-backend
-    hostname: operator-backend
-    networks:
-      default:
-        aliases:
-          - operator_backend
-          - operator-backend
-    # INVARIANTE: P0 #3 — Expose 8011 for operator window (temporary, via ventana temporal)
-    ports:
-      - "8011:8011"
-    volumes:
-      - ./build/artifacts/logs:/app/logs
-      - ./data:/app/data
-      - ./models:/app/models
-      - ./docs/canon:/app/docs/canon:ro
-    environment:
-      - ULTRA_LOW_MEMORY=true
-      - LOG_LEVEL=INFO
-      - PYTHONUNBUFFERED=1
-      - API_TOKEN=vx11-local-token
-      - VX11_GATEWAY_TOKEN=vx11-local-token
-      - VX11_TENTACULO_LINK_TOKEN=vx11-local-token
-      - VX11_OPERATOR_TOKEN=vx11-local-token
-      - VX11_LOCAL_TOKEN=vx11-local-token
-      # P0 #3: Single entrypoint via tentaculo_link (NO direct service calls)
-      - VX11_TENTACULO_URL=http://tentaculo_link:8000
-      - VX11_MADRE_URL=http://madre:8001
-      - VX11_MODE=${VX11_MODE:-operative_core}
-      - VX11_AUTH_MODE=off
-      - OPERATOR_ADMIN_PASSWORD=${OPERATOR_ADMIN_PASSWORD:-admin}
-      - OPERATOR_TOKEN_SECRET=${OPERATOR_TOKEN_SECRET:-operator-secret-v7}
-    mem_limit: 512m
-    depends_on:
-      - tentaculo_link
-      - madre
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8011/health"]
-      interval: 60s
-      timeout: 10s
-      retries: 5
-      start_period: 120s
-
-  # ========== OPERATOR FRONTEND (PORT 8020) — DEPRECATED/PASSIVE ==========
-  # DECISION: Kept for backward compatibility. Operator UI now served via tentaculo_link:8000/operator/ui/ (React/Vite build)
-  # This old frontend on 8020 is no longer needed; single entrypoint handles all UI serving.
-  operator-frontend:
-    # INVARIANTE: operator-frontend ONLY active when --profile operator flag is used (OFF by default)
-    profiles: ["operator"]
-    build:
-      context: operator_backend/frontend
-      dockerfile: Dockerfile
-    container_name: vx11-operator-frontend
-    ports:
-      - "8020:8020"
-    depends_on:
-      - operator-backend
-    restart: unless-stopped
-    environment:
-      - API_TOKEN=vx11-local-token
-      - VX11_GATEWAY_TOKEN=vx11-local-token
-      - VX11_TENTACULO_LINK_TOKEN=vx11-local-token
-      - VX11_OPERATOR_TOKEN=vx11-local-token
-      - VX11_LOCAL_TOKEN=vx11-local-token
-    healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8020"]
-      interval: 60s
-      timeout: 10s
-      retries: 5
-      start_period: 120s
+  # ========== OPERATOR UI & BACKEND ARCHIVED ==========
+  # ARCHIVED (2025-12-28): Moved operator_backend + operator-frontend to docs/audit/ARCHIVED_OPERATOR_BACKEND_20251228_170000/
+  # Reason: operator_backend was unused (no active code references). UI now served via tentaculo_link:8000/operator/ui/ (StaticFiles mount).
+  # See: docs/audit/ARCHIVED_OPERATOR_BACKEND_20251228_170000/ARCHIVE_REASON.md
+  # Commit: [vx11: Archive operator_backend - unused, single entrypoint via tentaculo_link]
 
   # ========== REDIS (CACHE LAYER - PORT 6379 INTERNAL) ==========
   redis:
