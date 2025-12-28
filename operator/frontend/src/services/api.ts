@@ -1,11 +1,15 @@
 /**
  * API Client for VX11 Operator
- * Consumes: tentaculo_link:8000 only
+ * Consumes: tentaculo_link:8000 only (via relative URL)
  * No direct calls to backend services
+ * 
+ * RELATIVE BASE_URL: Works across any host/IP/port
+ * - Dev (Vite :5173): proxy /operator/api → tentaculo_link:8000
+ * - Prod: Operator UI mounted at /operator/ui in tentaculo_link
  */
 
 const TOKEN = 'vx11-local-token' // In production: from auth service
-const BASE_URL = 'http://localhost:8000'
+const BASE_URL = import.meta.env.VITE_VX11_API_BASE_URL ?? '' // Empty = relative (same origin)
 
 interface ApiResponse<T> {
     ok: boolean

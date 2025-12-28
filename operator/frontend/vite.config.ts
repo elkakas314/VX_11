@@ -8,15 +8,20 @@ export default defineConfig({
         host: '0.0.0.0',
         port: 3000,
         proxy: {
-            '/api': {
+            // Dev proxy: /operator/api/* routes to tentaculo_link:8000
+            '^/operator/api': {
                 target: 'http://localhost:8000',
                 changeOrigin: true,
-                rewrite: (path) => path.replace(/^\/api/, ''),
+                rewrite: (path) => path, // Keep /operator/api intact; tentaculo_link handles it
             },
         },
     },
     build: {
         outDir: 'dist',
         sourcemap: false,
+    },
+    define: {
+        // Allow runtime env var VITE_VX11_API_BASE_URL (default empty = relative)
+        'import.meta.env.VITE_VX11_API_BASE_URL': JSON.stringify(process.env.VITE_VX11_API_BASE_URL ?? ''),
     },
 })
