@@ -786,6 +786,143 @@ async def operator_task(
     return result
 
 
+# ============ NEW: /operator/chat/ask (SIMPLIFIED CHAT) ============
+
+
+@app.post("/operator/chat/ask")
+async def operator_chat_ask(
+    req: OperatorChatRequest,
+    _: bool = Depends(token_guard),
+):
+    """
+    Simplified chat endpoint (alternative to /operator/chat).
+    Same behavior: route to Switch with fallback to Madre if solo_madre mode.
+    """
+    # Delegate to existing chat logic
+    return await operator_chat(req, _)
+
+
+# ============ NEW: /operator/status (AGGREGATED HEALTH) ============
+
+
+@app.get("/operator/status")
+async def operator_status(_: bool = Depends(token_guard)):
+    """
+    Aggregated health check without waking services.
+    Returns health of madre, redis, tentaculo_link, switch (via circuit breaker), and window state.
+    """
+    import httpx
+
+    status_data = {
+        "status": "ok",
+        "components": {},
+        "windows": {"policy": "solo_madre", "active_count": 0},
+    }
+
+    # 1. Check tentaculo_link (localhost, always available)
+    status_data["components"]["tentaculo_link"] = {"status": "ok", "port": 8000}
+
+    # 2. Check madre health (fast GET, no spawn)
+    try:
+        async with httpx.AsyncClient(timeout=2.0) as client:
+            r = await client.get("http://madre:8001/health")
+            r.raise_for_status()
+            madre_health = r.json()
+            status_data["components"]["madre"] = {
+                "status": madre_health.get("status", "unknown"),
+                "port": 8001,
+            }
+            # Get window state from madre
+            r2 = await client.get(
+                "http://madre:8001/madre/power/state",
+                headers={"x-vx11-token": VX11_TOKEN},
+            )
+            if r2.status_code == 200:
+                power_state = r2.json()
+                status_data["windows"]["policy"] = power_state.get(
+                    "policy", "solo_madre"
+                )
+                status_data["windows"]["active_count"] = len(
+                    power_state.get("active_windows", [])
+                )
+    except Exception as e:
+        status_data["components"]["madre"] = {
+            "status": "unreachable",
+            "error": str(e)[:50],
+        }
+        status_data["status"] = "degraded"
+
+    # 3. Check redis health (fast GET, no spawn)
+    try:
+        async with httpx.AsyncClient(timeout=2.0) as client:
+            r = await client.get("http://redis:6379/ping")
+            status_data["components"]["redis"] = {"status": "ok", "port": 6379}
+    except Exception as e:
+        status_data["components"]["redis"] = {
+            "status": "unreachable",
+            "error": str(e)[:50],
+        }
+        if status_data["status"] == "ok":
+            status_data["status"] = "degraded"
+
+    # 4. Check switch via circuit breaker (don't call directly)
+    try:
+        clients = get_clients()
+        switch_client = clients.get_client("switch")
+        if switch_client and hasattr(switch_client, "circuit_breaker"):
+            cb_status = switch_client.circuit_breaker.get_status()
+            if cb_status.get("state") == "open":
+                status_data["components"]["switch"] = {
+                    "status": "offline",
+                    "reason": "circuit_open",
+                    "port": 8002,
+                }
+            else:
+                status_data["components"]["switch"] = {
+                    "status": "available",
+                    "port": 8002,
+                }
+        else:
+            status_data["components"]["switch"] = {"status": "available", "port": 8002}
+    except Exception as e:
+        status_data["components"]["switch"] = {
+            "status": "unknown",
+            "error": str(e)[:50],
+            "port": 8002,
+        }
+
+    write_log("tentaculo_link", f"operator_status:overall={status_data['status']}")
+    return status_data
+
+
+# ============ NEW: /operator/power/state (CURRENT POWER WINDOW STATE) ============
+
+
+@app.get("/operator/power/state")
+async def operator_power_state(_: bool = Depends(token_guard)):
+    """
+    Get current power window state: policy, active windows, running services.
+    Fast query to madre (no spawn).
+    """
+    clients = get_clients()
+    madre = clients.get_client("madre")
+    if not madre:
+        raise HTTPException(status_code=503, detail="madre_client_unavailable")
+
+    try:
+        # Query madre for power state
+        result = await madre.get("/madre/power/state")
+        write_log("tentaculo_link", "operator_power_state:retrieved")
+        return result
+    except Exception as e:
+        write_log(
+            "tentaculo_link", f"operator_power_state:error={str(e)[:50]}", level="WARN"
+        )
+        raise HTTPException(
+            status_code=503, detail=f"power_state_unavailable: {str(e)[:50]}"
+        )
+
+
 @app.get("/operator/power/status")
 async def operator_power_status(_: bool = Depends(token_guard)):
     """Proxy power status to Madre (single entrypoint)."""
