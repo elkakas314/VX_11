@@ -52,6 +52,9 @@ docs/audit/**
 !docs/audit/OPERATOR_UI_COMPLETE_20251228/*.md
 !docs/audit/20251228_OPERATOR_UI_FINAL/
 !docs/audit/20251228_OPERATOR_UI_FINAL/*.md
+!docs/audit/20251228_SWITCH_HERMES_FIX/
+!docs/audit/20251228_SWITCH_HERMES_FIX/*.md
+!docs/audit/20251228_SWITCH_HERMES_FIX/*.sh
 
 # Public audit artifacts allowed for remote sync
 !docs/audit/_public/**

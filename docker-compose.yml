@@ -127,6 +127,9 @@ services:
   # ========== HERMES (PORT 8003) ==========
   hermes:
     profiles: ["core"]
+    build:
+      context: .
+      dockerfile: switch/hermes/Dockerfile
     image: vx11-hermes:v6.7
     container_name: vx11-hermes
     ports:
