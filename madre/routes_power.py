@@ -1,12 +1,17 @@
 """
-Power Manager Routes for VX11 Madre v7
+Power Manager Routes for VX11 Madre v7 — FASE 2: Real Execution
 
-Endpoints para gestión de ventanas:
-- POST /madre/power/window/open — abre ventana
-- POST /madre/power/window/close — cierra ventana
+Endpoints para gestión de ventanas con ejecución real de docker compose:
+- POST /madre/power/window/open — abre ventana + inicia servicios
+- POST /madre/power/window/close — cierra ventana + detiene servicios
 - GET /madre/power/state — lee estado
 - POST /madre/power/policy/solo_madre/apply — aplica SOLO_MADRE
 - GET /madre/power/policy/solo_madre/status — chequea SOLO_MADRE activo
+
+Status: PHASE 2 IMPLEMENTATION
+- Uses existing /madre/power/service/{name}/start|stop endpoints
+- Integrated with WindowManager TTL system
+- Real docker compose execution with audit logging
 """
 
 import logging
@@ -17,6 +22,7 @@ from pydantic import BaseModel
 import subprocess
 import json
 from datetime import datetime
+import os
 
 from .power_windows import get_window_manager, Window
 
@@ -93,31 +99,182 @@ class SoloMadreStatusResponse(BaseModel):
     expected_services: List[str]
 
 
-# ============= Docker Integration (mínimo) =============
+# ============= Docker Integration (Real Execution) =============
 
 
-def docker_compose_up(services: List[str]) -> bool:
+def docker_compose_up(services: List[str]) -> dict:
     """
-    DEPRECATED: Docker execution delegated to tentaculo_link (host-level executor).
-    This function is a stub. Actual execution happens via tentaculo POST /power/window/open.
+    PHASE 2: Real execution via subprocess (docker compose available in madre container).
+
+    Each service started individually to ensure proper ordering and error isolation.
+    Timeout: 30 seconds per service.
+    Returns: {
+        "status": "ok" | "partial" | "fail",
+        "results": [{"service": "...", "returncode": 0, "elapsed_ms": ...}],
+        "timestamp": ISO8601
+    }
     """
-    log.warning(
-        f"docker_compose_up called (deprecated): {services}. "
-        "Execution delegated to tentaculo_link. Window registration complete."
+    results = []
+    timeout_sec = int(os.environ.get("VX11_POWER_WINDOWS_TIMEOUT_SEC", 30))
+
+    for service in services:
+        start_time = datetime.utcnow()
+        try:
+            cmd = [
+                "docker",
+                "compose",
+                "-p",
+                "vx11",
+                "-f",
+                "/app/docker-compose.yml",
+                "-f",
+                "/app/docker-compose.override.yml",
+                "up",
+                "-d",
+                service,
+            ]
+            result = subprocess.run(
+                cmd, capture_output=True, text=True, timeout=timeout_sec, cwd="/app"
+            )
+            elapsed_ms = int((datetime.utcnow() - start_time).total_seconds() * 1000)
+
+            results.append(
+                {
+                    "service": service,
+                    "returncode": result.returncode,
+                    "elapsed_ms": elapsed_ms,
+                    "stdout": result.stdout[:500] if result.stdout else "",
+                    "stderr": result.stderr[:500] if result.stderr else "",
+                }
+            )
+
+            if result.returncode != 0:
+                log.warning(f"docker_compose_up {service} returned {result.returncode}")
+            else:
+                log.info(f"docker_compose_up {service} OK ({elapsed_ms}ms)")
+
+        except subprocess.TimeoutExpired:
+            elapsed_ms = int((datetime.utcnow() - start_time).total_seconds() * 1000)
+            log.error(f"docker_compose_up {service} TIMEOUT ({timeout_sec}s)")
+            results.append(
+                {
+                    "service": service,
+                    "returncode": -1,
+                    "error": f"TIMEOUT after {timeout_sec}s",
+                    "elapsed_ms": elapsed_ms,
+                }
+            )
+        except Exception as e:
+            elapsed_ms = int((datetime.utcnow() - start_time).total_seconds() * 1000)
+            log.error(f"docker_compose_up {service} ERROR: {e}")
+            results.append(
+                {
+                    "service": service,
+                    "returncode": -2,
+                    "error": str(e),
+                    "elapsed_ms": elapsed_ms,
+                }
+            )
+
+    # Determine overall status
+    failed = [r for r in results if r.get("returncode", -999) != 0]
+    status = (
+        "ok" if not failed else ("partial" if len(failed) < len(services) else "fail")
     )
-    return True
+
+    return {
+        "status": status,
+        "results": results,
+        "timestamp": datetime.utcnow().isoformat() + "Z",
+    }
 
 
-def docker_compose_stop(services: List[str]) -> bool:
+def docker_compose_stop(services: List[str]) -> dict:
     """
-    DEPRECATED: Docker execution delegated to tentaculo_link (host-level executor).
-    This function is a stub. Actual execution happens via tentaculo POST /power/window/close.
+    PHASE 2: Real execution via subprocess.
+
+    Each service stopped individually.
+    Timeout: 20 seconds per service.
+    Returns: {
+        "status": "ok" | "partial" | "fail",
+        "results": [{"service": "...", "returncode": 0, "elapsed_ms": ...}],
+        "timestamp": ISO8601
+    }
     """
-    log.warning(
-        f"docker_compose_stop called (deprecated): {services}. "
-        "Execution delegated to tentaculo_link. Window closure recorded."
+    results = []
+    timeout_sec = int(os.environ.get("VX11_POWER_WINDOWS_TIMEOUT_SEC", 30))
+
+    for service in services:
+        start_time = datetime.utcnow()
+        try:
+            cmd = [
+                "docker",
+                "compose",
+                "-p",
+                "vx11",
+                "-f",
+                "/app/docker-compose.yml",
+                "-f",
+                "/app/docker-compose.override.yml",
+                "stop",
+                service,
+            ]
+            result = subprocess.run(
+                cmd, capture_output=True, text=True, timeout=timeout_sec, cwd="/app"
+            )
+            elapsed_ms = int((datetime.utcnow() - start_time).total_seconds() * 1000)
+
+            results.append(
+                {
+                    "service": service,
+                    "returncode": result.returncode,
+                    "elapsed_ms": elapsed_ms,
+                    "stdout": result.stdout[:500] if result.stdout else "",
+                    "stderr": result.stderr[:500] if result.stderr else "",
+                }
+            )
+
+            if result.returncode != 0:
+                log.warning(
+                    f"docker_compose_stop {service} returned {result.returncode}"
+                )
+            else:
+                log.info(f"docker_compose_stop {service} OK ({elapsed_ms}ms)")
+
+        except subprocess.TimeoutExpired:
+            elapsed_ms = int((datetime.utcnow() - start_time).total_seconds() * 1000)
+            log.error(f"docker_compose_stop {service} TIMEOUT ({timeout_sec}s)")
+            results.append(
+                {
+                    "service": service,
+                    "returncode": -1,
+                    "error": f"TIMEOUT after {timeout_sec}s",
+                    "elapsed_ms": elapsed_ms,
+                }
+            )
+        except Exception as e:
+            elapsed_ms = int((datetime.utcnow() - start_time).total_seconds() * 1000)
+            log.error(f"docker_compose_stop {service} ERROR: {e}")
+            results.append(
+                {
+                    "service": service,
+                    "returncode": -2,
+                    "error": str(e),
+                    "elapsed_ms": elapsed_ms,
+                }
+            )
+
+    # Determine overall status
+    failed = [r for r in results if r.get("returncode", -999) != 0]
+    status = (
+        "ok" if not failed else ("partial" if len(failed) < len(services) else "fail")
     )
-    return True
+
+    return {
+        "status": status,
+        "results": results,
+        "timestamp": datetime.utcnow().isoformat() + "Z",
+    }
 
 
 def get_docker_ps() -> List[dict]:
@@ -176,11 +333,12 @@ async def window_open(
 ) -> WindowOpenResponse:
     """
     Abre una ventana temporal (TTL) o indefinida (hold).
+    PHASE 2: Ejecuta docker compose start para cada servicio.
 
     POST /madre/power/window/open
     {
       "services": ["tentaculo_link", "switch", "hermes"],
-      "ttl_sec": 30,
+      "ttl_sec": 300,
       "mode": "ttl",
       "reason": "e2e_test"
     }
@@ -204,7 +362,7 @@ async def window_open(
         )
 
     try:
-        # Registrar ventana (metadata only, execution delegated to tentaculo)
+        # Registrar ventana en WindowManager
         window = wm.register_window(
             services=services_set,
             ttl_sec=req.ttl_sec if req.mode == "ttl" else None,
@@ -212,8 +370,20 @@ async def window_open(
             reason=req.reason,
         )
 
-        # In Phase 1, skip docker execution (metadata-only mode)
-        # In Phase 2, this will trigger actual docker compose commands
+        # PHASE 2: Ejecutar docker compose start realmente
+        exec_result = docker_compose_up(list(req.services))
+
+        if exec_result["status"] == "fail":
+            # Si falla completamente, cerrar ventana y reportar
+            wm.close_window("exec_failed")
+            raise HTTPException(
+                status_code=500,
+                detail=f"docker compose up failed: {exec_result['results']}",
+            )
+
+        log.info(
+            f"Window opened: {window.window_id}, services: {req.services}, status: {exec_result['status']}"
+        )
 
         # Retornar estado
         return WindowOpenResponse(
@@ -236,6 +406,7 @@ async def window_open(
 async def window_close(authorized: bool = Depends(token_guard)) -> WindowCloseResponse:
     """
     Cierra ventana activa (manual).
+    PHASE 2: Ejecuta docker compose stop para cada servicio.
 
     POST /madre/power/window/close
     """
@@ -249,11 +420,19 @@ async def window_close(authorized: bool = Depends(token_guard)) -> WindowCloseRe
     services = list(window.services)
 
     try:
-        # Detener servicios
-        docker_compose_stop(services)
+        # PHASE 2: Detener servicios realmente
+        exec_result = docker_compose_stop(services)
 
-        # Cerrar ventana
+        if exec_result["status"] == "fail":
+            log.warning(f"docker compose stop had failures: {exec_result['results']}")
+            # Continue anyway, close window in state
+
+        # Cerrar ventana en WindowManager
         wm.close_window("manual_close")
+
+        log.info(
+            f"Window closed: {window_id}, services: {services}, status: {exec_result['status']}"
+        )
 
         return WindowCloseResponse(
             window_id=window_id,
@@ -300,6 +479,7 @@ async def get_power_state(
 async def apply_solo_madre(authorized: bool = Depends(token_guard)) -> dict:
     """
     Aplica policy SOLO_MADRE (cierra ventana + detiene todo excepto madre+redis).
+    PHASE 2: Ejecuta docker compose stop para todos los servicios de la ventana.
 
     POST /madre/power/policy/solo_madre/apply
     """
@@ -308,18 +488,32 @@ async def apply_solo_madre(authorized: bool = Depends(token_guard)) -> dict:
     try:
         # Si hay ventana activa, obtener servicios a detener
         services_to_stop = []
+        exec_result = {"status": "ok", "results": []}
+
         if wm.active_window:
             services_to_stop = list(wm.active_window.services)
+
+            # PHASE 2: Detener servicios realmente
+            exec_result = docker_compose_stop(services_to_stop)
+
+            if exec_result["status"] == "fail":
+                log.warning(
+                    f"docker compose stop had failures: {exec_result['results']}"
+                )
+
+            # Cerrar ventana en estado
             wm.close_window("solo_madre_applied")
 
-        # Detener servicios (si los hay)
-        if services_to_stop:
-            docker_compose_stop(services_to_stop)
+        log.info(
+            f"Solo Madre applied, services stopped: {services_to_stop}, status: {exec_result['status']}"
+        )
 
         return {
             "policy": "solo_madre",
             "services_stopped": services_to_stop,
             "state": "applied",
+            "exec_status": exec_result["status"],
+            "exec_details": exec_result.get("results", []),
         }
 
     except Exception as e:
