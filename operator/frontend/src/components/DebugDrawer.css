@@ -1,0 +1,93 @@
+.debug-drawer {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+
+.debug-toggle {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background-color: var(--bg-tertiary);
+    border: 2px solid var(--accent-blue);
+    color: var(--text-primary);
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.debug-toggle:hover {
+    background-color: var(--accent-blue);
+    color: var(--bg-primary);
+    transform: scale(1.1);
+}
+
+.debug-panel {
+    position: absolute;
+    bottom: 60px;
+    right: 0;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--accent-blue);
+    border-radius: 8px;
+    width: 400px;
+    max-height: 500px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+}
+
+.debug-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent-blue);
+}
+
+.debug-close {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.debug-close:hover {
+    color: var(--accent-red);
+}
+
+.debug-content {
+    flex: 1;
+    overflow: auto;
+    padding: 8px;
+    font-size: 10px;
+    font-family: 'Courier New', monospace;
+    color: var(--text-secondary);
+}
+
+.debug-content pre {
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.debug-copy {
+    padding: 6px 8px;
+    background-color: var(--accent-blue);
+    color: var(--bg-primary);
+    border: none;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.debug-copy:hover {
+    background-color: var(--accent-green);
+}

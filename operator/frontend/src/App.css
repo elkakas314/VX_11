@@ -550,3 +550,75 @@ details pre {
 .actions-disabled {
     color: var(--accent-red);
 }
+
+/* Policy & Profile Badges */
+.policy-badge,
+.profile-badge {
+    display: inline-block;
+    background-color: var(--accent-blue);
+    color: var(--bg-primary);
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.profile-badge {
+    background-color: var(--accent-green);
+}
+
+/* Code Block Wrapper */
+.code-block-wrapper {
+    margin: 12px 0;
+    background-color: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.code-block-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background-color: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.code-lang {
+    font-family: 'Courier New', monospace;
+    text-transform: uppercase;
+}
+
+.btn-copy-code {
+    background: none;
+    border: none;
+    color: var(--accent-blue);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 2px 4px;
+    transition: all 0.2s;
+}
+
+.btn-copy-code:hover {
+    color: var(--accent-green);
+    transform: scale(1.2);
+}
+
+.code-block-wrapper pre {
+    margin: 0;
+    padding: 12px;
+    overflow: auto;
+    max-height: 300px;
+    font-size: 12px;
+    font-family: 'Courier New', monospace;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+.code-block-wrapper code {
+    white-space: pre;

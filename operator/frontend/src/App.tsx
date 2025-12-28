@@ -4,12 +4,18 @@ import { PowerCard } from './components/PowerCard'
 import { ChatPanel } from './components/ChatPanel'
 import { HormigueroPanel } from './components/HormigueroPanel'
 import { P0ChecksPanel } from './components/P0ChecksPanel'
+import { DebugDrawer } from './components/DebugDrawer'
 import './App.css'
 
 type TabName = 'dashboard' | 'chat' | 'hormigas' | 'checks'
 
 export default function App() {
     const [activeTab, setActiveTab] = useState<TabName>('dashboard')
+    const [debugData] = useState({
+        environment: process.env.NODE_ENV,
+        apiBase: import.meta.env.VITE_API_BASE || 'http://localhost:8000',
+        version: '7.0',
+    })
 
     return (
         <div className="app">
@@ -64,6 +70,8 @@ export default function App() {
             <footer className="app-footer">
                 <small>Operator UI • Read-only • Consumes tentaculo_link:8000 only</small>
             </footer>
+
+            <DebugDrawer data={debugData} title="Environment" />
         </div>
     )
 }

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { apiClient } from '../services/api'
+import { renderMarkdown, extractCodeBlocks } from '../services/markdown'
 
 interface Message {
     id: string
@@ -84,17 +85,40 @@ export function ChatPanel() {
                     </div>
                 )}
 
-                {messages.map((msg) => (
-                    <div key={msg.id} className={`message message-${msg.role}`}>
-                        <div className="message-meta">
-                            <span className="message-role">
-                                {msg.role === 'user' ? '👤' : '🤖'} {msg.role}
-                            </span>
-                            <span className="message-time">{msg.timestamp.toLocaleTimeString()}</span>
+                {messages.map((msg) => {
+                    const codeBlocks = extractCodeBlocks(msg.content)
+                    const hasCode = codeBlocks.length > 0
+
+                    return (
+                        <div key={msg.id} className={`message message-${msg.role}`}>
+                            <div className="message-meta">
+                                <span className="message-role">
+                                    {msg.role === 'user' ? '👤' : '🤖'} {msg.role}
+                                </span>
+                                <span className="message-time">{msg.timestamp.toLocaleTimeString()}</span>
+                            </div>
+                            <div
+                                className="message-content"
+                                dangerouslySetInnerHTML={renderMarkdown(msg.content)}
+                            />
+                            {hasCode && codeBlocks.map((block, idx) => (
+                                <div key={idx} className="code-block-wrapper">
+                                    <div className="code-block-header">
+                                        <span className="code-lang">{block.language || 'code'}</span>
+                                        <button
+                                            className="btn-copy-code"
+                                            onClick={() => navigator.clipboard.writeText(block.code)}
+                                            title="Copy code"
+                                        >
+                                            📋
+                                        </button>
+                                    </div>
+                                    <pre><code>{block.code}</code></pre>
+                                </div>
+                            ))}
                         </div>
-                        <div className="message-content">{msg.content}</div>
-                    </div>
-                ))}
+                    )
+                })}
 
                 {loading && (
                     <div className="message message-loading">

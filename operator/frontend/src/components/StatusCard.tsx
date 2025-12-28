@@ -11,6 +11,8 @@ interface StatusData {
     }
     degraded?: boolean
     errors?: string[]
+    policy?: string
+    profile?: string
 }
 
 export function StatusCard() {
@@ -64,9 +66,23 @@ export function StatusCard() {
                     <div className="status-row">
                         <span>Status:</span>
                         <span className="status-value">
-                            {status.status || 'ok'} {status.degraded ? '(degraded)' : ''}
+                            {status.status || 'ok'} {status.degraded ? '🔴 (degraded)' : '🟢 (ok)'}
                         </span>
                     </div>
+
+                    {status.policy && (
+                        <div className="status-row">
+                            <span>Policy:</span>
+                            <span className="policy-badge">{status.policy}</span>
+                        </div>
+                    )}
+
+                    {status.profile && (
+                        <div className="status-row">
+                            <span>Profile:</span>
+                            <span className="profile-badge">{status.profile}</span>
+                        </div>
+                    )}
 
                     {status.circuit_breaker && (
                         <div className="status-row">
