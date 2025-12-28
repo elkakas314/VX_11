@@ -46,6 +46,8 @@ docs/audit/**
 !docs/audit/FASE6_EVIDENCE_INDEX.md
 !docs/audit/FASE7_CONCLUSIÓN_FINAL.md
 !docs/audit/DIAGNOSTIC_ASSESSMENT_20251222.md
+!docs/audit/OPERATOR_UI_COMPLETE_20251228/
+!docs/audit/OPERATOR_UI_COMPLETE_20251228/*.md
 
 # Public audit artifacts allowed for remote sync
 !docs/audit/_public/**
