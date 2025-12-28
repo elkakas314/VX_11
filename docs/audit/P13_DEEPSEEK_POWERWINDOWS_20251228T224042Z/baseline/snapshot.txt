@@ -1,0 +1,17 @@
+=== GIT STATUS ===
+?? docs/COPILOT_BOOTSTRAP_CHECKLIST.txt
+?? docs/PROMPT_9R_TEMPLATE.md
+
+=== LAST 5 COMMITS ===
+fa1c344 vx11: P12: Evidence & gates (FASE F) — smoke tests + verification
+21c571c vx11: P12: Canvas design (FASE D, E) — documented architecture
+cb1e2f2 vx11: P12: Chat endpoint Switch-only (FASE C) — no DeepSeek by default
+fa0c349 vx11: P12: Fix Operator UI (FASE B) — relative BASE_URL + vite proxy
+0c5e89c vx11: P12: AUDIT Operator UI flow (FASE A)
+
+=== DOCKER COMPOSE PS ===
+NAME                  IMAGE                      COMMAND                  SERVICE          CREATED       STATUS                 PORTS
+vx11-madre            vx11-madre:v6.7            "sh -c 'apt-get upda…"   madre            3 hours ago   Up 3 hours (healthy)   0.0.0.0:8001->8001/tcp, :::8001->8001/tcp
+vx11-redis            redis:7-alpine             "docker-entrypoint.s…"   redis            3 hours ago   Up 3 hours (healthy)   0.0.0.0:6379->6379/tcp, :::6379->6379/tcp
+vx11-switch           vx11-switch:v6.7           "python -m uvicorn s…"   switch           2 hours ago   Up 2 hours (healthy)   0.0.0.0:8002->8002/tcp, :::8002->8002/tcp
+vx11-tentaculo-link   vx11-tentaculo-link:v6.7   "python -m uvicorn t…"   tentaculo_link   3 hours ago   Up 3 hours (healthy)   0.0.0.0:8000->8000/tcp, :::8000->8000/tcp

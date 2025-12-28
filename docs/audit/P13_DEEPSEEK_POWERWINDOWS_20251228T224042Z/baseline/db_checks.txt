@@ -1,0 +1,10 @@
+=== DB INTEGRITY ===
+5000
+ok
+
+=== QUICK CHECK ===
+5000
+ok
+
+=== FOREIGN KEY CHECK ===
+5000

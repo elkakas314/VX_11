@@ -1,0 +1,4 @@
+=== DEEPSEEK R1 SMOKE TEST (FASE 1) ===
+Endpoint: https://api.deepseek.com/chat/completions
+Model: deepseek-reasoner (R1)
+Timestamp: 2025-12-28T22:42:16Z

@@ -1,0 +1,12 @@
+{
+  "status": "ok",
+  "http_code": 200,
+  "model": "deepseek-reasoner",
+  "reasoning_enabled": true,
+  "choices_count": 1,
+  "completion_tokens": 100,
+  "reasoning_tokens": 95,
+  "total_tokens": 117,
+  "finish_reason": "length",
+  "notes": "R1 API works. Reasoning content included. Suitable for CO-DEV planning/patch generation."
+}

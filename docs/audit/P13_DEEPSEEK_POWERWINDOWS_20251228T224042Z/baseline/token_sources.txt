@@ -1,0 +1,9 @@
+=== TOKEN SOURCES ===
+Checking token environment sources (file system paths only, no values):
+
+/etc/vx11/tokens.env: NOT_FOUND
+tokens.env: EXISTS
+tokens.env.master: EXISTS
+
+Env var DEEPSEEK_API_KEY: 
+NOT_SET
