@@ -1572,6 +1572,7 @@ async def cache_clear_handler(x_vx11_gw_token: str = Header(None)):
 @app.api_route(
     "/shub/{path:path}",
     methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"],
+    tags=["proxy-shub"],
 )
 async def proxy_shub(
     request: Request,
@@ -1898,7 +1899,11 @@ async def auth_logout(_: bool = Depends(token_guard)):
 # ============ GENERIC API PROXY (forward all /operator/api/* to operator-backend) ============
 
 
-@app.api_route("/operator/api/{path:path}", methods=["GET", "POST", "PUT", "DELETE"])
+@app.api_route(
+    "/operator/api/{path:path}",
+    methods=["GET", "POST", "PUT", "DELETE"],
+    tags=["proxy-operator"],
+)
 async def operator_api_proxy(path: str, request: Request):
     """
     Generic proxy for /operator/api/* endpoints.
