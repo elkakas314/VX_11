@@ -1,0 +1,4 @@
+Dist details:
+total 8,0K
+drwxrwxr-x 2 elkakas314 elkakas314 4,0K dic 28 16:29 assets
+-rw-rw-r-- 1 elkakas314 elkakas314  484 dic 28 16:29 index.html

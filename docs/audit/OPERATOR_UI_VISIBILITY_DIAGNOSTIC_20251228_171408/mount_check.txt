@@ -1,0 +1,4 @@
+172:    app.mount(
+173-        "/operator/ui",
+174-        StaticFiles(directory=str(operator_ui_path), html=True),
+175-        name="operator_ui",
