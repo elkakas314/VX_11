@@ -1944,33 +1944,43 @@ async def operator_api_modules(_: bool = Depends(token_guard)):
 @app.post("/operator/api/chat", tags=["operator-api-p0"])
 async def operator_api_chat(req: OperatorChatRequest, _: bool = Depends(token_guard)):
     """
-    P1: Chat endpoint with rate-limiting, caching, and guardrails.
+    P12: Chat endpoint — SWITCH-ONLY (no DeepSeek by default).
 
-    Guardrails (P1):
+    Guardrails:
     - Rate limit: 10 requests/min per session_id
     - Message cap: 4000 characters max
     - Cache: 60s TTL by (session_id + message_hash)
-    - Timeout: 20s total for backend call
-    - Retry: Single attempt (no retry loop)
+    - Timeout: 6s for switch, 2s for local LLM fallback
 
-    Flow:
+    Flow (P12):
     1. Check rate limit (return 429 if exceeded).
     2. Validate message length (return 413 if > 4000 chars).
     3. Check cache (return cached if hit).
-    4. Try switch service (if available, 4s timeout).
-    5. Try DeepSeek API (if available, 15s timeout).
-    6. If both fail, return degraded response.
+    4. Try Switch (timeout 6s) → if success, return with fallback_source="switch_cli_copilot"
+    5. If Switch fails:
+       a. If VX11_CHAT_ALLOW_DEEPSEEK=1 (laboratory only): try DeepSeek (15s timeout)
+       b. Otherwise: use Local LLM degraded (2s timeout, no DeepSeek)
+    6. If all fail: return degraded response with fallback_source="local_llm_degraded"
+
+    Metadata:
+    - fallback_source: "switch_cli_copilot" | "local_llm_degraded" | "deepseek_api" (lab only)
+    - model: name of model/provider used
+    - degraded: boolean flag
     """
+    import os
+
     session_id = req.session_id or f"session_{int(time.time())}"
     message_id = f"msg_{uuid.uuid4().hex[:8]}"
 
-    # P1-G1: Rate Limiting (10 req/min per session_id)
+    # P12 flag: Allow DeepSeek only in laboratory (explicit opt-in)
+    allow_deepseek = os.environ.get("VX11_CHAT_ALLOW_DEEPSEEK", "0") == "1"
+
+    # Rate Limiting (10 req/min per session_id)
     rate_limiter = get_rate_limiter()
     limiter_key = f"operator_chat:{session_id}"
 
     if rate_limiter:
         try:
-            # Check if rate limit exceeded (raises if > 10/min)
             is_allowed = await rate_limiter.is_allowed(
                 limiter_key, max_requests=10, window_seconds=60
             )
@@ -1989,12 +1999,11 @@ async def operator_api_chat(req: OperatorChatRequest, _: bool = Depends(token_gu
                     },
                 )
         except Exception as e:
-            # If rate limiter fails, log but continue (graceful degradation)
             write_log(
                 "tentaculo_link", f"chat_rate_limiter_error:{str(e)}", level="WARNING"
             )
 
-    # P1-G2: Message Size Cap (4000 chars max)
+    # Message Size Cap (4000 chars max)
     if len(req.message) > 4000:
         write_log(
             "tentaculo_link",
@@ -2010,7 +2019,7 @@ async def operator_api_chat(req: OperatorChatRequest, _: bool = Depends(token_gu
             },
         )
 
-    # P1-G3: Check Cache (60s TTL by session_id + message_hash)
+    # Check Cache (60s TTL)
     cache = get_cache()
     message_hash = hash(req.message) & 0xFFFFFFFF
     cache_key = f"operator_chat_cache:{session_id}:{message_hash}"
@@ -2030,13 +2039,13 @@ async def operator_api_chat(req: OperatorChatRequest, _: bool = Depends(token_gu
                     "response": cached_response.get("response"),
                     "model": cached_response.get("model"),
                     "fallback_source": cached_response.get("fallback_source"),
-                    "degraded": False,
+                    "degraded": cached_response.get("degraded", False),
                     "cache_hit": True,
                 }
         except Exception as e:
             write_log("tentaculo_link", f"chat_cache_error:{str(e)}", level="WARNING")
 
-    # Step 1: Attempt to use switch if available (P1: 4s timeout)
+    # Step 1: PRIMARY — Try SWITCH (timeout 6s)
     clients = get_clients()
     switch_client = clients.get_client("switch")
 
@@ -2045,10 +2054,15 @@ async def operator_api_chat(req: OperatorChatRequest, _: bool = Depends(token_gu
             result = await switch_client.post(
                 "/switch/chat",
                 payload={"message": req.message, "session_id": session_id},
-                timeout=4.0,
+                timeout=6.0,
             )
-            # If we got a valid response from switch, return it
-            if result and result.get("status") != "service_offline":
+            # If we got a valid response from switch
+            if result and result.get("status") not in ["service_offline", "error"]:
+                # Add P12 metadata
+                result["fallback_source"] = "switch_cli_copilot"
+                result["model"] = result.get("model", "copilot_cli")
+                result["degraded"] = False
+
                 # Cache before returning
                 if cache:
                     try:
@@ -2059,92 +2073,138 @@ async def operator_api_chat(req: OperatorChatRequest, _: bool = Depends(token_gu
                             f"chat_cache_set_error:{str(e)}",
                             level="DEBUG",
                         )
+
+                write_log(
+                    "tentaculo_link",
+                    f"chat_switch_success:session={session_id}:model={result.get('model')}",
+                    level="INFO",
+                )
                 return result
+        except asyncio.TimeoutError:
+            write_log(
+                "tentaculo_link",
+                f"chat_switch_timeout:6s_exceeded:session={session_id}",
+                level="WARNING",
+            )
         except Exception as e:
             write_log("tentaculo_link", f"chat_switch_failed:{str(e)}", level="WARNING")
 
-    # Step 2: Fallback to DeepSeek API (P1: 15s timeout total, was 30s)
-    try:
-        deepseek = DeepSeekClient()
-        await deepseek.startup()
+    # Step 2: SECONDARY FALLBACK
+    if allow_deepseek:
+        # Laboratory mode: try DeepSeek (explicit opt-in only)
+        try:
+            deepseek = DeepSeekClient()
+            await deepseek.startup()
 
-        response = await asyncio.wait_for(
-            deepseek.chat(message=req.message), timeout=15.0
-        )
-
-        if response.get("status") == "ok" and response.get("text"):
-            assistant_text = response.get("text", "")
-
-            # Try to save to DB
-            await save_chat_to_db(
-                session_id=session_id,
-                user_message=req.message,
-                assistant_response=assistant_text,
+            response = await asyncio.wait_for(
+                deepseek.chat(message=req.message), timeout=15.0
             )
 
-            result = {
-                "message_id": message_id,
-                "session_id": session_id,
-                "response": assistant_text,
-                "model": response.get("model", "deepseek-chat"),
-                "fallback_source": "deepseek_api",
-                "degraded": False,
-            }
+            if response.get("status") == "ok" and response.get("text"):
+                assistant_text = response.get("text", "")
 
-            # Cache before returning (P1: 60s TTL)
-            if cache:
-                try:
-                    await cache.set(cache_key, result, ttl=60)
-                except Exception as e:
-                    write_log(
-                        "tentaculo_link",
-                        f"chat_cache_set_error:{str(e)}",
-                        level="DEBUG",
-                    )
+                # Try to save to DB
+                await save_chat_to_db(
+                    session_id=session_id,
+                    user_message=req.message,
+                    assistant_response=assistant_text,
+                )
 
+                result = {
+                    "message_id": message_id,
+                    "session_id": session_id,
+                    "response": assistant_text,
+                    "model": response.get("model", "deepseek-chat"),
+                    "fallback_source": "deepseek_api",  # Laboratory only
+                    "degraded": False,
+                }
+
+                # Cache before returning
+                if cache:
+                    try:
+                        await cache.set(cache_key, result, ttl=60)
+                    except Exception as e:
+                        write_log(
+                            "tentaculo_link",
+                            f"chat_cache_set_error:{str(e)}",
+                            level="DEBUG",
+                        )
+
+                write_log(
+                    "tentaculo_link",
+                    f"chat_deepseek_fallback:laboratory_mode:session={session_id}",
+                    level="INFO",
+                )
+                return result
+
+        except asyncio.TimeoutError:
             write_log(
                 "tentaculo_link",
-                f"chat_deepseek_fallback_success:session={session_id}",
-                level="INFO",
+                f"chat_deepseek_timeout:15s_exceeded:session={session_id}",
+                level="WARNING",
             )
-            return result
-        else:
-            # DeepSeek failed
-            error_msg = response.get("error", "Unknown error")
+        except ValueError:
+            # DEEPSEEK_API_KEY not set
             write_log(
                 "tentaculo_link",
-                f"chat_deepseek_failed:{error_msg}",
+                f"chat_deepseek_not_configured:session={session_id}",
+                level="DEBUG",
+            )
+        except Exception as e:
+            write_log(
+                "tentaculo_link",
+                f"chat_deepseek_exception:{type(e).__name__}:{str(e)[:100]}",
                 level="WARNING",
             )
 
-    except asyncio.TimeoutError:
-        write_log(
-            "tentaculo_link",
-            f"chat_deepseek_timeout:15s_exceeded:session={session_id}",
-            level="WARNING",
-        )
-    except ValueError as e:
-        # DEEPSEEK_API_KEY not set
-        write_log(
-            "tentaculo_link",
-            f"chat_deepseek_not_configured:{str(e)}",
-            level="WARNING",
-        )
-    except Exception as e:
-        write_log(
-            "tentaculo_link",
-            f"chat_deepseek_exception:{type(e).__name__}:{str(e)[:100]}",
-            level="WARNING",
-        )
+    # Step 3: LOCAL LLM DEGRADED (always available, no external API)
+    try:
+        # Simple echo-based degraded response (placeholder for local LLM)
+        # In production, this would call a lightweight local model
+        degraded_response = f"[LOCAL LLM DEGRADED] Received message ({len(req.message)} chars). Switch unavailable in solo_madre mode."
 
-    # Step 3: Both switch and DeepSeek failed; return degraded response
-    return {
-        "message_id": message_id,
-        "session_id": session_id,
-        "response": f"[DEGRADED MODE] Services unavailable (solo_madre policy). Message echoed: {req.message[:100]}",
-        "degraded": True,
-        "reason": "Switch and DeepSeek fallback both unavailable",
-    }
+        result = {
+            "message_id": message_id,
+            "session_id": session_id,
+            "response": degraded_response,
+            "model": "local_llm_degraded",
+            "fallback_source": "local_llm_degraded",
+            "degraded": True,
+        }
+
+        # Cache before returning
+        if cache:
+            try:
+                await cache.set(cache_key, result, ttl=60)
+            except Exception as e:
+                write_log(
+                    "tentaculo_link",
+                    f"chat_cache_set_error:{str(e)}",
+                    level="DEBUG",
+                )
+
+        write_log(
+            "tentaculo_link",
+            f"chat_local_llm_degraded:session={session_id}",
+            level="WARNING",
+        )
+        return result
+
+    except Exception as e:
+        # Catastrophic fallback (should not happen)
+        write_log(
+            "tentaculo_link",
+            f"chat_fallback_exhausted:error={str(e)[:50]}",
+            level="ERROR",
+        )
+        return {
+            "message_id": message_id,
+            "session_id": session_id,
+            "response": "[ERROR] All chat services exhausted",
+            "model": "none",
+            "fallback_source": "error",
+            "degraded": True,
+        }
 
 
 @app.get("/operator/api/events", tags=["operator-api-p0"])
