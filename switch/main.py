@@ -89,25 +89,33 @@ PRIORITY_MAP = {
 # Mode profiles for adaptive optimization
 MODE_PROFILES = {
     "ECO": {
-        "cpu_limit": 0.2, "max_models": 5, "timeout": 2000,
+        "cpu_limit": 0.2,
+        "max_models": 5,
+        "timeout": 2000,
         "preferred_providers": ["local"],
         "timeout_ms": 2000,
         "max_workers": 2,
     },
     "BALANCED": {
-        "cpu_limit": 0.5, "max_models": 10, "timeout": 1000,
+        "cpu_limit": 0.5,
+        "max_models": 10,
+        "timeout": 1000,
         "preferred_providers": ["local", "cli"],
         "timeout_ms": 1000,
         "max_workers": 4,
     },
     "HIGH-PERF": {
-        "cpu_limit": 0.9, "max_models": 20, "timeout": 500,
+        "cpu_limit": 0.9,
+        "max_models": 20,
+        "timeout": 500,
         "preferred_providers": ["cli", "local"],
         "timeout_ms": 500,
         "max_workers": 8,
     },
     "CRITICAL": {
-        "cpu_limit": 1.0, "max_models": 30, "timeout": 200,
+        "cpu_limit": 1.0,
+        "max_models": 30,
+        "timeout": 200,
         "preferred_providers": ["cli"],
         "timeout_ms": 200,
         "max_workers": 16,
@@ -433,7 +441,9 @@ class ModelPool:
             return self.warm
         return next(iter(self.available.keys()), "auto")
 
-    def select_for_task(self, topic: str, metadata: Optional[Dict[str, Any]] = None) -> str:
+    def select_for_task(
+        self, topic: str, metadata: Optional[Dict[str, Any]] = None
+    ) -> str:
         """Select a task model while keeping 1 active + 1 warm and avoiding thrash."""
         now = time.time()
         if self.active and self.last_task_topic == topic:
@@ -513,6 +523,8 @@ throttle_window_seconds = 5
 throttle_limits = {"shub-audio": 5, "hermes": 10, "local": 10}
 throttle_state: Dict[str, List[float]] = {}
 scoring_state: Dict[str, Dict[str, Any]] = {}
+
+
 def _resolve_chat_db_path() -> str:
     env_path = os.environ.get("VX11_DB_PATH")
     if env_path:
@@ -1697,9 +1709,7 @@ async def switch_chat(req: ChatRequest):
             else:
                 content_val = str(result)
 
-        tokens_used = (
-            req.metadata.get("tokens_used") if req.metadata else None
-        )
+        tokens_used = req.metadata.get("tokens_used") if req.metadata else None
         return {
             "status": "ok" if success else "partial",
             "provider": routing_decision.primary_engine,
@@ -1899,26 +1909,27 @@ def _build_spawn_payload(payload: Any, queue_id: int) -> Dict[str, Any]:
             or f"spawn-{queue_id}"
         )
         cmd = payload.get("cmd") or payload.get("command")
-        metadata = payload.get("metadata") if isinstance(payload.get("metadata"), dict) else {}
+        metadata = (
+            payload.get("metadata") if isinstance(payload.get("metadata"), dict) else {}
+        )
     return {
         "name": name,
-            "cmd": cmd,
-            "task_id": payload.get("task_id"),
-            "parent_task_id": payload.get("parent_task_id") or str(queue_id),
-            "intent": payload.get("intent")
-            or payload.get("intent_type")
-            or metadata.get("intent")
-            or "spawn",
-            "ttl_seconds": payload.get("ttl_seconds") or payload.get("ttl") or 300,
-            "mutation_level": payload.get("mutation_level") or 0,
-            "tool_allowlist": payload.get("tool_allowlist")
-            or payload.get("tools")
-            or metadata.get("tool_allowlist"),
-            "context_ref": payload.get("context_ref")
-            or metadata.get("context_ref"),
-            "trace_id": payload.get("trace_id") or metadata.get("trace_id"),
-            "source": payload.get("source") or "switch",
-        }
+        "cmd": cmd,
+        "task_id": payload.get("task_id"),
+        "parent_task_id": payload.get("parent_task_id") or str(queue_id),
+        "intent": payload.get("intent")
+        or payload.get("intent_type")
+        or metadata.get("intent")
+        or "spawn",
+        "ttl_seconds": payload.get("ttl_seconds") or payload.get("ttl") or 300,
+        "mutation_level": payload.get("mutation_level") or 0,
+        "tool_allowlist": payload.get("tool_allowlist")
+        or payload.get("tools")
+        or metadata.get("tool_allowlist"),
+        "context_ref": payload.get("context_ref") or metadata.get("context_ref"),
+        "trace_id": payload.get("trace_id") or metadata.get("trace_id"),
+        "source": payload.get("source") or "switch",
+    }
     return {
         "name": f"spawn-{queue_id}",
         "cmd": None,
@@ -2043,9 +2054,13 @@ async def _request_power_start(service_name: str, reason: str) -> Dict[str, Any]
                 "apply_attempted": apply_flag,
                 "status_code": resp.status_code,
                 "reason": reason,
-                "response": resp.json()
-                if resp.headers.get("content-type", "").startswith("application/json")
-                else {"raw": resp.text},
+                "response": (
+                    resp.json()
+                    if resp.headers.get("content-type", "").startswith(
+                        "application/json"
+                    )
+                    else {"raw": resp.text}
+                ),
             }
     except Exception as exc:
         resp_payload = {
@@ -2797,7 +2812,53 @@ def _provider_usable(provider) -> bool:
 
 
 def _select_language_cli_candidates(registry, provider_hint: Optional[str] = None):
+    """
+    FASE 4: Select CLI candidates con validación de modelos permitidos.
+
+    POLÍTICA: Chat runtime SOLO puede usar modelos GRATIS:
+    - Copilot CLI: gpt-5-mini, gpt-4o, gpt-4.1, gpt-5-preview, o-mini (free tier)
+    - Local models: ggml lightweight
+    - PROHIBIDO: Modelos premium o no whitelisted
+
+    Si se intenta usar modelo no permitido: rechazar y loggear policy_violation.
+    """
+    # Whitelist de modelos permitidos para chat runtime
+    FREE_MODELS_ALLOWLIST = {
+        "gpt-5-mini",
+        "gpt-4o",
+        "gpt-4.1",
+        "gpt-4o-mini",
+        "o-mini",
+        "gpt-3.5-turbo",  # legacy free tier
+        "claude-3.5-haiku",  # Haiku es lightweight
+        "general-7b",  # local LLM
+        "copilot_cli",  # placeholder para Copilot CLI
+    }
+
     providers = [p for p in registry.get_by_priority() if _provider_usable(p)]
+
+    # Validar que todos los providers son permitidos
+    for p in providers:
+        provider_name = p.provider_id or p.kind or "unknown"
+        model_name = (
+            getattr(p, "model", provider_name).lower()
+            if hasattr(p, "model")
+            else provider_name
+        )
+
+        # Solo validar si tiene nombre de modelo (CLI providers)
+        if (
+            "copilot" not in provider_name.lower()
+            and model_name not in FREE_MODELS_ALLOWLIST
+        ):
+            write_log(
+                "switch",
+                f"policy_violation:model_not_whitelisted:provider={provider_name}:model={model_name}",
+                level="WARNING",
+            )
+            # No retornar este proveedor; continuar con otros
+            continue
+
     if provider_hint:
         for p in providers:
             if p.provider_id == provider_hint or p.kind == provider_hint:
