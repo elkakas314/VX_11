@@ -632,10 +632,6 @@ async def proxy_hermes_get_engine(
     Auth: X-VX11-Token header required (forwarded to upstream).
     """
     try:
-        clients = get_clients()
-        hermes_client = clients.get_client("hermes")
-        if not hermes_client:
-            raise HTTPException(status_code=503, detail="hermes_unavailable")
 
         headers = {}
         if x_vx11_token:
@@ -669,10 +665,6 @@ async def proxy_hermes_execute(
     Auth: X-VX11-Token header required (forwarded to upstream).
     """
     try:
-        clients = get_clients()
-        hermes_client = clients.get_client("hermes")
-        if not hermes_client:
-            raise HTTPException(status_code=503, detail="hermes_unavailable")
 
         headers = {}
         if x_vx11_token:

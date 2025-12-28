@@ -471,11 +471,19 @@ async def hermes_get_engine(body: Dict[str, Any], _: bool = Depends(_token_guard
 
         # Proxy to Switch's internal registry via HTTP
         switch_endpoint = settings.switch_url or "http://switch:8002"
+        # Get token for internal calls
+        internal_token = (
+            get_token("VX11_TENTACULO_LINK_TOKEN")
+            or get_token("VX11_GATEWAY_TOKEN")
+            or "vx11-local-token"
+        )
+
         async with httpx.AsyncClient(timeout=5.0) as client:
             # Try to get engine info from Switch's hermes selector
             resp = await client.post(
                 f"{switch_endpoint}/switch/hermes/select_engine",
                 json={"engine_id": engine_id},
+                headers={"X-VX11-Token": internal_token},
                 timeout=5.0,
             )
 
