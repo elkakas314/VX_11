@@ -618,6 +618,83 @@ async def metrics():
     return Response(content=export, media_type="text/plain; charset=utf-8")
 
 
+# ============ HERMES PROXY (single-entrypoint routing) ============
+
+
+@app.post("/hermes/get-engine", tags=["proxy-hermes"])
+async def proxy_hermes_get_engine(
+    body: Dict[str, Any],
+    x_vx11_token: str = Header(None),
+):
+    """
+    Proxy: POST /hermes/get-engine (forward to Hermes service)
+    Single-entrypoint routing for Hermes engine discovery.
+    Auth: X-VX11-Token header required (forwarded to upstream).
+    """
+    try:
+        clients = get_clients()
+        hermes_client = clients.get_client("hermes")
+        if not hermes_client:
+            raise HTTPException(status_code=503, detail="hermes_unavailable")
+
+        headers = {}
+        if x_vx11_token:
+            headers["X-VX11-Token"] = x_vx11_token
+
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.post(
+                "http://hermes:8003/hermes/get-engine",
+                json=body,
+                headers=headers,
+            )
+            write_log("tentaculo_link", f"proxy_hermes_get_engine:{resp.status_code}")
+            return Response(
+                content=resp.text,
+                status_code=resp.status_code,
+                media_type="application/json",
+            )
+    except Exception as exc:
+        write_log("tentaculo_link", f"proxy_hermes_get_engine_error:{exc}", level="ERROR")
+        raise HTTPException(status_code=502, detail="hermes_proxy_error")
+
+
+@app.post("/hermes/execute", tags=["proxy-hermes"])
+async def proxy_hermes_execute(
+    body: Dict[str, Any],
+    x_vx11_token: str = Header(None),
+):
+    """
+    Proxy: POST /hermes/execute (forward to Hermes service)
+    Single-entrypoint routing for Hermes execution requests.
+    Auth: X-VX11-Token header required (forwarded to upstream).
+    """
+    try:
+        clients = get_clients()
+        hermes_client = clients.get_client("hermes")
+        if not hermes_client:
+            raise HTTPException(status_code=503, detail="hermes_unavailable")
+
+        headers = {}
+        if x_vx11_token:
+            headers["X-VX11-Token"] = x_vx11_token
+
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.post(
+                "http://hermes:8003/hermes/execute",
+                json=body,
+                headers=headers,
+            )
+            write_log("tentaculo_link", f"proxy_hermes_execute:{resp.status_code}")
+            return Response(
+                content=resp.text,
+                status_code=resp.status_code,
+                media_type="application/json",
+            )
+    except Exception as exc:
+        write_log("tentaculo_link", f"proxy_hermes_execute_error:{exc}", level="ERROR")
+        raise HTTPException(status_code=502, detail="hermes_proxy_error")
+
+
 @app.get("/shub/rate-limit/status")
 async def rate_limit_status(
     token: str = Header(None, alias="X-VX11-GW-TOKEN"),
