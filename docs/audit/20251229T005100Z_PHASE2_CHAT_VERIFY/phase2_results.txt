@@ -1,0 +1,33 @@
+=== FASE 2: CHAT RUNTIME VERIFICATION ===
+Running 10 consecutive chat requests in solo_madre mode...
+
+Request 1:
+{"message_id":"msg_9010c6b1","session_id":"verify_1","response":"[LOCAL LLM DEGRADED] Received message (6 chars). Switch unavailable in solo_madre mode.","model":"local_llm_degraded","fallback_source":"local_llm_degraded","degraded":true}HTTP 200
+
+Request 2:
+{"message_id":"msg_2de8b0d1","session_id":"verify_2","response":"[LOCAL LLM DEGRADED] Received message (6 chars). Switch unavailable in solo_madre mode.","model":"local_llm_degraded","fallback_source":"local_llm_degraded","degraded":true}HTTP 200
+
+Request 3:
+{"message_id":"msg_6c973e13","session_id":"verify_3","response":"[LOCAL LLM DEGRADED] Received message (6 chars). Switch unavailable in solo_madre mode.","model":"local_llm_degraded","fallback_source":"local_llm_degraded","degraded":true}HTTP 200
+
+Request 4:
+{"message_id":"msg_6fedcebe","session_id":"verify_4","response":"[LOCAL LLM DEGRADED] Received message (6 chars). Switch unavailable in solo_madre mode.","model":"local_llm_degraded","fallback_source":"local_llm_degraded","degraded":true}HTTP 200
+
+Request 5:
+{"message_id":"msg_a4d352b2","session_id":"verify_5","response":"[LOCAL LLM DEGRADED] Received message (6 chars). Switch unavailable in solo_madre mode.","model":"local_llm_degraded","fallback_source":"local_llm_degraded","degraded":true}HTTP 200
+
+Request 6:
+{"message_id":"msg_f36be79a","session_id":"verify_6","response":"[LOCAL LLM DEGRADED] Received message (6 chars). Switch unavailable in solo_madre mode.","model":"local_llm_degraded","fallback_source":"local_llm_degraded","degraded":true}HTTP 200
+
+Request 7:
+{"message_id":"msg_32cc5127","session_id":"verify_7","response":"[LOCAL LLM DEGRADED] Received message (6 chars). Switch unavailable in solo_madre mode.","model":"local_llm_degraded","fallback_source":"local_llm_degraded","degraded":true}HTTP 200
+
+Request 8:
+{"message_id":"msg_3ceef52e","session_id":"verify_8","response":"[LOCAL LLM DEGRADED] Received message (6 chars). Switch unavailable in solo_madre mode.","model":"local_llm_degraded","fallback_source":"local_llm_degraded","degraded":true}HTTP 200
+
+Request 9:
+{"message_id":"msg_68789b46","session_id":"verify_9","response":"[LOCAL LLM DEGRADED] Received message (6 chars). Switch unavailable in solo_madre mode.","model":"local_llm_degraded","fallback_source":"local_llm_degraded","degraded":true}HTTP 200
+
+Request 10:
+{"message_id":"msg_376ab663","session_id":"verify_10","response":"[LOCAL LLM DEGRADED] Received message (7 chars). Switch unavailable in solo_madre mode.","model":"local_llm_degraded","fallback_source":"local_llm_degraded","degraded":true}HTTP 200
+
