@@ -1,0 +1,290 @@
+🎯 **PROMPT 9 PARA DEEPSEEK R1 — LISTO PARA COPIAR/PEGAR**
+
+---
+
+## ⚠️ INSTRUCCIONES INICIALES
+
+Este es el PROMPT 9 completo para DeepSeek R1. Cópialo enteramente y pégalo en DeepSeek R1 como un único mensaje.
+
+El sistema ya tiene:
+✅ PROMPT 9 integrado (con matriz de requisitos parseada)
+✅ Spec canonical JSON (todos los requisitos del visor)
+✅ Política de ejecución (timeboxes 60-90 min, sin estimaciones de horas)
+✅ Bootstrap snapshot listo (en docs/audit/20251228T183554Z_OPERATOR_P9_BASELINE/)
+
+**TODO LO QUE FALTA**: Que DeepSeek R1 ejecute las 4 TAREAS ATÓMICAS (A/B/C/D).
+
+---
+
+## 🚀 COPIA TODO ESTO Y PÉGALO A DEEPSEEK R1:
+
+```markdown
+# PROMPT 9 — VX11 OPERATOR: IMPLEMENTACIÓN END-TO-END (DEEPSEEK R1 EXECUTION)
+
+## ESTADO ACTUAL (Baseline completado)
+
+✅ Bootstrap snapshot en: `docs/audit/20251228T183554Z_OPERATOR_P9_BASELINE/`
+✅ Matriz de requisitos parseada (20 features P0+P1+P2, 24 endpoints)
+✅ Spec canonical JSON en: `docs/canon/VX11_OPERATOR_SUPERPACK_CANONICAL_v7.0.0.json`
+✅ Invariantes claras (single_entrypoint, solo_madre, OFF_BY_POLICY)
+
+## REPOSITORIO
+
+📁 `/home/elkakas314/vx11`
+🌿 Branch: `main`
+⏱ Timestamp baseline: `20251228T183554Z`
+
+## POLÍTICA OBLIGATORIA
+
+```
+- Trabajar por TAREAS ATÓMICAS (4 fases: A/B/C/D)
+- Timebox: 60–90 minutos por tarea
+- Si se bloquea: PARAR + reportar en docs/audit/<ts>_BLOCKED/
+- P0 primero (no P1/P2 si P0 no está perfecto)
+- Evidencia: TODO en docs/audit/<ts>_OPERATOR_P9_EVIDENCE/
+- Commits: 4 atómicos, uno por tarea
+```
+
+## FASE 1: LEER BOOTSTRAP (Ya hecho, pero referencia)
+
+Los archivos críticos:
+1. docs/audit/CLEANUP_EXCLUDES_CORE.txt
+2. docs/canon/VX11_OPERATOR_SUPERPACK_CANONICAL_v7.0.0.json (SPEC)
+3. docs/audit/DB_SCHEMA_v7_FINAL.json
+4. docker-compose.yml
+5. tentaculo_link/main_v7.py (API /operator/api/*)
+6. operator/frontend/vite.config.ts, package.json, tsconfig.json
+7. operator/frontend/src/services/api.ts
+
+## FASE 2: 4 TAREAS ATÓMICAS
+
+### TAREA A: Auditoría + Plan (timebox 60-90 min, SIN CÓDIGO)
+
+**Entregar**: `docs/audit/20251228T183554Z_OPERATOR_P9_PLAN.md`
+
+Contenido:
+- Resumen de requisitos P0 (de matriz parseada arriba)
+- Riesgos + mitigación
+- Archivos a tocar (frontend views, components, api.ts, App.tsx, App.css)
+- Endpoints P0 a verificar/implementar
+- Criterios P0 (gates):
+  * npm run build OK
+  * python3 -m py_compile OK
+  * curl /operator/api/* endpoints (200 + shapes estables)
+  * npx tsc --noEmit OK
+
+Al terminar:
+```bash
+git add docs/audit/20251228T183554Z_OPERATOR_P9_PLAN.md docs/audit/20251228T183554Z_OPERATOR_P9_BASELINE/
+git commit -m "vx11: Operator P9 — baseline audit + plan"
+```
+
+---
+
+### TAREA B: Frontend Polish + UX (timebox 60-90 min)
+
+**Archivos a crear/modificar**:
+- `operator/frontend/src/views/OverviewView.tsx` (4 widgets: status, modules, scorecard, recent audits)
+- `operator/frontend/src/views/ChatView.tsx` (chat P0: message states, markdown, copy code, session mgmt)
+- `operator/frontend/src/views/AuditView.tsx` (run list, detail, download)
+- `operator/frontend/src/views/SettingsView.tsx` (appearance, events, chat, security, dev)
+- `operator/frontend/src/components/LeftRail.tsx` (sessions list, module quick list, search)
+- `operator/frontend/src/components/RightDrawer.tsx` (mode, active modules, daughters, recent events)
+- `operator/frontend/src/components/DegradedModeBanner.tsx` (persistent banner if degraded=true)
+- `operator/frontend/src/App.tsx` (refactor: nav tabs + left rail + center panel + right drawer)
+- `operator/frontend/src/App.css` (theme tokens, layout, responsive)
+
+**Requisitos P0**:
+- 8 nav tabs: overview, chat, topology, hormiguero, jobs, audit, explorer, settings
+- Dark theme (spec colors: #070A12, #0B1020, #0F172A, etc.)
+- States: loading, error, empty (show "OFF by policy" for disabled modules)
+- Accessibility: Ctrl+Enter send, Ctrl+K palette, Alt+1/2/3 panels, Esc close
+- TypeScript red squiggles: 0 (check tsconfig.json types, vitest/globals)
+- No blank screens (fallback UI for degraded)
+
+**P1/P2 stub OK** (TopologyView, HormigueroView, JobsView, ExplorerView can be stubs).
+
+At end:
+```bash
+cd operator/frontend
+npm ci
+npm run build
+# Should: ✓ built in X.XXs (no warnings, no errors)
+
+npx tsc --noEmit
+# Should: [silent] = OK
+
+cd /home/elkakas314/vx11
+git add operator/frontend/src/views/* operator/frontend/src/components/LeftRail.tsx operator/frontend/src/components/RightDrawer.tsx operator/frontend/src/components/DegradedModeBanner.tsx operator/frontend/src/App.tsx operator/frontend/src/App.css
+git commit -m "vx11: Operator P9 — frontend polish + layout + visor navigation"
+```
+
+---
+
+### TAREA C: API Integration (timebox 60-90 min)
+
+**Backend** (`tentaculo_link/main_v7.py`):
+- Verify `/operator/api/status`, `/api/modules`, `/api/chat`, `/api/audit`, `/api/settings`, `/api/topology`
+- ALL return 200 + spec-compliant shapes
+- OFF_BY_POLICY modules: `{status:"off_by_policy", reason:"solo_madre"}` (not 500)
+
+**Frontend API** (`operator/frontend/src/services/api.ts`):
+- Methods per endpoint:
+  * `status()` → GET /operator/api/status
+  * `modules()` → GET /operator/api/modules
+  * `moduleDetail(name)` → GET /operator/api/modules/{name}
+  * `chat(message, sessionId)` → POST /operator/api/chat
+  * `events()` → GET /operator/api/events
+  * `audit()` → GET /operator/api/audit
+  * `auditDetail(id)` → GET /operator/api/audit/{id}
+  * `downloadAudit(id)` → GET /operator/api/audit/{id}/download
+  * `settings()` → GET /operator/api/settings
+  * `updateSettings(obj)` → POST /operator/api/settings
+  * `topology()` → GET /operator/api/topology
+
+**Connect views to API**:
+- OverviewView: use status(), modules(), audit()
+- ChatView: use chat(), events()
+- AuditView: use audit(), auditDetail(), downloadAudit()
+- SettingsView: use settings(), updateSettings()
+- LeftRail: use modules()
+- RightDrawer: use status()
+
+At end:
+```bash
+python3 -m py_compile tentaculo_link/main_v7.py
+# Should: [silent] = OK
+
+curl -s -H "x-vx11-token: vx11-local-token" http://localhost:8000/operator/api/status | jq ".policy"
+# Should: "solo_madre"
+
+git add tentaculo_link/main_v7.py operator/frontend/src/services/api.ts operator/frontend/src/views/OverviewView.tsx operator/frontend/src/views/ChatView.tsx operator/frontend/src/views/AuditView.tsx operator/frontend/src/views/SettingsView.tsx
+git commit -m "vx11: Operator P9 — API endpoints + frontend integration"
+```
+
+---
+
+### TAREA D: P0 Gates + Evidence + Final Commit (timebox 60-90 min)
+
+**Run P0 gates**:
+```bash
+# Frontend
+cd operator/frontend
+npm run build
+npx tsc --noEmit
+npm test 2>/dev/null || echo "No tests"
+
+# Backend
+python3 -m py_compile tentaculo_link/main_v7.py
+
+# Runtime
+docker compose ps
+# Should: madre, redis, tentaculo_link UP
+
+# UI load
+curl -s http://localhost:8000/operator/ui/ | grep -q "<title>"
+# [exit 0] = OK
+
+# Assets
+curl -sI http://localhost:8000/operator/ui/assets/index-*.css | head -1 | grep -q "200"
+curl -sI http://localhost:8000/operator/ui/assets/index-*.js | head -1 | grep -q "200"
+
+# API endpoints
+curl -s -H "x-vx11-token: vx11-local-token" http://localhost:8000/operator/api/status | jq ".policy" | grep -q "solo_madre"
+curl -s -H "x-vx11-token: vx11-local-token" http://localhost:8000/operator/api/modules | jq ".modules | length"
+curl -s -X POST -H "x-vx11-token: vx11-local-token" -H "Content-Type: application/json" -d '{"message":"test"}' http://localhost:8000/operator/api/chat | jq ".route_taken"
+
+# TS compilation
+npx tsc --noEmit
+# [silent] = OK
+```
+
+**Capture evidence**:
+```bash
+mkdir -p docs/audit/20251228T183554Z_OPERATOR_P9_EVIDENCE
+cd operator/frontend && npm run build > ../../docs/audit/20251228T183554Z_OPERATOR_P9_EVIDENCE/frontend_build.txt 2>&1
+python3 -m py_compile tentaculo_link/main_v7.py > docs/audit/20251228T183554Z_OPERATOR_P9_EVIDENCE/backend_syntax.txt 2>&1
+# (capture all curl outputs to runtime_checks.txt)
+```
+
+**Final commit**:
+```bash
+git add docs/audit/20251228T183554Z_OPERATOR_P9_EVIDENCE/
+git commit -m "vx11: Operator P9 — verification + evidence + summary"
+git push vx_11_remote main
+```
+
+---
+
+## ENTREGA FINAL
+
+### Resumen Ejecutivo
+- Qué cambió: Frontend (8-tab nav, left rail, right drawer), Backend (API verified), UX (accessibility, dark theme)
+- Qué se añadió: 4 P0 views, 3 components, api.ts (10+ methods), theme tokens
+- Qué se degradó: Nada (P0 read-only)
+- Qué queda P1/P2: Topology (React Flow), Hormiguero viz, Jobs board, SSE/WS, runbooks
+- Estado: READY FOR PRODUCTION (P0 gates ✓)
+
+### Matriz de Requisitos (Status)
+| Feature | P0/P1/P2 | Status | Component |
+|---------|----------|--------|-----------|
+| Overview | P0 | DONE | OverviewView |
+| Chat | P0 | DONE | ChatView |
+| Audit | P0 | DONE | AuditView |
+| Settings | P0 | DONE | SettingsView |
+| LeftRail | P0 | DONE | LeftRail |
+| RightDrawer | P0 | DONE | RightDrawer |
+| DegradedBanner | P0 | DONE | DegradedModeBanner |
+| Topology | P1 | TODO | TopologyView (stub) |
+| Hormiguero | P1 | TODO | HormigueroView (stub) |
+| JobsBoard | P1 | TODO | JobsView (stub) |
+
+### Commits
+- A: baseline audit + plan
+- B: frontend polish + layout
+- C: API endpoints + frontend integration
+- D: verification + evidence
+
+---
+
+## 🛑 BLOQUEADOR?
+
+Si una tarea no termina en 60-90 min:
+1. Git stash (or commit WIP)
+2. Create `docs/audit/20251228T183554Z_BLOCKED_[TASK_NAME].txt`:
+   ```
+   Tarea: [A/B/C/D]
+   Tiempo: [minutos usados]
+   Falta: [qué específicamente]
+   Bloqueo: [impedimento real]
+   Siguiente paso: [comando exacto o acción]
+   ```
+3. STOP (no "un poquito más")
+4. Report to user
+
+---
+
+## ✅ START NOW
+
+Ejecuta bootstrap snapshot (ya listo en docs/audit/20251228T183554Z_OPERATOR_P9_BASELINE/), luego:
+1. TAREA A (60-90 min): Plan + audit
+2. TAREA B (60-90 min): Frontend polish
+3. TAREA C (60-90 min): API integration
+4. TAREA D (60-90 min): P0 gates + evidence
+5. Entregar resumen + commits + matriz
+
+¡Adelante!
+```
+
+---
+
+## ✂️ CÓPIA Y PEGA EL BLOQUE DE ARRIBA COMPLETO A DEEPSEEK R1
+
+El contenido entre los triple backticks (```markdown ... ```) es lo que va directo a DeepSeek R1.
+
+**Listo para ejecutar. DeepSeek R1 tiene todo lo que necesita.**
+
+---
+
+**Commit actual en workspace**: `1a4b8d9` ✅
+**Status**: Ready for DeepSeek R1 execution
