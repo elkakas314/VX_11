@@ -18,14 +18,17 @@ from typing import Any, Optional
 
 try:
     import aioredis
+    # Check API version (2.x vs 1.x)
+    _AIOREDIS_V2 = hasattr(aioredis, "from_url")
 except ImportError:
     aioredis = None  # type: ignore
+    _AIOREDIS_V2 = False
 
 logger = logging.getLogger(__name__)
 
 
 class CacheLayer:
-    """Redis-based cache with async support"""
+    """Redis-based cache with async support (aioredis 2.x compatible)"""
 
     def __init__(self):
         self.redis = None
@@ -33,22 +36,32 @@ class CacheLayer:
         self.redis_url = os.getenv("VX11_REDIS_URL", "redis://localhost:6379/0")
 
     async def initialize(self):
-        """Initialize Redis connection"""
+        """Initialize Redis connection (compatible with aioredis 2.x)"""
         if not self.enabled:
             logger.info("✓ Cache layer disabled (VX11_CACHE_ENABLED=false)")
             return
 
+        if not aioredis:
+            logger.warning("⚠ aioredis not installed; cache disabled")
+            self.enabled = False
+            return
+
         try:
-            self.redis = await aioredis.create_redis_pool(
-                self.redis_url,
-                encoding="utf-8",
-                minsize=5,
-                maxsize=10,
-            )
+            # aioredis 2.x uses from_url; 1.x uses create_redis_pool
+            if _AIOREDIS_V2:
+                self.redis = await aioredis.from_url(self.redis_url, encoding="utf-8")
+            else:
+                self.redis = await aioredis.create_redis_pool(
+                    self.redis_url,
+                    encoding="utf-8",
+                    minsize=5,
+                    maxsize=10,
+                )
+            
             # Test connection
-            pong = await self.redis.execute("ping")
+            pong = await self.redis.ping()
             if pong:
-                logger.info(f"✓ Redis cache connected: {self.redis_url}")
+                logger.info(f"✓ Redis cache connected: {self.redis_url} (aioredis v2.x)")
             else:
                 raise Exception("Redis ping failed")
         except Exception as e:
@@ -59,17 +72,24 @@ class CacheLayer:
     async def close(self):
         """Close Redis connection"""
         if self.redis:
-            self.redis.close()
-            await self.redis.wait_closed()
+            if _AIOREDIS_V2:
+                await self.redis.close()
+            else:
+                self.redis.close()
+                await self.redis.wait_closed()
             logger.info("✓ Redis cache closed")
 
     async def get(self, key: str) -> Optional[Any]:
-        """Get value from cache"""
+        """Get value from cache (aioredis 2.x compatible)"""
         if not self.enabled or not self.redis:
             return None
 
         try:
-            value = await self.redis.get(key)
+            if _AIOREDIS_V2:
+                value = await self.redis.get(key)
+            else:
+                value = await self.redis.get(key)
+            
             if value:
                 logger.debug(f"cache_hit: {key}")
                 return json.loads(value)
@@ -80,13 +100,17 @@ class CacheLayer:
             return None
 
     async def set(self, key: str, value: Any, ttl: int = 60) -> bool:
-        """Set value in cache with TTL"""
+        """Set value in cache with TTL (aioredis 2.x compatible)"""
         if not self.enabled or not self.redis:
             return False
 
         try:
             serialized = json.dumps(value)
-            await self.redis.setex(key, ttl, serialized)
+            if _AIOREDIS_V2:
+                await self.redis.set(key, serialized, ex=ttl)
+            else:
+                await self.redis.setex(key, ttl, serialized)
+            
             logger.debug(f"cache_set: {key} (ttl={ttl}s)")
             return True
         except Exception as e:
@@ -94,7 +118,7 @@ class CacheLayer:
             return False
 
     async def delete(self, *keys: str) -> int:
-        """Delete one or more keys from cache"""
+        """Delete one or more keys from cache (aioredis 2.x compatible)"""
         if not self.enabled or not self.redis:
             return 0
 
