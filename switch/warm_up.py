@@ -32,6 +32,15 @@ class WarmUpEngine:
         self.last_warmup: Optional[datetime] = None
         self.warmup_health: Dict[str, str] = {}
 
+        # Internal API token for Hermes calls
+        from config.tokens import get_token
+
+        self.vx11_token = (
+            get_token("VX11_TENTACULO_LINK_TOKEN")
+            or get_token("VX11_GATEWAY_TOKEN")
+            or os.getenv("API_TOKEN", "vx11-local-token")
+        )
+
         self._load_config()
         # Modo mock para entornos de CI/local: evita llamadas de red costosas
         self.mock_providers = bool(
@@ -179,6 +188,7 @@ class WarmUpEngine:
                 resp = await client.post(
                     f"{self.hermes_endpoint}/hermes/get-engine",
                     json={"engine_id": model_name},
+                    headers={"X-VX11-Token": self.vx11_token},
                     timeout=timeout_seconds,
                 )
 
@@ -236,6 +246,7 @@ class WarmUpEngine:
                         "command": warmup_command,
                         "tool": cli_name,
                     },
+                    headers={"X-VX11-Token": self.vx11_token},
                     timeout=timeout_seconds,
                 )
 

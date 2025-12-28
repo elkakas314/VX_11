@@ -456,6 +456,52 @@ async def register_model(body: ModelRegister, _: bool = Depends(_token_guard)):
         session.close()
 
 
+@app.post("/hermes/get-engine")
+async def hermes_get_engine(body: Dict[str, Any], _: bool = Depends(_token_guard)):
+    """
+    Shim compatibility endpoint: Get engine metadata.
+    Expects: {"engine_id": "model_name"}
+    Internally proxies to Switch's engine registry.
+    This maintains Hermes as catalog/registry layer.
+    """
+    try:
+        engine_id = body.get("engine_id")
+        if not engine_id:
+            raise HTTPException(status_code=422, detail="engine_id required")
+
+        # Proxy to Switch's internal registry via HTTP
+        switch_endpoint = settings.switch_url or "http://switch:8002"
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            # Try to get engine info from Switch's hermes selector
+            resp = await client.post(
+                f"{switch_endpoint}/switch/hermes/select_engine",
+                json={"engine_id": engine_id},
+                timeout=5.0,
+            )
+
+            if resp.status_code == 200:
+                result = resp.json()
+                # Ensure we return expected schema: endpoint, metadata, etc.
+                return {
+                    "engine_id": engine_id,
+                    "endpoint": result.get("endpoint")
+                    or f"{switch_endpoint}/switch/execute",
+                    "metadata": result.get("metadata", {}),
+                    "status": "available",
+                }
+            elif resp.status_code == 404:
+                raise HTTPException(
+                    status_code=404, detail=f"engine {engine_id} not found"
+                )
+            else:
+                raise HTTPException(status_code=502, detail="Switch query failed")
+    except HTTPException:
+        raise
+    except Exception as exc:
+        write_log("hermes", f"get_engine_error:{exc}", level="ERROR")
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
 @app.post("/hermes/execute")
 async def hermes_execute(req: ExecuteRequest, _: bool = Depends(_token_guard)):
     try:
@@ -934,7 +980,9 @@ async def discover(req: DiscoverRequest, _: bool = Depends(_token_guard)):
                 existing = session.query(ModelsLocal).filter_by(name=name).first()
                 if existing:
                     existing.path = m.get("path", existing.path)
-                    existing.size_mb = int((m.get("size_bytes", 0) or 0) / (1024 * 1024))
+                    existing.size_mb = int(
+                        (m.get("size_bytes", 0) or 0) / (1024 * 1024)
+                    )
                     existing.status = "available"
                 else:
                     session.add(
@@ -947,7 +995,9 @@ async def discover(req: DiscoverRequest, _: bool = Depends(_token_guard)):
                         )
                     )
             except Exception as exc:
-                write_log("hermes", f"discover_local_upsert_error:{exc}", level="WARNING")
+                write_log(
+                    "hermes", f"discover_local_upsert_error:{exc}", level="WARNING"
+                )
 
         # Tier 2: catalog -> ModelRegistry
         for m in catalog_models:
@@ -968,7 +1018,9 @@ async def discover(req: DiscoverRequest, _: bool = Depends(_token_guard)):
                         )
                     )
             except Exception as exc:
-                write_log("hermes", f"discover_catalog_upsert_error:{exc}", level="WARNING")
+                write_log(
+                    "hermes", f"discover_catalog_upsert_error:{exc}", level="WARNING"
+                )
 
         # Tier 3: web (explicit HF search)
         if req.allow_web:
@@ -984,7 +1036,9 @@ async def discover(req: DiscoverRequest, _: bool = Depends(_token_guard)):
                                 name=name,
                                 path=f"hf:{name}",
                                 provider="huggingface",
-                                type=m.get("task") or m.get("pipeline_tag") or "general",
+                                type=m.get("task")
+                                or m.get("pipeline_tag")
+                                or "general",
                                 size_bytes=int((m.get("size_gb", 0) or 0) * (1024**3)),
                                 meta_json=json.dumps(
                                     {
@@ -997,14 +1051,19 @@ async def discover(req: DiscoverRequest, _: bool = Depends(_token_guard)):
                             )
                         )
                 except Exception as exc:
-                    write_log("hermes", f"discover_hf_upsert_error:{exc}", level="WARNING")
+                    write_log(
+                        "hermes", f"discover_hf_upsert_error:{exc}", level="WARNING"
+                    )
 
         if req.allow_web and allow_download:
             results["download_attempted"] = True
 
         session.commit()
         _write_json(os.path.join(out_dir, "result.json"), results)
-        write_log("hermes", f"discover_completed:local={len(local_models)} catalog={len(catalog_models)}")
+        write_log(
+            "hermes",
+            f"discover_completed:local={len(local_models)} catalog={len(catalog_models)}",
+        )
 
         return {
             "status": "ok",
