@@ -2093,6 +2093,72 @@ async def operator_api_topology(_: bool = Depends(token_guard)):
     }
 
 
+@app.get("/operator/api/audit", tags=["operator-api-p0"])
+async def operator_api_audit(_: bool = Depends(token_guard)):
+    """
+    P0: List audit runs (placeholder for P1+ persistence).
+    Currently returns empty list or recent runs from runtime memory.
+    """
+    return {
+        "runs": [],
+        "total": 0,
+        "note": "Audit storage P1+ feature (currently no persistence)",
+    }
+
+
+@app.get("/operator/api/audit/{run_id}", tags=["operator-api-p0"])
+async def operator_api_audit_detail(run_id: str, _: bool = Depends(token_guard)):
+    """
+    P0: Get details of a specific audit run by ID (placeholder).
+    """
+    return {
+        "error": "run_not_found",
+        "run_id": run_id,
+        "note": "Audit storage P1+ feature",
+    }
+
+
+@app.get("/operator/api/audit/{run_id}/download", tags=["operator-api-p0"])
+async def operator_api_audit_download(run_id: str, _: bool = Depends(token_guard)):
+    """
+    P0: Download audit run as JSON (placeholder).
+    """
+    return {
+        "error": "run_not_found",
+        "run_id": run_id,
+        "note": "Audit download P1+ feature",
+    }
+
+
+@app.get("/operator/api/settings", tags=["operator-api-p0"])
+async def operator_api_settings(_: bool = Depends(token_guard)):
+    """
+    P0: Get current operator settings (UI preferences).
+    Returns default settings on first call.
+    """
+    return {
+        "appearance": {"theme": "dark", "language": "en"},
+        "chat": {"model": "deepseek-r1", "temperature": 0.7},
+        "security": {"enable_api_logs": False, "enable_debug_mode": False},
+        "notifications": {"enable_events": True, "events_level": "info"},
+    }
+
+
+@app.post("/operator/api/settings", tags=["operator-api-p0"])
+async def operator_api_settings_update(
+    settings: dict, _: bool = Depends(token_guard)
+):
+    """
+    P0: Update operator settings (UI preferences).
+    Returns updated settings (no persistence in solo_madre).
+    """
+    return {
+        "status": "ok",
+        "message": "Settings updated (not persisted in solo_madre mode)",
+        "settings": settings,
+    }
+
+
 @app.api_route(
     "/operator/api/{path:path}",
     methods=["GET", "POST", "PUT", "DELETE"],
