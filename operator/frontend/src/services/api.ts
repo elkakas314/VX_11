@@ -85,6 +85,51 @@ class ApiClient {
         return this.request('GET', '/operator/api/modules')
     }
 
+    // Module detail endpoint
+    async moduleDetail(name: string): Promise<ApiResponse<any>> {
+        return this.request('GET', `/operator/api/modules/${name}`)
+    }
+
+    // Events endpoint (P0: via /operator/api/events)
+    async events(): Promise<ApiResponse<any>> {
+        return this.request('GET', '/operator/api/events')
+    }
+
+    // Scorecard endpoint (P0: via /operator/api/scorecard)
+    async scorecard(): Promise<ApiResponse<any>> {
+        return this.request('GET', '/operator/api/scorecard')
+    }
+
+    // Audit endpoint (P0: via /operator/api/audit)
+    async audit(): Promise<ApiResponse<any>> {
+        return this.request('GET', '/operator/api/audit')
+    }
+
+    // Audit detail endpoint
+    async auditDetail(id: string): Promise<ApiResponse<any>> {
+        return this.request('GET', `/operator/api/audit/${id}`)
+    }
+
+    // Download audit endpoint
+    async downloadAudit(id: string): Promise<ApiResponse<any>> {
+        return this.request('GET', `/operator/api/audit/${id}/download`)
+    }
+
+    // Settings endpoint (P0: via /operator/api/settings)
+    async settings(): Promise<ApiResponse<any>> {
+        return this.request('GET', '/operator/api/settings')
+    }
+
+    // Update settings endpoint
+    async updateSettings(settings: any): Promise<ApiResponse<any>> {
+        return this.request('POST', '/operator/api/settings', settings)
+    }
+
+    // Topology endpoint (P0: via /operator/api/topology)
+    async topology(): Promise<ApiResponse<any>> {
+        return this.request('GET', '/operator/api/topology')
+    }
+
     // Power state endpoint (legacy, still available)
     async powerState(): Promise<ApiResponse<any>> {
         return this.request('GET', '/operator/power/state')
