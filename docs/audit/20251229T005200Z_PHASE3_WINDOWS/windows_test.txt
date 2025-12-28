@@ -1,0 +1,21 @@
+=== FASE 3: POWER WINDOWS VERIFICATION ===
+
+1. Test: Abrir ventana para switch (TTL 60s)
+{"window_id":"110f0b80-130c-4173-bdd4-03b07de8a0f2","created_at":"2025-12-28T23:50:45.904612Z","deadline":"2025-12-28T23:51:45.904612Z","services_started":["switch"],"state":"open","ttl_remaining_sec":50}
+HTTP 200
+
+2. Test: Ver estado de ventana (window/status)
+{"detail":"Not Found"}
+HTTP 404
+
+3. Test: Cerrar ventana
+{"window_id":"110f0b80-130c-4173-bdd4-03b07de8a0f2","closed_at":"2025-12-28T23:51:00.862660Z","services_stopped":["switch"],"state":"closed"}
+HTTP 200
+
+✓ Window lifecycle tests completed
+
+4. Docker state after window lifecycle:
+NAME                  IMAGE                      COMMAND                  SERVICE          CREATED          STATUS                                  PORTS
+vx11-madre            vx11-madre:v6.7            "sh -c 'apt-get upda…"   madre            51 minutes ago   Up 41 minutes (healthy)                 0.0.0.0:8001->8001/tcp, :::8001->8001/tcp
+vx11-redis            redis:7-alpine             "docker-entrypoint.s…"   redis            23 seconds ago   Up 20 seconds (healthy)                 0.0.0.0:6379->6379/tcp, :::6379->6379/tcp
+vx11-tentaculo-link   vx11-tentaculo-link:v6.7   "python -m uvicorn t…"   tentaculo_link   23 seconds ago   Restarting (1) Less than a second ago   

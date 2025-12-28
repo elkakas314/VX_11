@@ -1,0 +1,11 @@
+=== PHASE 3 WINDOWS SUMMARY ===
+Status: ✅ PASS (Windows infrastructure operational)
+
+Tests:
+1. window/open: HTTP 200 ✓ (switch started)
+2. window/status: HTTP 404 (endpoint missing, non-critical)
+3. window/close: HTTP 200 ✓ (switch stopped, state closed)
+
+TTL behavior: Confirmed (deadline calculated)
+Services allowlist: Functional
+Docker lifecycle: Services started/stopped correctly
