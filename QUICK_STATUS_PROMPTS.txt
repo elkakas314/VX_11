@@ -1,0 +1,119 @@
+╔════════════════════════════════════════════════════════════════╗
+║          AUDITORÍA: STATUS DE IMPLEMENTACIÓN PROMPTS           ║
+║                                                                ║
+║ Verificado: 28 de diciembre 2025 — DeepSeek API + Manual Audit ║
+╚════════════════════════════════════════════════════════════════╝
+
+✅ IMPLEMENTADO COMPLETAMENTE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ PROMPT 5: Operator UI Foundation (5 componentes base)
+   └─ StatusCard, PowerCard, ChatPanel, HormigueroPanel, P0ChecksPanel
+   └─ Dark theme, polling-based, SOLO_MADRE compatible
+   └─ 10/10 tests pass, 0 TypeScript errors
+
+✅ PROMPT 6: Switch/Hermes Crashloop Fix
+   └─ build: context added to docker-compose.yml
+   └─ Fix verificado: hermes puede reconstruirse si es necesario
+
+✅ PROMPT 7: Operator UI Integration
+   └─ StaticFiles mounted at /operator/ui
+   └─ 4 tabs funcionales (Dashboard, Chat, Hormigas, P0 Checks)
+   └─ Integrado en tentaculo_link:8000
+
+✅ PROMPT 10: P0 Chat Hardening (RECIENTE)
+   └─ DeepSeek API fallback funciona
+   └─ Token válido y funcional
+   └─ DB persistence ✅
+   └─ All 5 gates pass
+
+✅ PROMPT 11: P1 Hardening (RECIENTE)
+   └─ Rate limiting (10/min)
+   └─ Message cap (4000 chars)
+   └─ Caching (60s TTL)
+   └─ Secret guards (pre-commit + CI scanning)
+
+⚠️  INCOMPLETO / PARCIAL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⚠️  PROMPT 9: Frontend Polish (8-Tab Navigation)
+   └─ Prometido: 4 vistas nuevas (OverviewView, ChatView, AuditView, SettingsView)
+   └─ Implementado: 3 de 7 componentes (LeftRail, RightDrawer, DegradedModeBanner)
+   └─ Status: PARCIALMENTE IMPLEMENTADO
+   └─ Faltante: ❌ 4 vistas + /operator/api/health endpoint
+
+❌ NO IMPLEMENTADO / LEGACY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+❌ ARCHIVOS EN RAÍZ (deberían estar en scripts/ o docs/audit/)
+   ├─ operator_ui_visibility_diagnostic.sh (5.2K)
+   ├─ test_operator_ui_serve.sh (4.5K)
+   ├─ verify_inee_integration.sh (4.2K)
+   ├─ test_real_data_endpoints.sh (5.5K)
+   └─ test_real_data_endpoints_final.sh (7.9K)
+
+❌ PROMPT*.md FILES EN RAÍZ (deberían estar en docs/archived_prompts/ o audit/)
+   ├─ PROMPT5_OPERATOR_UI_COMPLETION_REPORT.md
+   ├─ PROMPT6_SWITCH_HERMES_CRASHLOOP_FIX.md
+   ├─ PROMPT7_*.md (2 archivos)
+   ├─ PROMPT9_*.md (3 archivos)
+   ├─ PROMPT_9_*.md (2 archivos)
+   ├─ DEEPSEEK_R1_EXECUTION_PROMPT.txt
+   ├─ INEE_INTEGRATION_COMPLETION_REPORT.md
+   └─ FASE4_GLOBAL_AUDIT_SUMMARY.md
+
+📊 MÉTRICAS ACTUALES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Backend Chat API:           ✅ 100% (DeepSeek fallback working)
+Docker Configuration:       ✅ 100% (SOLO_MADRE policy active)
+Database:                   ✅ 100% (71 tables, 1.15M rows)
+Frontend Components:        ⚠️  43% (3 of 7 PROMPT9 components)
+API Endpoints:              ⚠️  75% (3 of 4 expected)
+Structure Compliance:       ❌ 30% (scripts + docs in wrong places)
+
+🚀 FUNCIONANDO EN PRODUCCIÓN (PROMPT 10 + 11)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ Chat Endpoint:           POST /operator/api/chat
+   └─ Token auth (x-vx11-token)
+   └─ Rate limited: 10 req/min per session
+   └─ Message cap: 4000 chars
+   └─ Cache: 60s TTL
+   └─ Timeout: 15s (DeepSeek)
+   └─ Status: 🟢 LIVE
+
+✅ UI Served:               GET /operator/ui
+   └─ Dark theme
+   └─ 4 tabs active
+   └─ Status: 🟢 LIVE
+
+✅ Security:                Pre-commit + GitHub Actions scanning
+   └─ Local: detect-secrets + TruffleHog
+   └─ CI: Blocks PRs with secrets
+   └─ Status: 🟢 LIVE
+
+📋 ARCHIVOS CRÍTICOS AUDITADOS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ docker-compose.yml       — SOLO_MADRE policy ✓, operator_backend archived ✓
+✅ tentaculo_link/main_v7.py — /operator/api/chat ✓, /operator/ui ✓
+✅ docs/audit/DB_SCHEMA_v7_FINAL.json — Present ✓
+✅ docs/audit/DB_MAP_v7_FINAL.md — Present ✓
+✅ operator/frontend/src — 3 of 7 views present
+
+🔧 RECOMENDACIÓN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+PRIORITARIO (antes del PROMPT 12):
+  1. Completar PROMPT9: crear 4 vistas faltantes (OverviewView, ChatView, AuditView, SettingsView)
+  2. Implementar /operator/api/health endpoint
+  3. Mover scripts a scripts/ directory
+  4. Archivar PROMPT*.md files a docs/audit/
+
+ESTADO ACTUAL: ⚠️ Funcional pero incompleto
+  → Chat backend: ✅ 100%
+  → Frontend: ⚠️ 43%
+  → Structure: ❌ 30%
+
+═══════════════════════════════════════════════════════════════════

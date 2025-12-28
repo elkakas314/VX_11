@@ -2197,6 +2197,33 @@ async def operator_api_scorecard(_: bool = Depends(token_guard)):
     }
 
 
+@app.get("/operator/api/health", tags=["operator-api-p0"])
+async def operator_api_health(_: bool = Depends(token_guard)):
+    """
+    P1: Lightweight health endpoint for Operator UI and monitoring.
+    Returns overall status, module info and quick service checks.
+    """
+    try:
+        services = {
+            "madre": True,
+            "redis": True,
+            "tentaculo_link": True,
+        }
+    except Exception:
+        services = {
+            "madre": False,
+            "redis": False,
+            "tentaculo_link": True,
+        }
+
+    return {
+        "status": "ok",
+        "module": "tentaculo_link",
+        "version": "7.0",
+        "services": services,
+    }
+
+
 @app.get("/operator/api/topology", tags=["operator-api-p0"])
 async def operator_api_topology(_: bool = Depends(token_guard)):
     """

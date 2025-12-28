@@ -72,7 +72,8 @@ repos:
     hooks:
       - id: no-dotenv-secrets
         name: No secrets in .env files
-        entry: bash -c 'if grep -E "^(DEEPSEEK_API_KEY|TOKEN|PASSWORD|SECRET)" .env* 2>/dev/null; then echo "ERROR: Secrets detected in .env files!"; exit 1; fi'
+        entry: |-
+          bash -c 'if grep -E "^(DEEPSEEK_API_KEY|TOKEN|PASSWORD|SECRET)" .env* 2>/dev/null; then echo "ERROR: Secrets detected in .env files!"; exit 1; fi'
         language: system
         types: [text]
         stages: [commit]
