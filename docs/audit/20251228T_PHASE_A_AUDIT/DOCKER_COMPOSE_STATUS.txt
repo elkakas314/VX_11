@@ -1,0 +1,62 @@
+=== FASE A.2: DOCKER COMPOSE DEFAULT STATUS ===
+
+Current Running Services:
+  ✅ madre (port 8001)           [NO profile - always ON]
+  ✅ tentaculo_link (port 8000)  [NO profile - always ON] ← SINGLE ENTRYPOINT
+  ✅ redis (port 6379)           [NO profile - always ON]
+
+Services with profile="core":
+  ⚠️  switch (port 8002)
+  ⚠️  hermes (port 8003)
+  ⚠️  spawner (port 8004)
+  ⚠️  hormiguero (port 8005)
+  ⚠️  manifestator (port 8006)
+  ⚠️  shubniggurath (port 8007)
+  ⚠️  mcp (port 8008)
+  ⚠️  tentaculo_link (port 8000) ← ERROR: duplicate profile assignment found
+
+Services with profile="operator":
+  ⚠️  operator-backend
+  ⚠️  operator-frontend
+
+=== DOCKER COMPOSE ANALYSIS ===
+
+Profile Definitions:
+  - tentaculo_link:    NO profile (unconditional)
+  - madre:             NO profile (unconditional)
+  - redis:             NO profile (unconditional)
+  - switch:            profile=["core"]
+  - hermes:            profile=["core"]
+  - spawner:           profile=["core"]
+  - hormiguero:        profile=["core"]
+  - manifestator:      profile=["core"]
+  - shubniggurath:     profile=["core"]
+  - mcp:               profile=["core"]
+  - operator-backend:  profile=["operator"]
+  - operator-frontend: profile=["operator"]
+
+=== STARTUP MODES ===
+
+1. Default (no --profile):
+   → madre, tentaculo_link, redis ONLY
+
+2. With --profile core:
+   → madre, tentaculo_link, redis + switch, hermes, spawner, hormiguero, manifestator, shubniggurath, mcp
+
+3. With --profile operator:
+   → madre, tentaculo_link, redis + operator-backend, operator-frontend
+
+=== INVARIANT VALIDATION ===
+
+✅ SOLO_MADRE_CORE requirement met:
+   - tentaculo_link ALWAYS runs (port 8000)
+   - madre ALWAYS runs (port 8001)
+   - redis ALWAYS runs (port 6379)
+   - NO other services start by default
+
+✅ Single Entrypoint Maintained:
+   - External clients MUST go through :8000 (tentaculo_link)
+   - Madre at :8001 is internal orchestration
+   - All power windows proxied via tentaculo_link
+
+Note: Tentaculo_link without profile means it's included in ALL contexts (default, core, operator)

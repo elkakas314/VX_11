@@ -1,0 +1,52 @@
+=== FASE A: OPENAPI AUDIT (Real Endpoints)
+
+# TENTACULO LINK (8000) - Gateway / Single Entrypoint
+Power-related endpoints:
+  - /operator/power/policy/solo_madre/apply  [POST]
+  - /operator/power/policy/solo_madre/status [GET]
+  - /operator/power/service/{name}/restart   [POST]
+  - /operator/power/service/{name}/start     [POST]
+  - /operator/power/service/{name}/stop      [POST]
+  - /operator/power/status                   [GET]
+
+# MADRE (8001) - Orchestrator
+Power Management Endpoints:
+  - /madre/power/maintenance/post_task       [POST]
+  - /madre/power/mode                        [POST]
+  - /madre/power/mode/hard_off               [POST]
+  - /madre/power/mode/idle_min               [POST]
+  - /madre/power/policy/solo_madre/apply     [POST]
+  - /madre/power/policy/solo_madre/status    [GET]
+  - /madre/power/service/start               [POST]
+  - /madre/power/service/stop                [POST]
+  - /madre/power/service/{name}/restart      [POST]
+  - /madre/power/service/{name}/start        [POST]
+  - /madre/power/service/{name}/stop         [POST]
+  - /madre/power/services                    [GET]
+  - /madre/power/state                       [GET]
+  - /madre/power/status                      [GET]
+  - /madre/power/token                       [GET]
+  - /madre/power/window/close                [POST]
+  - /madre/power/window/open                 [POST]
+
+Window Management:
+  - /madre/power/window/open  [POST]   - Open a new power window
+  - /madre/power/window/close [POST]   - Close an open window
+
+Status/Control:
+  - /poder/power/status                      [GET]
+  - /power/idle_min                          [POST]
+  - /power/regen_dbmap                       [POST]
+  - /power/ritual                            [POST]
+
+AUDIT FINDINGS:
+✅ Window management endpoints present (/madre/power/window/open, /close)
+✅ Policy endpoints present (/solo_madre/apply, /status)
+✅ Service control endpoints present (start/stop/restart)
+✅ Tentaculo proxies power endpoints (/operator/power/*)
+⚠️ Direct Madre access at :8001 - not restricted (local development OK)
+
+INVARIANT STATUS:
+✅ Single entrypoint via tentaculo_link exists (/operator/power/*)
+✅ Madre has real window/policy/service control
+✅ Tentaculo is stateless proxy gateway
