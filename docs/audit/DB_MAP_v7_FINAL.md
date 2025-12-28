@@ -1,6 +1,6 @@
 # VX11 Database Map (generated)
 
-Generated at: 2025-12-28T19:20:16.101761Z
+Generated at: 2025-12-28T20:18:23.470763Z
 
 Database file: data/runtime/vx11.db
 
@@ -703,7 +703,7 @@ Database file: data/runtime/vx11.db
 ### operator_message — ACTIVE
 
 - Module: operator
-- Rows: 172
+- Rows: 188
 - Columns:
   - id (INTEGER) PK NOT NULL
   - session_id (VARCHAR(64)) NOT NULL
@@ -717,7 +717,7 @@ Database file: data/runtime/vx11.db
 ### operator_session — ACTIVE
 
 - Module: operator
-- Rows: 245
+- Rows: 251
 - Columns:
   - id (INTEGER) PK NOT NULL
   - session_id (VARCHAR(64)) NOT NULL
