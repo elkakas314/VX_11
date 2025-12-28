@@ -1,0 +1,320 @@
+=== Testing /operator/api/status ===
+{
+  "status": "ok",
+  "policy": "solo_madre",
+  "core_services": {
+    "madre": false,
+    "redis": false,
+    "tentaculo_link": false
+  },
+  "optional_services": {
+    "switch": {
+      "status": "OFF_BY_POLICY",
+      "reason": "solo_madre policy"
+    },
+    "hermes": {
+      "status": "OFF_BY_POLICY",
+      "reason": "solo_madre policy"
+    },
+    "hormiguero": {
+      "status": "OFF_BY_POLICY",
+      "reason": "solo_madre policy"
+    },
+    "spawner": {
+      "status": "OFF_BY_POLICY",
+      "reason": "solo_madre policy"
+    },
+    "operator_backend": {
+      "status": "ARCHIVED",
+      "reason": "UI moved to tentaculo_link"
+    }
+  },
+  "degraded": true
+}
+=== Testing /operator/api/modules ===
+{
+  "modules": {
+    "madre": {
+      "status": "unhealthy",
+      "port": 8001,
+      "reason": "Check logs",
+      "category": "core"
+    },
+    "redis": {
+      "status": "unhealthy",
+      "port": 6379,
+      "reason": "Check logs",
+      "category": "core"
+    },
+    "tentaculo_link": {
+      "status": "unhealthy",
+      "port": 8000,
+      "reason": "Check logs",
+      "category": "core"
+    },
+    "switch": {
+      "status": "OFF_BY_POLICY",
+      "port": 8002,
+      "reason": "solo_madre policy active",
+      "category": "optional"
+    },
+    "hermes": {
+      "status": "OFF_BY_POLICY",
+      "port": 8003,
+      "reason": "solo_madre policy active",
+      "category": "optional"
+    },
+    "hormiguero": {
+      "status": "OFF_BY_POLICY",
+      "port": 8004,
+      "reason": "solo_madre policy active",
+      "category": "optional"
+    },
+    "spawner": {
+      "status": "OFF_BY_POLICY",
+      "port": 8006,
+      "reason": "solo_madre policy active",
+      "category": "optional"
+    },
+    "operator_backend": {
+      "status": "ARCHIVED",
+      "port": 8011,
+      "reason": "Operator API migrated to tentaculo_link:/operator/*",
+      "category": "archived"
+    }
+  }
+}
+=== Testing /operator/api/chat ===
+{
+  "error": "endpoint_not_found",
+  "path": "/operator/api/chat",
+  "available_endpoints": [
+    "GET  /operator/api/status",
+    "GET  /operator/api/modules",
+    "POST /operator/api/chat",
+    "GET  /operator/api/events",
+    "GET  /operator/api/scorecard",
+    "GET  /operator/api/topology"
+  ]
+}
+=== Testing /operator/api/events ===
+{
+  "events": [],
+  "total": 0,
+  "limit": 10,
+  "note": "Event storage P1+ feature"
+}
+=== Testing /operator/api/scorecard ===
+{
+  "percentages": {
+    "version": "9.1",
+    "generated_at": "2025-12-27T10:53:32.063080+00:00",
+    "outdir": "/home/elkakas314/vx11/docs/audit/20251222T113034Z_autonomy_evidence",
+    "audit_context": {
+      "input_sources": [
+        "/home/elkakas314/vx11/docs/audit/20251222T113034Z_autonomy_evidence/health_results.json",
+        "/home/elkakas314/vx11/docs/audit/20251222T113034Z_autonomy_evidence/e2e_flows.json",
+        "/home/elkakas314/vx11/docs/audit/20251222T113034Z_autonomy_evidence/pytest_summary.json",
+        "/home/elkakas314/vx11/data/runtime/vx11.db"
+      ],
+      "evidence_complete": true,
+      "reason_incomplete": null
+    },
+    "metrics": {
+      "health_core_pct": {
+        "value": 100,
+        "status": "ok",
+        "source": "health_results.json",
+        "evidence_path": "/home/elkakas314/vx11/docs/audit/20251222T113034Z_autonomy_evidence/health_results.json",
+        "calculation": "9/9 services ok => 9/9*100 = 100.0",
+        "details": {
+          "healthy": 9,
+          "total": 9
+        }
+      },
+      "contract_coherence_pct": {
+        "value": 100,
+        "status": "ok",
+        "source": "e2e_flows.json",
+        "evidence_path": "/home/elkakas314/vx11/docs/audit/20251222T113034Z_autonomy_evidence/e2e_flows.json",
+        "calculation": "3/3 flows passed => 3/3*100 = 100.0",
+        "details": {
+          "passed": 3,
+          "total": 3
+        }
+      },
+      "tests_p0_pct": {
+        "value": 100,
+        "status": "ok",
+        "source": "pytest_summary.json",
+        "evidence_path": "/home/elkakas314/vx11/tests/test_operator_auth_policy_p0.py",
+        "calculation": "9/9 tests passed => 9/9*100 = 100.0",
+        "reason": "Integration tests executed with VX11_INTEGRATION=1",
+        "details": {
+          "passed": 9,
+          "failed": 0,
+          "total": 9
+        }
+      },
+      "db_integrity_pct": {
+        "value": 100,
+        "status": "ok",
+        "source": "db_integrity",
+        "evidence_path": "/home/elkakas314/vx11/data/runtime/vx11.db",
+        "calculation": "PRAGMA quick_check + PRAGMA integrity_check passed",
+        "details": {
+          "quick_check": "ok",
+          "integrity_check": "ok"
+        }
+      },
+      "Estabilidad_operativa_pct": {
+        "value": 100,
+        "status": "ok",
+        "source": "derived",
+        "evidence_path": null,
+        "calculation": "0.35*100.0 + 0.30*100.0 + 0.25*100.0 + 0.10*100.0 = 100.0",
+        "weights": {
+          "health_core": 0.35,
+          "tests_p0": 0.3,
+          "contract_coherence": 0.25,
+          "db_integrity": 0.1
+        },
+        "inputs": {
+          "health_core_pct": 100,
+          "tests_p0_pct": 100,
+          "contract_coherence_pct": 100,
+          "db_integrity_pct": 100
+        }
+      },
+      "evidence_coverage_pct": {
+        "value": 80,
+        "status": "ok",
+        "source": "derived",
+        "evidence_path": null,
+        "calculation": "coverage_overall: 4/5*100 = 80.0%",
+        "coverage_strict": {
+          "value": 60,
+          "calculation": "3/5 real evidence (no derived/deferred) = 60.0%",
+          "count": 3
+        },
+        "coverage_overall": {
+          "value": 80,
+          "calculation": "4/5 ok or derived ok (no NV/deferred) = 80.0%",
+          "count": 4
+        }
+      }
+    },
+    "metrics_flat": {
+      "health_core_pct": 100,
+      "contract_coherence_pct": 100,
+      "tests_p0_pct": 100,
+      "db_integrity_pct": 100,
+      "Estabilidad_operativa_pct": 100,
+      "evidence_coverage_pct": 80
+    },
+    "autonomy_verdict": {
+      "status": "OPERATIVE",
+      "decision_logic": {
+        "Estabilidad_value": 100,
+        "Estabilidad_threshold": "100.0 >= 75.0? → True",
+        "coverage_strict_check": "80.0 >= 50%? → True",
+        "health_services_check": "100.0% healthy → True",
+        "all_flows_pass": true,
+        "db_integrity_status": "ok"
+      }
+    },
+    "validation_checksums": {
+      "invariant_check_100_0_100_100": "70.0 (should be 70.0)",
+      "weights_sum": "1.0 (0.35 + 0.30 + 0.25 + 0.10)",
+      "p0_metrics_count": 6
+    }
+  },
+  "scorecard": {
+    "generated_ts": "20251228T163622Z",
+    "integrity": "5000",
+    "total_tables": 71,
+    "total_rows": 1149958,
+    "db_size_bytes": 619692032,
+    "backup_db_count": 2,
+    "backups_archived_count": 23
+  },
+  "files_found": {
+    "percentages": true,
+    "scorecard": true
+  }
+}
+=== Testing /operator/api/topology ===
+{
+  "policy": "solo_madre",
+  "graph": {
+    "nodes": [
+      {
+        "id": "madre",
+        "label": "Madre",
+        "status": "UP",
+        "port": 8001,
+        "type": "core"
+      },
+      {
+        "id": "redis",
+        "label": "Redis",
+        "status": "UP",
+        "port": 6379,
+        "type": "core"
+      },
+      {
+        "id": "tentaculo_link",
+        "label": "Tentáculo Link",
+        "status": "UP",
+        "port": 8000,
+        "type": "core"
+      },
+      {
+        "id": "switch",
+        "label": "Switch",
+        "status": "OFF_BY_POLICY",
+        "port": 8002,
+        "type": "optional"
+      },
+      {
+        "id": "hermes",
+        "label": "Hermes",
+        "status": "OFF_BY_POLICY",
+        "port": 8003,
+        "type": "optional"
+      },
+      {
+        "id": "hormiguero",
+        "label": "Hormiguero",
+        "status": "OFF_BY_POLICY",
+        "port": 8004,
+        "type": "optional"
+      },
+      {
+        "id": "spawner",
+        "label": "Spawner",
+        "status": "OFF_BY_POLICY",
+        "port": 8006,
+        "type": "optional"
+      }
+    ],
+    "edges": [
+      {
+        "from": "tentaculo_link",
+        "to": "madre",
+        "label": "proxy"
+      },
+      {
+        "from": "tentaculo_link",
+        "to": "redis",
+        "label": "cache"
+      },
+      {
+        "from": "madre",
+        "to": "redis",
+        "label": "state"
+      }
+    ]
+  },
+  "policy_note": "solo_madre: Only core services up. Optional services OFF_BY_POLICY (not an error)."
+}

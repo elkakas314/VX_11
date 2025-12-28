@@ -1,0 +1,4 @@
+NAME                  IMAGE                                                                     COMMAND                  SERVICE          CREATED       STATUS                    PORTS
+vx11-madre            vx11-madre:v6.7                                                           "sh -c 'apt-get upda…"   madre            2 hours ago   Up 2 hours (healthy)      0.0.0.0:8001->8001/tcp, :::8001->8001/tcp
+vx11-redis            redis:7-alpine                                                            "docker-entrypoint.s…"   redis            2 hours ago   Up 2 hours (healthy)      0.0.0.0:6379->6379/tcp, :::6379->6379/tcp
+vx11-tentaculo-link   sha256:27aebe7f13b1c8667f667bfab7672761e0b8098fdd47d0ba831732323f502921   "python -m uvicorn t…"   tentaculo_link   2 hours ago   Up 58 minutes (healthy)   0.0.0.0:8000->8000/tcp, :::8000->8000/tcp

@@ -1,0 +1,19 @@
+=== P0 API Endpoints Test ===
+
+[1/6] /operator/api/status
+{"policy":"solo_madre","degraded":true}
+
+[2/6] /operator/api/modules
+{"modules_count":8}
+
+[3/6] /operator/api/chat
+{"ok":null,"degraded":null}
+
+[4/6] /operator/api/events
+{"total":0}
+
+[5/6] /operator/api/scorecard
+{"files_found":{"percentages":true,"scorecard":true}}
+
+[6/6] /operator/api/topology
+{"policy":"solo_madre","nodes":7}
