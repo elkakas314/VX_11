@@ -17,7 +17,7 @@ export default function App() {
     const [degraded, setDegraded] = useState(false)
     const [debugData] = useState({
         environment: process.env.NODE_ENV,
-        apiBase: import.meta.env.VITE_API_BASE || 'http://localhost:8000',
+        apiBase: import.meta.env.VITE_VX11_API_BASE_URL || '(relative)',
         version: '7.0',
     })
 

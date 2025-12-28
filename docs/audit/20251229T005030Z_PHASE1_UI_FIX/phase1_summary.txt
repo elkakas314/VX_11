@@ -1,0 +1,11 @@
+=== FASE 1: UI COSMETIC FIX ===
+Removed hardcode http://localhost:8000 from debugData.apiBase
+Result: debugData.apiBase now shows '(relative)' when no VITE_VX11_API_BASE_URL set
+
+URL verification:
+operator/frontend/src/services/api.ts: * RELATIVE BASE_URL: Works across any host/IP/port
+operator/frontend/src/services/api.ts:const BASE_URL = import.meta.env.VITE_VX11_API_BASE_URL ?? '' // Empty = relative (same origin)
+operator/frontend/src/services/api.ts:        const url = `${BASE_URL}${path}`
+operator/frontend/src/App.tsx:        apiBase: import.meta.env.VITE_VX11_API_BASE_URL || '(relative)',
+
+All fetch() calls use relative paths: PASS
