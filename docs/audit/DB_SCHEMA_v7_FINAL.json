@@ -1,5 +1,5 @@
 {
-  "generated_at": "2025-12-28T20:18:23.404898Z",
+  "generated_at": "2025-12-28T21:34:17.815122Z",
   "database": "data/runtime/vx11.db",
   "tables": [
     {
@@ -801,7 +801,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 138,
+      "rows": 124,
       "status": "ACTIVE",
       "module": "hermes"
     },
@@ -3919,7 +3919,7 @@
           "match": "NONE"
         }
       ],
-      "rows": 188,
+      "rows": 206,
       "status": "ACTIVE",
       "module": "operator"
     },
@@ -3976,7 +3976,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 251,
+      "rows": 260,
       "status": "ACTIVE",
       "module": "operator"
     },
@@ -4903,7 +4903,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 28,
+      "rows": 24,
       "status": "ACTIVE",
       "module": "switch"
     },
