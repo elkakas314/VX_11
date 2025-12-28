@@ -1,0 +1,92 @@
+{
+    "timestamp": "2025-12-28T22:50Z",
+    "test_suite": "P12 API Smoke Tests",
+    "tests": [
+        {
+            "name": "Test 1: Chat in solo_madre (Switch offline)",
+            "endpoint": "POST /operator/api/chat",
+            "request": {
+                "message": "Hello solo mode!",
+                "session_id": "test_session_solo_madre"
+            },
+            "expected_response_fields": [
+                "fallback_source",
+                "model",
+                "degraded",
+                "response"
+            ],
+            "expected_fallback_source": "local_llm_degraded",
+            "expected_degraded": true,
+            "status": "GATE_READY (awaits solo_madre startup)",
+            "notes": "Run: docker compose up -d (SOLO_MADRE profile)"
+        },
+        {
+            "name": "Test 2: Chat with Switch (if running)",
+            "endpoint": "POST /operator/api/chat",
+            "request": {
+                "message": "Hello Switch!",
+                "session_id": "test_session_with_switch"
+            },
+            "expected_response_fields": [
+                "fallback_source",
+                "model",
+                "degraded",
+                "response"
+            ],
+            "expected_fallback_source": "switch_cli_copilot",
+            "expected_degraded": false,
+            "status": "GATE_READY (awaits switch startup)",
+            "notes": "Run: docker compose up -d --profile chat"
+        },
+        {
+            "name": "Test 3: Relative API URL verification",
+            "endpoint": "GET /operator/api/status",
+            "location": "Browser DevTools at http://localhost:8000/operator/ui/",
+            "javascript": "fetch('/operator/api/status').then(r => r.json()).then(d => console.log(d))",
+            "expected_network_tab": "Request to /operator/api/status (same origin, no CORS)",
+            "expected_response_fields": [
+                "status",
+                "policy",
+                "core_services"
+            ],
+            "status": "GATE_READY (awaits frontend rebuild)",
+            "notes": "Verify: NO http://localhost in request URL"
+        },
+        {
+            "name": "Test 4: VX11_CHAT_ALLOW_DEEPSEEK=0 flag",
+            "endpoint": "Environment variable check",
+            "check": "Ensure VX11_CHAT_ALLOW_DEEPSEEK defaults to 0",
+            "verification_code": "echo $VX11_CHAT_ALLOW_DEEPSEEK (should be unset or 0)",
+            "expected": "DeepSeek should NOT be used as fallback unless VX11_CHAT_ALLOW_DEEPSEEK=1",
+            "status": "PASSED (code review: default allow_deepseek=False in main_v7.py)",
+            "notes": "DeepSeek only used if env var explicitly set to '1'"
+        },
+        {
+            "name": "Test 5: Rate limiting (10 req/min per session)",
+            "endpoint": "POST /operator/api/chat",
+            "scenario": "Send 11 rapid requests with same session_id",
+            "expected_response_11th": {
+                "status": 429,
+                "error": "Rate limit exceeded (10 requests/minute)"
+            },
+            "status": "GATE_READY",
+            "notes": "Guardrail P1-G1 in main_v7.py"
+        },
+        {
+            "name": "Test 6: Message size cap (4000 chars max)",
+            "endpoint": "POST /operator/api/chat",
+            "scenario": "Send message with 4001 characters",
+            "expected_response": {
+                "status": 413,
+                "error": "Message too long (max 4000 characters)"
+            },
+            "status": "GATE_READY",
+            "notes": "Guardrail P1-G2 in main_v7.py"
+        }
+    ],
+    "summary": {
+        "total_tests": 6,
+        "ready_gates": 6,
+        "status": "ALL P0 GATES READY FOR EXECUTION"
+    }
+}
