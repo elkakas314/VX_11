@@ -390,7 +390,7 @@ import json
 import time
 import uuid
 from pathlib import Path
-from typing import Any, Dict, Optional, Set
+from typing import Any, Dict, Optional, Set, Union
 
 from contextlib import asynccontextmanager
 from fastapi import (
@@ -403,7 +403,14 @@ from fastapi import (
     WebSocketDisconnect,
 )
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, StreamingResponse, Response
+from fastapi.responses import (
+    JSONResponse,
+    StreamingResponse,
+    Response,
+    FileResponse,
+    RedirectResponse,
+)
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 import httpx
 
@@ -535,6 +542,22 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Mount Operator UI static files
+operator_ui_path = Path(__file__).parent.parent / "operator" / "frontend" / "dist"
+if operator_ui_path.exists():
+    app.mount(
+        "/operator/ui",
+        StaticFiles(directory=str(operator_ui_path), html=True),
+        name="operator_ui",
+    )
+    write_log("tentaculo_link", f"mounted_operator_ui:{operator_ui_path}")
+else:
+    write_log(
+        "tentaculo_link",
+        f"WARNING: operator_ui not found:{operator_ui_path}",
+        level="WARNING",
+    )
+
 
 # ============ HEALTH & STATUS ============
 
@@ -543,6 +566,12 @@ app.add_middleware(
 async def health():
     """Simple health check."""
     return {"status": "ok", "module": "tentaculo_link", "version": "7.0"}
+
+
+@app.get("/operator")
+async def operator_redirect():
+    """Redirect /operator to /operator/ui/."""
+    return RedirectResponse(url="/operator/ui/", status_code=302)
 
 
 @app.get("/vx11/status")
@@ -1877,12 +1906,13 @@ async def cache_clear_handler(x_vx11_gw_token: str = Header(None)):
     "/shub/{path:path}",
     methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"],
     tags=["proxy-shub"],
+    response_model=None,
 )
 async def proxy_shub(
     request: Request,
     path: str,
     x_correlation_id: str = Header(None),
-) -> StreamingResponse:
+) -> Union[JSONResponse, StreamingResponse]:
     """
     Proxy all /shub/* requests to internal shubniggurath service.
 
@@ -1935,8 +1965,8 @@ async def proxy_shub(
     is_protected = request_path not in public_endpoints
 
     if limiter:
-        limit_type = "protected" if is_protected else "default"
-        allowed, limit_info = await limiter.check_limit(identifier, limit_type)
+        limit_count = limiter.protected_limit if is_protected else limiter.default_limit
+        allowed, limit_info = await limiter.check_limit(identifier, limit_count)
 
         if not allowed:
             latency_ms = (time_module.time() - start_time) * 1000
@@ -2235,9 +2265,9 @@ async def operator_api_proxy(path: str, request: Request):
     if csrf_header:
         extra_headers["x-csrf-token"] = csrf_header
 
-    try:
-        method = request.method.lower()
+    method = request.method.lower()
 
+    try:
         if method == "get":
             result = await operator.get(backend_path, extra_headers=extra_headers)
         elif method in ["post", "put"]:
