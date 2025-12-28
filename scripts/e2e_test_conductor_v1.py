@@ -77,7 +77,7 @@ def get_docker_ps_json() -> List[Dict[str, Any]]:
             capture_output=True,
             text=True,
             timeout=10,
-            cwd="/app"
+            cwd="/app",
         )
         if result.returncode == 0:
             # Parse JSON array
@@ -131,34 +131,26 @@ async def test_window_open() -> Optional[Dict[str, Any]]:
                 timeout=30.0,  # Allow time for docker compose up
             )
             elapsed_sec = time.time() - start_time
-            
+
             if resp.status_code == 200:
                 result = resp.json()
                 print(f"✅ Window opened: {result['window_id']}")
                 print(f"   Services: {result['services_started']}")
                 print(f"   TTL: {result['ttl_remaining_sec']}s")
                 print(f"   Elapsed: {elapsed_sec:.2f}s")
-                return {
-                    "status": "ok",
-                    "window": result,
-                    "elapsed_sec": elapsed_sec
-                }
+                return {"status": "ok", "window": result, "elapsed_sec": elapsed_sec}
             else:
                 print(f"❌ Failed to open window: {resp.status_code}")
                 print(f"   Response: {resp.text[:500]}")
                 return {
                     "status": "fail",
                     "error": resp.text,
-                    "elapsed_sec": elapsed_sec
+                    "elapsed_sec": elapsed_sec,
                 }
     except Exception as e:
         elapsed_sec = time.time() - start_time
         print(f"❌ Error opening window: {e}")
-        return {
-            "status": "error",
-            "error": str(e),
-            "elapsed_sec": elapsed_sec
-        }
+        return {"status": "error", "error": str(e), "elapsed_sec": elapsed_sec}
 
 
 async def test_health_check(services: List[str]) -> Dict[str, Any]:
@@ -183,7 +175,7 @@ async def test_health_check(services: List[str]) -> Dict[str, Any]:
             return {
                 "status": "ok",
                 "services_healthy": healthy,
-                "elapsed_sec": elapsed_sec
+                "elapsed_sec": elapsed_sec,
             }
 
         await asyncio.sleep(1)
@@ -195,7 +187,7 @@ async def test_health_check(services: List[str]) -> Dict[str, Any]:
         "status": "timeout",
         "services_healthy": healthy,
         "elapsed_sec": elapsed_sec,
-        "unhealthy": unhealthy
+        "unhealthy": unhealthy,
     }
 
 
@@ -217,7 +209,7 @@ async def test_service_availability(services: List[str]) -> Dict[str, Any]:
             results[svc] = {
                 "found": True,
                 "state": state,
-                "running": "running" in state.lower()
+                "running": "running" in state.lower(),
             }
             print(f"  {svc}: {state}")
         else:
@@ -226,11 +218,11 @@ async def test_service_availability(services: List[str]) -> Dict[str, Any]:
 
     elapsed_sec = time.time() - start_time
     all_running = all(v.get("running", False) for v in results.values())
-    
+
     return {
         "status": "ok" if all_running else "partial",
         "results": results,
-        "elapsed_sec": elapsed_sec
+        "elapsed_sec": elapsed_sec,
     }
 
 
@@ -255,27 +247,19 @@ async def test_window_close() -> Optional[Dict[str, Any]]:
                 print(f"✅ Window closed: {result['window_id']}")
                 print(f"   Services stopped: {result['services_stopped']}")
                 print(f"   Elapsed: {elapsed_sec:.2f}s")
-                return {
-                    "status": "ok",
-                    "window": result,
-                    "elapsed_sec": elapsed_sec
-                }
+                return {"status": "ok", "window": result, "elapsed_sec": elapsed_sec}
             else:
                 print(f"❌ Failed to close window: {resp.status_code}")
                 print(f"   Response: {resp.text[:500]}")
                 return {
                     "status": "fail",
                     "error": resp.text,
-                    "elapsed_sec": elapsed_sec
+                    "elapsed_sec": elapsed_sec,
                 }
     except Exception as e:
         elapsed_sec = time.time() - start_time
         print(f"❌ Error closing window: {e}")
-        return {
-            "status": "error",
-            "error": str(e),
-            "elapsed_sec": elapsed_sec
-        }
+        return {"status": "error", "error": str(e), "elapsed_sec": elapsed_sec}
 
 
 async def test_solo_madre_verification() -> Dict[str, Any]:
@@ -290,7 +274,7 @@ async def test_solo_madre_verification() -> Dict[str, Any]:
             resp = await client.get(
                 f"{MADRE_URL}/madre/power/policy/solo_madre/status",
                 headers=HEADERS,
-                timeout=5.0
+                timeout=5.0,
             )
             elapsed_sec = time.time() - start_time
 
@@ -298,7 +282,7 @@ async def test_solo_madre_verification() -> Dict[str, Any]:
                 result = resp.json()
                 is_active = result.get("policy_active", False)
                 running = result.get("running_services", [])
-                
+
                 if is_active:
                     print(f"✅ SOLO_MADRE policy is active")
                     print(f"   Running: {running}")
@@ -306,7 +290,7 @@ async def test_solo_madre_verification() -> Dict[str, Any]:
                         "status": "ok",
                         "policy_active": True,
                         "running_services": running,
-                        "elapsed_sec": elapsed_sec
+                        "elapsed_sec": elapsed_sec,
                     }
                 else:
                     print(f"⚠️  SOLO_MADRE policy NOT active")
@@ -316,23 +300,19 @@ async def test_solo_madre_verification() -> Dict[str, Any]:
                         "status": "degraded",
                         "policy_active": False,
                         "running_services": running,
-                        "elapsed_sec": elapsed_sec
+                        "elapsed_sec": elapsed_sec,
                     }
             else:
                 print(f"❌ Failed to check SOLO_MADRE: {resp.status_code}")
                 return {
                     "status": "error",
                     "error": resp.text,
-                    "elapsed_sec": elapsed_sec
+                    "elapsed_sec": elapsed_sec,
                 }
     except Exception as e:
         elapsed_sec = time.time() - start_time
         print(f"❌ Error checking SOLO_MADRE: {e}")
-        return {
-            "status": "error",
-            "error": str(e),
-            "elapsed_sec": elapsed_sec
-        }
+        return {"status": "error", "error": str(e), "elapsed_sec": elapsed_sec}
 
 
 async def run_test_suite() -> Dict[str, Any]:
@@ -349,7 +329,7 @@ async def run_test_suite() -> Dict[str, Any]:
         "start_time": datetime.utcnow().isoformat() + "Z",
         "services": TEST_SERVICES,
         "ttl_sec": TEST_TTL_SEC,
-        "tests": {}
+        "tests": {},
     }
 
     # Test 1: Open window
@@ -366,7 +346,9 @@ async def run_test_suite() -> Dict[str, Any]:
     results["tests"]["health_check"] = health_result
 
     # Test 3: Service availability
-    avail_result = await test_service_availability(window_info.get("services_started", []))
+    avail_result = await test_service_availability(
+        window_info.get("services_started", [])
+    )
     results["tests"]["service_availability"] = avail_result
 
     # Simulated workload
@@ -384,16 +366,14 @@ async def run_test_suite() -> Dict[str, Any]:
     results["end_time"] = datetime.utcnow().isoformat() + "Z"
 
     # Calculate summary
-    test_statuses = {
-        k: v.get("status", "unknown") for k, v in results["tests"].items()
-    }
+    test_statuses = {k: v.get("status", "unknown") for k, v in results["tests"].items()}
     passed = sum(1 for s in test_statuses.values() if s == "ok")
     total = len(test_statuses)
 
     results["summary"] = {
         "passed": passed,
         "total": total,
-        "test_results": test_statuses
+        "test_results": test_statuses,
     }
 
     return results
@@ -403,9 +383,7 @@ async def main():
     parser = argparse.ArgumentParser(
         description="E2E Test Conductor v1.0 (Real Execution)"
     )
-    parser.add_argument(
-        "--reason", default="e2e_test", help="Reason for running tests"
-    )
+    parser.add_argument("--reason", default="e2e_test", help="Reason for running tests")
     args = parser.parse_args()
 
     outdir = get_outdir()
@@ -428,7 +406,11 @@ async def main():
         summary = results.get("summary", {})
         print(f"Passed: {summary.get('passed', 0)}/{summary.get('total', 0)}")
         for test, status in summary.get("test_results", {}).items():
-            icon = "✅" if status == "ok" else "⚠️" if status in ["timeout", "degraded", "partial"] else "❌"
+            icon = (
+                "✅"
+                if status == "ok"
+                else "⚠️" if status in ["timeout", "degraded", "partial"] else "❌"
+            )
             print(f"  {icon} {test}: {status}")
 
         # Exit code
@@ -442,6 +424,7 @@ async def main():
     except Exception as e:
         print(f"\n❌ Fatal error: {e}")
         import traceback
+
         traceback.print_exc()
         return 2
 
