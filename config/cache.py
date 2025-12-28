@@ -18,6 +18,7 @@ from typing import Any, Optional
 
 try:
     import aioredis
+
     # Check API version (2.x vs 1.x)
     _AIOREDIS_V2 = hasattr(aioredis, "from_url")
 except ImportError:
@@ -57,11 +58,13 @@ class CacheLayer:
                     minsize=5,
                     maxsize=10,
                 )
-            
+
             # Test connection
             pong = await self.redis.ping()
             if pong:
-                logger.info(f"✓ Redis cache connected: {self.redis_url} (aioredis v2.x)")
+                logger.info(
+                    f"✓ Redis cache connected: {self.redis_url} (aioredis v2.x)"
+                )
             else:
                 raise Exception("Redis ping failed")
         except Exception as e:
@@ -89,7 +92,7 @@ class CacheLayer:
                 value = await self.redis.get(key)
             else:
                 value = await self.redis.get(key)
-            
+
             if value:
                 logger.debug(f"cache_hit: {key}")
                 return json.loads(value)
@@ -110,7 +113,7 @@ class CacheLayer:
                 await self.redis.set(key, serialized, ex=ttl)
             else:
                 await self.redis.setex(key, ttl, serialized)
-            
+
             logger.debug(f"cache_set: {key} (ttl={ttl}s)")
             return True
         except Exception as e:
