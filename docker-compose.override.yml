@@ -46,6 +46,7 @@ services:
   tentaculo_link:
     volumes:
       - .:/app
+    env_file: .env.local
 
   spawner:
     environment:
