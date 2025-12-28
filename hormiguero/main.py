@@ -25,10 +25,15 @@ try:
     from hormiguero.inee.api import router as inee_router, init_inee_router
     from hormiguero.inee.colonies import INEERegistry, INEERegistryDAO
     from hormiguero.inee.db import INEEDBManager
+    from hormiguero.inee.api.routes_extended import (
+        router as inee_extended_router,
+        init_inee_extended_services,
+    )
 
     INEE_AVAILABLE = True
 except ImportError:
     INEE_AVAILABLE = False
+    inee_extended_router = None
 
 
 class ActionItem(BaseModel):
@@ -81,6 +86,10 @@ app = FastAPI(title="VX11 Hormiguero", lifespan=lifespan)
 # Mount INEE routes if enabled
 if INEE_AVAILABLE and os.getenv("VX11_INEE_ENABLED", "0") == "1":
     app.include_router(inee_router)
+    # Mount extended INEE routes (Builder, Colony, Rewards, Manifestator)
+    if inee_extended_router:
+        init_inee_extended_services()
+        app.include_router(inee_extended_router)
 
 
 @app.get("/health")

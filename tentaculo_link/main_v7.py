@@ -1013,6 +1013,84 @@ async def operator_power_restart(name: str, _: bool = Depends(token_guard)):
 # See: docs/audit/*/ARCHITECTURE_ANALYSIS.md
 
 
+# ============ INEE EXTENDED ENDPOINTS (Proxy to Hormiguero) ============
+
+
+@app.post("/operator/inee/builder/patchset", tags=["proxy-inee"])
+async def operator_inee_builder_patchset(
+    request: Request,
+    _: bool = Depends(token_guard),
+):
+    """
+    Proxy: Builder → create patchset (no execution, only INTENT).
+    Dormant if HORMIGUERO_BUILDER_ENABLED != 1.
+    """
+    clients = get_clients()
+    hormiguero = clients.get_client("hormiguero")
+    if not hormiguero:
+        raise HTTPException(status_code=503, detail="hormiguero_unavailable")
+
+    body = await request.json()
+    result = await hormiguero.post(
+        "/hormiguero/inee/extended/builder/patchset", payload=body
+    )
+    write_log("tentaculo_link", "inee:builder:patchset:proxied")
+    return result
+
+
+@app.post("/operator/inee/colony/register", tags=["proxy-inee"])
+async def operator_inee_colony_register(
+    request: Request,
+    _: bool = Depends(token_guard),
+):
+    """Proxy: Register remote colony."""
+    clients = get_clients()
+    hormiguero = clients.get_client("hormiguero")
+    if not hormiguero:
+        raise HTTPException(status_code=503, detail="hormiguero_unavailable")
+
+    body = await request.json()
+    result = await hormiguero.post(
+        "/hormiguero/inee/extended/colony/register", payload=body
+    )
+    write_log("tentaculo_link", "inee:colony:register:proxied")
+    return result
+
+
+@app.post("/operator/inee/colony/envelope", tags=["proxy-inee"])
+async def operator_inee_colony_envelope(
+    request: Request,
+    _: bool = Depends(token_guard),
+):
+    """Proxy: Create HMAC-signed envelope (remote colony communication)."""
+    clients = get_clients()
+    hormiguero = clients.get_client("hormiguero")
+    if not hormiguero:
+        raise HTTPException(status_code=503, detail="hormiguero_unavailable")
+
+    body = await request.json()
+    result = await hormiguero.post(
+        "/hormiguero/inee/extended/colony/envelope", payload=body
+    )
+    write_log("tentaculo_link", "inee:colony:envelope:proxied")
+    return result
+
+
+@app.get("/operator/inee/status", tags=["proxy-inee"])
+async def operator_inee_status(
+    _: bool = Depends(token_guard),
+):
+    """Proxy: Get INEE extended status."""
+    clients = get_clients()
+    hormiguero = clients.get_client("hormiguero")
+    if not hormiguero:
+        raise HTTPException(status_code=503, detail="hormiguero_unavailable")
+
+    result = await hormiguero.get("/hormiguero/inee/extended/status")
+    write_log("tentaculo_link", "inee:status:proxied")
+    return result
+
+
 @app.get("/operator/session/{session_id}")
 async def operator_session(
     session_id: str,
