@@ -47,6 +47,7 @@ from config.metrics_prometheus import get_prometheus_metrics
 from tentaculo_link.clients import get_clients
 from tentaculo_link.context7_middleware import get_context7_manager
 from tentaculo_link.deepseek_client import DeepSeekClient, save_chat_to_db
+from tentaculo_link.deepseek_r1_client import get_deepseek_r1_client
 
 # Load environment tokens
 load_tokens()
@@ -98,6 +99,15 @@ class OperatorChatRequest(BaseModel):
     session_id: Optional[str] = None
     user_id: Optional[str] = "local"
     metadata: Optional[Dict[str, Any]] = None
+
+
+class PowerWindowOpenRequest(BaseModel):
+    """Request to open a power window (temporal service availability)."""
+
+    services: list[str]
+    ttl_sec: Optional[int] = 600  # 10 minutes default
+    mode: str = "ttl"  # "ttl" or "hold"
+    reason: str = "operator_manual"
 
 
 class OperatorChatResponse(BaseModel):
@@ -2204,6 +2214,448 @@ async def operator_api_chat(req: OperatorChatRequest, _: bool = Depends(token_gu
             "model": "none",
             "fallback_source": "error",
             "degraded": True,
+        }
+
+
+# ============================================================================
+# FASE 2: DeepSeek R1 Co-Dev Endpoint (OPERATOR ASSIST)
+# ============================================================================
+
+
+class DeepSeekR1Request(BaseModel):
+    """Request for DeepSeek R1 co-dev assistance."""
+
+    prompt: str
+    purpose: str = "plan"  # plan | patch | review | risk_assessment
+    temperature: float = 1.0
+    max_tokens: Optional[int] = None
+    session_id: Optional[str] = None
+
+
+@app.post("/operator/api/assist/deepseek_r1", tags=["operator-api-codev"])
+async def operator_api_assist_deepseek_r1(
+    req: DeepSeekR1Request, _: bool = Depends(token_guard)
+):
+    """
+    FASE 2: DeepSeek R1 Co-Dev Endpoint (Manual, Opt-in)
+
+    Purpose: Planning, patch generation, code review, risk assessment
+    NOT for runtime chat (prohibited by policy).
+
+    Guardrails:
+    - Rate limit: 10 requests/hour per session
+    - Max tokens: 2000 (cost + latency control)
+    - Retry: 1 max with exponential backoff
+    - DB logging: trazabilidad (sanitized)
+    - No secrets in logs
+
+    Returns:
+    {
+        "status": "ok" | "error",
+        "request_id": uuid,
+        "purpose": purpose,
+        "model": "deepseek-reasoner",
+        "reasoning_content": "...",
+        "response": "...",
+        "tokens_used": int,
+        "reasoning_tokens": int,
+        "elapsed_ms": int,
+        "error_code": str (if error),
+        "error_msg": str (if error),
+    }
+    """
+    import os
+
+    session_id = req.session_id or f"session_{int(time.time())}"
+    request_id = str(uuid.uuid4())
+
+    # Validate purpose enum
+    valid_purposes = ["plan", "patch", "review", "risk_assessment"]
+    if req.purpose not in valid_purposes:
+        return JSONResponse(
+            status_code=400,
+            content={
+                "status": "error",
+                "request_id": request_id,
+                "error_code": "invalid_purpose",
+                "error_msg": f"purpose must be one of: {', '.join(valid_purposes)}",
+            },
+        )
+
+    # Check if DeepSeek is enabled (CO-DEV requires explicit opt-in)
+    enable_codev = os.environ.get("VX11_OPERATOR_CODEV_ENABLED", "0") == "1"
+    if not enable_codev:
+        write_log(
+            "tentaculo_link",
+            f"deepseek_r1_codev_disabled:request={request_id}:session={session_id}",
+            level="WARNING",
+        )
+        return JSONResponse(
+            status_code=403,
+            content={
+                "status": "error",
+                "request_id": request_id,
+                "error_code": "codev_disabled",
+                "error_msg": "DeepSeek R1 Co-Dev is disabled. Set VX11_OPERATOR_CODEV_ENABLED=1 to enable.",
+            },
+        )
+
+    try:
+        # Get client and invoke
+        client = await get_deepseek_r1_client()
+        result = await client.invoke(
+            prompt=req.prompt,
+            purpose=req.purpose,
+            temperature=req.temperature,
+            max_tokens=req.max_tokens,
+        )
+
+        # Log to DB (minimal, sanitized)
+        if result.get("status") == "ok":
+            write_log(
+                "tentaculo_link",
+                f"deepseek_r1_invoke_ok:request={request_id}:purpose={req.purpose}:session={session_id}:tokens={result.get('tokens_used')}:elapsed_ms={result.get('elapsed_ms')}",
+                level="INFO",
+            )
+        else:
+            write_log(
+                "tentaculo_link",
+                f"deepseek_r1_invoke_failed:request={request_id}:purpose={req.purpose}:session={session_id}:error={result.get('error_code')}",
+                level="WARNING",
+            )
+
+        return result
+
+    except ValueError as e:
+        # Missing DEEPSEEK_API_KEY
+        write_log(
+            "tentaculo_link",
+            f"deepseek_r1_not_configured:request={request_id}:error={str(e)[:50]}",
+            level="WARNING",
+        )
+        return JSONResponse(
+            status_code=503,
+            content={
+                "status": "error",
+                "request_id": request_id,
+                "error_code": "not_configured",
+                "error_msg": "DeepSeek R1 is not configured (missing API key)",
+            },
+        )
+
+    except Exception as e:
+        write_log(
+            "tentaculo_link",
+            f"deepseek_r1_exception:request={request_id}:error={type(e).__name__}:{str(e)[:100]}",
+            level="ERROR",
+        )
+        return JSONResponse(
+            status_code=500,
+            content={
+                "status": "error",
+                "request_id": request_id,
+                "error_code": "internal_error",
+                "error_msg": "Internal server error",
+            },
+        )
+
+
+@app.get("/operator/api/assist/deepseek_r1/status", tags=["operator-api-codev"])
+async def operator_api_assist_deepseek_r1_status(_: bool = Depends(token_guard)):
+    """
+    FASE 2: DeepSeek R1 Status Endpoint
+
+    Returns:
+    {
+        "status": "enabled" | "disabled" | "error",
+        "configured": bool (API key available),
+        "codev_enabled": bool (VX11_OPERATOR_CODEV_ENABLED),
+        "rate_limit_per_hour": int,
+        "max_tokens": int,
+        "model": "deepseek-reasoner",
+    }
+    """
+    import os
+
+    try:
+        enable_codev = os.environ.get("VX11_OPERATOR_CODEV_ENABLED", "0") == "1"
+        api_key_set = bool(os.environ.get("DEEPSEEK_API_KEY"))
+
+        status = "enabled" if (enable_codev and api_key_set) else "disabled"
+
+        return {
+            "status": status,
+            "configured": api_key_set,
+            "codev_enabled": enable_codev,
+            "rate_limit_per_hour": 10,
+            "max_tokens": 2000,
+            "model": "deepseek-reasoner",
+            "purpose_options": ["plan", "patch", "review", "risk_assessment"],
+        }
+
+    except Exception as e:
+        write_log(
+            "tentaculo_link",
+            f"deepseek_r1_status_error:{str(e)[:100]}",
+            level="ERROR",
+        )
+        return JSONResponse(
+            status_code=500,
+            content={
+                "status": "error",
+                "error_msg": "Failed to retrieve status",
+            },
+        )
+
+
+# ============================================================================
+# FASE 3: Power Windows Proxy Endpoints (Chat Temporal Availability)
+# ============================================================================
+
+
+@app.post("/operator/api/chat/window/open", tags=["operator-api-powerwindows"])
+async def operator_api_chat_window_open(
+    req: PowerWindowOpenRequest, _: bool = Depends(token_guard)
+):
+    """
+    FASE 3: Open a Power Window to enable chat (via Switch).
+
+    Opens temporal availability of Switch service for chat conversations.
+    Default TTL: 10 minutes (600 seconds).
+
+    POST /operator/api/chat/window/open
+    {
+        "services": ["switch"],
+        "ttl_sec": 600,
+        "mode": "ttl",
+        "reason": "operator_10min_chat"
+    }
+
+    Returns:
+    {
+        "status": "ok" | "error",
+        "window_id": uuid,
+        "created_at": ISO8601,
+        "deadline": ISO8601,
+        "ttl_remaining_sec": int,
+        "services_started": [...],
+        "error_code": str (if error),
+    }
+    """
+    try:
+        # Proxy to Madre internal endpoint (never expose madre directly)
+        clients = get_clients()
+        madre_client = clients.get_client("madre")
+
+        if not madre_client:
+            write_log(
+                "tentaculo_link",
+                "powerwindow_madre_unavailable",
+                level="ERROR",
+            )
+            return JSONResponse(
+                status_code=503,
+                content={
+                    "status": "error",
+                    "error_code": "madre_unavailable",
+                    "error_msg": "Power manager (Madre) is not available",
+                },
+            )
+
+        # Call madre internal power window endpoint
+        result = await madre_client.post(
+            "/power/window/open",
+            payload={
+                "services": req.services,
+                "ttl_sec": req.ttl_sec or 600,
+                "mode": req.mode,
+                "reason": req.reason,
+            },
+            timeout=10.0,
+        )
+
+        if result and result.get("window_id"):
+            write_log(
+                "tentaculo_link",
+                f"powerwindow_open:window_id={result.get('window_id')}:services={req.services}:ttl={req.ttl_sec}",
+                level="INFO",
+            )
+            return result
+        else:
+            error_msg = (
+                result.get("detail", "Unknown error") if result else "No response"
+            )
+            write_log(
+                "tentaculo_link",
+                f"powerwindow_open_failed:{error_msg}",
+                level="WARNING",
+            )
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "status": "error",
+                    "error_code": "window_open_failed",
+                    "error_msg": error_msg,
+                },
+            )
+
+    except asyncio.TimeoutError:
+        write_log(
+            "tentaculo_link",
+            "powerwindow_madre_timeout",
+            level="ERROR",
+        )
+        return JSONResponse(
+            status_code=504,
+            content={
+                "status": "error",
+                "error_code": "madre_timeout",
+                "error_msg": "Madre did not respond within 10 seconds",
+            },
+        )
+
+    except Exception as e:
+        write_log(
+            "tentaculo_link",
+            f"powerwindow_exception:{type(e).__name__}:{str(e)[:100]}",
+            level="ERROR",
+        )
+        return JSONResponse(
+            status_code=500,
+            content={
+                "status": "error",
+                "error_code": "internal_error",
+                "error_msg": "Internal server error",
+            },
+        )
+
+
+@app.post("/operator/api/chat/window/close", tags=["operator-api-powerwindows"])
+async def operator_api_chat_window_close(_: bool = Depends(token_guard)):
+    """
+    FASE 3: Close active Power Window (manual).
+
+    Closes temporal window and stops associated services.
+
+    Returns:
+    {
+        "status": "ok" | "error",
+        "window_id": uuid,
+        "closed_at": ISO8601,
+        "services_stopped": [...],
+        "error_code": str (if error),
+    }
+    """
+    try:
+        clients = get_clients()
+        madre_client = clients.get_client("madre")
+
+        if not madre_client:
+            return JSONResponse(
+                status_code=503,
+                content={
+                    "status": "error",
+                    "error_code": "madre_unavailable",
+                    "error_msg": "Power manager (Madre) is not available",
+                },
+            )
+
+        result = await madre_client.post(
+            "/power/window/close",
+            payload={},
+            timeout=10.0,
+        )
+
+        if result and result.get("window_id"):
+            write_log(
+                "tentaculo_link",
+                f"powerwindow_close:window_id={result.get('window_id')}",
+                level="INFO",
+            )
+            return result
+        else:
+            error_msg = (
+                result.get("detail", "Unknown error") if result else "No response"
+            )
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "status": "error",
+                    "error_code": "window_close_failed",
+                    "error_msg": error_msg,
+                },
+            )
+
+    except Exception as e:
+        write_log(
+            "tentaculo_link",
+            f"powerwindow_close_exception:{type(e).__name__}:{str(e)[:100]}",
+            level="ERROR",
+        )
+        return JSONResponse(
+            status_code=500,
+            content={
+                "status": "error",
+                "error_code": "internal_error",
+                "error_msg": "Internal server error",
+            },
+        )
+
+
+@app.get("/operator/api/chat/window/status", tags=["operator-api-powerwindows"])
+async def operator_api_chat_window_status(_: bool = Depends(token_guard)):
+    """
+    FASE 3: Get active Power Window status.
+
+    Returns current window state if any, or status=none.
+
+    Returns:
+    {
+        "status": "open" | "none" | "error",
+        "window_id": uuid (if open),
+        "created_at": ISO8601,
+        "deadline": ISO8601,
+        "ttl_remaining_sec": int,
+        "active_services": [...],
+    }
+    """
+    try:
+        clients = get_clients()
+        madre_client = clients.get_client("madre")
+
+        if not madre_client:
+            return JSONResponse(
+                status_code=503,
+                content={
+                    "status": "error",
+                    "error_code": "madre_unavailable",
+                },
+            )
+
+        result = await madre_client.get(
+            "/power/state",
+            timeout=5.0,
+        )
+
+        if result:
+            return result
+        else:
+            # No active window
+            return {
+                "status": "none",
+                "window_id": None,
+                "active_services": ["madre", "redis"],  # solo_madre always active
+            }
+
+    except Exception as e:
+        write_log(
+            "tentaculo_link",
+            f"powerwindow_status_exception:{str(e)[:100]}",
+            level="WARNING",
+        )
+        return {
+            "status": "none",
+            "error": str(e)[:100],
         }
 
 
