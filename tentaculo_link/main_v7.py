@@ -2145,9 +2145,7 @@ async def operator_api_settings(_: bool = Depends(token_guard)):
 
 
 @app.post("/operator/api/settings", tags=["operator-api-p0"])
-async def operator_api_settings_update(
-    settings: dict, _: bool = Depends(token_guard)
-):
+async def operator_api_settings_update(settings: dict, _: bool = Depends(token_guard)):
     """
     P0: Update operator settings (UI preferences).
     Returns updated settings (no persistence in solo_madre).
