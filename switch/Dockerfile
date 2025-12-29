@@ -16,6 +16,7 @@ WORKDIR /app
 ENV BASE_PATH=/app
 ENV ULTRA_LOW_MEMORY=true
 ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=/app:$PYTHONPATH
 
 RUN apt-get update && apt-get install -y --no-install-recommends curl && \
     rm -rf /var/lib/apt/lists/* && \
