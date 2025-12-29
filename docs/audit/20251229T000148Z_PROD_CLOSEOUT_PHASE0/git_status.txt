@@ -1,0 +1,20 @@
+On branch main
+Your branch is up to date with 'vx_11_remote/main'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   docs/audit/DB_MAP_v7_FINAL.md
+	modified:   docs/audit/DB_SCHEMA_v7_FINAL.json
+	modified:   docs/audit/PERCENTAGES.json
+	modified:   docs/audit/SCORECARD.json
+	modified:   operator/frontend/src/views/CoDevView.tsx
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	docs/COPILOT_BOOTSTRAP_CHECKLIST.txt
+	"docs/Informe de Auditor\303\255a Remoto (A).pdf"
+	docs/PROMPT_9R_TEMPLATE.md
+	docs/inbox/
+
+no changes added to commit (use "git add" and/or "git commit -a")

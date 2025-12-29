@@ -1,0 +1,9 @@
+Archive:  docs/Documentos_1.zip
+  Length      Date    Time    Name
+---------  ---------- -----   ----
+   103029  2025-12-28 05:53   hormiguero_manifetsaator.txt
+    18557  2025-12-28 04:25   diagrams.txt
+   131148  2025-12-27 21:42   shubjson.txt
+    30467  2025-12-27 02:04   operatorjson.txt
+---------                     -------
+   283201                     4 files

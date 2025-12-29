@@ -1,0 +1,20 @@
+=== PHASE 0: BASELINE + INGESTA ===
+TS: 20251229T000148Z
+1) GIT SNAPSHOT
+✓ Git snapshots done
+2) INPUTS INDEXING
+✓ Input hashes
+✓ ZIP manifest
+docs/audit/20251229T000148Z_PROD_CLOSEOUT_PHASE0/inputs_unzipped/hormiguero_manifetsaator.txt
+docs/audit/20251229T000148Z_PROD_CLOSEOUT_PHASE0/inputs_unzipped/operatorjson.txt
+docs/audit/20251229T000148Z_PROD_CLOSEOUT_PHASE0/inputs_unzipped/shubjson.txt
+docs/audit/20251229T000148Z_PROD_CLOSEOUT_PHASE0/inputs_unzipped/diagrams.txt
+✓ ZIP unzipped
+3) DOCKER BASELINE
+✓ Docker logs captured
+4) HEALTH BASELINE
+tentaculo /health: FAIL
+operator /api/status: FAIL
+✓ Health checks attempted
+5) DB BASELINE
+✓ DB checks done
