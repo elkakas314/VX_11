@@ -77,3 +77,39 @@ async def get_window_status(auth: bool = Depends(check_auth)):
         "degraded": status.get("degraded", False),
         "reason": status.get("reason"),
     }
+
+
+@router.post("/window/open")
+async def open_window(request: dict, auth: bool = Depends(check_auth)):
+    """
+    POST /api/window/open - Open a power window via Madre.
+    """
+    token = os.environ.get("VX11_TENTACULO_LINK_TOKEN", "")
+    headers = {"X-VX11-Token": token}
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        response = await client.post(
+            "http://madre:8001/madre/power/window/open",
+            json=request,
+            headers=headers,
+        )
+    if response.status_code >= 400:
+        raise HTTPException(status_code=response.status_code, detail=response.text)
+    return response.json()
+
+
+@router.post("/window/close")
+async def close_window(auth: bool = Depends(check_auth)):
+    """
+    POST /api/window/close - Close active window via Madre.
+    """
+    token = os.environ.get("VX11_TENTACULO_LINK_TOKEN", "")
+    headers = {"X-VX11-Token": token}
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        response = await client.post(
+            "http://madre:8001/madre/power/window/close",
+            json={},
+            headers=headers,
+        )
+    if response.status_code >= 400:
+        raise HTTPException(status_code=response.status_code, detail=response.text)
+    return response.json()

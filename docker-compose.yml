@@ -20,6 +20,7 @@ services:
     volumes:
       - ./build/artifacts/logs:/app/logs
       - ./data/runtime:/app/data/runtime
+      - ./docs/audit:/app/docs/audit:ro
       - ./data/backups:/app/data/backups
       - ./build/artifacts/sandbox:/app/sandbox
       - ./models:/app/models
@@ -333,6 +334,36 @@ services:
       timeout: 5s
       retries: 3
       start_period: 60s
+
+  # ========== OPERATOR BACKEND (PORT 8011) — PROFILE: operator ==========
+  operator-backend:
+    profiles: ["operator"]
+    build:
+      context: .
+      dockerfile: operator/backend/Dockerfile
+    image: vx11-operator-backend:v7.0
+    container_name: vx11-operator-backend
+    hostname: operator-backend
+    networks:
+      default:
+        aliases:
+          - operator-backend
+    volumes:
+      - ./build/artifacts/logs:/app/logs
+      - ./data/runtime:/app/data/runtime
+    environment:
+      - ULTRA_LOW_MEMORY=true
+      - LOG_LEVEL=INFO
+      - PYTHONUNBUFFERED=1
+      - API_TOKEN=vx11-local-token
+      - VX11_GATEWAY_TOKEN=vx11-local-token
+      - VX11_TENTACULO_LINK_TOKEN=vx11-local-token
+      - VX11_OPERATOR_TOKEN=vx11-local-token
+      - VX11_LOCAL_TOKEN=vx11-local-token
+      - VX11_REPO_ROOT=/app
+    depends_on:
+      - tentaculo_link
+    restart: unless-stopped
 
   # ========== OPERATOR BACKEND (PORT 8011) — DEPRECATED/PASSIVE ==========
   # DECISION: Kept for backward compatibility with legacy tests (test_operator_production_phase5.py, etc.)

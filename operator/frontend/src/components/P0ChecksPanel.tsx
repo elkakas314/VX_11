@@ -4,7 +4,7 @@ import { apiClient } from '../services/api'
 interface P0Results {
     chat_ask: boolean
     status: boolean
-    power_state: boolean
+    windows: boolean
     hormiguero_status: boolean
     results: Record<string, any>
     timestamp?: Date
@@ -28,9 +28,7 @@ export function P0ChecksPanel() {
         results &&
         results.chat_ask &&
         results.status &&
-        results.power_state
-
-    const hormiStatus = results?.hormiguero_status ? 'OK' : 'UNAVAILABLE'
+        results.windows
 
     return (
         <div className="card">
@@ -53,21 +51,21 @@ export function P0ChecksPanel() {
                             <span className={results.chat_ask ? 'check-pass' : 'check-fail'}>
                                 {results.chat_ask ? '✓' : '✗'}
                             </span>
-                            <span>/operator/chat/ask</span>
+                            <span>/operator/api/chat</span>
                         </div>
 
                         <div className="check-result">
                             <span className={results.status ? 'check-pass' : 'check-fail'}>
                                 {results.status ? '✓' : '✗'}
                             </span>
-                            <span>/operator/status</span>
+                            <span>/operator/api/status</span>
                         </div>
 
                         <div className="check-result">
-                            <span className={results.power_state ? 'check-pass' : 'check-fail'}>
-                                {results.power_state ? '✓' : '✗'}
+                            <span className={results.windows ? 'check-pass' : 'check-fail'}>
+                                {results.windows ? '✓' : '✗'}
                             </span>
-                            <span>/operator/power/state</span>
+                            <span>/operator/api/windows</span>
                         </div>
 
                         <div className="check-result">

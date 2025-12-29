@@ -8,14 +8,10 @@ interface RightDrawerProps {
 
 interface SystemStatus {
     policy: string
-    mode: string
-    active_modules: string[]
-    daughters: string[]
-    recent_events: Array<{
-        timestamp: number
-        type: string
-        message: string
-    }>
+    window?: {
+        mode?: string
+        services?: string[]
+    }
 }
 
 export function RightDrawer({ activeTab = 'overview', open = true }: RightDrawerProps) {
@@ -62,15 +58,15 @@ export function RightDrawer({ activeTab = 'overview', open = true }: RightDrawer
                             <dd className="badge">{status.policy}</dd>
 
                             <dt>Mode</dt>
-                            <dd>{status.mode}</dd>
+                            <dd>{status.window?.mode || 'unknown'}</dd>
                         </dl>
                     </div>
 
                     <div className="drawer-section">
-                        <h5>Active ({status.active_modules.length})</h5>
+                        <h5>Active ({status.window?.services?.length || 0})</h5>
                         <div className="active-list">
-                            {status.active_modules.length > 0 ? (
-                                status.active_modules.map((mod) => (
+                            {status.window?.services && status.window.services.length > 0 ? (
+                                status.window.services.map((mod) => (
                                     <div key={mod} className="active-item">
                                         ✓ {mod}
                                     </div>
@@ -80,33 +76,6 @@ export function RightDrawer({ activeTab = 'overview', open = true }: RightDrawer
                             )}
                         </div>
                     </div>
-
-                    {status.daughters && status.daughters.length > 0 && (
-                        <div className="drawer-section">
-                            <h5>Daughters ({status.daughters.length})</h5>
-                            <div className="daughters-list">
-                                {status.daughters.map((d) => (
-                                    <div key={d} className="daughter-item">
-                                        🔗 {d}
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {status.recent_events && status.recent_events.length > 0 && (
-                        <div className="drawer-section">
-                            <h5>Recent Events</h5>
-                            <div className="events-list">
-                                {status.recent_events.slice(0, 3).map((evt, idx) => (
-                                    <div key={idx} className="event-item">
-                                        <span className="event-type">[{evt.type}]</span>
-                                        <span className="event-msg">{evt.message}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
                 </>
             ) : (
                 <p className="empty">Unable to load status</p>

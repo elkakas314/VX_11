@@ -1,0 +1,762 @@
+import asyncio
+import json
+import os
+import time
+import uuid
+from datetime import datetime, timezone
+from typing import Any, Dict, Optional
+
+import httpx
+from fastapi import Depends, FastAPI, Header, HTTPException, Request
+from fastapi.responses import JSONResponse, StreamingResponse
+from pydantic import BaseModel, Field
+
+from config.forensics import write_log
+from config.settings import settings
+from config.tokens import get_token
+
+APP_VERSION = "7.0"
+
+VX11_TOKEN = (
+    get_token("VX11_OPERATOR_TOKEN")
+    or get_token("VX11_GATEWAY_TOKEN")
+    or settings.api_token
+)
+TOKEN_HEADER = settings.token_header
+
+RATE_LIMIT_WINDOW_SEC = int(os.environ.get("VX11_OPERATOR_RATE_WINDOW_SEC", "60"))
+RATE_LIMIT_MAX = int(os.environ.get("VX11_OPERATOR_RATE_LIMIT", "60"))
+RATE_STATE: Dict[str, list[float]] = {}
+
+AUDIT_LOG_PATH = os.environ.get(
+    "VX11_OPERATOR_AUDIT_LOG",
+    "/app/logs/operator_backend_audit.jsonl",
+)
+SCORECARD_PATH = os.environ.get(
+    "VX11_SCORECARD_PATH", "/app/docs/audit/SCORECARD.json"
+)
+PERCENTAGES_PATH = os.environ.get(
+    "VX11_PERCENTAGES_PATH", "/app/docs/audit/PERCENTAGES.json"
+)
+
+TENTACULO_BASE = settings.tentaculo_link_url.rstrip("/")
+
+
+class OperatorChatRequest(BaseModel):
+    message: str
+    session_id: Optional[str] = None
+    user_id: Optional[str] = "local"
+    metadata: Optional[Dict[str, Any]] = None
+
+
+class ExplorerQueryRequest(BaseModel):
+    preset_id: str = Field(..., description="Preset identifier")
+    params: Dict[str, Any] = Field(default_factory=dict)
+
+
+class PowerWindowRequest(BaseModel):
+    services: list[str]
+    ttl_sec: Optional[int] = 600
+    mode: str = "ttl"
+    reason: str = "operator_manual"
+
+
+class TokenGuard:
+    def __call__(self, x_vx11_token: Optional[str] = Header(None)) -> bool:
+        if settings.enable_auth:
+            if not x_vx11_token:
+                raise HTTPException(status_code=401, detail="auth_required")
+            if x_vx11_token != VX11_TOKEN:
+                raise HTTPException(status_code=403, detail="forbidden")
+        return True
+
+
+token_guard = TokenGuard()
+
+app = FastAPI(title="VX11 Operator Backend", version=APP_VERSION)
+
+
+def _now_iso() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+def _correlation_id(x_correlation_id: Optional[str]) -> str:
+    return x_correlation_id or str(uuid.uuid4())
+
+
+def _off_by_policy(correlation_id: str) -> JSONResponse:
+    payload = {
+        "status": "OFF_BY_POLICY",
+        "service": "operator_backend",
+        "message": "Disabled by SOLO_MADRE policy",
+        "correlation_id": correlation_id,
+        "recommended_action": "Ask Madre to open operator window",
+    }
+    return JSONResponse(status_code=403, content=payload)
+
+
+def _rate_limit_key(request: Request) -> str:
+    token = request.headers.get(TOKEN_HEADER, "")
+    ip = request.client.host if request.client else "unknown"
+    return f"{token}:{ip}"
+
+
+def _rate_limit_ok(identifier: str) -> bool:
+    now = time.time()
+    window_start = now - RATE_LIMIT_WINDOW_SEC
+    recent = [t for t in RATE_STATE.get(identifier, []) if t >= window_start]
+    if len(recent) >= RATE_LIMIT_MAX:
+        RATE_STATE[identifier] = recent
+        return False
+    recent.append(now)
+    RATE_STATE[identifier] = recent
+    return True
+
+
+def _write_audit(event: Dict[str, Any]) -> None:
+    try:
+        os.makedirs(os.path.dirname(AUDIT_LOG_PATH), exist_ok=True)
+        with open(AUDIT_LOG_PATH, "a", encoding="utf-8") as handle:
+            handle.write(json.dumps(event, ensure_ascii=False) + "\n")
+    except Exception as exc:
+        write_log("operator_backend", f"audit_log_error:{exc}", level="WARNING")
+
+
+def _load_json(path: str) -> Optional[Dict[str, Any]]:
+    try:
+        if os.path.exists(path):
+            with open(path, "r", encoding="utf-8") as handle:
+                return json.load(handle)
+    except Exception as exc:
+        write_log("operator_backend", f"json_read_error:{path}:{exc}", level="WARNING")
+    return None
+
+
+OPERATOR_SETTINGS: Dict[str, Any] = {
+    "appearance": {"theme": "dark", "language": "en"},
+    "chat": {"model": "deepseek-r1", "temperature": 0.7},
+    "security": {"enable_api_logs": False, "enable_debug_mode": False},
+    "notifications": {"enable_events": True, "events_level": "info"},
+}
+
+
+async def _call_tentaculo(
+    method: str,
+    path: str,
+    correlation_id: str,
+    payload: Optional[Dict[str, Any]] = None,
+    params: Optional[Dict[str, Any]] = None,
+    timeout: float = 8.0,
+) -> httpx.Response:
+    headers = {TOKEN_HEADER: VX11_TOKEN, "X-Correlation-Id": correlation_id}
+    async with httpx.AsyncClient(timeout=timeout) as client:
+        return await client.request(
+            method,
+            f"{TENTACULO_BASE}{path}",
+            headers=headers,
+            json=payload,
+            params=params,
+        )
+
+
+async def _get_window_status(correlation_id: str) -> Dict[str, Any]:
+    response = await _call_tentaculo(
+        "GET", "/api/window/status", correlation_id, timeout=5.0
+    )
+    if response.status_code >= 400:
+        return {
+            "mode": "solo_madre",
+            "services": ["madre", "redis"],
+            "degraded": True,
+            "reason": "window_status_unavailable",
+        }
+    payload = response.json()
+    services = set(payload.get("services", []))
+    services.update({"tentaculo_link"})
+    payload["services"] = list(services)
+    return payload
+
+
+async def _get_core_health(correlation_id: str) -> Dict[str, Any]:
+    response = await _call_tentaculo(
+        "GET", "/api/internal/core-health", correlation_id, timeout=5.0
+    )
+    if response.status_code >= 400:
+        return {"status": "degraded", "services": {}}
+    return response.json()
+
+
+@app.get("/operator/api/health")
+async def health(x_correlation_id: Optional[str] = Header(None)):
+    correlation_id = _correlation_id(x_correlation_id)
+    return {
+        "status": "ok",
+        "service": "operator_backend",
+        "version": APP_VERSION,
+        "correlation_id": correlation_id,
+        "timestamp": _now_iso(),
+    }
+
+
+@app.get("/operator/api/env")
+async def env_status(
+    x_correlation_id: Optional[str] = Header(None),
+    _: bool = Depends(token_guard),
+):
+    correlation_id = _correlation_id(x_correlation_id)
+    window = await _get_window_status(correlation_id)
+    return {
+        "service": "operator_backend",
+        "version": APP_VERSION,
+        "policy": window.get("mode", "solo_madre"),
+        "window": window,
+        "timestamp": _now_iso(),
+        "correlation_id": correlation_id,
+    }
+
+
+@app.get("/operator/api/status")
+async def operator_status(
+    x_correlation_id: Optional[str] = Header(None),
+    _: bool = Depends(token_guard),
+):
+    correlation_id = _correlation_id(x_correlation_id)
+    core = await _get_core_health(correlation_id)
+    window = await _get_window_status(correlation_id)
+    degraded = core.get("status") != "ok"
+    return {
+        "status": "ok",
+        "policy": window.get("mode", "solo_madre"),
+        "core_services": core.get("services", {}),
+        "degraded": degraded,
+        "window": window,
+        "correlation_id": correlation_id,
+    }
+
+
+@app.get("/operator/api/modules")
+async def modules(
+    x_correlation_id: Optional[str] = Header(None),
+    _: bool = Depends(token_guard),
+):
+    correlation_id = _correlation_id(x_correlation_id)
+    core = await _get_core_health(correlation_id)
+    window = await _get_window_status(correlation_id)
+    allowed = set(window.get("services", []))
+    modules: Dict[str, Any] = {}
+
+    for name, info in core.get("services", {}).items():
+        modules[name] = {
+            "status": info.get("status", "unknown"),
+            "reason": info.get("reason"),
+            "category": "core",
+        }
+
+    optional = ["switch", "hermes", "hormiguero", "manifestator", "spawner"]
+    for name in optional:
+        modules[name] = {
+            "status": "UP" if name in allowed else "OFF_BY_POLICY",
+            "reason": "window_active" if name in allowed else "solo_madre",
+            "category": "optional",
+        }
+
+    modules["operator_backend"] = {
+        "status": "UP",
+        "reason": "operator_profile",
+        "category": "operator",
+    }
+
+    return {"modules": modules, "correlation_id": correlation_id}
+
+
+@app.get("/operator/api/topology")
+async def topology(
+    x_correlation_id: Optional[str] = Header(None),
+    _: bool = Depends(token_guard),
+):
+    correlation_id = _correlation_id(x_correlation_id)
+    core = await _get_core_health(correlation_id)
+    window = await _get_window_status(correlation_id)
+    allowed = set(window.get("services", []))
+
+    def status_for(name: str) -> str:
+        if name in allowed:
+            return core.get("services", {}).get(name, {}).get("status", "UP")
+        return "OFF_BY_POLICY"
+
+    services = {
+        "tentaculo_link": core.get("services", {}).get("tentaculo_link", {}),
+        "madre": core.get("services", {}).get("madre", {}),
+        "redis": core.get("services", {}).get("redis", {}),
+        "switch": {"status": status_for("switch")},
+        "hermes": {"status": status_for("hermes")},
+        "hormiguero": {"status": status_for("hormiguero")},
+        "manifestator": {"status": status_for("manifestator")},
+        "spawner": {"status": status_for("spawner")},
+    }
+
+    return {
+        "status": "ok",
+        "services": services,
+        "policy": window.get("mode", "solo_madre"),
+        "correlation_id": correlation_id,
+    }
+
+
+@app.get("/operator/api/windows")
+async def windows(
+    x_correlation_id: Optional[str] = Header(None),
+    _: bool = Depends(token_guard),
+):
+    correlation_id = _correlation_id(x_correlation_id)
+    status = await _get_window_status(correlation_id)
+    status["correlation_id"] = correlation_id
+    return status
+
+
+@app.post("/operator/api/chat/window/open")
+async def open_window(
+    req: PowerWindowRequest,
+    request: Request,
+    x_correlation_id: Optional[str] = Header(None),
+    _: bool = Depends(token_guard),
+):
+    correlation_id = _correlation_id(x_correlation_id)
+    if not _rate_limit_ok(_rate_limit_key(request)):
+        raise HTTPException(status_code=429, detail="rate_limited")
+    response = await _call_tentaculo(
+        "POST", "/api/window/open", correlation_id, payload=req.dict()
+    )
+    _write_audit(
+        {
+            "event": "window_open",
+            "correlation_id": correlation_id,
+            "timestamp": _now_iso(),
+            "payload": req.dict(),
+        }
+    )
+    return JSONResponse(status_code=response.status_code, content=response.json())
+
+
+@app.post("/operator/api/chat/window/close")
+async def close_window(
+    request: Request,
+    x_correlation_id: Optional[str] = Header(None),
+    _: bool = Depends(token_guard),
+):
+    correlation_id = _correlation_id(x_correlation_id)
+    if not _rate_limit_ok(_rate_limit_key(request)):
+        raise HTTPException(status_code=429, detail="rate_limited")
+    response = await _call_tentaculo("POST", "/api/window/close", correlation_id)
+    _write_audit(
+        {
+            "event": "window_close",
+            "correlation_id": correlation_id,
+            "timestamp": _now_iso(),
+        }
+    )
+    return JSONResponse(status_code=response.status_code, content=response.json())
+
+
+@app.get("/operator/api/chat/window/status")
+async def window_status(
+    x_correlation_id: Optional[str] = Header(None),
+    _: bool = Depends(token_guard),
+):
+    correlation_id = _correlation_id(x_correlation_id)
+    status = await _get_window_status(correlation_id)
+    status["correlation_id"] = correlation_id
+    return status
+
+
+@app.post("/operator/api/chat")
+async def chat(
+    req: OperatorChatRequest,
+    request: Request,
+    x_correlation_id: Optional[str] = Header(None),
+    _: bool = Depends(token_guard),
+):
+    correlation_id = _correlation_id(x_correlation_id)
+    if not _rate_limit_ok(_rate_limit_key(request)):
+        raise HTTPException(status_code=429, detail="rate_limited")
+
+    window = await _get_window_status(correlation_id)
+    if window.get("mode") != "window_active":
+        return _off_by_policy(correlation_id)
+
+    payload = req.dict()
+    response = await _call_tentaculo(
+        "POST", "/operator/chat/ask", correlation_id, payload=payload, timeout=10.0
+    )
+    _write_audit(
+        {
+            "event": "chat",
+            "correlation_id": correlation_id,
+            "timestamp": _now_iso(),
+            "payload": {"session_id": req.session_id, "message": req.message},
+        }
+    )
+    data = response.json()
+    data.setdefault("correlation_id", correlation_id)
+    return JSONResponse(status_code=response.status_code, content=data)
+
+
+@app.get("/operator/api/events")
+async def events(
+    limit: int = 10,
+    x_correlation_id: Optional[str] = Header(None),
+    _: bool = Depends(token_guard),
+):
+    correlation_id = _correlation_id(x_correlation_id)
+    response = await _call_tentaculo(
+        "GET", "/api/events", correlation_id, params={"limit": limit}
+    )
+    return JSONResponse(status_code=response.status_code, content=response.json())
+
+
+@app.get("/operator/api/events/stream")
+async def events_stream(
+    x_correlation_id: Optional[str] = Header(None),
+    _: bool = Depends(token_guard),
+):
+    correlation_id = _correlation_id(x_correlation_id)
+    heartbeat_sec = int(os.environ.get("VX11_OPERATOR_SSE_HEARTBEAT", "15"))
+    poll_interval_sec = int(os.environ.get("VX11_OPERATOR_SSE_POLL", "60"))
+
+    async def stream() -> Any:
+        last_poll = 0.0
+        retry_ms = 10000
+        yield f"retry: {retry_ms}\n\n"
+        while True:
+            try:
+                now = time.time()
+                if now - last_poll >= poll_interval_sec:
+                    last_poll = now
+                    window = await _get_window_status(correlation_id)
+                    events_resp = await _call_tentaculo(
+                        "GET",
+                        "/api/events",
+                        correlation_id,
+                        params={"limit": 5},
+                        timeout=5.0,
+                    )
+                    payload = {
+                        "type": "snapshot",
+                        "window": window,
+                        "events": events_resp.json().get("events", []),
+                        "timestamp": _now_iso(),
+                    }
+                    yield f"event: snapshot\n"
+                    yield f"data: {json.dumps(payload)}\n\n"
+                heartbeat = {
+                    "type": "heartbeat",
+                    "timestamp": _now_iso(),
+                }
+                yield f"event: heartbeat\n"
+                yield f"data: {json.dumps(heartbeat)}\n\n"
+                await asyncio.sleep(heartbeat_sec)
+            except asyncio.CancelledError:
+                break
+            except Exception as exc:
+                error_payload = {
+                    "type": "error",
+                    "message": str(exc),
+                    "timestamp": _now_iso(),
+                }
+                yield f"event: error\n"
+                yield f"data: {json.dumps(error_payload)}\n\n"
+                await asyncio.sleep(heartbeat_sec)
+
+    return StreamingResponse(stream(), media_type="text/event-stream")
+
+
+@app.get("/operator/api/audit/runs")
+async def audit_runs(
+    limit: int = 20,
+    offset: int = 0,
+    x_correlation_id: Optional[str] = Header(None),
+    _: bool = Depends(token_guard),
+):
+    correlation_id = _correlation_id(x_correlation_id)
+    response = await _call_tentaculo(
+        "GET",
+        "/api/audit/runs",
+        correlation_id,
+        params={"limit": limit, "offset": offset},
+    )
+    return JSONResponse(status_code=response.status_code, content=response.json())
+
+
+@app.get("/operator/api/audit/runs/{run_id}")
+async def audit_run_detail(
+    run_id: str,
+    x_correlation_id: Optional[str] = Header(None),
+    _: bool = Depends(token_guard),
+):
+    correlation_id = _correlation_id(x_correlation_id)
+    response = await _call_tentaculo(
+        "GET", f"/api/audit/{run_id}", correlation_id
+    )
+    return JSONResponse(status_code=response.status_code, content=response.json())
+
+
+@app.get("/operator/api/explorer/presets")
+async def explorer_presets(
+    x_correlation_id: Optional[str] = Header(None),
+    _: bool = Depends(token_guard),
+):
+    correlation_id = _correlation_id(x_correlation_id)
+    presets = [
+        {
+            "id": "events_recent",
+            "label": "Recent Events",
+            "description": "Last 50 events (24h)",
+            "params": {"limit": 50, "hours_back": 24},
+        },
+        {
+            "id": "audit_runs",
+            "label": "Audit Runs",
+            "description": "Latest audit runs",
+            "params": {"limit": 20},
+        },
+    ]
+    return {"presets": presets, "correlation_id": correlation_id}
+
+
+@app.post("/operator/api/explorer/query")
+async def explorer_query(
+    req: ExplorerQueryRequest,
+    request: Request,
+    x_correlation_id: Optional[str] = Header(None),
+    _: bool = Depends(token_guard),
+):
+    correlation_id = _correlation_id(x_correlation_id)
+    if not _rate_limit_ok(_rate_limit_key(request)):
+        raise HTTPException(status_code=429, detail="rate_limited")
+
+    if req.preset_id == "events_recent":
+        params = {
+            "limit": req.params.get("limit", 50),
+            "hours_back": req.params.get("hours_back", 24),
+        }
+        response = await _call_tentaculo(
+            "GET", "/api/events", correlation_id, params=params
+        )
+        return JSONResponse(status_code=response.status_code, content=response.json())
+
+    if req.preset_id == "audit_runs":
+        params = {"limit": req.params.get("limit", 20)}
+        response = await _call_tentaculo(
+            "GET", "/api/audit/runs", correlation_id, params=params
+        )
+        return JSONResponse(status_code=response.status_code, content=response.json())
+
+    raise HTTPException(status_code=400, detail="invalid_preset")
+
+
+@app.get("/operator/api/hormiguero/status")
+async def hormiguero_status(
+    x_correlation_id: Optional[str] = Header(None),
+    _: bool = Depends(token_guard),
+):
+    correlation_id = _correlation_id(x_correlation_id)
+    window = await _get_window_status(correlation_id)
+    if "hormiguero" not in window.get("services", []):
+        return _off_by_policy(correlation_id)
+    response = await _call_tentaculo(
+        "GET", "/hormiguero/queen/status", correlation_id, timeout=5.0
+    )
+    return JSONResponse(status_code=response.status_code, content=response.json())
+
+
+@app.post("/operator/api/hormiguero/scan/once")
+async def hormiguero_scan_once(
+    request: Request,
+    x_correlation_id: Optional[str] = Header(None),
+    _: bool = Depends(token_guard),
+):
+    correlation_id = _correlation_id(x_correlation_id)
+    window = await _get_window_status(correlation_id)
+    if "hormiguero" not in window.get("services", []):
+        return _off_by_policy(correlation_id)
+    if not _rate_limit_ok(_rate_limit_key(request)):
+        raise HTTPException(status_code=429, detail="rate_limited")
+    response = await _call_tentaculo(
+        "POST", "/api/hormiguero/scan/once", correlation_id
+    )
+    _write_audit(
+        {
+            "event": "hormiguero_scan_once",
+            "correlation_id": correlation_id,
+            "timestamp": _now_iso(),
+        }
+    )
+    return JSONResponse(status_code=response.status_code, content=response.json())
+
+
+@app.get("/operator/api/manifestator/status")
+async def manifestator_status(
+    x_correlation_id: Optional[str] = Header(None),
+    _: bool = Depends(token_guard),
+):
+    correlation_id = _correlation_id(x_correlation_id)
+    window = await _get_window_status(correlation_id)
+    if "manifestator" not in window.get("services", []):
+        return _off_by_policy(correlation_id)
+
+    response = await _call_tentaculo(
+        "GET", "/api/rails/lanes", correlation_id, timeout=5.0
+    )
+    payload = {
+        "status": "ok",
+        "lanes": response.json().get("lanes", []),
+        "correlation_id": correlation_id,
+    }
+    return payload
+
+
+@app.post("/operator/api/manifestator/compare")
+async def manifestator_compare(
+    request: Request,
+    x_correlation_id: Optional[str] = Header(None),
+    _: bool = Depends(token_guard),
+):
+    correlation_id = _correlation_id(x_correlation_id)
+    window = await _get_window_status(correlation_id)
+    if "manifestator" not in window.get("services", []):
+        return _off_by_policy(correlation_id)
+    if not _rate_limit_ok(_rate_limit_key(request)):
+        raise HTTPException(status_code=429, detail="rate_limited")
+
+    lanes_resp = await _call_tentaculo(
+        "GET", "/api/rails/lanes", correlation_id, timeout=5.0
+    )
+    rails_resp = await _call_tentaculo(
+        "GET", "/api/rails", correlation_id, timeout=5.0
+    )
+
+    plan = {
+        "summary": "Manifestator compare plan generated",
+        "lanes": lanes_resp.json().get("lanes", []),
+        "rails": rails_resp.json().get("rails", []),
+        "apply": "prohibited",
+    }
+
+    _write_audit(
+        {
+            "event": "manifestator_compare",
+            "correlation_id": correlation_id,
+            "timestamp": _now_iso(),
+        }
+    )
+
+    return {"status": "ok", "plan": plan, "correlation_id": correlation_id}
+
+
+@app.get("/operator/api/metrics")
+async def metrics(
+    window_seconds: int = 3600,
+    x_correlation_id: Optional[str] = Header(None),
+    _: bool = Depends(token_guard),
+):
+    correlation_id = _correlation_id(x_correlation_id)
+    response = await _call_tentaculo(
+        "GET",
+        "/api/metrics",
+        correlation_id,
+        params={"window_seconds": window_seconds},
+    )
+    return JSONResponse(status_code=response.status_code, content=response.json())
+
+
+@app.get("/operator/api/scorecard")
+async def scorecard(
+    x_correlation_id: Optional[str] = Header(None),
+    _: bool = Depends(token_guard),
+):
+    correlation_id = _correlation_id(x_correlation_id)
+    scorecard_data = _load_json(SCORECARD_PATH)
+    percentages_data = _load_json(PERCENTAGES_PATH)
+    payload = {
+        "scorecard": scorecard_data,
+        "percentages": percentages_data,
+        "availability": {
+            "scorecard": scorecard_data is not None,
+            "percentages": percentages_data is not None,
+        },
+        "correlation_id": correlation_id,
+    }
+    return payload
+
+
+@app.get("/operator/api/audit")
+async def audit_summary(
+    x_correlation_id: Optional[str] = Header(None),
+    _: bool = Depends(token_guard),
+):
+    correlation_id = _correlation_id(x_correlation_id)
+    response = await _call_tentaculo(
+        "GET", "/api/audit/runs", correlation_id, params={"limit": 20}
+    )
+    return JSONResponse(status_code=response.status_code, content=response.json())
+
+
+@app.get("/operator/api/settings")
+async def get_settings(
+    x_correlation_id: Optional[str] = Header(None),
+    _: bool = Depends(token_guard),
+):
+    correlation_id = _correlation_id(x_correlation_id)
+    return {**OPERATOR_SETTINGS, "correlation_id": correlation_id}
+
+
+@app.post("/operator/api/settings")
+async def update_settings(
+    payload: Dict[str, Any],
+    request: Request,
+    x_correlation_id: Optional[str] = Header(None),
+    _: bool = Depends(token_guard),
+):
+    correlation_id = _correlation_id(x_correlation_id)
+    if not _rate_limit_ok(_rate_limit_key(request)):
+        raise HTTPException(status_code=429, detail="rate_limited")
+    OPERATOR_SETTINGS.update(payload)
+    _write_audit(
+        {
+            "event": "settings_update",
+            "correlation_id": correlation_id,
+            "timestamp": _now_iso(),
+            "payload": payload,
+        }
+    )
+    return {
+        "status": "ok",
+        "message": "Settings updated",
+        "settings": OPERATOR_SETTINGS,
+        "correlation_id": correlation_id,
+    }
+
+
+@app.get("/operator/api/rails/lanes")
+async def rails_lanes(
+    x_correlation_id: Optional[str] = Header(None),
+    _: bool = Depends(token_guard),
+):
+    correlation_id = _correlation_id(x_correlation_id)
+    response = await _call_tentaculo("GET", "/api/rails/lanes", correlation_id)
+    return JSONResponse(status_code=response.status_code, content=response.json())
+
+
+@app.get("/operator/api/rails")
+async def rails(
+    x_correlation_id: Optional[str] = Header(None),
+    _: bool = Depends(token_guard),
+):
+    correlation_id = _correlation_id(x_correlation_id)
+    response = await _call_tentaculo("GET", "/api/rails", correlation_id)
+    return JSONResponse(status_code=response.status_code, content=response.json())
+
+
+@app.get("/operator/api/healthz")
+async def healthz():
+    return {"status": "ok"}

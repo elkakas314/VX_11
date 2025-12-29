@@ -1,0 +1,27 @@
+"""VX11 Operator Routes: Hormiguero"""
+
+from typing import Optional, Dict, Any
+import os
+from fastapi import APIRouter, Depends, Header, HTTPException
+
+from tentaculo_link.clients import get_clients
+
+router = APIRouter(prefix="/api/hormiguero", tags=["hormiguero"])
+
+
+def check_auth(x_vx11_token: Optional[str] = Header(None)) -> bool:
+    if not os.environ.get("ENABLE_AUTH", "true").lower() in ("true", "1"):
+        return True
+    required_token = os.environ.get("VX11_TENTACULO_LINK_TOKEN", "")
+    if not x_vx11_token:
+        raise HTTPException(status_code=401, detail="auth_required")
+    if x_vx11_token != required_token:
+        raise HTTPException(status_code=403, detail="forbidden")
+    return True
+
+
+@router.post("/scan/once")
+async def scan_once(auth: bool = Depends(check_auth)) -> Dict[str, Any]:
+    clients = get_clients()
+    result = await clients.route_to_hormiguero("/hormiguero/scan/once")
+    return result

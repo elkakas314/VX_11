@@ -19,9 +19,7 @@ export function LeftRail({ activeTab = 'overview', onTabChange }: LeftRailProps)
         try {
             const resp = await apiClient.modules()
             if (resp.ok && resp.data) {
-                const mods = resp.data.modules
-                    ? resp.data.modules.map((m: any) => m.name || m)
-                    : []
+                const mods = resp.data.modules ? Object.keys(resp.data.modules) : []
                 setModules(mods)
             }
         } catch (err) {

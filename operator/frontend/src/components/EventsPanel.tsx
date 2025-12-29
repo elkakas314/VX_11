@@ -5,16 +5,9 @@
 
 import React, { useEffect, useState, useCallback } from 'react'
 import { useEventsStore, VX11Event } from '../stores'
+import { apiClient } from '../services/api'
 
-interface EventsPanelProps {
-    autoRefresh?: boolean
-    refreshInterval?: number
-}
-
-export const EventsPanel: React.FC<EventsPanelProps> = ({
-    autoRefresh = true,
-    refreshInterval = 5000,
-}) => {
+export const EventsPanel: React.FC = () => {
     const {
         events,
         setEvents,
@@ -41,16 +34,12 @@ export const EventsPanel: React.FC<EventsPanelProps> = ({
             if (filterModule) params.append('module', filterModule)
             params.append('limit', '100')
 
-            const response = await fetch(`/api/events?${params}`, {
-                headers: {
-                    'x-vx11-token': localStorage.getItem('vx11_token') || '',
-                },
-            })
-
-            if (!response.ok) throw new Error(`HTTP ${response.status}`)
-
-            const data = await response.json()
-            setEvents(data.events || [])
+            const response = await apiClient.request<{ events: VX11Event[] }>(
+                'GET',
+                `/operator/api/events?${params}`
+            )
+            if (!response.ok || !response.data) throw new Error(response.error || 'Failed to fetch events')
+            setEvents(response.data.events || [])
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Unknown error')
             setEvents([])
@@ -64,13 +53,6 @@ export const EventsPanel: React.FC<EventsPanelProps> = ({
         fetchEvents()
     }, [filterSeverity, filterModule, fetchEvents])
 
-    // Auto-refresh
-    useEffect(() => {
-        if (!autoRefresh) return
-
-        const interval = setInterval(fetchEvents, refreshInterval)
-        return () => clearInterval(interval)
-    }, [autoRefresh, refreshInterval, fetchEvents])
 
     const severityColors: Record<string, string> = {
         critical: 'bg-red-900 text-red-100',

@@ -5,6 +5,7 @@
 
 import React, { useEffect, useState } from 'react'
 import { useRailsStore, RailsLane, Rail } from '../stores'
+import { apiClient } from '../services/api'
 
 export const RailsPanel: React.FC = () => {
     const { lanes, setLanes, rails, setRails, expandedLanes, toggleLaneExpanded, loading, setLoading } =
@@ -18,20 +19,21 @@ export const RailsPanel: React.FC = () => {
                 setLoading(true)
                 setError(null)
 
-                const token = localStorage.getItem('vx11_token') || ''
-                const headers = { 'x-vx11-token': token }
-
                 // Fetch lanes
-                const lanesResp = await fetch('/api/rails/lanes', { headers })
-                if (!lanesResp.ok) throw new Error('Failed to fetch lanes')
-                const lanesData = await lanesResp.json()
-                setLanes(lanesData.lanes || [])
+                const lanesResp = await apiClient.request<{ lanes?: RailsLane[] }>(
+                    'GET',
+                    '/operator/api/rails/lanes'
+                )
+                if (!lanesResp.ok || !lanesResp.data) throw new Error(lanesResp.error || 'Failed to fetch lanes')
+                setLanes(lanesResp.data.lanes || [])
 
                 // Fetch rails
-                const railsResp = await fetch('/api/rails', { headers })
-                if (!railsResp.ok) throw new Error('Failed to fetch rails')
-                const railsData = await railsResp.json()
-                setRails(railsData.rails || [])
+                const railsResp = await apiClient.request<{ rails?: Rail[] }>(
+                    'GET',
+                    '/operator/api/rails'
+                )
+                if (!railsResp.ok || !railsResp.data) throw new Error(railsResp.error || 'Failed to fetch rails')
+                setRails(railsResp.data.rails || [])
             } catch (err) {
                 setError(err instanceof Error ? err.message : 'Unknown error')
             } finally {

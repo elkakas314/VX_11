@@ -5,6 +5,7 @@
 
 import React, { useEffect } from 'react'
 import { useOverviewStore, useWindowStatusStore } from '../stores'
+import { apiClient } from '../services/api'
 
 export const OverviewPanel: React.FC = () => {
     const {
@@ -24,35 +25,34 @@ export const OverviewPanel: React.FC = () => {
     useEffect(() => {
         const fetchOverview = async () => {
             try {
-                const token = localStorage.getItem('vx11_token') || ''
-
                 // Fetch events count
-                const eventsResp = await fetch('/api/events?limit=1', {
-                    headers: { 'x-vx11-token': token },
-                })
-                if (eventsResp.ok) {
-                    const data = await eventsResp.json()
-                    setTotalEvents(data.total || 0)
-                    if (data.events?.[0]?.created_at) {
-                        setLastEventTime(data.events[0].created_at)
+                const eventsResp = await apiClient.request<{
+                    total?: number
+                    events?: Array<{ created_at?: string }>
+                }>('GET', '/operator/api/events?limit=1')
+                if (eventsResp.ok && eventsResp.data) {
+                    setTotalEvents(eventsResp.data.total || 0)
+                    if (eventsResp.data.events?.[0]?.created_at) {
+                        setLastEventTime(eventsResp.data.events[0].created_at)
                     }
                 }
 
                 // Fetch lanes count
-                const lanesResp = await fetch('/api/rails/lanes', {
-                    headers: { 'x-vx11-token': token },
-                })
-                if (lanesResp.ok) {
-                    const data = await lanesResp.json()
-                    setActiveLanes(data.lanes?.length || 0)
+                const lanesResp = await apiClient.request<{ lanes?: unknown[] }>(
+                    'GET',
+                    '/operator/api/rails/lanes'
+                )
+                if (lanesResp.ok && lanesResp.data) {
+                    setActiveLanes(lanesResp.data.lanes?.length || 0)
                 }
 
                 // Set active modules
                 if (windowStatus) {
+                    const services = windowStatus.services || []
                     setActiveModules({
-                        madre: windowStatus.madre_status === 'UP',
-                        redis: windowStatus.redis_status === 'UP',
-                        tentaculo: windowStatus.tentaculo_status === 'UP',
+                        madre: services.includes('madre'),
+                        redis: services.includes('redis'),
+                        tentaculo: services.includes('tentaculo_link'),
                         operator: true,
                     })
                 }
@@ -62,8 +62,6 @@ export const OverviewPanel: React.FC = () => {
         }
 
         fetchOverview()
-        const interval = setInterval(fetchOverview, 10000)
-        return () => clearInterval(interval)
     }, [windowStatus, setTotalEvents, setLastEventTime, setActiveLanes, setActiveModules])
 
     const moduleCards = [
@@ -121,8 +119,8 @@ export const OverviewPanel: React.FC = () => {
                     <div className="text-sm font-semibold mb-2">System Mode</div>
                     <div className="flex justify-between items-center">
                         <span className="text-xl font-bold uppercase">{windowStatus.mode}</span>
-                        <span className={windowStatus.health === 'ok' ? 'text-green-300' : 'text-yellow-300'}>
-                            Health: {windowStatus.health}
+                        <span className={windowStatus.degraded ? 'text-yellow-300' : 'text-green-300'}>
+                            Health: {windowStatus.degraded ? 'degraded' : 'ok'}
                         </span>
                     </div>
                 </div>

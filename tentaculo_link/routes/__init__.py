@@ -11,6 +11,8 @@ from . import audit
 from . import metrics
 from . import rails
 from . import window
+from . import internal
+from . import hormiguero
 
 __all__ = [
     "events",
@@ -19,4 +21,6 @@ __all__ = [
     "metrics",
     "rails",
     "window",
+    "internal",
+    "hormiguero",
 ]

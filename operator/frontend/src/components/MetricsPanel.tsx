@@ -4,7 +4,8 @@
  */
 
 import React, { useEffect, useState } from 'react'
-import { useMetricsStore } from '../stores'
+import { useMetricsStore, Metric } from '../stores'
+import { apiClient } from '../services/api'
 
 export const MetricsPanel: React.FC = () => {
     const { metrics, setMetrics, selectedMetrics, toggleMetric, timeWindow, setTimeWindow, loading, setLoading } =
@@ -18,15 +19,21 @@ export const MetricsPanel: React.FC = () => {
                 setLoading(true)
                 setError(null)
 
-                const token = localStorage.getItem('vx11_token') || ''
-                const response = await fetch(
-                    `/api/metrics?window_seconds=${timeWindow === '1h' ? 3600 : timeWindow === '6h' ? 21600 : timeWindow === '24h' ? 86400 : 604800}`,
-                    { headers: { 'x-vx11-token': token } }
+                const windowSeconds =
+                    timeWindow === '1h'
+                        ? 3600
+                        : timeWindow === '6h'
+                            ? 21600
+                            : timeWindow === '24h'
+                                ? 86400
+                                : 604800
+                const response = await apiClient.request<{ metrics: Metric[] }>(
+                    'GET',
+                    `/operator/api/metrics?window_seconds=${windowSeconds}`
                 )
 
-                if (!response.ok) throw new Error(`HTTP ${response.status}`)
-                const data = await response.json()
-                setMetrics(data.metrics || [])
+                if (!response.ok || !response.data) throw new Error(response.error || 'Failed to fetch metrics')
+                setMetrics(response.data.metrics || [])
             } catch (err) {
                 setError(err instanceof Error ? err.message : 'Unknown error')
             } finally {
