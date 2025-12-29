@@ -2424,6 +2424,13 @@ async def operator_api_status(
             level="INFO",
         )
 
+        # 5. Dormant services (PHASE 4 addition)
+        dormant_services = [
+            {"name": "hormiguero", "port": 8004, "status": "dormant"},
+            {"name": "shubniggurath", "port": 8007, "status": "dormant"},
+            {"name": "mcp", "port": 8006, "status": "dormant"},
+        ]
+
         return {
             "ok": True,
             "data": {
@@ -2435,6 +2442,7 @@ async def operator_api_status(
                 "services": services,
                 "features": features,
                 "db_health": db_health,
+                "dormant_services": dormant_services,
             },
             "timestamp": datetime.utcnow().isoformat() + "Z",
         }
@@ -2688,6 +2696,151 @@ async def operator_api_metrics(
         write_log(
             "tentaculo_link",
             f"operator_api_metrics:error:{str(e)[:100]}",
+            level="ERROR",
+        )
+        return {
+            "ok": False,
+            "data": {
+                "correlation_id": correlation_id,
+                "error": str(e),
+            },
+            "timestamp": datetime.utcnow().isoformat() + "Z",
+        }
+
+
+@app.get("/operator/capabilities", tags=["operator-api-p0"])
+async def operator_capabilities(
+    x_correlation_id: Optional[str] = Header(None),
+    _: bool = Depends(token_guard),
+):
+    """
+    PHASE 4: Feature Capabilities — Query enabled|disabled|dormant state.
+
+    Returns which features are available in current operational mode.
+
+    Response (200):
+    {
+        "ok": true,
+        "data": {
+            "correlation_id": "<uuid>",
+            "operational_mode": "solo_madre",
+            "features": {
+                "chat": {"status": "on", "reason": null},
+                "file_explorer": {"status": "on", "reason": null},
+                "metrics": {"status": "off", "reason": "low_power_mode"},
+                "events": {"status": "on", "reason": null},
+                "builder": {"status": "dormant", "reason": "not_enabled"},
+                "rewards": {"status": "dormant", "reason": "not_enabled"},
+                "colony": {"status": "dormant", "reason": "not_enabled"}
+            },
+            "dormant_services": ["hormiguero", "shubniggurath", "mcp"]
+        },
+        "timestamp": "2025-12-29T04:32:01Z"
+    }
+    """
+    import os
+    from datetime import datetime
+
+    correlation_id = x_correlation_id or str(uuid.uuid4())
+
+    try:
+        operational_mode = "solo_madre"  # Current default
+
+        # Feature capability map
+        features = {
+            "chat": {
+                "status": "on",
+                "reason": None,
+                "provider": "switch",
+            },
+            "file_explorer": {
+                "status": "on",
+                "reason": None,
+                "provider": "tentaculo",
+            },
+            "metrics": {
+                "status": "off" if operational_mode == "solo_madre" else "on",
+                "reason": (
+                    "low_power_mode" if operational_mode == "solo_madre" else None
+                ),
+            },
+            "events": {
+                "status": "on",
+                "reason": None,
+                "provider": "sse",
+            },
+            "builder": {
+                "status": "dormant",
+                "reason": (
+                    "not_enabled"
+                    if not os.environ.get("HORMIGUERO_BUILDER_ENABLED")
+                    else "enabled"
+                ),
+                "requires_flag": "HORMIGUERO_BUILDER_ENABLED",
+            },
+            "rewards": {
+                "status": "dormant",
+                "reason": (
+                    "not_enabled"
+                    if not os.environ.get("SHUBNIGGURATH_ENABLED")
+                    else "enabled"
+                ),
+                "requires_flag": "SHUBNIGGURATH_ENABLED",
+            },
+            "colony": {
+                "status": "dormant",
+                "reason": (
+                    "not_enabled"
+                    if not os.environ.get("HORMIGUERO_ENABLED")
+                    else "enabled"
+                ),
+                "requires_flag": "HORMIGUERO_ENABLED",
+            },
+        }
+
+        # Dormant services (profiles disabled by default)
+        dormant_services = [
+            {
+                "name": "hormiguero",
+                "port": 8004,
+                "reason": "dormant_profile",
+                "activation": "docker compose up --profile dormant hormiguero",
+            },
+            {
+                "name": "shubniggurath",
+                "port": 8007,
+                "reason": "dormant_profile",
+                "activation": "docker compose up --profile dormant shubniggurath",
+            },
+            {
+                "name": "mcp",
+                "port": 8006,
+                "reason": "dormant_profile",
+                "activation": "docker compose up --profile dormant mcp",
+            },
+        ]
+
+        write_log(
+            "tentaculo_link",
+            f"operator_capabilities:success:mode={operational_mode}:correlation_id={correlation_id}",
+            level="INFO",
+        )
+
+        return {
+            "ok": True,
+            "data": {
+                "correlation_id": correlation_id,
+                "operational_mode": operational_mode,
+                "features": features,
+                "dormant_services": dormant_services,
+            },
+            "timestamp": datetime.utcnow().isoformat() + "Z",
+        }
+
+    except Exception as e:
+        write_log(
+            "tentaculo_link",
+            f"operator_capabilities:error:{str(e)[:100]}",
             level="ERROR",
         )
         return {
