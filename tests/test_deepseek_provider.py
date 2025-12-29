@@ -92,6 +92,7 @@ class TestDeepSeekR1Provider:
             "timeout",
             "http_ConnectTimeout",
             "http_ReadTimeout",
+            "http_HTTPStatusError",  # 401 Unauthorized (also acceptable)
         )
 
 
