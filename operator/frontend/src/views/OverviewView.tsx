@@ -3,10 +3,11 @@ import { apiClient } from '../services/api'
 
 interface StatusData {
     policy: string
-    mode: string
-    active_modules: string[]
-    off_by_policy: string[]
     degraded: boolean
+    window?: {
+        mode?: string
+        services?: string[]
+    }
 }
 
 interface ModuleData {
@@ -43,22 +44,36 @@ export function OverviewView() {
             const [statusResp, modulesResp, scorecardResp] = await Promise.all([
                 apiClient.status(),
                 apiClient.modules(),
-                apiClient.scorecard?.() || Promise.resolve({ ok: false }),
+                apiClient.scorecard(),
             ])
 
             if (statusResp.ok && statusResp.data) {
                 setStatus(statusResp.data)
             }
 
-            if (modulesResp.ok && modulesResp.data) {
-                const mods = Array.isArray(modulesResp.data.modules)
-                    ? modulesResp.data.modules
-                    : []
+            if (modulesResp.ok && modulesResp.data?.modules) {
+                const moduleData = modulesResp.data.modules as Record<
+                    string,
+                    { status?: string }
+                >
+                const mods = Object.entries(moduleData).map(([name, info]) => ({
+                    name,
+                    status: info?.status || 'unknown',
+                }))
                 setModules(mods)
             }
 
             if (scorecardResp.ok && scorecardResp.data) {
-                setScorecard(scorecardResp.data)
+                const metrics = scorecardResp.data.percentages?.metrics
+                if (metrics) {
+                    setScorecard({
+                        order_fs_pct: metrics.Orden_fs_pct ?? 0,
+                        coherencia_routing_pct: metrics.Coherencia_routing_pct ?? 0,
+                        automatizacion_pct: metrics.Automatizacion_pct ?? 0,
+                        autonomia_pct: metrics.Autonomia_pct ?? 0,
+                        global_ponderado_pct: metrics.Global_ponderado_pct ?? 0,
+                    })
+                }
             }
         } catch (err: any) {
             setError(err.message || 'Failed to load overview')
@@ -73,7 +88,7 @@ export function OverviewView() {
 
     return (
         <div className="overview-view">
-            <h2>Overview</h2>
+            <h2>Ant View</h2>
 
             {error && <div className="error-banner">⚠️ {error}</div>}
 
@@ -92,13 +107,10 @@ export function OverviewView() {
                         <dd>{status?.policy || '—'}</dd>
 
                         <dt>Mode</dt>
-                        <dd>{status?.mode || '—'}</dd>
+                        <dd>{status?.window?.mode || '—'}</dd>
 
                         <dt>Active Modules</dt>
-                        <dd>{status?.active_modules?.length || 0}</dd>
-
-                        <dt>Off by Policy</dt>
-                        <dd>{status?.off_by_policy?.length || 0}</dd>
+                        <dd>{modules.filter((m) => m.status === 'UP' || m.status === 'healthy').length}</dd>
                     </dl>
                 </div>
 

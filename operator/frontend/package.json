@@ -6,6 +6,7 @@
     "description": "VX11 Operator UI - Dark theme dashboard for power windows, chat, and monitoring",
     "scripts": {
         "dev": "vite",
+        "lint": "tsc --noEmit",
         "build": "vite build",
         "preview": "vite preview",
         "test": "vitest",

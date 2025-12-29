@@ -180,6 +180,77 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+@app.middleware("http")
+async def operator_api_proxy(request: Request, call_next):
+    if request.method == "OPTIONS":
+        return await call_next(request)
+    if request.url.path.startswith("/operator/api"):
+        correlation_id = request.headers.get("X-Correlation-Id") or str(uuid.uuid4())
+        if settings.enable_auth:
+            token_header_value = request.headers.get(settings.token_header)
+            if not token_header_value:
+                return JSONResponse(status_code=401, content={"detail": "auth_required"})
+            if token_header_value != VX11_TOKEN:
+                return JSONResponse(status_code=403, content={"detail": "forbidden"})
+
+        operator_url = settings.operator_url.rstrip("/")
+        target_url = f"{operator_url}{request.url.path}"
+        headers = dict(request.headers)
+        headers["X-Correlation-Id"] = correlation_id
+        headers[settings.token_header] = headers.get(settings.token_header, VX11_TOKEN)
+
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                if request.method == "GET" and request.url.path.endswith(
+                    "/events/stream"
+                ):
+                    async with client.stream(
+                        request.method,
+                        target_url,
+                        headers=headers,
+                        params=request.query_params,
+                    ) as resp:
+                        if resp.status_code >= 400:
+                            return JSONResponse(
+                                status_code=resp.status_code, content=resp.json()
+                            )
+                        return StreamingResponse(
+                            resp.aiter_raw(),
+                            status_code=resp.status_code,
+                            media_type=resp.headers.get(
+                                "content-type", "text/event-stream"
+                            ),
+                        )
+
+                body = await request.body()
+                resp = await client.request(
+                    request.method,
+                    target_url,
+                    headers=headers,
+                    params=request.query_params,
+                    content=body or None,
+                )
+        except Exception:
+            return JSONResponse(
+                status_code=403,
+                content={
+                    "status": "OFF_BY_POLICY",
+                    "service": "operator_backend",
+                    "message": "Disabled by SOLO_MADRE policy",
+                    "correlation_id": correlation_id,
+                    "recommended_action": "Ask Madre to open operator window",
+                },
+            )
+
+        return Response(
+            content=resp.content,
+            status_code=resp.status_code,
+            media_type=resp.headers.get("content-type", "application/json"),
+        )
+
+    return await call_next(request)
+
 # Mount Operator UI static files
 operator_ui_candidates = [
     Path(__file__).parent.parent / "operator_ui" / "frontend" / "dist",
@@ -201,6 +272,15 @@ else:
         f"WARNING: operator_ui not found: {operator_ui_candidates}",
         level="WARNING",
     )
+
+    @app.get("/operator/ui")
+    @app.get("/operator/ui/{path:path}")
+    async def operator_ui_missing(path: str = ""):
+        return Response(
+            content="Operator UI build not found. Run frontend build to generate dist.",
+            media_type="text/plain",
+            status_code=503,
+        )
 
 # Include new operator API routes with /operator prefix
 try:
@@ -229,6 +309,9 @@ except Exception as e:
         f"WARNING: failed to include operator routers: {e}",
         level="WARNING",
     )
+
+app.include_router(api_routes.internal.router)
+app.include_router(api_routes.hormiguero.router)
 
 
 # ============ HEALTH & STATUS ============

@@ -40,12 +40,6 @@ async def test_events_stream_includes_request_id(client, auth_token, db_session)
     assert any(
         "request_id" in event for event in events
     ), "No request_id found in stream events"
-                    pass
-
-        # Check that at least one event has request_id
-        assert any(
-            "request_id" in event for event in lines
-        ), "No request_id found in stream events"
 
 
 @pytest.mark.asyncio

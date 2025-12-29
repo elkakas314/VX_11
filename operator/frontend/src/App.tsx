@@ -8,6 +8,7 @@ import { RightDrawer } from './components/RightDrawer'
 import { DegradedModeBanner } from './components/DegradedModeBanner'
 import { DebugDrawer } from './components/DebugDrawer'
 import { apiClient } from './services/api'
+import { useEventsStore, useWindowStatusStore } from './stores'
 import './App.css'
 
 type TabName = 'overview' | 'chat' | 'topology' | 'hormiguero' | 'jobs' | 'audit' | 'explorer' | 'settings'
@@ -15,6 +16,8 @@ type TabName = 'overview' | 'chat' | 'topology' | 'hormiguero' | 'jobs' | 'audit
 export default function App() {
     const [activeTab, setActiveTab] = useState<TabName>('overview')
     const [degraded, setDegraded] = useState(false)
+    const { setEvents } = useEventsStore()
+    const { setWindowStatus } = useWindowStatusStore()
     const [debugData] = useState({
         environment: process.env.NODE_ENV,
         apiBase: import.meta.env.VITE_VX11_API_BASE_URL || '(relative)',
@@ -25,6 +28,44 @@ export default function App() {
     useEffect(() => {
         checkStatus()
     }, [])
+
+    useEffect(() => {
+        let eventSource: EventSource | null = null
+        let retryMs = 1000
+        let retryTimeout: number | undefined
+
+        const connect = () => {
+            eventSource = new EventSource('/operator/api/events/stream')
+
+            eventSource.addEventListener('snapshot', (event) => {
+                try {
+                    const data = JSON.parse((event as MessageEvent).data)
+                    if (data.events) {
+                        setEvents(data.events)
+                    }
+                    if (data.window) {
+                        setWindowStatus(data.window)
+                    }
+                } catch (err) {
+                    console.error('Failed to parse snapshot:', err)
+                }
+            })
+
+            eventSource.onerror = () => {
+                eventSource?.close()
+                eventSource = null
+                retryTimeout = window.setTimeout(connect, retryMs)
+                retryMs = Math.min(retryMs * 2, 30000)
+            }
+        }
+
+        connect()
+
+        return () => {
+            eventSource?.close()
+            if (retryTimeout) window.clearTimeout(retryTimeout)
+        }
+    }, [setEvents, setWindowStatus])
 
     async function checkStatus() {
         try {
@@ -51,7 +92,7 @@ export default function App() {
                         className={`tab ${activeTab === 'overview' ? 'active' : ''}`}
                         onClick={() => setActiveTab('overview')}
                     >
-                        📊 Overview
+                        🐜 Ant View
                     </button>
                     <button
                         className={`tab ${activeTab === 'chat' ? 'active' : ''}`}
@@ -81,7 +122,7 @@ export default function App() {
                         className={`tab ${activeTab === 'audit' ? 'active' : ''}`}
                         onClick={() => setActiveTab('audit')}
                     >
-                        ✓ Audit
+                        ✓ Audit Runs
                     </button>
                     <button
                         className={`tab ${activeTab === 'explorer' ? 'active' : ''}`}

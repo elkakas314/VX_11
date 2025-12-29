@@ -1,13 +1,13 @@
 {
   "version": "9.0",
-  "generated_at": "2025-12-25T04:16:15.680729+00:00",
+  "generated_at": "2025-12-29T17:32:06.650832+00:00",
   "outdir": "docs/audit/20251222T144533Z_full_testpack",
   "audit_context": {
     "input_sources": [
       "docs/audit/20251222T144533Z_full_testpack/health_results.json",
       "docs/audit/20251222T144533Z_full_testpack/e2e_flows.json",
       "docs/audit/20251222T144533Z_full_testpack/pytest_summary.json",
-      "/home/elkakas314/vx11/data/runtime/vx11.db"
+      "/workspace/VX_11/data/runtime/vx11.db"
     ],
     "evidence_complete": true,
     "reason_incomplete": null
@@ -49,22 +49,22 @@
       }
     },
     "db_integrity_pct": {
-      "value": 100.0,
-      "status": "ok",
+      "value": null,
+      "status": "deferred",
       "source": "db_integrity",
-      "evidence_path": "/home/elkakas314/vx11/data/runtime/vx11.db",
-      "calculation": "PRAGMA quick_check + PRAGMA integrity_check passed",
+      "evidence_path": null,
+      "calculation": "pending automation in runner",
+      "reason": "DB integrity checks (PRAGMA integrity_check, PRAGMA foreign_key_check) not yet automated. Manual validation available.",
       "details": {
-        "quick_check": "ok",
-        "integrity_check": "ok"
+        "note": "See docs/audit/ for last manual audit trail"
       }
     },
     "Estabilidad_operativa_pct": {
-      "value": 10.0,
+      "value": 0.0,
       "status": "ok",
       "source": "derived",
       "evidence_path": null,
-      "calculation": "0.35*0.0 + 0.30*0.0 + 0.25*0.0 + 0.10*100.0 = 10.0",
+      "calculation": "0.35*0.0 + 0.30*0.0 + 0.25*0.0 + 0.10*0.0 = 0.0",
       "weights": {
         "health_core": 0.35,
         "tests_p0": 0.3,
@@ -75,24 +75,24 @@
         "health_core_pct": 0.0,
         "tests_p0_pct": 0.0,
         "contract_coherence_pct": 0.0,
-        "db_integrity_pct": 100.0
+        "db_integrity_pct": null
       }
     },
     "evidence_coverage_pct": {
-      "value": 80.0,
+      "value": 60.0,
       "status": "ok",
       "source": "derived",
       "evidence_path": null,
-      "calculation": "coverage_overall: 4/5*100 = 80.0%",
+      "calculation": "coverage_overall: 3/5*100 = 60.0%",
       "coverage_strict": {
-        "value": 60.0,
-        "calculation": "3/5 real evidence (no derived/deferred) = 60.0%",
-        "count": 3
+        "value": 40.0,
+        "calculation": "2/5 real evidence (no derived/deferred) = 40.0%",
+        "count": 2
       },
       "coverage_overall": {
-        "value": 80.0,
-        "calculation": "4/5 ok or derived ok (no NV/deferred) = 80.0%",
-        "count": 4
+        "value": 60.0,
+        "calculation": "3/5 ok or derived ok (no NV/deferred) = 60.0%",
+        "count": 3
       }
     }
   },
@@ -100,19 +100,19 @@
     "health_core_pct": 0.0,
     "contract_coherence_pct": 0.0,
     "tests_p0_pct": 0.0,
-    "db_integrity_pct": 100.0,
-    "Estabilidad_operativa_pct": 10.0,
-    "evidence_coverage_pct": 80.0
+    "db_integrity_pct": null,
+    "Estabilidad_operativa_pct": 0.0,
+    "evidence_coverage_pct": 60.0
   },
   "autonomy_verdict": {
     "status": "CRITICAL",
     "decision_logic": {
-      "Estabilidad_value": 10.0,
-      "Estabilidad_threshold": "10.0 >= 75.0? \u2192 False",
-      "coverage_strict_check": "60.0 >= 50%? \u2192 True",
+      "Estabilidad_value": 0.0,
+      "Estabilidad_threshold": "0.0 >= 75.0? \u2192 False",
+      "coverage_strict_check": "40.0 >= 50%? \u2192 False",
       "health_services_check": "0.0% healthy \u2192 False",
       "all_flows_pass": false,
-      "db_integrity_status": "ok"
+      "db_integrity_status": "deferred"
     }
   },
   "validation_checksums": {

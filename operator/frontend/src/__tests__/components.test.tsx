@@ -21,17 +21,12 @@ vi.mock('../services/api', () => ({
                 },
             })
         ),
-        powerState: vi.fn(() =>
+        windows: vi.fn(() =>
             Promise.resolve({
                 ok: true,
                 data: {
-                    status: 'ok',
-                    power_window: {
-                        policy: 'operative_core',
-                        window_id: 'window_123',
-                        ttl_remaining: 300,
-                        running_services: ['madre', 'tentaculo_link'],
-                    },
+                    mode: 'window_active',
+                    services: ['madre', 'tentaculo_link'],
                 },
             })
         ),
@@ -47,7 +42,7 @@ vi.mock('../services/api', () => ({
             Promise.resolve({
                 chat_ask: true,
                 status: true,
-                power_state: true,
+                windows: true,
                 hormiguero_status: false,
                 results: {},
             })
@@ -65,7 +60,7 @@ describe('Operator Module Tests', () => {
             const { apiClient } = await import('../services/api')
             expect(apiClient).toBeDefined()
             expect(apiClient.status).toBeDefined()
-            expect(apiClient.powerState).toBeDefined()
+            expect(apiClient.windows).toBeDefined()
             expect(apiClient.chat).toBeDefined()
             expect(apiClient.runP0Checks).toBeDefined()
         })
@@ -78,11 +73,11 @@ describe('Operator Module Tests', () => {
             expect(result.data).toHaveProperty('status')
         })
 
-        it('powerState method should return power window data', async () => {
+        it('windows method should return window data', async () => {
             const { apiClient } = await import('../services/api')
-            const result = await apiClient.powerState()
+            const result = await apiClient.windows()
             expect(result.ok).toBe(true)
-            expect(result.data).toHaveProperty('power_window')
+            expect(result.data).toHaveProperty('mode')
         })
 
         it('chat method should return chat response', async () => {
@@ -97,7 +92,7 @@ describe('Operator Module Tests', () => {
             const result = await apiClient.runP0Checks()
             expect(result).toHaveProperty('chat_ask')
             expect(result).toHaveProperty('status')
-            expect(result).toHaveProperty('power_state')
+            expect(result).toHaveProperty('windows')
             expect(result).toHaveProperty('results')
         })
     })

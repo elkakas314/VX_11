@@ -600,6 +600,8 @@ body {
 .message-header {
     display: flex;
     justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
     align-items: center;
     font-size: 11px;
     color: var(--text-secondary);
@@ -611,6 +613,12 @@ body {
 
 .message-time {
     color: var(--text-tertiary);
+}
+
+.message-meta {
+    color: var(--text-tertiary);
+    font-size: 10px;
+    font-family: monospace;
 }
 
 .message-content {

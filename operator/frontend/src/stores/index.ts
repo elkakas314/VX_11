@@ -60,13 +60,11 @@ export interface Rail {
 
 export interface WindowStatus {
   mode: 'solo_madre' | 'window_active' | 'degraded'
-  health: 'ok' | 'degraded' | 'offline'
-  ttl_seconds?: number
-  madre_status: string
-  redis_status: string
-  tentaculo_status: string
-  request_id?: string
-  route_taken?: string
+  ttl_seconds?: number | null
+  window_id?: string | null
+  services: string[]
+  degraded?: boolean
+  reason?: string | null
 }
 
 // ============================================================================
@@ -102,7 +100,7 @@ interface WindowStatusState {
   windowStatus: WindowStatus | null
   setWindowStatus: (status: WindowStatus) => void
   ttlCountdown: number
-  setTtlCountdown: (seconds: number) => void
+  setTtlCountdown: (seconds: number | ((prev: number) => number)) => void
 }
 
 export const useWindowStatusStore = create<WindowStatusState>()(
@@ -111,7 +109,10 @@ export const useWindowStatusStore = create<WindowStatusState>()(
       windowStatus: null,
       setWindowStatus: (status) => set({ windowStatus: status }),
       ttlCountdown: 0,
-      setTtlCountdown: (seconds) => set({ ttlCountdown: seconds }),
+      setTtlCountdown: (seconds) =>
+        set((state) => ({
+          ttlCountdown: typeof seconds === 'function' ? seconds(state.ttlCountdown) : seconds,
+        })),
     }),
     { name: 'WindowStatusStore' }
   )

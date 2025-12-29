@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { apiClient } from '../services/api'
+import { useWindowStatusStore } from '../stores'
 import { CoDevView } from './CoDevView'
 
 interface ChatMessage {
@@ -7,19 +8,16 @@ interface ChatMessage {
     role: 'user' | 'assistant' | 'system'
     content: string
     timestamp: number
+    meta?: {
+        correlation_id?: string
+        source?: string
+    }
 }
 
 interface SessionData {
     id: string
     messages: ChatMessage[]
     degraded?: boolean
-}
-
-interface WindowStatus {
-    status: 'open' | 'none' | 'error'
-    window_id?: string
-    ttl_remaining_sec?: number
-    deadline?: string
 }
 
 export function ChatView() {
@@ -30,7 +28,7 @@ export function ChatView() {
     const [input, setInput] = useState('')
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
-    const [windowStatus, setWindowStatus] = useState<WindowStatus>({ status: 'none' })
+    const { windowStatus, setWindowStatus } = useWindowStatusStore()
     const [windowLoading, setWindowLoading] = useState(false)
     const messagesEndRef = useRef<HTMLDivElement>(null)
 
@@ -42,30 +40,29 @@ export function ChatView() {
         scrollToBottom()
     }, [session.messages])
 
-    // Poll window status on mount and every 10s
     useEffect(() => {
-        const checkWindowStatus = async () => {
+        const loadWindowStatus = async () => {
             try {
-                const resp = await apiClient.get('/operator/api/chat/window/status')
+                const resp = await apiClient.windows()
                 if (resp.ok && resp.data) {
                     setWindowStatus(resp.data)
                 }
-            } catch (err) {
-                // Silent fail, window status is informational
+            } catch {
+                // Silent fail, status is informational
             }
         }
 
-        checkWindowStatus()
-        const interval = setInterval(checkWindowStatus, 10000)
-        return () => clearInterval(interval)
-    }, [])
+        if (!windowStatus) {
+            loadWindowStatus()
+        }
+    }, [windowStatus, setWindowStatus])
 
     async function handleOpenWindow() {
         setWindowLoading(true)
         setError(null)
 
         try {
-            const resp = await apiClient.post('/operator/api/chat/window/open', {
+            const resp = await apiClient.request('POST', '/operator/api/chat/window/open', {
                 services: ['switch'],
                 ttl_sec: 600,
                 mode: 'ttl',
@@ -73,12 +70,10 @@ export function ChatView() {
             })
 
             if (resp.ok && resp.data) {
-                setWindowStatus({
-                    status: 'open',
-                    window_id: resp.data.window_id,
-                    ttl_remaining_sec: resp.data.ttl_remaining_sec,
-                    deadline: resp.data.deadline,
-                })
+                const statusResp = await apiClient.windows()
+                if (statusResp.ok && statusResp.data) {
+                    setWindowStatus(statusResp.data)
+                }
                 setError(null)
             } else {
                 throw new Error(resp.error || 'Failed to open window')
@@ -95,10 +90,13 @@ export function ChatView() {
         setError(null)
 
         try {
-            const resp = await apiClient.post('/operator/api/chat/window/close', {})
+            const resp = await apiClient.request('POST', '/operator/api/chat/window/close', {})
 
             if (resp.ok) {
-                setWindowStatus({ status: 'none' })
+                const statusResp = await apiClient.windows()
+                if (statusResp.ok && statusResp.data) {
+                    setWindowStatus(statusResp.data)
+                }
                 setError(null)
             } else {
                 throw new Error(resp.error || 'Failed to close window')
@@ -112,7 +110,7 @@ export function ChatView() {
 
     async function handleSend() {
         // P12/P13: Chat only works when window is OPEN
-        if (windowStatus.status !== 'open') {
+        if (!windowStatus || windowStatus.mode !== 'window_active') {
             setError('Chat window is CLOSED. Click "Open 10 min" to enable chat.')
             return
         }
@@ -145,6 +143,10 @@ export function ChatView() {
                     role: 'assistant',
                     content: resp.data.response || resp.data.message || 'No response',
                     timestamp: Date.now(),
+                    meta: {
+                        correlation_id: resp.data.correlation_id,
+                        source: resp.data.fallback_source || resp.data.provider_used,
+                    },
                 }
 
                 setSession((prev) => ({
@@ -174,8 +176,8 @@ export function ChatView() {
         }
     }
 
-    const windowCountdown = windowStatus.ttl_remaining_sec
-        ? Math.max(0, Math.floor(windowStatus.ttl_remaining_sec))
+    const windowCountdown = windowStatus?.ttl_seconds
+        ? Math.max(0, Math.floor(windowStatus.ttl_seconds))
         : 0
 
     return (
@@ -183,7 +185,7 @@ export function ChatView() {
             <div className="chat-header">
                 <h2>Chat</h2>
                 <div className="window-status-badge">
-                    {windowStatus.status === 'open' ? (
+                    {windowStatus?.mode === 'window_active' ? (
                         <>
                             <span className="badge-open">✓ OPEN</span>
                             <span className="countdown">({windowCountdown}s)</span>
@@ -214,7 +216,7 @@ export function ChatView() {
 
             <div className="chat-container">
                 <div className="messages">
-                    {session.messages.length === 0 && windowStatus.status === 'none' && (
+                    {session.messages.length === 0 && (!windowStatus || windowStatus.mode !== 'window_active') && (
                         <div className="message-empty">
                             <p>💬 Open a chat window to start conversing</p>
                         </div>
@@ -228,6 +230,14 @@ export function ChatView() {
                                 <span className="message-time">
                                     {new Date(msg.timestamp).toLocaleTimeString()}
                                 </span>
+                                {msg.meta?.correlation_id && (
+                                    <span className="message-meta">
+                                        {msg.meta.correlation_id.slice(0, 8)}
+                                    </span>
+                                )}
+                                {msg.meta?.source && (
+                                    <span className="message-meta">[{msg.meta.source}]</span>
+                                )}
                             </div>
                             <div className="message-content">{msg.content}</div>
                         </div>
@@ -255,15 +265,19 @@ export function ChatView() {
                                 handleSend()
                             }
                         }}
-                        placeholder={windowStatus.status === 'open' ? "Type a message... (Ctrl+Enter to send)" : "Chat window is closed"}
-                        disabled={loading || windowStatus.status !== 'open'}
+                        placeholder={
+                            windowStatus?.mode === 'window_active'
+                                ? "Type a message... (Ctrl+Enter to send)"
+                                : "Chat window is closed"
+                        }
+                        disabled={loading || windowStatus?.mode !== 'window_active'}
                         className="chat-input"
                     />
                     <button
                         onClick={handleSend}
-                        disabled={loading || windowStatus.status !== 'open'}
+                        disabled={loading || windowStatus?.mode !== 'window_active'}
                         className="btn-primary"
-                        title={windowStatus.status === 'open' ? 'Send message' : 'Open window first'}
+                        title={windowStatus?.mode === 'window_active' ? 'Send message' : 'Open window first'}
                     >
                         {loading ? '⟳' : '↗'}
                     </button>

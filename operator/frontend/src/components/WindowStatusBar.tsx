@@ -15,12 +15,14 @@ export const WindowStatusBar: React.FC = () => {
             return
         }
 
+        setTtlCountdown(Math.floor(windowStatus.ttl_seconds))
+
         const interval = setInterval(() => {
-            setTtlCountdown(Math.max(0, ttlCountdown - 1))
+            setTtlCountdown((prev) => Math.max(0, prev - 1))
         }, 1000)
 
         return () => clearInterval(interval)
-    }, [windowStatus, setTtlCountdown, ttlCountdown])
+    }, [windowStatus, setTtlCountdown])
 
     if (!windowStatus) {
         return null
@@ -32,17 +34,19 @@ export const WindowStatusBar: React.FC = () => {
         degraded: 'bg-yellow-700',
     }[windowStatus.mode]
 
+    const healthState = windowStatus.degraded ? 'degraded' : 'ok'
     const healthIcon = {
         ok: '✓',
         degraded: '⚠',
-        offline: '✕',
-    }[windowStatus.health]
+    }[healthState]
 
     const healthColor = {
         ok: 'text-green-400',
         degraded: 'text-yellow-400',
-        offline: 'text-red-400',
-    }[windowStatus.health]
+    }[healthState]
+
+    const serviceStatus = (name: string) =>
+        windowStatus.services?.includes(name) ? 'UP' : 'OFF'
 
     return (
         <div className={`${modeColor} text-white px-4 py-2 flex items-center justify-between text-sm sticky top-0 z-50`}>
@@ -51,18 +55,18 @@ export const WindowStatusBar: React.FC = () => {
 
                 <div className="flex gap-6 text-xs">
                     <span>
-                        Madre: <span className={windowStatus.madre_status === 'UP' ? 'text-green-300' : 'text-red-300'}>
-                            {windowStatus.madre_status}
+                        Madre: <span className={serviceStatus('madre') === 'UP' ? 'text-green-300' : 'text-red-300'}>
+                            {serviceStatus('madre')}
                         </span>
                     </span>
                     <span>
-                        Redis: <span className={windowStatus.redis_status === 'UP' ? 'text-green-300' : 'text-red-300'}>
-                            {windowStatus.redis_status}
+                        Redis: <span className={serviceStatus('redis') === 'UP' ? 'text-green-300' : 'text-red-300'}>
+                            {serviceStatus('redis')}
                         </span>
                     </span>
                     <span>
-                        Tentáculo: <span className={windowStatus.tentaculo_status === 'UP' ? 'text-green-300' : 'text-red-300'}>
-                            {windowStatus.tentaculo_status}
+                        Tentáculo: <span className={serviceStatus('tentaculo_link') === 'UP' ? 'text-green-300' : 'text-red-300'}>
+                            {serviceStatus('tentaculo_link')}
                         </span>
                     </span>
                 </div>
@@ -70,7 +74,7 @@ export const WindowStatusBar: React.FC = () => {
 
             <div className="flex items-center gap-4">
                 <span className={`font-mono ${healthColor}`}>
-                    {healthIcon} {windowStatus.health}
+                    {healthIcon} {healthState}
                 </span>
 
                 {windowStatus.mode === 'window_active' && windowStatus.ttl_seconds && (
@@ -79,9 +83,9 @@ export const WindowStatusBar: React.FC = () => {
                     </span>
                 )}
 
-                {windowStatus.request_id && (
+                {windowStatus.window_id && (
                     <span className="text-xs opacity-75 font-mono">
-                        ID: {windowStatus.request_id.slice(0, 8)}...
+                        ID: {windowStatus.window_id.slice(0, 8)}...
                     </span>
                 )}
             </div>

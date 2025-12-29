@@ -51,9 +51,24 @@ class ApiClient {
             clearTimeout(timeoutId)
 
             if (!response.ok) {
+                let errorDetail = `HTTP ${response.status}`
+                try {
+                    const errorJson = await response.json()
+                    if (errorJson?.status === 'OFF_BY_POLICY') {
+                        errorDetail = errorJson.message || 'OFF_BY_POLICY'
+                        return {
+                            ok: false,
+                            data: errorJson,
+                            error: errorDetail,
+                            status: response.status,
+                        }
+                    }
+                } catch {
+                    // ignore JSON parse errors
+                }
                 return {
                     ok: false,
-                    error: `HTTP ${response.status}`,
+                    error: errorDetail,
                     status: response.status,
                 }
             }
@@ -138,13 +153,13 @@ class ApiClient {
     }
 
     // Power state endpoint (legacy, still available)
-    async powerState(): Promise<ApiResponse<any>> {
-        return this.request('GET', '/operator/power/state')
+    async windows(): Promise<ApiResponse<any>> {
+        return this.request('GET', '/operator/api/windows')
     }
 
     // Hormiguero status (optional, may be unavailable)
     async hormigueroStatus(): Promise<ApiResponse<any>> {
-        return this.request('GET', '/hormiguero/status', undefined, { timeout: 3000 })
+        return this.request('GET', '/operator/api/hormiguero/status', undefined, { timeout: 3000 })
     }
 
     // Hormiguero incidents (optional, for debug mode)
@@ -156,7 +171,7 @@ class ApiClient {
     async runP0Checks(): Promise<{
         chat_ask: boolean
         status: boolean
-        power_state: boolean
+        windows: boolean
         hormiguero_status: boolean
         results: Record<string, any>
     }> {
@@ -170,9 +185,9 @@ class ApiClient {
         results.status = statusResp.ok
         results.status_error = statusResp.error
 
-        const powerResp = await this.powerState()
-        results.power_state = powerResp.ok
-        results.power_state_error = powerResp.error
+        const windowsResp = await this.windows()
+        results.windows = windowsResp.ok
+        results.windows_error = windowsResp.error
 
         const hormigResp = await this.hormigueroStatus()
         results.hormiguero_status = hormigResp.ok
@@ -181,7 +196,7 @@ class ApiClient {
         return {
             chat_ask: results.chat_ask,
             status: results.status,
-            power_state: results.power_state,
+            windows: results.windows,
             hormiguero_status: results.hormiguero_status,
             results,
         }
