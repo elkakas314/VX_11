@@ -48,6 +48,7 @@ from tentaculo_link.clients import get_clients
 from tentaculo_link.context7_middleware import get_context7_manager
 from tentaculo_link.deepseek_client import DeepSeekClient, save_chat_to_db
 from tentaculo_link.deepseek_r1_client import get_deepseek_r1_client
+from switch.providers import get_provider  # PHASE 3: Provider registry
 from tentaculo_link import (
     routes as api_routes,
 )  # Import routes package to avoid name collision
@@ -2141,35 +2142,45 @@ async def operator_api_chat(
         except Exception as e:
             write_log("tentaculo_link", f"chat_switch_failed:{str(e)}", level="WARNING")
 
-    # Step 2: SECONDARY FALLBACK
+    # Step 2: SECONDARY FALLBACK — Try Provider Registry (DeepSeek or Mock)
     if allow_deepseek:
-        # Laboratory mode: try DeepSeek (explicit opt-in only)
+        # Laboratory mode: use provider registry (PHASE 3)
         try:
-            deepseek = DeepSeekClient()
-            await deepseek.startup()
+            # Select provider: deepseek_r1 if configured, else mock
+            provider = get_provider("deepseek_r1")
 
-            response = await asyncio.wait_for(
-                deepseek.chat(message=req.message), timeout=15.0
+            response = await provider(
+                message=req.message, correlation_id=correlation_id
             )
 
-            if response.get("status") == "ok" and response.get("text"):
-                assistant_text = response.get("text", "")
+            # Provider returns: {status, provider, content, reasoning, correlation_id, latency_ms}
+            if response.get("status") == "success":
+                assistant_text = response.get("content", "")
 
                 # Try to save to DB
-                await save_chat_to_db(
-                    session_id=session_id,
-                    user_message=req.message,
-                    assistant_response=assistant_text,
-                )
+                try:
+                    await save_chat_to_db(
+                        session_id=session_id,
+                        user_message=req.message,
+                        assistant_response=assistant_text,
+                    )
+                except Exception as db_err:
+                    write_log(
+                        "tentaculo_link",
+                        f"chat_db_save_error:{str(db_err)[:100]}",
+                        level="WARNING",
+                    )
 
                 result = {
                     "message_id": message_id,
                     "session_id": session_id,
                     "response": assistant_text,
-                    "model": response.get("model", "deepseek-chat"),
-                    "fallback_source": "deepseek_api",  # Laboratory only
+                    "model": response.get("provider", "deepseek_r1"),
+                    "fallback_source": response.get("provider", "deepseek_api"),
                     "degraded": False,
                     "correlation_id": correlation_id,
+                    "reasoning": response.get("reasoning"),
+                    "latency_ms": response.get("latency_ms"),
                 }
 
                 # Cache before returning
@@ -2185,28 +2196,35 @@ async def operator_api_chat(
 
                 write_log(
                     "tentaculo_link",
-                    f"chat_deepseek_fallback:laboratory_mode:session={session_id}",
+                    f"chat_provider_success:provider={response.get('provider')}:session={session_id}:correlation_id={correlation_id}",
                     level="INFO",
                 )
                 return result
+            else:
+                # Provider returned degraded/error status
+                write_log(
+                    "tentaculo_link",
+                    f"chat_provider_degraded:status={response.get('status')}:session={session_id}",
+                    level="WARNING",
+                )
 
         except asyncio.TimeoutError:
             write_log(
                 "tentaculo_link",
-                f"chat_deepseek_timeout:15s_exceeded:session={session_id}",
+                f"chat_provider_timeout:session={session_id}",
                 level="WARNING",
             )
-        except ValueError:
-            # DEEPSEEK_API_KEY not set
+        except ValueError as ve:
+            # Provider key not found or API key missing
             write_log(
                 "tentaculo_link",
-                f"chat_deepseek_not_configured:session={session_id}",
+                f"chat_provider_value_error:{str(ve)[:100]}:session={session_id}",
                 level="DEBUG",
             )
         except Exception as e:
             write_log(
                 "tentaculo_link",
-                f"chat_deepseek_exception:{type(e).__name__}:{str(e)[:100]}",
+                f"chat_provider_exception:{type(e).__name__}:{str(e)[:100]}:session={session_id}",
                 level="WARNING",
             )
 
