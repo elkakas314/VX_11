@@ -1983,7 +1983,11 @@ async def operator_api_modules(_: bool = Depends(token_guard)):
 
 
 @app.post("/operator/api/chat", tags=["operator-api-p0"])
-async def operator_api_chat(req: OperatorChatRequest, _: bool = Depends(token_guard)):
+async def operator_api_chat(
+    req: OperatorChatRequest,
+    x_correlation_id: Optional[str] = Header(None),
+    _: bool = Depends(token_guard),
+):
     """
     P12: Chat endpoint — SWITCH-ONLY (no DeepSeek by default).
 
@@ -1992,6 +1996,7 @@ async def operator_api_chat(req: OperatorChatRequest, _: bool = Depends(token_gu
     - Message cap: 4000 characters max
     - Cache: 60s TTL by (session_id + message_hash)
     - Timeout: 6s for switch, 2s for local LLM fallback
+    - Correlation_id: optional header, echoed in response (PHASE 3)
 
     Flow (P12):
     1. Check rate limit (return 429 if exceeded).
@@ -2007,8 +2012,12 @@ async def operator_api_chat(req: OperatorChatRequest, _: bool = Depends(token_gu
     - fallback_source: "switch_cli_copilot" | "local_llm_degraded" | "deepseek_api" (lab only)
     - model: name of model/provider used
     - degraded: boolean flag
+    - correlation_id: echoed back for traceability
     """
     import os
+
+    # Generate or use provided correlation_id
+    correlation_id = x_correlation_id or str(uuid.uuid4())
 
     session_id = req.session_id or f"session_{int(time.time())}"
     message_id = f"msg_{uuid.uuid4().hex[:8]}"
@@ -2081,6 +2090,7 @@ async def operator_api_chat(req: OperatorChatRequest, _: bool = Depends(token_gu
                     "model": cached_response.get("model"),
                     "fallback_source": cached_response.get("fallback_source"),
                     "degraded": cached_response.get("degraded", False),
+                    "correlation_id": correlation_id,
                     "cache_hit": True,
                 }
         except Exception as e:
@@ -2117,9 +2127,10 @@ async def operator_api_chat(req: OperatorChatRequest, _: bool = Depends(token_gu
 
                 write_log(
                     "tentaculo_link",
-                    f"chat_switch_success:session={session_id}:model={result.get('model')}",
+                    f"chat_switch_success:session={session_id}:correlation_id={correlation_id}:model={result.get('model')}",
                     level="INFO",
                 )
+                result["correlation_id"] = correlation_id
                 return result
         except asyncio.TimeoutError:
             write_log(
@@ -2158,6 +2169,7 @@ async def operator_api_chat(req: OperatorChatRequest, _: bool = Depends(token_gu
                     "model": response.get("model", "deepseek-chat"),
                     "fallback_source": "deepseek_api",  # Laboratory only
                     "degraded": False,
+                    "correlation_id": correlation_id,
                 }
 
                 # Cache before returning
@@ -2211,6 +2223,7 @@ async def operator_api_chat(req: OperatorChatRequest, _: bool = Depends(token_gu
             "model": "local_llm_degraded",
             "fallback_source": "local_llm_degraded",
             "degraded": True,
+            "correlation_id": correlation_id,
         }
 
         # Cache before returning
@@ -2245,6 +2258,7 @@ async def operator_api_chat(req: OperatorChatRequest, _: bool = Depends(token_gu
             "model": "none",
             "fallback_source": "error",
             "degraded": True,
+            "correlation_id": correlation_id,
         }
 
 
