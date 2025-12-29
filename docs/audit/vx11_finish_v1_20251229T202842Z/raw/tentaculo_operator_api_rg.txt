@@ -1,0 +1,37 @@
+rg -n "operator/api" tentaculo_link -S
+tentaculo_link/main_v7.py:188:    if request.url.path.startswith("/operator/api"):
+tentaculo_link/main_v7.py:1991:@app.get("/operator/api/status", tags=["operator-api-p0"])
+tentaculo_link/main_v7.py:2027:@app.get("/operator/api/modules", tags=["operator-api-p0"])
+tentaculo_link/main_v7.py:2075:@app.post("/operator/api/chat", tags=["operator-api-p0"])
+tentaculo_link/main_v7.py:2372:@app.get("/operator/api/status", tags=["operator-api-p0"])
+tentaculo_link/main_v7.py:2555:@app.get("/operator/api/events", tags=["operator-api-p0"])
+tentaculo_link/main_v7.py:2567:    - GET /operator/api/events?follow=true
+tentaculo_link/main_v7.py:2680:@app.get("/operator/api/metrics", tags=["operator-api-p0"])
+tentaculo_link/main_v7.py:2702:                "by_endpoint": {"/operator/api/chat": 120, ...},
+tentaculo_link/main_v7.py:2731:                "/operator/api/chat": 120,
+tentaculo_link/main_v7.py:2732:                "/operator/api/status": 85,
+tentaculo_link/main_v7.py:2733:                "/operator/api/events": 40,
+tentaculo_link/main_v7.py:2960:@app.post("/operator/api/assist/deepseek_r1", tags=["operator-api-codev"])
+tentaculo_link/main_v7.py:3088:@app.get("/operator/api/assist/deepseek_r1/status", tags=["operator-api-codev"])
+tentaculo_link/main_v7.py:3141:@app.post("/operator/api/chat/window/open", tags=["operator-api-powerwindows"])
+tentaculo_link/main_v7.py:3151:    POST /operator/api/chat/window/open
+tentaculo_link/main_v7.py:3258:@app.post("/operator/api/chat/window/close", tags=["operator-api-powerwindows"])
+tentaculo_link/main_v7.py:3330:@app.get("/operator/api/chat/window/status", tags=["operator-api-powerwindows"])
+tentaculo_link/main_v7.py:3387:@app.get("/operator/api/events", tags=["operator-api-p0"])
+tentaculo_link/main_v7.py:3403:@app.get("/operator/api/scorecard", tags=["operator-api-p0"])
+tentaculo_link/main_v7.py:3437:@app.get("/operator/api/health", tags=["operator-api-p0"])
+tentaculo_link/main_v7.py:3464:@app.get("/operator/api/topology", tags=["operator-api-p0"])
+tentaculo_link/main_v7.py:3534:@app.get("/operator/api/audit", tags=["operator-api-p0"])
+tentaculo_link/main_v7.py:3547:@app.get("/operator/api/audit/{run_id}", tags=["operator-api-p0"])
+tentaculo_link/main_v7.py:3559:@app.get("/operator/api/audit/{run_id}/download", tags=["operator-api-p0"])
+tentaculo_link/main_v7.py:3571:@app.get("/operator/api/settings", tags=["operator-api-p0"])
+tentaculo_link/main_v7.py:3585:@app.post("/operator/api/settings", tags=["operator-api-p0"])
+tentaculo_link/main_v7.py:3599:    "/operator/api/{path:path}",
+tentaculo_link/main_v7.py:3605:    Fallback for unmatched /operator/api/* paths.
+tentaculo_link/main_v7.py:3612:            "path": f"/operator/api/{path}",
+tentaculo_link/main_v7.py:3614:                "GET  /operator/api/status",
+tentaculo_link/main_v7.py:3615:                "GET  /operator/api/modules",
+tentaculo_link/main_v7.py:3616:                "POST /operator/api/chat",
+tentaculo_link/main_v7.py:3617:                "GET  /operator/api/events",
+tentaculo_link/main_v7.py:3618:                "GET  /operator/api/scorecard",
+tentaculo_link/main_v7.py:3619:                "GET  /operator/api/topology",

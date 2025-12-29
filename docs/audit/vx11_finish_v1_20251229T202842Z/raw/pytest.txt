@@ -1,0 +1,2461 @@
+pytest -q
+============================= test session starts ==============================
+platform linux -- Python 3.12.12, pytest-7.4.3, pluggy-1.6.0
+rootdir: /workspace/VX_11
+configfile: pytest.ini
+testpaths: tests
+plugins: cov-4.1.0, asyncio-0.21.1, anyio-3.7.1
+asyncio: mode=Mode.AUTO
+collected 359 items
+
+tests/test_all_healthchecks.py F                                         [  0%]
+tests/test_builder_sandbox_p0.py ..                                      [  0%]
+tests/test_canonical_integrity.py .....F.F                               [  3%]
+tests/test_cli_concentrator_provider_exec_mock.py .                      [  3%]
+tests/test_cli_concentrator_selection.py .....                           [  4%]
+tests/test_cli_usage_db_writes.py ....                                   [  5%]
+tests/test_context7_v7.py .........                                      [  8%]
+tests/test_db.py ss                                                      [  8%]
+tests/test_deepseek_provider.py ..............                           [ 12%]
+tests/test_e2e_workflows.py Fs                                           [ 13%]
+tests/test_fluzo_scoring_influence.py .....                              [ 14%]
+tests/test_forensics_rotate.py .                                         [ 15%]
+tests/test_frontdoor_p0_core.py FFFFFFFs.FFF                             [ 18%]
+tests/test_ga_router_tokens.py .                                         [ 18%]
+tests/test_health.py sF                                                  [ 19%]
+tests/test_health_endpoints.py F                                         [ 19%]
+tests/test_hermes_cli_detection.py .                                     [ 19%]
+tests/test_hermes_cli_registry_module.py .                               [ 20%]
+tests/test_hermes_discover_offline_fallback.py .                         [ 20%]
+tests/test_hermes_registry_db.py .                                       [ 20%]
+tests/test_hormiguero_canonical.py ...                                   [ 21%]
+tests/test_hormiguero_cpu_guardian_p0.py .........                       [ 23%]
+tests/test_hormiguero_cpu_stabilization_p0.py ............               [ 27%]
+tests/test_hormiguero_manifestator_integration.py .........              [ 29%]
+tests/test_hormiguero_min.py ...                                         [ 30%]
+tests/test_hormiguero_reina_intents_p0.py .                              [ 30%]
+tests/test_inee_basic_p0.py .....                                        [ 32%]
+tests/test_inee_cpu_gate_contract_p0.py ....                             [ 33%]
+tests/test_inee_unit_imports_p0.py ....                                  [ 34%]
+tests/test_integration_flows_e2e.py ssss                                 [ 35%]
+tests/test_leonidas_permissions.py ..                                    [ 36%]
+tests/test_madre_chat_deepseek_mock.py .......                           [ 38%]
+tests/test_madre_lane_routing_p0.py ..                                   [ 38%]
+tests/test_madre_orchestration.py ssss                                   [ 39%]
+tests/test_madre_power_manager_phase4.py ssss                            [ 40%]
+tests/test_madre_status_p0.py sssss                                      [ 42%]
+tests/test_manifestator_cpu_gate_p0.py .........                         [ 44%]
+tests/test_manifestator_rails_p0.py ......                               [ 46%]
+tests/test_no_bypass.py .F                                               [ 47%]
+tests/test_operator_api_map_status.py ......                             [ 48%]
+tests/test_operator_api_phase_4_e2e.py ....F.                            [ 50%]
+tests/test_operator_auth_policy_p0.py .....FFFF                          [ 52%]
+tests/test_operator_chat_e2e_p1.py FFFFFFFF                              [ 55%]
+tests/test_operator_chat_e2e_p1_v2.py FFFFFFFF                           [ 57%]
+tests/test_operator_chat_e2e_phase8.py FFFFFFF                           [ 59%]
+tests/test_operator_db_schema_v7.py .FFFF                                [ 60%]
+tests/test_operator_no_bypass.py .F                                      [ 61%]
+tests/test_operator_phase1_3.py FEEFEEEEEEEEEEEEEE.                      [ 66%]
+tests/test_operator_production_phase5.py xxxxxxFFFx..                    [ 69%]
+tests/test_p1_canon_autonomy.py F.sss                                    [ 71%]
+tests/test_p1_power_manager.py FFFFFsF                                   [ 73%]
+tests/test_pnp_and_switch_integration.py ......................          [ 79%]
+tests/test_power_manager.py ssF                                          [ 80%]
+tests/test_routingresult_compat.py .                                     [ 80%]
+tests/test_shubniggurath_phase8.py ..                                    [ 81%]
+tests/test_stability_p0_runner_integration.py sssssssss                  [ 83%]
+tests/test_stability_p0_runner_p0.py ................                    [ 88%]
+tests/test_stability_p0_runner_unit.py ..........................        [ 95%]
+tests/test_switch_auto.py .                                              [ 95%]
+tests/test_switch_chat_and_breaker.py ..                                 [ 96%]
+tests/test_switch_chat_lane_copilot_priority.py ...                      [ 96%]
+tests/test_switch_deepseek_staging.py .                                  [ 97%]
+tests/test_switch_hermes_canon_index.py .                                [ 97%]
+tests/test_switch_local.py .                                             [ 97%]
+tests/test_switch_registry_enqueue.py .                                  [ 98%]
+tests/test_switch_task_lane_model_pool.py .                              [ 98%]
+tests/test_switch_task_lane_queue_mock.py .                              [ 98%]
+tests/test_tentaculo_link.py ....                                        [ 99%]
+tests/test_vx11_rails_suite_p0.py .                                      [100%]
+
+==================================== ERRORS ====================================
+___________________ ERROR at setup of TestAuth.test_login_ok ___________________
+tests/test_operator_phase1_3.py:57: in operative_mode
+    import operator_backend.backend.routers.canonical_api as api_module
+E   ModuleNotFoundError: No module named 'operator_backend.backend.routers.canonical_api'; 'operator_backend.backend.routers' is not a package
+__________ ERROR at setup of TestAuth.test_login_invalid_credentials ___________
+tests/test_operator_phase1_3.py:57: in operative_mode
+    import operator_backend.backend.routers.canonical_api as api_module
+E   ModuleNotFoundError: No module named 'operator_backend.backend.routers.canonical_api'; 'operator_backend.backend.routers' is not a package
+__________ ERROR at setup of TestPolicy.test_status_ok_when_operative __________
+tests/test_operator_phase1_3.py:57: in operative_mode
+    import operator_backend.backend.routers.canonical_api as api_module
+E   ModuleNotFoundError: No module named 'operator_backend.backend.routers.canonical_api'; 'operator_backend.backend.routers' is not a package
+________________ ERROR at setup of TestEndpoints.test_status_ok ________________
+tests/test_operator_phase1_3.py:57: in operative_mode
+    import operator_backend.backend.routers.canonical_api as api_module
+E   ModuleNotFoundError: No module named 'operator_backend.backend.routers.canonical_api'; 'operator_backend.backend.routers' is not a package
+______________ ERROR at setup of TestEndpoints.test_modules_list _______________
+tests/test_operator_phase1_3.py:57: in operative_mode
+    import operator_backend.backend.routers.canonical_api as api_module
+E   ModuleNotFoundError: No module named 'operator_backend.backend.routers.canonical_api'; 'operator_backend.backend.routers' is not a package
+________________ ERROR at setup of TestEndpoints.test_chat_post ________________
+tests/test_operator_phase1_3.py:57: in operative_mode
+    import operator_backend.backend.routers.canonical_api as api_module
+E   ModuleNotFoundError: No module named 'operator_backend.backend.routers.canonical_api'; 'operator_backend.backend.routers' is not a package
+____________ ERROR at setup of TestEndpoints.test_restart_module_ok ____________
+tests/test_operator_phase1_3.py:57: in operative_mode
+    import operator_backend.backend.routers.canonical_api as api_module
+E   ModuleNotFoundError: No module named 'operator_backend.backend.routers.canonical_api'; 'operator_backend.backend.routers' is not a package
+_______ ERROR at setup of TestEndpoints.test_restart_module_invalid_name _______
+tests/test_operator_phase1_3.py:57: in operative_mode
+    import operator_backend.backend.routers.canonical_api as api_module
+E   ModuleNotFoundError: No module named 'operator_backend.backend.routers.canonical_api'; 'operator_backend.backend.routers' is not a package
+________ ERROR at setup of TestEndpoints.test_download_audit_not_found _________
+tests/test_operator_phase1_3.py:57: in operative_mode
+    import operator_backend.backend.routers.canonical_api as api_module
+E   ModuleNotFoundError: No module named 'operator_backend.backend.routers.canonical_api'; 'operator_backend.backend.routers' is not a package
+________________ ERROR at setup of TestEndpoints.test_logout_ok ________________
+tests/test_operator_phase1_3.py:57: in operative_mode
+    import operator_backend.backend.routers.canonical_api as api_module
+E   ModuleNotFoundError: No module named 'operator_backend.backend.routers.canonical_api'; 'operator_backend.backend.routers' is not a package
+_____________ ERROR at setup of TestEndpoints.test_verify_token_ok _____________
+tests/test_operator_phase1_3.py:57: in operative_mode
+    import operator_backend.backend.routers.canonical_api as api_module
+E   ModuleNotFoundError: No module named 'operator_backend.backend.routers.canonical_api'; 'operator_backend.backend.routers' is not a package
+_______________ ERROR at setup of TestEndpoints.test_audit_list ________________
+tests/test_operator_phase1_3.py:57: in operative_mode
+    import operator_backend.backend.routers.canonical_api as api_module
+E   ModuleNotFoundError: No module named 'operator_backend.backend.routers.canonical_api'; 'operator_backend.backend.routers' is not a package
+_____________ ERROR at setup of TestEndpoints.test_power_up_module _____________
+tests/test_operator_phase1_3.py:57: in operative_mode
+    import operator_backend.backend.routers.canonical_api as api_module
+E   ModuleNotFoundError: No module named 'operator_backend.backend.routers.canonical_api'; 'operator_backend.backend.routers' is not a package
+____________ ERROR at setup of TestEndpoints.test_power_down_module ____________
+tests/test_operator_phase1_3.py:57: in operative_mode
+    import operator_backend.backend.routers.canonical_api as api_module
+E   ModuleNotFoundError: No module named 'operator_backend.backend.routers.canonical_api'; 'operator_backend.backend.routers' is not a package
+________________ ERROR at setup of TestEndpoints.test_jobs_list ________________
+tests/test_operator_phase1_3.py:57: in operative_mode
+    import operator_backend.backend.routers.canonical_api as api_module
+E   ModuleNotFoundError: No module named 'operator_backend.backend.routers.canonical_api'; 'operator_backend.backend.routers' is not a package
+__________ ERROR at setup of TestEndpoints.test_jobs_detail_not_found __________
+tests/test_operator_phase1_3.py:57: in operative_mode
+    import operator_backend.backend.routers.canonical_api as api_module
+E   ModuleNotFoundError: No module named 'operator_backend.backend.routers.canonical_api'; 'operator_backend.backend.routers' is not a package
+=================================== FAILURES ===================================
+_______________________________ test_health_all ________________________________
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connection.py:204: in _new_conn
+    sock = connection.create_connection(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/util/connection.py:85: in create_connection
+    raise err
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/util/connection.py:73: in create_connection
+    sock.connect(sa)
+E   ConnectionRefusedError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connectionpool.py:787: in urlopen
+    response = self._make_request(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connectionpool.py:493: in _make_request
+    conn.request(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connection.py:500: in request
+    self.endheaders()
+/root/.pyenv/versions/3.12.12/lib/python3.12/http/client.py:1333: in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+/root/.pyenv/versions/3.12.12/lib/python3.12/http/client.py:1093: in _send_output
+    self.send(msg)
+/root/.pyenv/versions/3.12.12/lib/python3.12/http/client.py:1037: in send
+    self.connect()
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connection.py:331: in connect
+    self.sock = self._new_conn()
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connection.py:219: in _new_conn
+    raise NewConnectionError(
+E   urllib3.exceptions.NewConnectionError: HTTPConnection(host='127.0.0.1', port=8000): Failed to establish a new connection: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/adapters.py:486: in send
+    resp = conn.urlopen(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connectionpool.py:841: in urlopen
+    retries = retries.increment(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/util/retry.py:519: in increment
+    raise MaxRetryError(_pool, url, reason) from reason  # type: ignore[arg-type]
+E   urllib3.exceptions.MaxRetryError: HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /health (Caused by NewConnectionError("HTTPConnection(host='127.0.0.1', port=8000): Failed to establish a new connection: [Errno 111] Connection refused"))
+
+During handling of the above exception, another exception occurred:
+tests/test_all_healthchecks.py:22: in test_health_all
+    r = requests.get(f"http://127.0.0.1:{port}/health", timeout=2)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/api.py:73: in get
+    return request("get", url, params=params, **kwargs)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/api.py:59: in request
+    return session.request(method=method, url=url, **kwargs)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/sessions.py:589: in request
+    resp = self.send(prep, **send_kwargs)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/sessions.py:703: in send
+    r = adapter.send(request, **kwargs)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/adapters.py:519: in send
+    raise ConnectionError(e, request=request)
+E   requests.exceptions.ConnectionError: HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /health (Caused by NewConnectionError("HTTPConnection(host='127.0.0.1', port=8000): Failed to establish a new connection: [Errno 111] Connection refused"))
+
+During handling of the above exception, another exception occurred:
+tests/test_all_healthchecks.py:24: in test_health_all
+    raise AssertionError(f"{name} no respondió: {e}")
+E   AssertionError: tentaculo_link no respondió: HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /health (Caused by NewConnectionError("HTTPConnection(host='127.0.0.1', port=8000): Failed to establish a new connection: [Errno 111] Connection refused"))
+____________________ test_attic_files_listed_in_fs_snapshot ____________________
+tests/test_canonical_integrity.py:128: in test_attic_files_listed_in_fs_snapshot
+    assert (
+E   AssertionError: Los siguientes archivos canonizables de attic faltan en CANONICAL_FS: ['attic/test_e2e_hardening.py', 'attic/test_events_infinite_stream.py']
+E   assert not ['attic/test_e2e_hardening.py', 'attic/test_events_infinite_stream.py']
+_______________________ test_target_allowed_roots_exist ________________________
+tests/test_canonical_integrity.py:173: in test_target_allowed_roots_exist
+    assert not missing, f"Allowed roots faltantes: {missing}"
+E   AssertionError: Allowed roots faltantes: ['build', 'models']
+E   assert not ['build', 'models']
+_____________ test_e2e_1_full_workflow_boot_scale_policy_ondemand ______________
+tests/test_e2e_workflows.py:36: in test_e2e_1_full_workflow_boot_scale_policy_ondemand
+    output = subprocess.check_output(
+/root/.pyenv/versions/3.12.12/lib/python3.12/subprocess.py:466: in check_output
+    return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,
+/root/.pyenv/versions/3.12.12/lib/python3.12/subprocess.py:571: in run
+    raise CalledProcessError(retcode, process.args,
+E   subprocess.CalledProcessError: Command 'docker ps --format '{{.Names}}'' returned non-zero exit status 127.
+----------------------------- Captured stderr call -----------------------------
+/bin/sh: 1: docker: not found
+______________________ TestFrontDoorHealth.test_health_ok ______________________
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_exceptions.py:10: in map_exceptions
+    yield
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_backends/sync.py:212: in connect_tcp
+    sock = socket.create_connection(
+/root/.pyenv/versions/3.12.12/lib/python3.12/socket.py:865: in create_connection
+    raise exceptions[0]
+/root/.pyenv/versions/3.12.12/lib/python3.12/socket.py:850: in create_connection
+    sock.connect(sa)
+E   ConnectionRefusedError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:66: in map_httpcore_exceptions
+    yield
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:228: in handle_request
+    resp = self._pool.handle_request(req)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py:262: in handle_request
+    raise exc
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py:245: in handle_request
+    response = connection.handle_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:99: in handle_request
+    raise exc
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:76: in handle_request
+    stream = self._connect(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:124: in _connect
+    stream = self._network_backend.connect_tcp(**kwargs)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_backends/sync.py:211: in connect_tcp
+    with map_exceptions(exc_map):
+/root/.pyenv/versions/3.12.12/lib/python3.12/contextlib.py:158: in __exit__
+    self.gen.throw(value)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_exceptions.py:14: in map_exceptions
+    raise to_exc(exc) from exc
+E   httpcore.ConnectError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+tests/test_frontdoor_p0_core.py:82: in test_health_ok
+    resp = http_client.get(f"{base_url}/health")
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:1041: in get
+    return self.request(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:814: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:901: in send
+    response = self._send_handling_auth(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:929: in _send_handling_auth
+    response = self._send_handling_redirects(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:966: in _send_handling_redirects
+    response = self._send_single_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:1002: in _send_single_request
+    response = transport.handle_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:227: in handle_request
+    with map_httpcore_exceptions():
+/root/.pyenv/versions/3.12.12/lib/python3.12/contextlib.py:158: in __exit__
+    self.gen.throw(value)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:83: in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+E   httpx.ConnectError: [Errno 111] Connection refused
+___________________ TestFrontDoorHealth.test_openapi_exists ____________________
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_exceptions.py:10: in map_exceptions
+    yield
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_backends/sync.py:212: in connect_tcp
+    sock = socket.create_connection(
+/root/.pyenv/versions/3.12.12/lib/python3.12/socket.py:865: in create_connection
+    raise exceptions[0]
+/root/.pyenv/versions/3.12.12/lib/python3.12/socket.py:850: in create_connection
+    sock.connect(sa)
+E   ConnectionRefusedError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:66: in map_httpcore_exceptions
+    yield
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:228: in handle_request
+    resp = self._pool.handle_request(req)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py:262: in handle_request
+    raise exc
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py:245: in handle_request
+    response = connection.handle_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:99: in handle_request
+    raise exc
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:76: in handle_request
+    stream = self._connect(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:124: in _connect
+    stream = self._network_backend.connect_tcp(**kwargs)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_backends/sync.py:211: in connect_tcp
+    with map_exceptions(exc_map):
+/root/.pyenv/versions/3.12.12/lib/python3.12/contextlib.py:158: in __exit__
+    self.gen.throw(value)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_exceptions.py:14: in map_exceptions
+    raise to_exc(exc) from exc
+E   httpcore.ConnectError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+tests/test_frontdoor_p0_core.py:90: in test_openapi_exists
+    resp = http_client.get(f"{base_url}/openapi.json")
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:1041: in get
+    return self.request(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:814: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:901: in send
+    response = self._send_handling_auth(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:929: in _send_handling_auth
+    response = self._send_handling_redirects(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:966: in _send_handling_redirects
+    response = self._send_single_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:1002: in _send_single_request
+    response = transport.handle_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:227: in handle_request
+    with map_httpcore_exceptions():
+/root/.pyenv/versions/3.12.12/lib/python3.12/contextlib.py:158: in __exit__
+    self.gen.throw(value)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:83: in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+E   httpx.ConnectError: [Errno 111] Connection refused
+__________ TestHermesGetEngineAuth.test_get_engine_without_token_401 ___________
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_exceptions.py:10: in map_exceptions
+    yield
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_backends/sync.py:212: in connect_tcp
+    sock = socket.create_connection(
+/root/.pyenv/versions/3.12.12/lib/python3.12/socket.py:865: in create_connection
+    raise exceptions[0]
+/root/.pyenv/versions/3.12.12/lib/python3.12/socket.py:850: in create_connection
+    sock.connect(sa)
+E   ConnectionRefusedError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:66: in map_httpcore_exceptions
+    yield
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:228: in handle_request
+    resp = self._pool.handle_request(req)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py:262: in handle_request
+    raise exc
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py:245: in handle_request
+    response = connection.handle_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:99: in handle_request
+    raise exc
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:76: in handle_request
+    stream = self._connect(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:124: in _connect
+    stream = self._network_backend.connect_tcp(**kwargs)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_backends/sync.py:211: in connect_tcp
+    with map_exceptions(exc_map):
+/root/.pyenv/versions/3.12.12/lib/python3.12/contextlib.py:158: in __exit__
+    self.gen.throw(value)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_exceptions.py:14: in map_exceptions
+    raise to_exc(exc) from exc
+E   httpcore.ConnectError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+tests/test_frontdoor_p0_core.py:111: in test_get_engine_without_token_401
+    resp = http_client.post(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:1132: in post
+    return self.request(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:814: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:901: in send
+    response = self._send_handling_auth(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:929: in _send_handling_auth
+    response = self._send_handling_redirects(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:966: in _send_handling_redirects
+    response = self._send_single_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:1002: in _send_single_request
+    response = transport.handle_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:227: in handle_request
+    with map_httpcore_exceptions():
+/root/.pyenv/versions/3.12.12/lib/python3.12/contextlib.py:158: in __exit__
+    self.gen.throw(value)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:83: in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+E   httpx.ConnectError: [Errno 111] Connection refused
+____________ TestHermesGetEngineAuth.test_get_engine_with_token_200 ____________
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_exceptions.py:10: in map_exceptions
+    yield
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_backends/sync.py:212: in connect_tcp
+    sock = socket.create_connection(
+/root/.pyenv/versions/3.12.12/lib/python3.12/socket.py:865: in create_connection
+    raise exceptions[0]
+/root/.pyenv/versions/3.12.12/lib/python3.12/socket.py:850: in create_connection
+    sock.connect(sa)
+E   ConnectionRefusedError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:66: in map_httpcore_exceptions
+    yield
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:228: in handle_request
+    resp = self._pool.handle_request(req)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py:262: in handle_request
+    raise exc
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py:245: in handle_request
+    response = connection.handle_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:99: in handle_request
+    raise exc
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:76: in handle_request
+    stream = self._connect(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:124: in _connect
+    stream = self._network_backend.connect_tcp(**kwargs)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_backends/sync.py:211: in connect_tcp
+    with map_exceptions(exc_map):
+/root/.pyenv/versions/3.12.12/lib/python3.12/contextlib.py:158: in __exit__
+    self.gen.throw(value)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_exceptions.py:14: in map_exceptions
+    raise to_exc(exc) from exc
+E   httpcore.ConnectError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+tests/test_frontdoor_p0_core.py:119: in test_get_engine_with_token_200
+    resp = http_client.post(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:1132: in post
+    return self.request(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:814: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:901: in send
+    response = self._send_handling_auth(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:929: in _send_handling_auth
+    response = self._send_handling_redirects(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:966: in _send_handling_redirects
+    response = self._send_single_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:1002: in _send_single_request
+    response = transport.handle_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:227: in handle_request
+    with map_httpcore_exceptions():
+/root/.pyenv/versions/3.12.12/lib/python3.12/contextlib.py:158: in __exit__
+    self.gen.throw(value)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:83: in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+E   httpx.ConnectError: [Errno 111] Connection refused
+________ TestHermesGetEngineAuth.test_get_engine_missing_engine_id_422 _________
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_exceptions.py:10: in map_exceptions
+    yield
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_backends/sync.py:212: in connect_tcp
+    sock = socket.create_connection(
+/root/.pyenv/versions/3.12.12/lib/python3.12/socket.py:865: in create_connection
+    raise exceptions[0]
+/root/.pyenv/versions/3.12.12/lib/python3.12/socket.py:850: in create_connection
+    sock.connect(sa)
+E   ConnectionRefusedError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:66: in map_httpcore_exceptions
+    yield
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:228: in handle_request
+    resp = self._pool.handle_request(req)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py:262: in handle_request
+    raise exc
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py:245: in handle_request
+    response = connection.handle_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:99: in handle_request
+    raise exc
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:76: in handle_request
+    stream = self._connect(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:124: in _connect
+    stream = self._network_backend.connect_tcp(**kwargs)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_backends/sync.py:211: in connect_tcp
+    with map_exceptions(exc_map):
+/root/.pyenv/versions/3.12.12/lib/python3.12/contextlib.py:158: in __exit__
+    self.gen.throw(value)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_exceptions.py:14: in map_exceptions
+    raise to_exc(exc) from exc
+E   httpcore.ConnectError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+tests/test_frontdoor_p0_core.py:131: in test_get_engine_missing_engine_id_422
+    resp = http_client.post(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:1132: in post
+    return self.request(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:814: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:901: in send
+    response = self._send_handling_auth(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:929: in _send_handling_auth
+    response = self._send_handling_redirects(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:966: in _send_handling_redirects
+    response = self._send_single_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:1002: in _send_single_request
+    response = transport.handle_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:227: in handle_request
+    with map_httpcore_exceptions():
+/root/.pyenv/versions/3.12.12/lib/python3.12/contextlib.py:158: in __exit__
+    self.gen.throw(value)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:83: in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+E   httpx.ConnectError: [Errno 111] Connection refused
+_____________ TestHermesExecuteAuth.test_execute_without_token_401 _____________
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_exceptions.py:10: in map_exceptions
+    yield
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_backends/sync.py:212: in connect_tcp
+    sock = socket.create_connection(
+/root/.pyenv/versions/3.12.12/lib/python3.12/socket.py:865: in create_connection
+    raise exceptions[0]
+/root/.pyenv/versions/3.12.12/lib/python3.12/socket.py:850: in create_connection
+    sock.connect(sa)
+E   ConnectionRefusedError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:66: in map_httpcore_exceptions
+    yield
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:228: in handle_request
+    resp = self._pool.handle_request(req)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py:262: in handle_request
+    raise exc
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py:245: in handle_request
+    response = connection.handle_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:99: in handle_request
+    raise exc
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:76: in handle_request
+    stream = self._connect(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:124: in _connect
+    stream = self._network_backend.connect_tcp(**kwargs)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_backends/sync.py:211: in connect_tcp
+    with map_exceptions(exc_map):
+/root/.pyenv/versions/3.12.12/lib/python3.12/contextlib.py:158: in __exit__
+    self.gen.throw(value)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_exceptions.py:14: in map_exceptions
+    raise to_exc(exc) from exc
+E   httpcore.ConnectError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+tests/test_frontdoor_p0_core.py:144: in test_execute_without_token_401
+    resp = http_client.post(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:1132: in post
+    return self.request(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:814: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:901: in send
+    response = self._send_handling_auth(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:929: in _send_handling_auth
+    response = self._send_handling_redirects(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:966: in _send_handling_redirects
+    response = self._send_single_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:1002: in _send_single_request
+    response = transport.handle_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:227: in handle_request
+    with map_httpcore_exceptions():
+/root/.pyenv/versions/3.12.12/lib/python3.12/contextlib.py:158: in __exit__
+    self.gen.throw(value)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:83: in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+E   httpx.ConnectError: [Errno 111] Connection refused
+______________ TestHermesExecuteAuth.test_execute_with_token_200 _______________
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_exceptions.py:10: in map_exceptions
+    yield
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_backends/sync.py:212: in connect_tcp
+    sock = socket.create_connection(
+/root/.pyenv/versions/3.12.12/lib/python3.12/socket.py:865: in create_connection
+    raise exceptions[0]
+/root/.pyenv/versions/3.12.12/lib/python3.12/socket.py:850: in create_connection
+    sock.connect(sa)
+E   ConnectionRefusedError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:66: in map_httpcore_exceptions
+    yield
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:228: in handle_request
+    resp = self._pool.handle_request(req)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py:262: in handle_request
+    raise exc
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py:245: in handle_request
+    response = connection.handle_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:99: in handle_request
+    raise exc
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:76: in handle_request
+    stream = self._connect(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:124: in _connect
+    stream = self._network_backend.connect_tcp(**kwargs)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_backends/sync.py:211: in connect_tcp
+    with map_exceptions(exc_map):
+/root/.pyenv/versions/3.12.12/lib/python3.12/contextlib.py:158: in __exit__
+    self.gen.throw(value)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_exceptions.py:14: in map_exceptions
+    raise to_exc(exc) from exc
+E   httpcore.ConnectError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+tests/test_frontdoor_p0_core.py:152: in test_execute_with_token_200
+    resp = http_client.post(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:1132: in post
+    return self.request(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:814: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:901: in send
+    response = self._send_handling_auth(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:929: in _send_handling_auth
+    response = self._send_handling_redirects(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:966: in _send_handling_redirects
+    response = self._send_single_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:1002: in _send_single_request
+    response = transport.handle_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:227: in handle_request
+    with map_httpcore_exceptions():
+/root/.pyenv/versions/3.12.12/lib/python3.12/contextlib.py:158: in __exit__
+    self.gen.throw(value)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:83: in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+E   httpx.ConnectError: [Errno 111] Connection refused
+______________ TestTokenChain.test_token_reaches_hermes_via_proxy ______________
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_exceptions.py:10: in map_exceptions
+    yield
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_backends/sync.py:212: in connect_tcp
+    sock = socket.create_connection(
+/root/.pyenv/versions/3.12.12/lib/python3.12/socket.py:865: in create_connection
+    raise exceptions[0]
+/root/.pyenv/versions/3.12.12/lib/python3.12/socket.py:850: in create_connection
+    sock.connect(sa)
+E   ConnectionRefusedError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:66: in map_httpcore_exceptions
+    yield
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:228: in handle_request
+    resp = self._pool.handle_request(req)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py:262: in handle_request
+    raise exc
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py:245: in handle_request
+    response = connection.handle_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:99: in handle_request
+    raise exc
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:76: in handle_request
+    stream = self._connect(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:124: in _connect
+    stream = self._network_backend.connect_tcp(**kwargs)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_backends/sync.py:211: in connect_tcp
+    with map_exceptions(exc_map):
+/root/.pyenv/versions/3.12.12/lib/python3.12/contextlib.py:158: in __exit__
+    self.gen.throw(value)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_exceptions.py:14: in map_exceptions
+    raise to_exc(exc) from exc
+E   httpcore.ConnectError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+tests/test_frontdoor_p0_core.py:185: in test_token_reaches_hermes_via_proxy
+    resp = http_client.post(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:1132: in post
+    return self.request(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:814: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:901: in send
+    response = self._send_handling_auth(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:929: in _send_handling_auth
+    response = self._send_handling_redirects(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:966: in _send_handling_redirects
+    response = self._send_single_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:1002: in _send_single_request
+    response = transport.handle_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:227: in handle_request
+    with map_httpcore_exceptions():
+/root/.pyenv/versions/3.12.12/lib/python3.12/contextlib.py:158: in __exit__
+    self.gen.throw(value)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:83: in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+E   httpx.ConnectError: [Errno 111] Connection refused
+____________ TestOpenAPIContracts.test_hermes_endpoints_in_openapi _____________
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_exceptions.py:10: in map_exceptions
+    yield
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_backends/sync.py:212: in connect_tcp
+    sock = socket.create_connection(
+/root/.pyenv/versions/3.12.12/lib/python3.12/socket.py:865: in create_connection
+    raise exceptions[0]
+/root/.pyenv/versions/3.12.12/lib/python3.12/socket.py:850: in create_connection
+    sock.connect(sa)
+E   ConnectionRefusedError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:66: in map_httpcore_exceptions
+    yield
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:228: in handle_request
+    resp = self._pool.handle_request(req)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py:262: in handle_request
+    raise exc
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py:245: in handle_request
+    response = connection.handle_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:99: in handle_request
+    raise exc
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:76: in handle_request
+    stream = self._connect(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:124: in _connect
+    stream = self._network_backend.connect_tcp(**kwargs)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_backends/sync.py:211: in connect_tcp
+    with map_exceptions(exc_map):
+/root/.pyenv/versions/3.12.12/lib/python3.12/contextlib.py:158: in __exit__
+    self.gen.throw(value)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_exceptions.py:14: in map_exceptions
+    raise to_exc(exc) from exc
+E   httpcore.ConnectError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+tests/test_frontdoor_p0_core.py:206: in test_hermes_endpoints_in_openapi
+    resp = http_client.get(f"{base_url}/openapi.json")
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:1041: in get
+    return self.request(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:814: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:901: in send
+    response = self._send_handling_auth(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:929: in _send_handling_auth
+    response = self._send_handling_redirects(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:966: in _send_handling_redirects
+    response = self._send_single_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:1002: in _send_single_request
+    response = transport.handle_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:227: in handle_request
+    with map_httpcore_exceptions():
+/root/.pyenv/versions/3.12.12/lib/python3.12/contextlib.py:158: in __exit__
+    self.gen.throw(value)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:83: in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+E   httpx.ConnectError: [Errno 111] Connection refused
+_______ TestOpenAPIContracts.test_hermes_endpoints_have_auth_requirement _______
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_exceptions.py:10: in map_exceptions
+    yield
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_backends/sync.py:212: in connect_tcp
+    sock = socket.create_connection(
+/root/.pyenv/versions/3.12.12/lib/python3.12/socket.py:865: in create_connection
+    raise exceptions[0]
+/root/.pyenv/versions/3.12.12/lib/python3.12/socket.py:850: in create_connection
+    sock.connect(sa)
+E   ConnectionRefusedError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:66: in map_httpcore_exceptions
+    yield
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:228: in handle_request
+    resp = self._pool.handle_request(req)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py:262: in handle_request
+    raise exc
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py:245: in handle_request
+    response = connection.handle_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:99: in handle_request
+    raise exc
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:76: in handle_request
+    stream = self._connect(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:124: in _connect
+    stream = self._network_backend.connect_tcp(**kwargs)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_backends/sync.py:211: in connect_tcp
+    with map_exceptions(exc_map):
+/root/.pyenv/versions/3.12.12/lib/python3.12/contextlib.py:158: in __exit__
+    self.gen.throw(value)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_exceptions.py:14: in map_exceptions
+    raise to_exc(exc) from exc
+E   httpcore.ConnectError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+tests/test_frontdoor_p0_core.py:221: in test_hermes_endpoints_have_auth_requirement
+    resp = http_client.get(f"{base_url}/openapi.json")
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:1041: in get
+    return self.request(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:814: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:901: in send
+    response = self._send_handling_auth(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:929: in _send_handling_auth
+    response = self._send_handling_redirects(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:966: in _send_handling_redirects
+    response = self._send_single_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:1002: in _send_single_request
+    response = transport.handle_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:227: in handle_request
+    with map_httpcore_exceptions():
+/root/.pyenv/versions/3.12.12/lib/python3.12/contextlib.py:158: in __exit__
+    self.gen.throw(value)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:83: in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+E   httpx.ConnectError: [Errno 111] Connection refused
+_________________________ test_p0_4_redis_connectivity _________________________
+tests/test_health.py:46: in test_p0_4_redis_connectivity
+    assert result == 0, f"Redis not accessible on port {redis_port}"
+E   AssertionError: Redis not accessible on port 6379
+E   assert 111 == 0
+____________________________ test_health_endpoints _____________________________
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connection.py:204: in _new_conn
+    sock = connection.create_connection(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/util/connection.py:85: in create_connection
+    raise err
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/util/connection.py:73: in create_connection
+    sock.connect(sa)
+E   ConnectionRefusedError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connectionpool.py:787: in urlopen
+    response = self._make_request(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connectionpool.py:493: in _make_request
+    conn.request(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connection.py:500: in request
+    self.endheaders()
+/root/.pyenv/versions/3.12.12/lib/python3.12/http/client.py:1333: in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+/root/.pyenv/versions/3.12.12/lib/python3.12/http/client.py:1093: in _send_output
+    self.send(msg)
+/root/.pyenv/versions/3.12.12/lib/python3.12/http/client.py:1037: in send
+    self.connect()
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connection.py:331: in connect
+    self.sock = self._new_conn()
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connection.py:219: in _new_conn
+    raise NewConnectionError(
+E   urllib3.exceptions.NewConnectionError: HTTPConnection(host='127.0.0.1', port=8006): Failed to establish a new connection: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/adapters.py:486: in send
+    resp = conn.urlopen(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connectionpool.py:841: in urlopen
+    retries = retries.increment(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/util/retry.py:519: in increment
+    raise MaxRetryError(_pool, url, reason) from reason  # type: ignore[arg-type]
+E   urllib3.exceptions.MaxRetryError: HTTPConnectionPool(host='127.0.0.1', port=8006): Max retries exceeded with url: /health (Caused by NewConnectionError("HTTPConnection(host='127.0.0.1', port=8006): Failed to establish a new connection: [Errno 111] Connection refused"))
+
+During handling of the above exception, another exception occurred:
+tests/test_health_endpoints.py:15: in test_health_endpoints
+    r = requests.get(url)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/api.py:73: in get
+    return request("get", url, params=params, **kwargs)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/api.py:59: in request
+    return session.request(method=method, url=url, **kwargs)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/sessions.py:589: in request
+    resp = self.send(prep, **send_kwargs)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/sessions.py:703: in send
+    r = adapter.send(request, **kwargs)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/adapters.py:519: in send
+    raise ConnectionError(e, request=request)
+E   requests.exceptions.ConnectionError: HTTPConnectionPool(host='127.0.0.1', port=8006): Max retries exceeded with url: /health (Caused by NewConnectionError("HTTPConnection(host='127.0.0.1', port=8006): Failed to establish a new connection: [Errno 111] Connection refused"))
+_______________________ test_no_bypass_backend_hardcoded _______________________
+tests/test_no_bypass.py:104: in test_no_bypass_backend_hardcoded
+    pytest.fail(
+E   Failed: ❌ DIRECT CALL DETECTED: Pattern 'http://madre:8001' in backend code:
+E   operator_backend/backend/chat_router.py:MADRE_BASE_URL = "http://madre:8001"
+_________________ TestDatabaseSchema.test_colony_schema_exists _________________
+tests/test_operator_api_phase_4_e2e.py:93: in test_colony_schema_exists
+    assert len(tables) > 0, "No inee_* tables found"
+E   AssertionError: No inee_* tables found
+E   assert 0 > 0
+E    +  where 0 = len([])
+________________________ test_api_map_schema_validation ________________________
+tests/test_operator_auth_policy_p0.py:164: in test_api_map_schema_validation
+    assert canonical_node in node_ids, f"Missing canonical node: {canonical_node}"
+E   AssertionError: Missing canonical node: operator_backend
+E   assert 'operator_backend' in ['madre', 'tentaculo_link', 'redis', 'switch', 'hormiguero', 'shubniggurath']
+________________________ test_auth_mode_defaults_to_off ________________________
+tests/test_operator_auth_policy_p0.py:186: in test_auth_mode_defaults_to_off
+    assert response.status_code == 200
+E   assert 401 == 200
+E    +  where 401 = <Response [401 Unauthorized]>.status_code
+______________________ test_api_map_polling_compatibility ______________________
+tests/test_operator_auth_policy_p0.py:209: in test_api_map_polling_compatibility
+    assert abs(services_up - nodes_up) <= 1
+E   assert 3 <= 1
+E    +  where 3 = abs((3 - 0))
+___________________ test_api_map_single_entrypoint_topology ____________________
+tests/test_operator_auth_policy_p0.py:228: in test_api_map_single_entrypoint_topology
+    assert ("operator_backend", "tentaculo_link") in edges
+E   AssertionError: assert ('operator_backend', 'tentaculo_link') in {('madre', 'hormiguero'): 'policy', ('madre', 'shubniggurath'): 'policy', ('switch', 'redis'): 'session', ('tentaculo_link', 'madre'): 'control', ...}
+_____________ TestOperatorChatE2E.test_01_operator_backend_health ______________
+tests/test_operator_chat_e2e_p1.py:36: in test_01_operator_backend_health
+    resp = client.get(f"{self.BASE_OPERATOR}/health", headers=self.HEADERS)
+E   AttributeError: 'TestOperatorChatE2E' object has no attribute 'HEADERS'. Did you mean: 'HEADERS_1'?
+_______________ TestOperatorChatE2E.test_02_operator_api_status ________________
+tests/test_operator_chat_e2e_p1.py:45: in test_02_operator_api_status
+    resp = client.get(f"{self.BASE_OPERATOR}/api/status", headers=self.HEADERS)
+E   AttributeError: 'TestOperatorChatE2E' object has no attribute 'HEADERS'. Did you mean: 'HEADERS_1'?
+__________ TestOperatorChatE2E.test_03_tentaculo_operator_chat_exists __________
+tests/test_operator_chat_e2e_p1.py:64: in test_03_tentaculo_operator_chat_exists
+    headers=self.HEADERS,
+E   AttributeError: 'TestOperatorChatE2E' object has no attribute 'HEADERS'. Did you mean: 'HEADERS_1'?
+____________ TestOperatorChatE2E.test_04_operator_api_chat_endpoint ____________
+tests/test_operator_chat_e2e_p1.py:87: in test_04_operator_api_chat_endpoint
+    headers=self.HEADERS,
+E   AttributeError: 'TestOperatorChatE2E' object has no attribute 'HEADERS'. Did you mean: 'HEADERS_1'?
+_______________ TestOperatorChatE2E.test_05_madre_chat_endpoint ________________
+tests/test_operator_chat_e2e_p1.py:105: in test_05_madre_chat_endpoint
+    headers=self.HEADERS,
+E   AttributeError: 'TestOperatorChatE2E' object has no attribute 'HEADERS'. Did you mean: 'HEADERS_1'?
+________________ TestOperatorChatE2E.test_06_payload_validation ________________
+tests/test_operator_chat_e2e_p1.py:121: in test_06_payload_validation
+    headers=self.HEADERS,
+E   AttributeError: 'TestOperatorChatE2E' object has no attribute 'HEADERS'. Did you mean: 'HEADERS_1'?
+_______________ TestOperatorChatE2E.test_07_session_correlation ________________
+tests/test_operator_chat_e2e_p1.py:141: in test_07_session_correlation
+    headers=self.HEADERS,
+E   AttributeError: 'TestOperatorChatE2E' object has no attribute 'HEADERS'. Did you mean: 'HEADERS_1'?
+___________ TestOperatorChatE2E.test_08_tentaculo_fallback_detection ___________
+tests/test_operator_chat_e2e_p1.py:160: in test_08_tentaculo_fallback_detection
+    headers=self.HEADERS,
+E   AttributeError: 'TestOperatorChatE2E' object has no attribute 'HEADERS'. Did you mean: 'HEADERS_1'?
+_____________ TestOperatorChatE2E.test_01_operator_backend_health ______________
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_exceptions.py:10: in map_exceptions
+    yield
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_backends/sync.py:212: in connect_tcp
+    sock = socket.create_connection(
+/root/.pyenv/versions/3.12.12/lib/python3.12/socket.py:865: in create_connection
+    raise exceptions[0]
+/root/.pyenv/versions/3.12.12/lib/python3.12/socket.py:850: in create_connection
+    sock.connect(sa)
+E   ConnectionRefusedError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:66: in map_httpcore_exceptions
+    yield
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:228: in handle_request
+    resp = self._pool.handle_request(req)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py:262: in handle_request
+    raise exc
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py:245: in handle_request
+    response = connection.handle_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:99: in handle_request
+    raise exc
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:76: in handle_request
+    stream = self._connect(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:124: in _connect
+    stream = self._network_backend.connect_tcp(**kwargs)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_backends/sync.py:211: in connect_tcp
+    with map_exceptions(exc_map):
+/root/.pyenv/versions/3.12.12/lib/python3.12/contextlib.py:158: in __exit__
+    self.gen.throw(value)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_exceptions.py:14: in map_exceptions
+    raise to_exc(exc) from exc
+E   httpcore.ConnectError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+tests/test_operator_chat_e2e_p1_v2.py:30: in test_01_operator_backend_health
+    resp = client.get(f"{self.BASE_OPERATOR}/health")
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:1041: in get
+    return self.request(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:814: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:901: in send
+    response = self._send_handling_auth(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:929: in _send_handling_auth
+    response = self._send_handling_redirects(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:966: in _send_handling_redirects
+    response = self._send_single_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:1002: in _send_single_request
+    response = transport.handle_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:227: in handle_request
+    with map_httpcore_exceptions():
+/root/.pyenv/versions/3.12.12/lib/python3.12/contextlib.py:158: in __exit__
+    self.gen.throw(value)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:83: in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+E   httpx.ConnectError: [Errno 111] Connection refused
+_______________ TestOperatorChatE2E.test_02_operator_api_status ________________
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_exceptions.py:10: in map_exceptions
+    yield
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_backends/sync.py:212: in connect_tcp
+    sock = socket.create_connection(
+/root/.pyenv/versions/3.12.12/lib/python3.12/socket.py:865: in create_connection
+    raise exceptions[0]
+/root/.pyenv/versions/3.12.12/lib/python3.12/socket.py:850: in create_connection
+    sock.connect(sa)
+E   ConnectionRefusedError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:66: in map_httpcore_exceptions
+    yield
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:228: in handle_request
+    resp = self._pool.handle_request(req)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py:262: in handle_request
+    raise exc
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py:245: in handle_request
+    response = connection.handle_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:99: in handle_request
+    raise exc
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:76: in handle_request
+    stream = self._connect(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:124: in _connect
+    stream = self._network_backend.connect_tcp(**kwargs)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_backends/sync.py:211: in connect_tcp
+    with map_exceptions(exc_map):
+/root/.pyenv/versions/3.12.12/lib/python3.12/contextlib.py:158: in __exit__
+    self.gen.throw(value)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_exceptions.py:14: in map_exceptions
+    raise to_exc(exc) from exc
+E   httpcore.ConnectError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+tests/test_operator_chat_e2e_p1_v2.py:39: in test_02_operator_api_status
+    resp = client.get(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:1041: in get
+    return self.request(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:814: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:901: in send
+    response = self._send_handling_auth(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:929: in _send_handling_auth
+    response = self._send_handling_redirects(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:966: in _send_handling_redirects
+    response = self._send_single_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:1002: in _send_single_request
+    response = transport.handle_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:227: in handle_request
+    with map_httpcore_exceptions():
+/root/.pyenv/versions/3.12.12/lib/python3.12/contextlib.py:158: in __exit__
+    self.gen.throw(value)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:83: in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+E   httpx.ConnectError: [Errno 111] Connection refused
+__________ TestOperatorChatE2E.test_03_tentaculo_operator_chat_exists __________
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_exceptions.py:10: in map_exceptions
+    yield
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_backends/sync.py:212: in connect_tcp
+    sock = socket.create_connection(
+/root/.pyenv/versions/3.12.12/lib/python3.12/socket.py:865: in create_connection
+    raise exceptions[0]
+/root/.pyenv/versions/3.12.12/lib/python3.12/socket.py:850: in create_connection
+    sock.connect(sa)
+E   ConnectionRefusedError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:66: in map_httpcore_exceptions
+    yield
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:228: in handle_request
+    resp = self._pool.handle_request(req)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py:262: in handle_request
+    raise exc
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py:245: in handle_request
+    response = connection.handle_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:99: in handle_request
+    raise exc
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:76: in handle_request
+    stream = self._connect(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:124: in _connect
+    stream = self._network_backend.connect_tcp(**kwargs)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_backends/sync.py:211: in connect_tcp
+    with map_exceptions(exc_map):
+/root/.pyenv/versions/3.12.12/lib/python3.12/contextlib.py:158: in __exit__
+    self.gen.throw(value)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_exceptions.py:14: in map_exceptions
+    raise to_exc(exc) from exc
+E   httpcore.ConnectError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+tests/test_operator_chat_e2e_p1_v2.py:58: in test_03_tentaculo_operator_chat_exists
+    resp = client.post(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:1132: in post
+    return self.request(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:814: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:901: in send
+    response = self._send_handling_auth(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:929: in _send_handling_auth
+    response = self._send_handling_redirects(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:966: in _send_handling_redirects
+    response = self._send_single_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:1002: in _send_single_request
+    response = transport.handle_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:227: in handle_request
+    with map_httpcore_exceptions():
+/root/.pyenv/versions/3.12.12/lib/python3.12/contextlib.py:158: in __exit__
+    self.gen.throw(value)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:83: in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+E   httpx.ConnectError: [Errno 111] Connection refused
+____________ TestOperatorChatE2E.test_04_operator_api_chat_endpoint ____________
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_exceptions.py:10: in map_exceptions
+    yield
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_backends/sync.py:212: in connect_tcp
+    sock = socket.create_connection(
+/root/.pyenv/versions/3.12.12/lib/python3.12/socket.py:865: in create_connection
+    raise exceptions[0]
+/root/.pyenv/versions/3.12.12/lib/python3.12/socket.py:850: in create_connection
+    sock.connect(sa)
+E   ConnectionRefusedError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:66: in map_httpcore_exceptions
+    yield
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:228: in handle_request
+    resp = self._pool.handle_request(req)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py:262: in handle_request
+    raise exc
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py:245: in handle_request
+    response = connection.handle_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:99: in handle_request
+    raise exc
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:76: in handle_request
+    stream = self._connect(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:124: in _connect
+    stream = self._network_backend.connect_tcp(**kwargs)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_backends/sync.py:211: in connect_tcp
+    with map_exceptions(exc_map):
+/root/.pyenv/versions/3.12.12/lib/python3.12/contextlib.py:158: in __exit__
+    self.gen.throw(value)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_exceptions.py:14: in map_exceptions
+    raise to_exc(exc) from exc
+E   httpcore.ConnectError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+tests/test_operator_chat_e2e_p1_v2.py:77: in test_04_operator_api_chat_endpoint
+    resp = client.post(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:1132: in post
+    return self.request(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:814: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:901: in send
+    response = self._send_handling_auth(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:929: in _send_handling_auth
+    response = self._send_handling_redirects(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:966: in _send_handling_redirects
+    response = self._send_single_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:1002: in _send_single_request
+    response = transport.handle_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:227: in handle_request
+    with map_httpcore_exceptions():
+/root/.pyenv/versions/3.12.12/lib/python3.12/contextlib.py:158: in __exit__
+    self.gen.throw(value)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:83: in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+E   httpx.ConnectError: [Errno 111] Connection refused
+_______________ TestOperatorChatE2E.test_05_madre_chat_endpoint ________________
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_exceptions.py:10: in map_exceptions
+    yield
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_backends/sync.py:212: in connect_tcp
+    sock = socket.create_connection(
+/root/.pyenv/versions/3.12.12/lib/python3.12/socket.py:865: in create_connection
+    raise exceptions[0]
+/root/.pyenv/versions/3.12.12/lib/python3.12/socket.py:850: in create_connection
+    sock.connect(sa)
+E   ConnectionRefusedError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:66: in map_httpcore_exceptions
+    yield
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:228: in handle_request
+    resp = self._pool.handle_request(req)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py:262: in handle_request
+    raise exc
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py:245: in handle_request
+    response = connection.handle_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:99: in handle_request
+    raise exc
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:76: in handle_request
+    stream = self._connect(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:124: in _connect
+    stream = self._network_backend.connect_tcp(**kwargs)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_backends/sync.py:211: in connect_tcp
+    with map_exceptions(exc_map):
+/root/.pyenv/versions/3.12.12/lib/python3.12/contextlib.py:158: in __exit__
+    self.gen.throw(value)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_exceptions.py:14: in map_exceptions
+    raise to_exc(exc) from exc
+E   httpcore.ConnectError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+tests/test_operator_chat_e2e_p1_v2.py:94: in test_05_madre_chat_endpoint
+    resp = client.post(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:1132: in post
+    return self.request(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:814: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:901: in send
+    response = self._send_handling_auth(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:929: in _send_handling_auth
+    response = self._send_handling_redirects(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:966: in _send_handling_redirects
+    response = self._send_single_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:1002: in _send_single_request
+    response = transport.handle_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:227: in handle_request
+    with map_httpcore_exceptions():
+/root/.pyenv/versions/3.12.12/lib/python3.12/contextlib.py:158: in __exit__
+    self.gen.throw(value)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:83: in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+E   httpx.ConnectError: [Errno 111] Connection refused
+________________ TestOperatorChatE2E.test_06_payload_validation ________________
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_exceptions.py:10: in map_exceptions
+    yield
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_backends/sync.py:212: in connect_tcp
+    sock = socket.create_connection(
+/root/.pyenv/versions/3.12.12/lib/python3.12/socket.py:865: in create_connection
+    raise exceptions[0]
+/root/.pyenv/versions/3.12.12/lib/python3.12/socket.py:850: in create_connection
+    sock.connect(sa)
+E   ConnectionRefusedError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:66: in map_httpcore_exceptions
+    yield
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:228: in handle_request
+    resp = self._pool.handle_request(req)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py:262: in handle_request
+    raise exc
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py:245: in handle_request
+    response = connection.handle_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:99: in handle_request
+    raise exc
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:76: in handle_request
+    stream = self._connect(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:124: in _connect
+    stream = self._network_backend.connect_tcp(**kwargs)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_backends/sync.py:211: in connect_tcp
+    with map_exceptions(exc_map):
+/root/.pyenv/versions/3.12.12/lib/python3.12/contextlib.py:158: in __exit__
+    self.gen.throw(value)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_exceptions.py:14: in map_exceptions
+    raise to_exc(exc) from exc
+E   httpcore.ConnectError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+tests/test_operator_chat_e2e_p1_v2.py:107: in test_06_payload_validation
+    resp = client.post(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:1132: in post
+    return self.request(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:814: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:901: in send
+    response = self._send_handling_auth(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:929: in _send_handling_auth
+    response = self._send_handling_redirects(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:966: in _send_handling_redirects
+    response = self._send_single_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:1002: in _send_single_request
+    response = transport.handle_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:227: in handle_request
+    with map_httpcore_exceptions():
+/root/.pyenv/versions/3.12.12/lib/python3.12/contextlib.py:158: in __exit__
+    self.gen.throw(value)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:83: in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+E   httpx.ConnectError: [Errno 111] Connection refused
+_______________ TestOperatorChatE2E.test_07_session_correlation ________________
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_exceptions.py:10: in map_exceptions
+    yield
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_backends/sync.py:212: in connect_tcp
+    sock = socket.create_connection(
+/root/.pyenv/versions/3.12.12/lib/python3.12/socket.py:865: in create_connection
+    raise exceptions[0]
+/root/.pyenv/versions/3.12.12/lib/python3.12/socket.py:850: in create_connection
+    sock.connect(sa)
+E   ConnectionRefusedError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:66: in map_httpcore_exceptions
+    yield
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:228: in handle_request
+    resp = self._pool.handle_request(req)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py:262: in handle_request
+    raise exc
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py:245: in handle_request
+    response = connection.handle_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:99: in handle_request
+    raise exc
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:76: in handle_request
+    stream = self._connect(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:124: in _connect
+    stream = self._network_backend.connect_tcp(**kwargs)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_backends/sync.py:211: in connect_tcp
+    with map_exceptions(exc_map):
+/root/.pyenv/versions/3.12.12/lib/python3.12/contextlib.py:158: in __exit__
+    self.gen.throw(value)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_exceptions.py:14: in map_exceptions
+    raise to_exc(exc) from exc
+E   httpcore.ConnectError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+tests/test_operator_chat_e2e_p1_v2.py:129: in test_07_session_correlation
+    resp = client.post(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:1132: in post
+    return self.request(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:814: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:901: in send
+    response = self._send_handling_auth(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:929: in _send_handling_auth
+    response = self._send_handling_redirects(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:966: in _send_handling_redirects
+    response = self._send_single_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:1002: in _send_single_request
+    response = transport.handle_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:227: in handle_request
+    with map_httpcore_exceptions():
+/root/.pyenv/versions/3.12.12/lib/python3.12/contextlib.py:158: in __exit__
+    self.gen.throw(value)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:83: in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+E   httpx.ConnectError: [Errno 111] Connection refused
+___________ TestOperatorChatE2E.test_08_tentaculo_fallback_detection ___________
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_exceptions.py:10: in map_exceptions
+    yield
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_backends/sync.py:212: in connect_tcp
+    sock = socket.create_connection(
+/root/.pyenv/versions/3.12.12/lib/python3.12/socket.py:865: in create_connection
+    raise exceptions[0]
+/root/.pyenv/versions/3.12.12/lib/python3.12/socket.py:850: in create_connection
+    sock.connect(sa)
+E   ConnectionRefusedError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:66: in map_httpcore_exceptions
+    yield
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:228: in handle_request
+    resp = self._pool.handle_request(req)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py:262: in handle_request
+    raise exc
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py:245: in handle_request
+    response = connection.handle_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:99: in handle_request
+    raise exc
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:76: in handle_request
+    stream = self._connect(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:124: in _connect
+    stream = self._network_backend.connect_tcp(**kwargs)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_backends/sync.py:211: in connect_tcp
+    with map_exceptions(exc_map):
+/root/.pyenv/versions/3.12.12/lib/python3.12/contextlib.py:158: in __exit__
+    self.gen.throw(value)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_exceptions.py:14: in map_exceptions
+    raise to_exc(exc) from exc
+E   httpcore.ConnectError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+tests/test_operator_chat_e2e_p1_v2.py:151: in test_08_tentaculo_fallback_detection
+    resp = client.post(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:1132: in post
+    return self.request(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:814: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:901: in send
+    response = self._send_handling_auth(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:929: in _send_handling_auth
+    response = self._send_handling_redirects(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:966: in _send_handling_redirects
+    response = self._send_single_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:1002: in _send_single_request
+    response = transport.handle_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:227: in handle_request
+    with map_httpcore_exceptions():
+/root/.pyenv/versions/3.12.12/lib/python3.12/contextlib.py:158: in __exit__
+    self.gen.throw(value)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:83: in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+E   httpx.ConnectError: [Errno 111] Connection refused
+______ TestOperatorChatE2E.test_01_chat_through_tentaculo_requires_token _______
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_exceptions.py:10: in map_exceptions
+    yield
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_backends/sync.py:212: in connect_tcp
+    sock = socket.create_connection(
+/root/.pyenv/versions/3.12.12/lib/python3.12/socket.py:865: in create_connection
+    raise exceptions[0]
+/root/.pyenv/versions/3.12.12/lib/python3.12/socket.py:850: in create_connection
+    sock.connect(sa)
+E   ConnectionRefusedError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:66: in map_httpcore_exceptions
+    yield
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:228: in handle_request
+    resp = self._pool.handle_request(req)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py:262: in handle_request
+    raise exc
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py:245: in handle_request
+    response = connection.handle_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:99: in handle_request
+    raise exc
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:76: in handle_request
+    stream = self._connect(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:124: in _connect
+    stream = self._network_backend.connect_tcp(**kwargs)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_backends/sync.py:211: in connect_tcp
+    with map_exceptions(exc_map):
+/root/.pyenv/versions/3.12.12/lib/python3.12/contextlib.py:158: in __exit__
+    self.gen.throw(value)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_exceptions.py:14: in map_exceptions
+    raise to_exc(exc) from exc
+E   httpcore.ConnectError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+tests/test_operator_chat_e2e_phase8.py:70: in test_01_chat_through_tentaculo_requires_token
+    resp = client.post(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:1132: in post
+    return self.request(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:814: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:901: in send
+    response = self._send_handling_auth(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:929: in _send_handling_auth
+    response = self._send_handling_redirects(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:966: in _send_handling_redirects
+    response = self._send_single_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:1002: in _send_single_request
+    response = transport.handle_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:227: in handle_request
+    with map_httpcore_exceptions():
+/root/.pyenv/versions/3.12.12/lib/python3.12/contextlib.py:158: in __exit__
+    self.gen.throw(value)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:83: in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+E   httpx.ConnectError: [Errno 111] Connection refused
+________ TestOperatorChatE2E.test_01b_chat_through_tentaculo_with_token ________
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_exceptions.py:10: in map_exceptions
+    yield
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_backends/sync.py:212: in connect_tcp
+    sock = socket.create_connection(
+/root/.pyenv/versions/3.12.12/lib/python3.12/socket.py:865: in create_connection
+    raise exceptions[0]
+/root/.pyenv/versions/3.12.12/lib/python3.12/socket.py:850: in create_connection
+    sock.connect(sa)
+E   ConnectionRefusedError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:66: in map_httpcore_exceptions
+    yield
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:228: in handle_request
+    resp = self._pool.handle_request(req)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py:262: in handle_request
+    raise exc
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py:245: in handle_request
+    response = connection.handle_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:99: in handle_request
+    raise exc
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:76: in handle_request
+    stream = self._connect(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:124: in _connect
+    stream = self._network_backend.connect_tcp(**kwargs)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_backends/sync.py:211: in connect_tcp
+    with map_exceptions(exc_map):
+/root/.pyenv/versions/3.12.12/lib/python3.12/contextlib.py:158: in __exit__
+    self.gen.throw(value)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_exceptions.py:14: in map_exceptions
+    raise to_exc(exc) from exc
+E   httpcore.ConnectError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+tests/test_operator_chat_e2e_phase8.py:94: in test_01b_chat_through_tentaculo_with_token
+    resp = client.post(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:1132: in post
+    return self.request(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:814: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:901: in send
+    response = self._send_handling_auth(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:929: in _send_handling_auth
+    response = self._send_handling_redirects(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:966: in _send_handling_redirects
+    response = self._send_single_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:1002: in _send_single_request
+    response = transport.handle_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:227: in handle_request
+    with map_httpcore_exceptions():
+/root/.pyenv/versions/3.12.12/lib/python3.12/contextlib.py:158: in __exit__
+    self.gen.throw(value)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:83: in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+E   httpx.ConnectError: [Errno 111] Connection refused
+____ TestOperatorChatE2E.test_02_chat_fallback_to_madre_when_switch_offline ____
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_exceptions.py:10: in map_exceptions
+    yield
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_backends/sync.py:212: in connect_tcp
+    sock = socket.create_connection(
+/root/.pyenv/versions/3.12.12/lib/python3.12/socket.py:865: in create_connection
+    raise exceptions[0]
+/root/.pyenv/versions/3.12.12/lib/python3.12/socket.py:850: in create_connection
+    sock.connect(sa)
+E   ConnectionRefusedError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:66: in map_httpcore_exceptions
+    yield
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:228: in handle_request
+    resp = self._pool.handle_request(req)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py:262: in handle_request
+    raise exc
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py:245: in handle_request
+    response = connection.handle_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:99: in handle_request
+    raise exc
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:76: in handle_request
+    stream = self._connect(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:124: in _connect
+    stream = self._network_backend.connect_tcp(**kwargs)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_backends/sync.py:211: in connect_tcp
+    with map_exceptions(exc_map):
+/root/.pyenv/versions/3.12.12/lib/python3.12/contextlib.py:158: in __exit__
+    self.gen.throw(value)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_exceptions.py:14: in map_exceptions
+    raise to_exc(exc) from exc
+E   httpcore.ConnectError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+tests/test_operator_chat_e2e_phase8.py:128: in test_02_chat_fallback_to_madre_when_switch_offline
+    resp = client.post(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:1132: in post
+    return self.request(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:814: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:901: in send
+    response = self._send_handling_auth(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:929: in _send_handling_auth
+    response = self._send_handling_redirects(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:966: in _send_handling_redirects
+    response = self._send_single_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:1002: in _send_single_request
+    response = transport.handle_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:227: in handle_request
+    with map_httpcore_exceptions():
+/root/.pyenv/versions/3.12.12/lib/python3.12/contextlib.py:158: in __exit__
+    self.gen.throw(value)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:83: in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+E   httpx.ConnectError: [Errno 111] Connection refused
+______ TestOperatorChatE2E.test_03_correlation_id_propagation_full_chain _______
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_exceptions.py:10: in map_exceptions
+    yield
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_backends/sync.py:212: in connect_tcp
+    sock = socket.create_connection(
+/root/.pyenv/versions/3.12.12/lib/python3.12/socket.py:865: in create_connection
+    raise exceptions[0]
+/root/.pyenv/versions/3.12.12/lib/python3.12/socket.py:850: in create_connection
+    sock.connect(sa)
+E   ConnectionRefusedError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:66: in map_httpcore_exceptions
+    yield
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:228: in handle_request
+    resp = self._pool.handle_request(req)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py:262: in handle_request
+    raise exc
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py:245: in handle_request
+    response = connection.handle_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:99: in handle_request
+    raise exc
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:76: in handle_request
+    stream = self._connect(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:124: in _connect
+    stream = self._network_backend.connect_tcp(**kwargs)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_backends/sync.py:211: in connect_tcp
+    with map_exceptions(exc_map):
+/root/.pyenv/versions/3.12.12/lib/python3.12/contextlib.py:158: in __exit__
+    self.gen.throw(value)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_exceptions.py:14: in map_exceptions
+    raise to_exc(exc) from exc
+E   httpcore.ConnectError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+tests/test_operator_chat_e2e_phase8.py:167: in test_03_correlation_id_propagation_full_chain
+    resp = client.post(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:1132: in post
+    return self.request(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:814: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:901: in send
+    response = self._send_handling_auth(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:929: in _send_handling_auth
+    response = self._send_handling_redirects(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:966: in _send_handling_redirects
+    response = self._send_single_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:1002: in _send_single_request
+    response = transport.handle_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:227: in handle_request
+    with map_httpcore_exceptions():
+/root/.pyenv/versions/3.12.12/lib/python3.12/contextlib.py:158: in __exit__
+    self.gen.throw(value)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:83: in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+E   httpx.ConnectError: [Errno 111] Connection refused
+____________ TestOperatorChatE2E.test_04_response_schema_validation ____________
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_exceptions.py:10: in map_exceptions
+    yield
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_backends/sync.py:212: in connect_tcp
+    sock = socket.create_connection(
+/root/.pyenv/versions/3.12.12/lib/python3.12/socket.py:865: in create_connection
+    raise exceptions[0]
+/root/.pyenv/versions/3.12.12/lib/python3.12/socket.py:850: in create_connection
+    sock.connect(sa)
+E   ConnectionRefusedError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:66: in map_httpcore_exceptions
+    yield
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:228: in handle_request
+    resp = self._pool.handle_request(req)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py:262: in handle_request
+    raise exc
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py:245: in handle_request
+    response = connection.handle_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:99: in handle_request
+    raise exc
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:76: in handle_request
+    stream = self._connect(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:124: in _connect
+    stream = self._network_backend.connect_tcp(**kwargs)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_backends/sync.py:211: in connect_tcp
+    with map_exceptions(exc_map):
+/root/.pyenv/versions/3.12.12/lib/python3.12/contextlib.py:158: in __exit__
+    self.gen.throw(value)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_exceptions.py:14: in map_exceptions
+    raise to_exc(exc) from exc
+E   httpcore.ConnectError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+tests/test_operator_chat_e2e_phase8.py:215: in test_04_response_schema_validation
+    resp = client.post(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:1132: in post
+    return self.request(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:814: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:901: in send
+    response = self._send_handling_auth(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:929: in _send_handling_auth
+    response = self._send_handling_redirects(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:966: in _send_handling_redirects
+    response = self._send_single_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:1002: in _send_single_request
+    response = transport.handle_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:227: in handle_request
+    with map_httpcore_exceptions():
+/root/.pyenv/versions/3.12.12/lib/python3.12/contextlib.py:158: in __exit__
+    self.gen.throw(value)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:83: in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+E   httpx.ConnectError: [Errno 111] Connection refused
+__________ TestOperatorChatE2E.test_05_full_e2e_chat_flow_integration __________
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_exceptions.py:10: in map_exceptions
+    yield
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_backends/sync.py:212: in connect_tcp
+    sock = socket.create_connection(
+/root/.pyenv/versions/3.12.12/lib/python3.12/socket.py:865: in create_connection
+    raise exceptions[0]
+/root/.pyenv/versions/3.12.12/lib/python3.12/socket.py:850: in create_connection
+    sock.connect(sa)
+E   ConnectionRefusedError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:66: in map_httpcore_exceptions
+    yield
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:228: in handle_request
+    resp = self._pool.handle_request(req)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py:262: in handle_request
+    raise exc
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py:245: in handle_request
+    response = connection.handle_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:99: in handle_request
+    raise exc
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:76: in handle_request
+    stream = self._connect(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:124: in _connect
+    stream = self._network_backend.connect_tcp(**kwargs)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_backends/sync.py:211: in connect_tcp
+    with map_exceptions(exc_map):
+/root/.pyenv/versions/3.12.12/lib/python3.12/contextlib.py:158: in __exit__
+    self.gen.throw(value)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_exceptions.py:14: in map_exceptions
+    raise to_exc(exc) from exc
+E   httpcore.ConnectError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+tests/test_operator_chat_e2e_phase8.py:316: in test_05_full_e2e_chat_flow_integration
+    resp1 = client.post(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:1132: in post
+    return self.request(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:814: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:901: in send
+    response = self._send_handling_auth(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:929: in _send_handling_auth
+    response = self._send_handling_redirects(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:966: in _send_handling_redirects
+    response = self._send_single_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:1002: in _send_single_request
+    response = transport.handle_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:227: in handle_request
+    with map_httpcore_exceptions():
+/root/.pyenv/versions/3.12.12/lib/python3.12/contextlib.py:158: in __exit__
+    self.gen.throw(value)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:83: in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+E   httpx.ConnectError: [Errno 111] Connection refused
+______________ TestOperatorChatStress.test_chat_stress_sequential ______________
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_exceptions.py:10: in map_exceptions
+    yield
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_backends/sync.py:212: in connect_tcp
+    sock = socket.create_connection(
+/root/.pyenv/versions/3.12.12/lib/python3.12/socket.py:865: in create_connection
+    raise exceptions[0]
+/root/.pyenv/versions/3.12.12/lib/python3.12/socket.py:850: in create_connection
+    sock.connect(sa)
+E   ConnectionRefusedError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:66: in map_httpcore_exceptions
+    yield
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:228: in handle_request
+    resp = self._pool.handle_request(req)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py:262: in handle_request
+    raise exc
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py:245: in handle_request
+    response = connection.handle_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:99: in handle_request
+    raise exc
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:76: in handle_request
+    stream = self._connect(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_sync/connection.py:124: in _connect
+    stream = self._network_backend.connect_tcp(**kwargs)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_backends/sync.py:211: in connect_tcp
+    with map_exceptions(exc_map):
+/root/.pyenv/versions/3.12.12/lib/python3.12/contextlib.py:158: in __exit__
+    self.gen.throw(value)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpcore/_exceptions.py:14: in map_exceptions
+    raise to_exc(exc) from exc
+E   httpcore.ConnectError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+tests/test_operator_chat_e2e_phase8.py:388: in test_chat_stress_sequential
+    resp = client.post(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:1132: in post
+    return self.request(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:814: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:901: in send
+    response = self._send_handling_auth(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:929: in _send_handling_auth
+    response = self._send_handling_redirects(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:966: in _send_handling_redirects
+    response = self._send_single_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_client.py:1002: in _send_single_request
+    response = transport.handle_request(request)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:227: in handle_request
+    with map_httpcore_exceptions():
+/root/.pyenv/versions/3.12.12/lib/python3.12/contextlib.py:158: in __exit__
+    self.gen.throw(value)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/httpx/_transports/default.py:83: in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+E   httpx.ConnectError: [Errno 111] Connection refused
+___________________ TestOperatorMessage.test_create_message ____________________
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1969: in _exec_single_context
+    self.dialect.do_execute(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/engine/default.py:922: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlite3.OperationalError: foreign key mismatch - "operator_message" referencing "operator_session"
+
+The above exception was the direct cause of the following exception:
+tests/test_operator_db_schema_v7.py:68: in test_create_message
+    db_session.commit()
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/orm/session.py:1969: in commit
+    trans.commit(_to_root=True)
+<string>:2: in commit
+    ???
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/orm/state_changes.py:139: in _go
+    ret_value = fn(self, *arg, **kw)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/orm/session.py:1256: in commit
+    self._prepare_impl()
+<string>:2: in _prepare_impl
+    ???
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/orm/state_changes.py:139: in _go
+    ret_value = fn(self, *arg, **kw)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/orm/session.py:1231: in _prepare_impl
+    self.session.flush()
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/orm/session.py:4312: in flush
+    self._flush(objects)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/orm/session.py:4447: in _flush
+    with util.safe_reraise():
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/util/langhelpers.py:146: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/orm/session.py:4408: in _flush
+    flush_context.execute()
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/orm/unitofwork.py:466: in execute
+    rec.execute(self)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/orm/unitofwork.py:642: in execute
+    util.preloaded.orm_persistence.save_obj(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/orm/persistence.py:93: in save_obj
+    _emit_insert_statements(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/orm/persistence.py:1226: in _emit_insert_statements
+    result = connection.execute(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1416: in execute
+    return meth(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/sql/elements.py:516: in _execute_on_connection
+    return connection._execute_clauseelement(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1639: in _execute_clauseelement
+    ret = self._execute_context(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1848: in _execute_context
+    return self._exec_single_context(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1988: in _exec_single_context
+    self._handle_dbapi_exception(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/engine/base.py:2343: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1969: in _exec_single_context
+    self.dialect.do_execute(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/engine/default.py:922: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) foreign key mismatch - "operator_message" referencing "operator_session"
+E   [SQL: INSERT INTO operator_message (session_id, role, content, message_metadata, created_at) VALUES (?, ?, ?, ?, ?)]
+E   [parameters: ('test-msg-session-aa5d7f0da16a', 'user', 'Hello!', None, '2025-12-29 20:40:00.646589')]
+E   (Background on this error at: https://sqlalche.me/e/20/e3q8)
+__________________ TestOperatorToolCall.test_create_tool_call __________________
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1969: in _exec_single_context
+    self.dialect.do_execute(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/engine/default.py:922: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlite3.OperationalError: foreign key mismatch - "operator_message" referencing "operator_session"
+
+The above exception was the direct cause of the following exception:
+tests/test_operator_db_schema_v7.py:95: in test_create_tool_call
+    db_session.commit()
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/orm/session.py:1969: in commit
+    trans.commit(_to_root=True)
+<string>:2: in commit
+    ???
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/orm/state_changes.py:139: in _go
+    ret_value = fn(self, *arg, **kw)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/orm/session.py:1256: in commit
+    self._prepare_impl()
+<string>:2: in _prepare_impl
+    ???
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/orm/state_changes.py:139: in _go
+    ret_value = fn(self, *arg, **kw)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/orm/session.py:1231: in _prepare_impl
+    self.session.flush()
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/orm/session.py:4312: in flush
+    self._flush(objects)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/orm/session.py:4447: in _flush
+    with util.safe_reraise():
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/util/langhelpers.py:146: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/orm/session.py:4408: in _flush
+    flush_context.execute()
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/orm/unitofwork.py:466: in execute
+    rec.execute(self)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/orm/unitofwork.py:642: in execute
+    util.preloaded.orm_persistence.save_obj(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/orm/persistence.py:93: in save_obj
+    _emit_insert_statements(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/orm/persistence.py:1226: in _emit_insert_statements
+    result = connection.execute(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1416: in execute
+    return meth(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/sql/elements.py:516: in _execute_on_connection
+    return connection._execute_clauseelement(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1639: in _execute_clauseelement
+    ret = self._execute_context(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1848: in _execute_context
+    return self._exec_single_context(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1988: in _exec_single_context
+    self._handle_dbapi_exception(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/engine/base.py:2343: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1969: in _exec_single_context
+    self.dialect.do_execute(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/engine/default.py:922: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) foreign key mismatch - "operator_message" referencing "operator_session"
+E   [SQL: INSERT INTO operator_message (session_id, role, content, message_metadata, created_at) VALUES (?, ?, ?, ?, ?)]
+E   [parameters: ('test-tool-session-69ef6559f9e1', 'assistant', 'Calling tool', None, '2025-12-29 20:40:01.384988')]
+E   (Background on this error at: https://sqlalche.me/e/20/e3q8)
+_______________ TestOperatorBrowserTask.test_create_browser_task _______________
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1969: in _exec_single_context
+    self.dialect.do_execute(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/engine/default.py:922: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlite3.OperationalError: foreign key mismatch - "operator_browser_task" referencing "operator_session"
+
+The above exception was the direct cause of the following exception:
+tests/test_operator_db_schema_v7.py:131: in test_create_browser_task
+    db_session.commit()
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/orm/session.py:1969: in commit
+    trans.commit(_to_root=True)
+<string>:2: in commit
+    ???
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/orm/state_changes.py:139: in _go
+    ret_value = fn(self, *arg, **kw)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/orm/session.py:1256: in commit
+    self._prepare_impl()
+<string>:2: in _prepare_impl
+    ???
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/orm/state_changes.py:139: in _go
+    ret_value = fn(self, *arg, **kw)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/orm/session.py:1231: in _prepare_impl
+    self.session.flush()
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/orm/session.py:4312: in flush
+    self._flush(objects)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/orm/session.py:4447: in _flush
+    with util.safe_reraise():
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/util/langhelpers.py:146: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/orm/session.py:4408: in _flush
+    flush_context.execute()
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/orm/unitofwork.py:466: in execute
+    rec.execute(self)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/orm/unitofwork.py:642: in execute
+    util.preloaded.orm_persistence.save_obj(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/orm/persistence.py:93: in save_obj
+    _emit_insert_statements(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/orm/persistence.py:1226: in _emit_insert_statements
+    result = connection.execute(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1416: in execute
+    return meth(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/sql/elements.py:516: in _execute_on_connection
+    return connection._execute_clauseelement(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1639: in _execute_clauseelement
+    ret = self._execute_context(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1848: in _execute_context
+    return self._exec_single_context(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1988: in _exec_single_context
+    self._handle_dbapi_exception(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/engine/base.py:2343: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1969: in _exec_single_context
+    self.dialect.do_execute(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/engine/default.py:922: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) foreign key mismatch - "operator_browser_task" referencing "operator_session"
+E   [SQL: INSERT INTO operator_browser_task (session_id, url, status, snapshot_path, result, error, created_at, executed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)]
+E   [parameters: ('test-browser-session-ac83f5685193', 'https://example.com', 'pending', None, None, None, '2025-12-29 20:40:01.997794', None)]
+E   (Background on this error at: https://sqlalche.me/e/20/e3q8)
+_____________ TestOperatorSwitchAdjustment.test_create_adjustment ______________
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1969: in _exec_single_context
+    self.dialect.do_execute(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/engine/default.py:922: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlite3.OperationalError: foreign key mismatch - "operator_switch_adjustment" referencing "operator_session"
+
+The above exception was the direct cause of the following exception:
+tests/test_operator_db_schema_v7.py:158: in test_create_adjustment
+    db_session.commit()
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/orm/session.py:1969: in commit
+    trans.commit(_to_root=True)
+<string>:2: in commit
+    ???
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/orm/state_changes.py:139: in _go
+    ret_value = fn(self, *arg, **kw)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/orm/session.py:1256: in commit
+    self._prepare_impl()
+<string>:2: in _prepare_impl
+    ???
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/orm/state_changes.py:139: in _go
+    ret_value = fn(self, *arg, **kw)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/orm/session.py:1231: in _prepare_impl
+    self.session.flush()
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/orm/session.py:4312: in flush
+    self._flush(objects)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/orm/session.py:4447: in _flush
+    with util.safe_reraise():
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/util/langhelpers.py:146: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/orm/session.py:4408: in _flush
+    flush_context.execute()
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/orm/unitofwork.py:466: in execute
+    rec.execute(self)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/orm/unitofwork.py:642: in execute
+    util.preloaded.orm_persistence.save_obj(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/orm/persistence.py:93: in save_obj
+    _emit_insert_statements(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/orm/persistence.py:1226: in _emit_insert_statements
+    result = connection.execute(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1416: in execute
+    return meth(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/sql/elements.py:516: in _execute_on_connection
+    return connection._execute_clauseelement(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1639: in _execute_clauseelement
+    ret = self._execute_context(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1848: in _execute_context
+    return self._exec_single_context(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1988: in _exec_single_context
+    self._handle_dbapi_exception(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/engine/base.py:2343: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1969: in _exec_single_context
+    self.dialect.do_execute(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/engine/default.py:922: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) foreign key mismatch - "operator_switch_adjustment" referencing "operator_session"
+E   [SQL: INSERT INTO operator_switch_adjustment (session_id, message_id, before_config, after_config, reason, applied, created_at, applied_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)]
+E   [parameters: ('test-adj-session-730878a8a505', None, '{"model":"local"}', '{"model":"deepseek"}', 'Local model was slow', 0, '2025-12-29 20:40:02.591785', None)]
+E   (Background on this error at: https://sqlalche.me/e/20/e3q8)
+_________________________ test_config_uses_entrypoint __________________________
+tests/test_operator_no_bypass.py:54: in test_config_uses_entrypoint
+    with open(config_file, "r") as f:
+E   FileNotFoundError: [Errno 2] No such file or directory: 'operator_backend/frontend/src/config.ts'
+______________________ TestAuth.test_auth_requires_token _______________________
+tests/test_operator_phase1_3.py:82: in test_auth_requires_token
+    assert response.status_code in [401, 409]  # 401 no token, or 409 low_power
+E   assert 404 in [401, 409]
+E    +  where 404 = <Response [404 Not Found]>.status_code
+________________ TestPolicy.test_status_blocked_when_low_power _________________
+tests/test_operator_phase1_3.py:133: in test_status_blocked_when_low_power
+    assert response.status_code in [200, 409]
+E   assert 404 in [200, 409]
+E    +  where 404 = <Response [404 Not Found]>.status_code
+_______________________ test_websocket_canonical_events ________________________
+tests/test_operator_production_phase5.py:308: in test_websocket_canonical_events
+    with client.websocket_connect(f"/ws/{session_id}") as websocket:
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/starlette/testclient.py:92: in __enter__
+    self._raise_on_close(message)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/starlette/testclient.py:133: in _raise_on_close
+    raise WebSocketDisconnect(
+E   starlette.websockets.WebSocketDisconnect: (1000, '')
+_____________________ test_websocket_handles_invalid_json ______________________
+tests/test_operator_production_phase5.py:358: in test_websocket_handles_invalid_json
+    with client.websocket_connect(f"/ws/{session_id}") as websocket:
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/starlette/testclient.py:92: in __enter__
+    self._raise_on_close(message)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/starlette/testclient.py:133: in _raise_on_close
+    raise WebSocketDisconnect(
+E   starlette.websockets.WebSocketDisconnect: (1000, '')
+___________ test_websocket_unknown_event_type_becomes_status_changed ___________
+tests/test_operator_production_phase5.py:378: in test_websocket_unknown_event_type_becomes_status_changed
+    with client.websocket_connect(f"/ws/{session_id}") as websocket:
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/starlette/testclient.py:92: in __enter__
+    self._raise_on_close(message)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/starlette/testclient.py:133: in _raise_on_close
+    raise WebSocketDisconnect(
+E   starlette.websockets.WebSocketDisconnect: (1000, '')
+__________________________ test_p1_canon_files_exist ___________________________
+tests/test_p1_canon_autonomy.py:22: in test_p1_canon_files_exist
+    assert canon_dir.exists(), "docs/canon directory not found"
+E   AssertionError: docs/canon directory not found
+E   assert False
+E    +  where False = <bound method Path.exists of PosixPath('/home/elkakas314/vx11/docs/canon')>()
+E    +    where <bound method Path.exists of PosixPath('/home/elkakas314/vx11/docs/canon')> = PosixPath('/home/elkakas314/vx11/docs/canon').exists
+________________________ test_p1_1_start_single_service ________________________
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connection.py:204: in _new_conn
+    sock = connection.create_connection(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/util/connection.py:85: in create_connection
+    raise err
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/util/connection.py:73: in create_connection
+    sock.connect(sa)
+E   ConnectionRefusedError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connectionpool.py:787: in urlopen
+    response = self._make_request(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connectionpool.py:493: in _make_request
+    conn.request(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connection.py:500: in request
+    self.endheaders()
+/root/.pyenv/versions/3.12.12/lib/python3.12/http/client.py:1333: in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+/root/.pyenv/versions/3.12.12/lib/python3.12/http/client.py:1093: in _send_output
+    self.send(msg)
+/root/.pyenv/versions/3.12.12/lib/python3.12/http/client.py:1037: in send
+    self.connect()
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connection.py:331: in connect
+    self.sock = self._new_conn()
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connection.py:219: in _new_conn
+    raise NewConnectionError(
+E   urllib3.exceptions.NewConnectionError: HTTPConnection(host='localhost', port=8001): Failed to establish a new connection: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/adapters.py:486: in send
+    resp = conn.urlopen(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connectionpool.py:841: in urlopen
+    retries = retries.increment(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/util/retry.py:519: in increment
+    raise MaxRetryError(_pool, url, reason) from reason  # type: ignore[arg-type]
+E   urllib3.exceptions.MaxRetryError: HTTPConnectionPool(host='localhost', port=8001): Max retries exceeded with url: /madre/power/service/start (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8001): Failed to establish a new connection: [Errno 111] Connection refused"))
+
+During handling of the above exception, another exception occurred:
+tests/test_p1_power_manager.py:23: in test_p1_1_start_single_service
+    response = requests.post(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/api.py:115: in post
+    return request("post", url, data=data, json=json, **kwargs)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/api.py:59: in request
+    return session.request(method=method, url=url, **kwargs)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/sessions.py:589: in request
+    resp = self.send(prep, **send_kwargs)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/sessions.py:703: in send
+    r = adapter.send(request, **kwargs)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/adapters.py:519: in send
+    raise ConnectionError(e, request=request)
+E   requests.exceptions.ConnectionError: HTTPConnectionPool(host='localhost', port=8001): Max retries exceeded with url: /madre/power/service/start (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8001): Failed to establish a new connection: [Errno 111] Connection refused"))
+________________________ test_p1_2_stop_single_service _________________________
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connection.py:204: in _new_conn
+    sock = connection.create_connection(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/util/connection.py:85: in create_connection
+    raise err
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/util/connection.py:73: in create_connection
+    sock.connect(sa)
+E   ConnectionRefusedError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connectionpool.py:787: in urlopen
+    response = self._make_request(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connectionpool.py:493: in _make_request
+    conn.request(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connection.py:500: in request
+    self.endheaders()
+/root/.pyenv/versions/3.12.12/lib/python3.12/http/client.py:1333: in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+/root/.pyenv/versions/3.12.12/lib/python3.12/http/client.py:1093: in _send_output
+    self.send(msg)
+/root/.pyenv/versions/3.12.12/lib/python3.12/http/client.py:1037: in send
+    self.connect()
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connection.py:331: in connect
+    self.sock = self._new_conn()
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connection.py:219: in _new_conn
+    raise NewConnectionError(
+E   urllib3.exceptions.NewConnectionError: HTTPConnection(host='localhost', port=8001): Failed to establish a new connection: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/adapters.py:486: in send
+    resp = conn.urlopen(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connectionpool.py:841: in urlopen
+    retries = retries.increment(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/util/retry.py:519: in increment
+    raise MaxRetryError(_pool, url, reason) from reason  # type: ignore[arg-type]
+E   urllib3.exceptions.MaxRetryError: HTTPConnectionPool(host='localhost', port=8001): Max retries exceeded with url: /madre/power/service/stop (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8001): Failed to establish a new connection: [Errno 111] Connection refused"))
+
+During handling of the above exception, another exception occurred:
+tests/test_p1_power_manager.py:65: in test_p1_2_stop_single_service
+    response = requests.post(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/api.py:115: in post
+    return request("post", url, data=data, json=json, **kwargs)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/api.py:59: in request
+    return session.request(method=method, url=url, **kwargs)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/sessions.py:589: in request
+    resp = self.send(prep, **send_kwargs)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/sessions.py:703: in send
+    r = adapter.send(request, **kwargs)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/adapters.py:519: in send
+    raise ConnectionError(e, request=request)
+E   requests.exceptions.ConnectionError: HTTPConnectionPool(host='localhost', port=8001): Max retries exceeded with url: /madre/power/service/stop (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8001): Failed to establish a new connection: [Errno 111] Connection refused"))
+______________________ test_p1_3_start_multiple_services _______________________
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connection.py:204: in _new_conn
+    sock = connection.create_connection(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/util/connection.py:85: in create_connection
+    raise err
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/util/connection.py:73: in create_connection
+    sock.connect(sa)
+E   ConnectionRefusedError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connectionpool.py:787: in urlopen
+    response = self._make_request(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connectionpool.py:493: in _make_request
+    conn.request(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connection.py:500: in request
+    self.endheaders()
+/root/.pyenv/versions/3.12.12/lib/python3.12/http/client.py:1333: in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+/root/.pyenv/versions/3.12.12/lib/python3.12/http/client.py:1093: in _send_output
+    self.send(msg)
+/root/.pyenv/versions/3.12.12/lib/python3.12/http/client.py:1037: in send
+    self.connect()
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connection.py:331: in connect
+    self.sock = self._new_conn()
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connection.py:219: in _new_conn
+    raise NewConnectionError(
+E   urllib3.exceptions.NewConnectionError: HTTPConnection(host='localhost', port=8001): Failed to establish a new connection: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/adapters.py:486: in send
+    resp = conn.urlopen(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connectionpool.py:841: in urlopen
+    retries = retries.increment(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/util/retry.py:519: in increment
+    raise MaxRetryError(_pool, url, reason) from reason  # type: ignore[arg-type]
+E   urllib3.exceptions.MaxRetryError: HTTPConnectionPool(host='localhost', port=8001): Max retries exceeded with url: /madre/power/service/start (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8001): Failed to establish a new connection: [Errno 111] Connection refused"))
+
+During handling of the above exception, another exception occurred:
+tests/test_p1_power_manager.py:99: in test_p1_3_start_multiple_services
+    response = requests.post(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/api.py:115: in post
+    return request("post", url, data=data, json=json, **kwargs)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/api.py:59: in request
+    return session.request(method=method, url=url, **kwargs)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/sessions.py:589: in request
+    resp = self.send(prep, **send_kwargs)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/sessions.py:703: in send
+    r = adapter.send(request, **kwargs)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/adapters.py:519: in send
+    raise ConnectionError(e, request=request)
+E   requests.exceptions.ConnectionError: HTTPConnectionPool(host='localhost', port=8001): Max retries exceeded with url: /madre/power/service/start (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8001): Failed to establish a new connection: [Errno 111] Connection refused"))
+_________________________ test_p1_4_policy_idempotence _________________________
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connection.py:204: in _new_conn
+    sock = connection.create_connection(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/util/connection.py:85: in create_connection
+    raise err
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/util/connection.py:73: in create_connection
+    sock.connect(sa)
+E   ConnectionRefusedError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connectionpool.py:787: in urlopen
+    response = self._make_request(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connectionpool.py:493: in _make_request
+    conn.request(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connection.py:500: in request
+    self.endheaders()
+/root/.pyenv/versions/3.12.12/lib/python3.12/http/client.py:1333: in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+/root/.pyenv/versions/3.12.12/lib/python3.12/http/client.py:1093: in _send_output
+    self.send(msg)
+/root/.pyenv/versions/3.12.12/lib/python3.12/http/client.py:1037: in send
+    self.connect()
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connection.py:331: in connect
+    self.sock = self._new_conn()
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connection.py:219: in _new_conn
+    raise NewConnectionError(
+E   urllib3.exceptions.NewConnectionError: HTTPConnection(host='localhost', port=8001): Failed to establish a new connection: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/adapters.py:486: in send
+    resp = conn.urlopen(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connectionpool.py:841: in urlopen
+    retries = retries.increment(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/util/retry.py:519: in increment
+    raise MaxRetryError(_pool, url, reason) from reason  # type: ignore[arg-type]
+E   urllib3.exceptions.MaxRetryError: HTTPConnectionPool(host='localhost', port=8001): Max retries exceeded with url: /madre/power/policy/solo_madre/apply (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8001): Failed to establish a new connection: [Errno 111] Connection refused"))
+
+During handling of the above exception, another exception occurred:
+tests/test_p1_power_manager.py:154: in test_p1_4_policy_idempotence
+    response1 = requests.post(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/api.py:115: in post
+    return request("post", url, data=data, json=json, **kwargs)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/api.py:59: in request
+    return session.request(method=method, url=url, **kwargs)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/sessions.py:589: in request
+    resp = self.send(prep, **send_kwargs)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/sessions.py:703: in send
+    r = adapter.send(request, **kwargs)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/adapters.py:519: in send
+    raise ConnectionError(e, request=request)
+E   requests.exceptions.ConnectionError: HTTPConnectionPool(host='localhost', port=8001): Max retries exceeded with url: /madre/power/policy/solo_madre/apply (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8001): Failed to establish a new connection: [Errno 111] Connection refused"))
+______________________ test_p1_5_invalid_service_rejected ______________________
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connection.py:204: in _new_conn
+    sock = connection.create_connection(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/util/connection.py:85: in create_connection
+    raise err
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/util/connection.py:73: in create_connection
+    sock.connect(sa)
+E   ConnectionRefusedError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connectionpool.py:787: in urlopen
+    response = self._make_request(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connectionpool.py:493: in _make_request
+    conn.request(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connection.py:500: in request
+    self.endheaders()
+/root/.pyenv/versions/3.12.12/lib/python3.12/http/client.py:1333: in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+/root/.pyenv/versions/3.12.12/lib/python3.12/http/client.py:1093: in _send_output
+    self.send(msg)
+/root/.pyenv/versions/3.12.12/lib/python3.12/http/client.py:1037: in send
+    self.connect()
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connection.py:331: in connect
+    self.sock = self._new_conn()
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connection.py:219: in _new_conn
+    raise NewConnectionError(
+E   urllib3.exceptions.NewConnectionError: HTTPConnection(host='localhost', port=8001): Failed to establish a new connection: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/adapters.py:486: in send
+    resp = conn.urlopen(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connectionpool.py:841: in urlopen
+    retries = retries.increment(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/util/retry.py:519: in increment
+    raise MaxRetryError(_pool, url, reason) from reason  # type: ignore[arg-type]
+E   urllib3.exceptions.MaxRetryError: HTTPConnectionPool(host='localhost', port=8001): Max retries exceeded with url: /madre/power/service/start (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8001): Failed to establish a new connection: [Errno 111] Connection refused"))
+
+During handling of the above exception, another exception occurred:
+tests/test_p1_power_manager.py:200: in test_p1_5_invalid_service_rejected
+    response = requests.post(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/api.py:115: in post
+    return request("post", url, data=data, json=json, **kwargs)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/api.py:59: in request
+    return session.request(method=method, url=url, **kwargs)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/sessions.py:589: in request
+    resp = self.send(prep, **send_kwargs)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/sessions.py:703: in send
+    r = adapter.send(request, **kwargs)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/adapters.py:519: in send
+    raise ConnectionError(e, request=request)
+E   requests.exceptions.ConnectionError: HTTPConnectionPool(host='localhost', port=8001): Max retries exceeded with url: /madre/power/service/start (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8001): Failed to establish a new connection: [Errno 111] Connection refused"))
+_______________________ test_p1_7_power_status_endpoint ________________________
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connection.py:204: in _new_conn
+    sock = connection.create_connection(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/util/connection.py:85: in create_connection
+    raise err
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/util/connection.py:73: in create_connection
+    sock.connect(sa)
+E   ConnectionRefusedError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connectionpool.py:787: in urlopen
+    response = self._make_request(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connectionpool.py:493: in _make_request
+    conn.request(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connection.py:500: in request
+    self.endheaders()
+/root/.pyenv/versions/3.12.12/lib/python3.12/http/client.py:1333: in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+/root/.pyenv/versions/3.12.12/lib/python3.12/http/client.py:1093: in _send_output
+    self.send(msg)
+/root/.pyenv/versions/3.12.12/lib/python3.12/http/client.py:1037: in send
+    self.connect()
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connection.py:331: in connect
+    self.sock = self._new_conn()
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connection.py:219: in _new_conn
+    raise NewConnectionError(
+E   urllib3.exceptions.NewConnectionError: HTTPConnection(host='localhost', port=8001): Failed to establish a new connection: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/adapters.py:486: in send
+    resp = conn.urlopen(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/connectionpool.py:841: in urlopen
+    retries = retries.increment(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/urllib3/util/retry.py:519: in increment
+    raise MaxRetryError(_pool, url, reason) from reason  # type: ignore[arg-type]
+E   urllib3.exceptions.MaxRetryError: HTTPConnectionPool(host='localhost', port=8001): Max retries exceeded with url: /madre/power/status (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8001): Failed to establish a new connection: [Errno 111] Connection refused"))
+
+During handling of the above exception, another exception occurred:
+tests/test_p1_power_manager.py:250: in test_p1_7_power_status_endpoint
+    response = requests.get(
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/api.py:73: in get
+    return request("get", url, params=params, **kwargs)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/api.py:59: in request
+    return session.request(method=method, url=url, **kwargs)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/sessions.py:589: in request
+    resp = self.send(prep, **send_kwargs)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/sessions.py:703: in send
+    r = adapter.send(request, **kwargs)
+/root/.pyenv/versions/3.12.12/lib/python3.12/site-packages/requests/adapters.py:519: in send
+    raise ConnectionError(e, request=request)
+E   requests.exceptions.ConnectionError: HTTPConnectionPool(host='localhost', port=8001): Max retries exceeded with url: /madre/power/status (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8001): Failed to establish a new connection: [Errno 111] Connection refused"))
+_______________________ test_p0_3_poder_ports_listening ________________________
+tests/test_power_manager.py:78: in test_p0_3_poder_ports_listening
+    assert result == 0, f"Port {port} ({service}) not listening"
+E   AssertionError: Port 8001 (madre) not listening
+E   assert 111 == 0
+=========================== short test summary info ============================
+SKIPPED [1] tests/test_db.py:12: Database not found: /home/elkakas314/vx11/data/runtime/vx11.db
+SKIPPED [1] tests/test_db.py:25: Database not found: /home/elkakas314/vx11/data/runtime/vx11.db
+SKIPPED [1] tests/test_e2e_workflows.py:138: Database not found: /home/elkakas314/vx11/data/runtime/vx11.db
+SKIPPED [1] tests/test_frontdoor_p0_core.py:170: Informational test: bypass prevention is by architecture, not enforcement
+SKIPPED [1] tests/test_health.py:27: madre not available on port 8001
+SKIPPED [1] tests/test_integration_flows_e2e.py:56: Set VX11_INTEGRATION=1 to run integration tests
+SKIPPED [1] tests/test_integration_flows_e2e.py:95: Set VX11_INTEGRATION=1 to run integration tests
+SKIPPED [1] tests/test_integration_flows_e2e.py:144: Set VX11_INTEGRATION=1 to run integration tests
+SKIPPED [1] tests/test_integration_flows_e2e.py:168: Set VX11_INTEGRATION=1 to run integration tests
+SKIPPED [1] tests/test_madre_orchestration.py:21: Madre not running
+SKIPPED [1] tests/test_madre_orchestration.py:45: Madre not running
+SKIPPED [1] tests/test_madre_orchestration.py:61: Madre not running
+SKIPPED [1] tests/test_madre_orchestration.py:77: Madre not running
+SKIPPED [1] tests/test_madre_power_manager_phase4.py:29: Madre not available: HTTPConnectionPool(host='localhost', port=8001): Max retries exceeded with url: /madre/power/service/start (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8001): Failed to establish a new connection: [Errno 111] Connection refused"))
+SKIPPED [1] tests/test_madre_power_manager_phase4.py:43: Madre service status not available: HTTPConnectionPool(host='localhost', port=8001): Max retries exceeded with url: /madre/power/status (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8001): Failed to establish a new connection: [Errno 111] Connection refused"))
+SKIPPED [1] tests/test_madre_power_manager_phase4.py:56: Madre health check failed: HTTPConnectionPool(host='localhost', port=8001): Max retries exceeded with url: /health (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8001): Failed to establish a new connection: [Errno 111] Connection refused"))
+SKIPPED [1] tests/test_madre_power_manager_phase4.py:76: tentaculo_link not available: HTTPConnectionPool(host='localhost', port=8000): Max retries exceeded with url: /health (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8000): Failed to establish a new connection: [Errno 111] Connection refused"))
+SKIPPED [1] tests/test_madre_status_p0.py:22: Madre not running on port 8001
+SKIPPED [1] tests/test_madre_status_p0.py:75: Madre not running
+SKIPPED [1] tests/test_madre_status_p0.py:108: Madre not running
+SKIPPED [1] tests/test_madre_status_p0.py:134: Madre not running
+SKIPPED [1] tests/test_madre_status_p0.py:155: Madre not running
+SKIPPED [1] tests/test_p1_canon_autonomy.py:76: Database not found: /home/elkakas314/vx11/data/runtime/vx11.db
+SKIPPED [1] tests/test_p1_canon_autonomy.py:101: Database not found: /home/elkakas314/vx11/data/runtime/vx11.db
+SKIPPED [1] tests/test_p1_canon_autonomy.py:136: Database not found: /home/elkakas314/vx11/data/runtime/vx11.db
+SKIPPED [1] tests/test_p1_power_manager.py:220: Database not found: /home/elkakas314/vx11/data/runtime/vx11.db
+SKIPPED [1] tests/test_power_manager.py:13: Docker error: [Errno 2] No such file or directory: 'docker'
+SKIPPED [1] tests/test_power_manager.py:35: Docker error: [Errno 2] No such file or directory: 'docker'
+SKIPPED [1] tests/test_stability_p0_runner_integration.py:38: Set VX11_INTEGRATION=1 to enable integration tests
+SKIPPED [1] tests/test_stability_p0_runner_integration.py:50: Set VX11_INTEGRATION=1 to enable integration tests
+SKIPPED [1] tests/test_stability_p0_runner_integration.py:56: Set VX11_INTEGRATION=1 to enable integration tests
+SKIPPED [1] tests/test_stability_p0_runner_integration.py:69: Set VX11_INTEGRATION=1 to enable integration tests
+SKIPPED [1] tests/test_stability_p0_runner_integration.py:84: Set VX11_INTEGRATION=1 to enable integration tests
+SKIPPED [1] tests/test_stability_p0_runner_integration.py:125: Set VX11_INTEGRATION=1 to enable integration tests
+SKIPPED [1] tests/test_stability_p0_runner_integration.py:172: Set VX11_INTEGRATION=1 to enable integration tests
+SKIPPED [1] tests/test_stability_p0_runner_integration.py:198: Set VX11_INTEGRATION=1 to enable integration tests
+SKIPPED [1] tests/test_stability_p0_runner_integration.py:225: Set VX11_INTEGRATION=1 to enable integration tests
+XFAIL tests/test_operator_production_phase5.py::test_vx11_overview_queries_tentaculo - Complex async mock setup required - needs architecture refactor
+XFAIL tests/test_operator_production_phase5.py::test_vx11_overview_fallback_when_tentaculo_offline - Complex async mock setup required - needs architecture refactor
+XFAIL tests/test_operator_production_phase5.py::test_shub_dashboard_queries_shubniggurath - Complex async mock setup required - needs architecture refactor
+XFAIL tests/test_operator_production_phase5.py::test_shub_dashboard_fallback_when_shub_offline - Complex async mock setup required - needs architecture refactor
+XFAIL tests/test_operator_production_phase5.py::test_resources_queries_hermes - Complex async mock setup required - needs architecture refactor
+XFAIL tests/test_operator_production_phase5.py::test_resources_fallback_when_hermes_offline - Complex async mock setup required - needs architecture refactor
+XFAIL tests/test_operator_production_phase5.py::test_fallback_when_service_offline - Complex async mock setup required - needs architecture refactor
+ERROR tests/test_operator_phase1_3.py::TestAuth::test_login_ok - ModuleNotFou...
+ERROR tests/test_operator_phase1_3.py::TestAuth::test_login_invalid_credentials
+ERROR tests/test_operator_phase1_3.py::TestPolicy::test_status_ok_when_operative
+ERROR tests/test_operator_phase1_3.py::TestEndpoints::test_status_ok - Module...
+ERROR tests/test_operator_phase1_3.py::TestEndpoints::test_modules_list - Mod...
+ERROR tests/test_operator_phase1_3.py::TestEndpoints::test_chat_post - Module...
+ERROR tests/test_operator_phase1_3.py::TestEndpoints::test_restart_module_ok
+ERROR tests/test_operator_phase1_3.py::TestEndpoints::test_restart_module_invalid_name
+ERROR tests/test_operator_phase1_3.py::TestEndpoints::test_download_audit_not_found
+ERROR tests/test_operator_phase1_3.py::TestEndpoints::test_logout_ok - Module...
+ERROR tests/test_operator_phase1_3.py::TestEndpoints::test_verify_token_ok - ...
+ERROR tests/test_operator_phase1_3.py::TestEndpoints::test_audit_list - Modul...
+ERROR tests/test_operator_phase1_3.py::TestEndpoints::test_power_up_module - ...
+ERROR tests/test_operator_phase1_3.py::TestEndpoints::test_power_down_module
+ERROR tests/test_operator_phase1_3.py::TestEndpoints::test_jobs_list - Module...
+ERROR tests/test_operator_phase1_3.py::TestEndpoints::test_jobs_detail_not_found
+FAILED tests/test_all_healthchecks.py::test_health_all - AssertionError: tent...
+FAILED tests/test_canonical_integrity.py::test_attic_files_listed_in_fs_snapshot
+FAILED tests/test_canonical_integrity.py::test_target_allowed_roots_exist - A...
+FAILED tests/test_e2e_workflows.py::test_e2e_1_full_workflow_boot_scale_policy_ondemand
+FAILED tests/test_frontdoor_p0_core.py::TestFrontDoorHealth::test_health_ok
+FAILED tests/test_frontdoor_p0_core.py::TestFrontDoorHealth::test_openapi_exists
+FAILED tests/test_frontdoor_p0_core.py::TestHermesGetEngineAuth::test_get_engine_without_token_401
+FAILED tests/test_frontdoor_p0_core.py::TestHermesGetEngineAuth::test_get_engine_with_token_200
+FAILED tests/test_frontdoor_p0_core.py::TestHermesGetEngineAuth::test_get_engine_missing_engine_id_422
+FAILED tests/test_frontdoor_p0_core.py::TestHermesExecuteAuth::test_execute_without_token_401
+FAILED tests/test_frontdoor_p0_core.py::TestHermesExecuteAuth::test_execute_with_token_200
+FAILED tests/test_frontdoor_p0_core.py::TestTokenChain::test_token_reaches_hermes_via_proxy
+FAILED tests/test_frontdoor_p0_core.py::TestOpenAPIContracts::test_hermes_endpoints_in_openapi
+FAILED tests/test_frontdoor_p0_core.py::TestOpenAPIContracts::test_hermes_endpoints_have_auth_requirement
+FAILED tests/test_health.py::test_p0_4_redis_connectivity - AssertionError: R...
+FAILED tests/test_health_endpoints.py::test_health_endpoints - requests.excep...
+FAILED tests/test_no_bypass.py::test_no_bypass_backend_hardcoded - Failed: ❌...
+FAILED tests/test_operator_api_phase_4_e2e.py::TestDatabaseSchema::test_colony_schema_exists
+FAILED tests/test_operator_auth_policy_p0.py::test_api_map_schema_validation
+FAILED tests/test_operator_auth_policy_p0.py::test_auth_mode_defaults_to_off
+FAILED tests/test_operator_auth_policy_p0.py::test_api_map_polling_compatibility
+FAILED tests/test_operator_auth_policy_p0.py::test_api_map_single_entrypoint_topology
+FAILED tests/test_operator_chat_e2e_p1.py::TestOperatorChatE2E::test_01_operator_backend_health
+FAILED tests/test_operator_chat_e2e_p1.py::TestOperatorChatE2E::test_02_operator_api_status
+FAILED tests/test_operator_chat_e2e_p1.py::TestOperatorChatE2E::test_03_tentaculo_operator_chat_exists
+FAILED tests/test_operator_chat_e2e_p1.py::TestOperatorChatE2E::test_04_operator_api_chat_endpoint
+FAILED tests/test_operator_chat_e2e_p1.py::TestOperatorChatE2E::test_05_madre_chat_endpoint
+FAILED tests/test_operator_chat_e2e_p1.py::TestOperatorChatE2E::test_06_payload_validation
+FAILED tests/test_operator_chat_e2e_p1.py::TestOperatorChatE2E::test_07_session_correlation
+FAILED tests/test_operator_chat_e2e_p1.py::TestOperatorChatE2E::test_08_tentaculo_fallback_detection
+FAILED tests/test_operator_chat_e2e_p1_v2.py::TestOperatorChatE2E::test_01_operator_backend_health
+FAILED tests/test_operator_chat_e2e_p1_v2.py::TestOperatorChatE2E::test_02_operator_api_status
+FAILED tests/test_operator_chat_e2e_p1_v2.py::TestOperatorChatE2E::test_03_tentaculo_operator_chat_exists
+FAILED tests/test_operator_chat_e2e_p1_v2.py::TestOperatorChatE2E::test_04_operator_api_chat_endpoint
+FAILED tests/test_operator_chat_e2e_p1_v2.py::TestOperatorChatE2E::test_05_madre_chat_endpoint
+FAILED tests/test_operator_chat_e2e_p1_v2.py::TestOperatorChatE2E::test_06_payload_validation
+FAILED tests/test_operator_chat_e2e_p1_v2.py::TestOperatorChatE2E::test_07_session_correlation
+FAILED tests/test_operator_chat_e2e_p1_v2.py::TestOperatorChatE2E::test_08_tentaculo_fallback_detection
+FAILED tests/test_operator_chat_e2e_phase8.py::TestOperatorChatE2E::test_01_chat_through_tentaculo_requires_token
+FAILED tests/test_operator_chat_e2e_phase8.py::TestOperatorChatE2E::test_01b_chat_through_tentaculo_with_token
+FAILED tests/test_operator_chat_e2e_phase8.py::TestOperatorChatE2E::test_02_chat_fallback_to_madre_when_switch_offline
+FAILED tests/test_operator_chat_e2e_phase8.py::TestOperatorChatE2E::test_03_correlation_id_propagation_full_chain
+FAILED tests/test_operator_chat_e2e_phase8.py::TestOperatorChatE2E::test_04_response_schema_validation
+FAILED tests/test_operator_chat_e2e_phase8.py::TestOperatorChatE2E::test_05_full_e2e_chat_flow_integration
+FAILED tests/test_operator_chat_e2e_phase8.py::TestOperatorChatStress::test_chat_stress_sequential
+FAILED tests/test_operator_db_schema_v7.py::TestOperatorMessage::test_create_message
+FAILED tests/test_operator_db_schema_v7.py::TestOperatorToolCall::test_create_tool_call
+FAILED tests/test_operator_db_schema_v7.py::TestOperatorBrowserTask::test_create_browser_task
+FAILED tests/test_operator_db_schema_v7.py::TestOperatorSwitchAdjustment::test_create_adjustment
+FAILED tests/test_operator_no_bypass.py::test_config_uses_entrypoint - FileNo...
+FAILED tests/test_operator_phase1_3.py::TestAuth::test_auth_requires_token - ...
+FAILED tests/test_operator_phase1_3.py::TestPolicy::test_status_blocked_when_low_power
+FAILED tests/test_operator_production_phase5.py::test_websocket_canonical_events
+FAILED tests/test_operator_production_phase5.py::test_websocket_handles_invalid_json
+FAILED tests/test_operator_production_phase5.py::test_websocket_unknown_event_type_becomes_status_changed
+FAILED tests/test_p1_canon_autonomy.py::test_p1_canon_files_exist - Assertion...
+FAILED tests/test_p1_power_manager.py::test_p1_1_start_single_service - reque...
+FAILED tests/test_p1_power_manager.py::test_p1_2_stop_single_service - reques...
+FAILED tests/test_p1_power_manager.py::test_p1_3_start_multiple_services - re...
+FAILED tests/test_p1_power_manager.py::test_p1_4_policy_idempotence - request...
+FAILED tests/test_p1_power_manager.py::test_p1_5_invalid_service_rejected - r...
+FAILED tests/test_p1_power_manager.py::test_p1_7_power_status_endpoint - requ...
+FAILED tests/test_power_manager.py::test_p0_3_poder_ports_listening - Asserti...
+= 63 failed, 236 passed, 37 skipped, 7 xfailed, 349 warnings, 16 errors in 24.31s =

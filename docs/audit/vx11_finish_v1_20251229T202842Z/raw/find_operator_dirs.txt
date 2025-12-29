@@ -1,0 +1,6 @@
+find . -maxdepth 3 -type d -name "operator" -o -name "operator_ui" -o -name "operator_backend" -o -name "operator-frontend" -o -name "operator_frontend" -o -name "operator_backend" | sed -n '1,200p'
+./operator_ui
+./operator
+./attic/tools/operator
+./operator_backend
+./docs/archive/operator

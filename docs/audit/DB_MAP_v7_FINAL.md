@@ -1,6 +1,6 @@
 # VX11 Database Map (generated)
 
-Generated at: 2025-12-29T06:19:42.621221Z
+Generated at: 2025-12-29T21:49:02.842324Z
 
 Database file: data/runtime/vx11.db
 
@@ -144,7 +144,7 @@ Database file: data/runtime/vx11.db
 ### cli_usage_stats — ACTIVE
 
 - Module: hermes
-- Rows: 111
+- Rows: 18
 - Columns:
   - id (INTEGER) PK NOT NULL
   - provider_id (VARCHAR(128)) NOT NULL
@@ -1070,7 +1070,7 @@ Database file: data/runtime/vx11.db
 ### routing_events — ACTIVE
 
 - Module: switch
-- Rows: 21
+- Rows: 3
 - Columns:
   - id (INTEGER) PK NOT NULL
   - timestamp (DATETIME)

@@ -1,0 +1,14 @@
+npm --prefix operator/frontend run build
+
+> @vx11/operator-frontend@7.0.0 build
+> vite build
+
+vite v5.4.21 building for production...
+transforming...
+✓ 58 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.48 kB │ gzip:  0.31 kB
+dist/assets/index-CkvKOVXB.css   17.98 kB │ gzip:  3.49 kB
+dist/assets/index-BwAVcj9y.js   179.63 kB │ gzip: 56.44 kB
+✓ built in 2.09s

@@ -1,0 +1,147 @@
+rg -n "FastAPI|APIRouter|/api|/operator" operator -S
+operator/backend/Dockerfile:28:COPY operator /app/operator/
+operator/backend/Dockerfile:38:    CMD curl -fsS http://localhost:8011/operator/api/health || exit 1
+operator/backend/main.py:10:from fastapi import Depends, FastAPI, Header, HTTPException, Request
+operator/backend/main.py:33:    "/app/logs/operator_backend_audit.jsonl",
+operator/backend/main.py:76:app = FastAPI(title="VX11 Operator Backend", version=APP_VERSION)
+operator/backend/main.py:164:        "GET", "/api/window/status", correlation_id, timeout=5.0
+operator/backend/main.py:182:        "GET", "/api/internal/core-health", correlation_id, timeout=5.0
+operator/backend/main.py:189:@app.get("/operator/api/health")
+operator/backend/main.py:201:@app.get("/operator/api/env")
+operator/backend/main.py:218:@app.get("/operator/api/status")
+operator/backend/main.py:237:@app.get("/operator/api/modules")
+operator/backend/main.py:272:@app.get("/operator/api/topology")
+operator/backend/main.py:306:@app.get("/operator/api/windows")
+operator/backend/main.py:317:@app.post("/operator/api/chat/window/open")
+operator/backend/main.py:328:        "POST", "/api/window/open", correlation_id, payload=req.dict()
+operator/backend/main.py:341:@app.post("/operator/api/chat/window/close")
+operator/backend/main.py:350:    response = await _call_tentaculo("POST", "/api/window/close", correlation_id)
+operator/backend/main.py:361:@app.get("/operator/api/chat/window/status")
+operator/backend/main.py:372:@app.post("/operator/api/chat")
+operator/backend/main.py:389:        "POST", "/operator/chat/ask", correlation_id, payload=payload, timeout=10.0
+operator/backend/main.py:404:@app.get("/operator/api/events")
+operator/backend/main.py:412:        "GET", "/api/events", correlation_id, params={"limit": limit}
+operator/backend/main.py:417:@app.get("/operator/api/events/stream")
+operator/backend/main.py:438:                        "/api/events",
+operator/backend/main.py:473:@app.get("/operator/api/audit/runs")
+operator/backend/main.py:483:        "/api/audit/runs",
+operator/backend/main.py:490:@app.get("/operator/api/audit/runs/{run_id}")
+operator/backend/main.py:498:        "GET", f"/api/audit/{run_id}", correlation_id
+operator/backend/main.py:503:@app.get("/operator/api/explorer/presets")
+operator/backend/main.py:526:@app.post("/operator/api/explorer/query")
+operator/backend/main.py:543:            "GET", "/api/events", correlation_id, params=params
+operator/backend/main.py:550:            "GET", "/api/audit/runs", correlation_id, params=params
+operator/backend/main.py:557:@app.get("/operator/api/hormiguero/status")
+operator/backend/main.py:572:@app.post("/operator/api/hormiguero/scan/once")
+operator/backend/main.py:585:        "POST", "/api/hormiguero/scan/once", correlation_id
+operator/backend/main.py:597:@app.get("/operator/api/manifestator/status")
+operator/backend/main.py:608:        "GET", "/api/rails/lanes", correlation_id, timeout=5.0
+operator/backend/main.py:618:@app.post("/operator/api/manifestator/compare")
+operator/backend/main.py:632:        "GET", "/api/rails/lanes", correlation_id, timeout=5.0
+operator/backend/main.py:635:        "GET", "/api/rails", correlation_id, timeout=5.0
+operator/backend/main.py:656:@app.get("/operator/api/metrics")
+operator/backend/main.py:665:        "/api/metrics",
+operator/backend/main.py:672:@app.get("/operator/api/scorecard")
+operator/backend/main.py:692:@app.get("/operator/api/audit")
+operator/backend/main.py:699:        "GET", "/api/audit/runs", correlation_id, params={"limit": 20}
+operator/backend/main.py:704:@app.get("/operator/api/settings")
+operator/backend/main.py:713:@app.post("/operator/api/settings")
+operator/backend/main.py:740:@app.get("/operator/api/rails/lanes")
+operator/backend/main.py:746:    response = await _call_tentaculo("GET", "/api/rails/lanes", correlation_id)
+operator/backend/main.py:750:@app.get("/operator/api/rails")
+operator/backend/main.py:756:    response = await _call_tentaculo("GET", "/api/rails", correlation_id)
+operator/backend/main.py:760:@app.get("/operator/api/healthz")
+operator/frontend/src/components/ChatPanel.tsx:2:import { apiClient } from '../services/api'
+operator/frontend/src/components/EventsPanel.tsx:8:import { apiClient } from '../services/api'
+operator/frontend/src/components/EventsPanel.tsx:39:                `/operator/api/events?${params}`
+operator/frontend/src/components/PowerCard.tsx:2:import { apiClient } from '../services/api'
+operator/frontend/src/components/HormigueroPanel.tsx:2:import { apiClient } from '../services/api'
+operator/frontend/src/components/OverviewPanel.tsx:8:import { apiClient } from '../services/api'
+operator/frontend/src/components/OverviewPanel.tsx:32:                }>('GET', '/operator/api/events?limit=1')
+operator/frontend/src/components/OverviewPanel.tsx:43:                    '/operator/api/rails/lanes'
+operator/frontend/src/components/P0ChecksPanel.tsx:2:import { apiClient } from '../services/api'
+operator/frontend/src/components/P0ChecksPanel.tsx:54:                            <span>/operator/api/chat</span>
+operator/frontend/src/components/P0ChecksPanel.tsx:61:                            <span>/operator/api/status</span>
+operator/frontend/src/components/P0ChecksPanel.tsx:68:                            <span>/operator/api/windows</span>
+operator/frontend/src/components/StatusCard.tsx:2:import { apiClient } from '../services/api'
+operator/frontend/src/components/LeftRail.tsx:2:import { apiClient } from '../services/api'
+operator/frontend/src/components/RightDrawer.tsx:2:import { apiClient } from '../services/api'
+operator/frontend/src/components/RailsPanel.tsx:8:import { apiClient } from '../services/api'
+operator/frontend/src/components/RailsPanel.tsx:25:                    '/operator/api/rails/lanes'
+operator/frontend/src/components/RailsPanel.tsx:33:                    '/operator/api/rails'
+operator/frontend/src/components/MetricsPanel.tsx:8:import { apiClient } from '../services/api'
+operator/frontend/src/components/MetricsPanel.tsx:32:                    `/operator/api/metrics?window_seconds=${windowSeconds}`
+operator/frontend/src/views/SettingsView.tsx:2:import { apiClient } from '../services/api'
+operator/frontend/src/views/AuditView.tsx:2:import { apiClient } from '../services/api'
+operator/frontend/__tests__/operator-endpoints.test.ts:3: * operator/frontend/__tests__/operator-endpoints.test.ts
+operator/frontend/__tests__/operator-endpoints.test.ts:25:    // TEST GROUP 1: /api/events - Event Stream
+operator/frontend/__tests__/operator-endpoints.test.ts:28:    describe('GET /api/events - Event Stream', () => {
+operator/frontend/__tests__/operator-endpoints.test.ts:53:            const response = await fetch(`${BASE_URL}/api/events`, {
+operator/frontend/__tests__/operator-endpoints.test.ts:86:            const response = await fetch(`${BASE_URL}/api/events?severity=critical`, {
+operator/frontend/__tests__/operator-endpoints.test.ts:117:            const response = await fetch(`${BASE_URL}/api/events?module=manifestator`, {
+operator/frontend/__tests__/operator-endpoints.test.ts:132:            const response = await fetch(`${BASE_URL}/api/events`)
+operator/frontend/__tests__/operator-endpoints.test.ts:150:            const response = await fetch(`${BASE_URL}/api/events`, {
+operator/frontend/__tests__/operator-endpoints.test.ts:161:    // TEST GROUP 2: /api/metrics - Metrics Timeseries
+operator/frontend/__tests__/operator-endpoints.test.ts:164:    describe('GET /api/metrics - Metrics Timeseries', () => {
+operator/frontend/__tests__/operator-endpoints.test.ts:187:            const response = await fetch(`${BASE_URL}/api/metrics?window_seconds=3600`, {
+operator/frontend/__tests__/operator-endpoints.test.ts:218:            const response = await fetch(`${BASE_URL}/api/metrics?module=redis`, {
+operator/frontend/__tests__/operator-endpoints.test.ts:228:    // TEST GROUP 3: /api/rails - Manifestator Rails + Lanes
+operator/frontend/__tests__/operator-endpoints.test.ts:231:    describe('GET /api/rails/lanes - Manifestator Lanes', () => {
+operator/frontend/__tests__/operator-endpoints.test.ts:263:            const response = await fetch(`${BASE_URL}/api/rails/lanes`, {
+operator/frontend/__tests__/operator-endpoints.test.ts:274:    describe('GET /api/rails - Rails Constraints', () => {
+operator/frontend/__tests__/operator-endpoints.test.ts:306:            const response = await fetch(`${BASE_URL}/api/rails`, {
+operator/frontend/__tests__/operator-endpoints.test.ts:316:    describe('GET /api/rails/{lane_id}/status - Lane Detail', () => {
+operator/frontend/__tests__/operator-endpoints.test.ts:337:            const response = await fetch(`${BASE_URL}/api/rails/lane_001_detect/status`, {
+operator/frontend/__tests__/operator-endpoints.test.ts:359:            const response = await fetch(`${BASE_URL}/api/rails/lane_nonexistent/status`, {
+operator/frontend/__tests__/operator-endpoints.test.ts:393:            const response = await fetch(`${BASE_URL}/api/window/status`, {
+operator/frontend/__tests__/operator-endpoints.test.ts:430:            const response = await fetch(`${BASE_URL}/api/events`, {
+operator/frontend/__tests__/operator-endpoints.test.ts:472:            const response = await fetch(`${BASE_URL}/api/events?correlation_id=corr_chain_test`, {
+operator/frontend/__tests__/operator-endpoints.test.ts:500:            const response = await fetch(`${BASE_URL}/api/events`, {
+operator/frontend/__tests__/operator-endpoints.test.ts:513:                await fetch(`${BASE_URL}/api/events`, {
+operator/frontend/src/views/OverviewView.tsx:2:import { apiClient } from '../services/api'
+operator/frontend/src/views/ChatView.tsx:2:import { apiClient } from '../services/api'
+operator/frontend/src/views/ChatView.tsx:65:            const resp = await apiClient.request('POST', '/operator/api/chat/window/open', {
+operator/frontend/src/views/ChatView.tsx:93:            const resp = await apiClient.request('POST', '/operator/api/chat/window/close', {})
+operator/frontend/README.md:62:- ✅ `/operator/chat/ask` (required)
+operator/frontend/README.md:63:- ✅ `/operator/status` (required)
+operator/frontend/README.md:64:- ✅ `/operator/power/state` (required)
+operator/frontend/README.md:116:- Check `/operator/chat/ask` endpoint (run P0 Checks)
+operator/frontend/src/views/CoDevView.tsx:2:import { apiClient } from '../services/api'
+operator/frontend/src/views/CoDevView.tsx:39:            const resp = await apiClient.request('POST', '/operator/api/assist/deepseek_r1', {
+operator/frontend/vite.config.ts:6:    base: '/operator/ui/',
+operator/frontend/vite.config.ts:11:            // Dev proxy: /operator/api/* routes to tentaculo_link:8000
+operator/frontend/vite.config.ts:12:            '^/operator/api': {
+operator/frontend/vite.config.ts:15:                rewrite: (path) => path, // Keep /operator/api intact; tentaculo_link handles it
+operator/frontend/package.json:2:    "name": "@vx11/operator-frontend",
+operator/frontend/src/services/api.ts:7: * - Dev (Vite :5173): proxy /operator/api → tentaculo_link:8000
+operator/frontend/src/services/api.ts:8: * - Prod: Operator UI mounted at /operator/ui in tentaculo_link
+operator/frontend/src/services/api.ts:92:    // Chat endpoint (P0: via /operator/api/chat)
+operator/frontend/src/services/api.ts:94:        return this.request('POST', '/operator/api/chat', {
+operator/frontend/src/services/api.ts:100:    // Status endpoint (P0: via /operator/api/status)
+operator/frontend/src/services/api.ts:102:        return this.request('GET', '/operator/api/status')
+operator/frontend/src/services/api.ts:105:    // Modules endpoint (P0: via /operator/api/modules)
+operator/frontend/src/services/api.ts:107:        return this.request('GET', '/operator/api/modules')
+operator/frontend/src/services/api.ts:112:        return this.request('GET', `/operator/api/modules/${name}`)
+operator/frontend/src/services/api.ts:115:    // Events endpoint (P0: via /operator/api/events)
+operator/frontend/src/services/api.ts:117:        return this.request('GET', '/operator/api/events')
+operator/frontend/src/services/api.ts:120:    // Scorecard endpoint (P0: via /operator/api/scorecard)
+operator/frontend/src/services/api.ts:122:        return this.request('GET', '/operator/api/scorecard')
+operator/frontend/src/services/api.ts:125:    // Audit endpoint (P0: via /operator/api/audit)
+operator/frontend/src/services/api.ts:127:        return this.request('GET', '/operator/api/audit')
+operator/frontend/src/services/api.ts:132:        return this.request('GET', `/operator/api/audit/${id}`)
+operator/frontend/src/services/api.ts:137:        return this.request('GET', `/operator/api/audit/${id}/download`)
+operator/frontend/src/services/api.ts:140:    // Settings endpoint (P0: via /operator/api/settings)
+operator/frontend/src/services/api.ts:142:        return this.request('GET', '/operator/api/settings')
+operator/frontend/src/services/api.ts:147:        return this.request('POST', '/operator/api/settings', settings)
+operator/frontend/src/services/api.ts:150:    // Topology endpoint (P0: via /operator/api/topology)
+operator/frontend/src/services/api.ts:152:        return this.request('GET', '/operator/api/topology')
+operator/frontend/src/services/api.ts:157:        return this.request('GET', '/operator/api/windows')
+operator/frontend/src/services/api.ts:162:        return this.request('GET', '/operator/api/hormiguero/status', undefined, { timeout: 3000 })
+operator/frontend/src/__tests__/components.test.tsx:5:vi.mock('../services/api', () => ({
+operator/frontend/src/__tests__/components.test.tsx:60:            const { apiClient } = await import('../services/api')
+operator/frontend/src/__tests__/components.test.tsx:69:            const { apiClient } = await import('../services/api')
+operator/frontend/src/__tests__/components.test.tsx:77:            const { apiClient } = await import('../services/api')
+operator/frontend/src/__tests__/components.test.tsx:84:            const { apiClient } = await import('../services/api')
+operator/frontend/src/__tests__/components.test.tsx:91:            const { apiClient } = await import('../services/api')
+operator/frontend/src/App.tsx:10:import { apiClient } from './services/api'
+operator/frontend/src/App.tsx:38:            eventSource = new EventSource('/operator/api/events/stream')

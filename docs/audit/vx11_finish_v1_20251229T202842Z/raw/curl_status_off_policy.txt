@@ -1,0 +1,1 @@
+curl -i http://localhost:8000/operator/api/v1/status

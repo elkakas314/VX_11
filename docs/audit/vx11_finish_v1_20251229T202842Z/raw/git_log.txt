@@ -1,0 +1,21 @@
+git log --oneline -20
+7b9db52 Merge pull request #4 from elkakas314/x/conduct-pre-check-and-audit-for-vx11
+6e8f768 Add operator backend service and migrate UI
+f0337ac vx11: Fix Operator Chat NetworkError — token mismatch (test-token-vx11 → vx11-local-token)
+26764e2 vx11: Fix dev CORS for localhost:3000 + git auth verified + QA evidence
+3125b70 Fix Operator dev CORS 3000 + UI mount + token env (audit evidence)
+1893856 vx11: Post-deployment adjustments + final closure summary
+3e33b0a vx11: FASES 8-11 Complete (operator_backend real, chat E2E tests, integration ready, 93.25% readiness)
+7fa74cf vx11: FASE 7 — Repair & Contract Lock (operator_backend importable, endpoints restored, post_task body optional)
+9d9139b vx11: Production Deployment Brief (ready for Go-Live ✅)
+cabfc1b vx11: Independent validation report (production closure verified ✅ 93.25% readiness)
+0d88cb0 vx11: Production Closure Complete ✅ (8/8 gates pass)
+9e8b84a vx11: PHASE 8 — Production Closure (final gates verification) ✅
+e59477d vx11: PHASE 7 — Scorecard Update (production closure metrics)
+bbd24d6 vx11: PHASE 6 — E2E Integration Tests for Operator API
+344b24d vx11: PHASE 4 — Step 1-2: Dormant capabilities + status enrichment
+f51ca8d vx11: PHASE 3 — COMPLETE + DOCS (Step 1-5 + DS-R1 REVIEW)
+9905cc8 vx11: PHASE 3 — Steps 4-5: SSE Events + Metrics endpoints
+e5b8598 vx11: PHASE 3 — Step 3: Integrate Provider Registry in /operator/api/chat
+f9773a8 vx11: PHASE 3 — Step 2: Inject correlation_id in /operator/api/chat
+3e8aa95 vx11: PHASE 3 — Step 1: Add /operator/api/status endpoint (real data from DB + madre)

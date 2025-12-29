@@ -1,0 +1,2 @@
+git branch -vv
+* work 7b9db52 Merge pull request #4 from elkakas314/x/conduct-pre-check-and-audit-for-vx11

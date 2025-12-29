@@ -1,0 +1,119 @@
+rg -n "CORSMiddleware|allow_origins|X-Correlation-Id|correlation" tentaculo_link -S
+tentaculo_link/routes/audit.py:62:          "correlation_id": "string|null",
+tentaculo_link/routes/audit.py:100:            SELECT audit_id, run_ts, status, correlation_id, 
+tentaculo_link/routes/audit.py:125:                    "correlation_id": row["correlation_id"],
+tentaculo_link/routes/events.py:33:    correlation_id: Optional[str] = None,
+tentaculo_link/routes/events.py:45:    - correlation_id: Filter by correlation_id
+tentaculo_link/routes/events.py:59:          "correlation_id": "string|null",
+tentaculo_link/routes/events.py:87:        correlation_id=correlation_id,
+tentaculo_link/db/events_metrics.py:39:    correlation_id: Optional[str] = None,
+tentaculo_link/db/events_metrics.py:50:        correlation_id: Para enlazar eventos relacionados (si existe)
+tentaculo_link/db/events_metrics.py:66:            INSERT INTO operator_events (event_id, ts, event_type, severity, module, correlation_id, summary, payload_json)
+tentaculo_link/db/events_metrics.py:74:                correlation_id,
+tentaculo_link/db/events_metrics.py:136:    correlation_id: Optional[str] = None,
+tentaculo_link/db/events_metrics.py:147:        correlation_id: Filtrar por correlation_id si existe
+tentaculo_link/db/events_metrics.py:154:            "events": [{id, ts, type, severity, module, correlation_id, summary, payload}, ...],
+tentaculo_link/db/events_metrics.py:169:        if correlation_id:
+tentaculo_link/db/events_metrics.py:170:            where_parts.append("correlation_id = ?")
+tentaculo_link/db/events_metrics.py:171:            params.append(correlation_id)
+tentaculo_link/db/events_metrics.py:190:            SELECT event_id, ts, event_type, severity, module, correlation_id, summary, payload_json
+tentaculo_link/db/events_metrics.py:209:                    "correlation_id": row["correlation_id"],
+tentaculo_link/db/events_metrics.py:306:def get_events_by_correlation_id(correlation_id: str) -> List[Dict[str, Any]]:
+tentaculo_link/db/events_metrics.py:308:    Obtener todos los eventos enlazados a un correlation_id.
+tentaculo_link/db/events_metrics.py:319:            WHERE correlation_id = ?
+tentaculo_link/db/events_metrics.py:322:            (correlation_id,),
+tentaculo_link/db/events_metrics.py:345:        print(f"ERROR getting correlation chain: {e}", file=sys.stderr)
+tentaculo_link/main_v7.py:28:from fastapi.middleware.cors import CORSMiddleware
+tentaculo_link/main_v7.py:176:    CORSMiddleware,
+tentaculo_link/main_v7.py:177:    allow_origins=settings.allowed_origins,
+tentaculo_link/main_v7.py:189:        correlation_id = request.headers.get("X-Correlation-Id") or str(uuid.uuid4())
+tentaculo_link/main_v7.py:200:        headers["X-Correlation-Id"] = correlation_id
+tentaculo_link/main_v7.py:241:                    "correlation_id": correlation_id,
+tentaculo_link/main_v7.py:1100:    "system.correlation.updated": {
+tentaculo_link/main_v7.py:1101:        "required": ["correlation_id", "related_events", "strength", "timestamp"],
+tentaculo_link/main_v7.py:1103:            "correlation_id": str,
+tentaculo_link/main_v7.py:1224:    - Track in correlation graph
+tentaculo_link/main_v7.py:1237:    # Track in correlation graph for visualization
+tentaculo_link/main_v7.py:1238:    correlation_tracker.add_event(event)
+tentaculo_link/main_v7.py:1277:    """Synthesize system.correlation.updated event (ONLY in Tentáculo Link)."""
+tentaculo_link/main_v7.py:1278:    correlation_id = str(uuid.uuid4())
+tentaculo_link/main_v7.py:1280:        "type": "system.correlation.updated",
+tentaculo_link/main_v7.py:1281:        "correlation_id": correlation_id,
+tentaculo_link/main_v7.py:1341:    """Track event correlations for DAG visualization (lightweight)."""
+tentaculo_link/main_v7.py:1352:        """Register event as node in correlation graph."""
+tentaculo_link/main_v7.py:1372:    def add_correlation(self, source_id: str, target_id: str, strength: float = 0.5):
+tentaculo_link/main_v7.py:1373:        """Add edge between two events (temporal correlation)."""
+tentaculo_link/main_v7.py:1408:correlation_tracker = EventCorrelationTracker(max_nodes=50)
+tentaculo_link/main_v7.py:1493:@app.get("/debug/events/correlations")
+tentaculo_link/main_v7.py:1494:async def debug_events_correlations():
+tentaculo_link/main_v7.py:1496:    DEBUG endpoint: Get event correlation graph (DAG).
+tentaculo_link/main_v7.py:1499:    graph = correlation_tracker.get_graph()
+tentaculo_link/main_v7.py:1572:async def proxy_shub_health_cached(x_correlation_id: str = Header(None)):
+tentaculo_link/main_v7.py:1582:    correlation_id = x_correlation_id or str(uuid.uuid4())
+tentaculo_link/main_v7.py:1589:            f"shub_proxy_cache_hit:path=/shub/health:correlation_id={correlation_id}",
+tentaculo_link/main_v7.py:1591:        # Add correlation_id to cached response
+tentaculo_link/main_v7.py:1593:            cached["correlation_id"] = correlation_id
+tentaculo_link/main_v7.py:1609:            f"shub_proxy_cache_miss:path=/shub/health:status={response.status_code}:correlation_id={correlation_id}",
+tentaculo_link/main_v7.py:1613:            result["correlation_id"] = correlation_id
+tentaculo_link/main_v7.py:1619:            f"shub_proxy_unavailable:path=/shub/health:correlation_id={correlation_id}",
+tentaculo_link/main_v7.py:1625:                "correlation_id": correlation_id,
+tentaculo_link/main_v7.py:1669:    x_correlation_id: str = Header(None),
+tentaculo_link/main_v7.py:1688:    - Structured event with status_code, path, latency_ms, correlation_id
+tentaculo_link/main_v7.py:1697:    # Generate or use provided correlation_id
+tentaculo_link/main_v7.py:1698:    correlation_id = x_correlation_id or str(uuid.uuid4())
+tentaculo_link/main_v7.py:1711:                f"shub_proxy_auth_fail:path={request_path}:correlation_id={correlation_id}",
+tentaculo_link/main_v7.py:1715:                content={"error": "forbidden", "correlation_id": correlation_id},
+tentaculo_link/main_v7.py:1732:                f"shub_proxy_rate_limited:path={request_path}:identifier={identifier[:8]}:latency_ms={latency_ms:.1f}:correlation_id={correlation_id}",
+tentaculo_link/main_v7.py:1741:                    "correlation_id": correlation_id,
+tentaculo_link/main_v7.py:1758:    # Add/update correlation_id header
+tentaculo_link/main_v7.py:1759:    upstream_headers["X-Correlation-ID"] = correlation_id
+tentaculo_link/main_v7.py:1788:            f"shub_proxy:status={response.status_code}:path={request_path}:latency_ms={latency_ms:.1f}:correlation_id={correlation_id}",
+tentaculo_link/main_v7.py:1809:            f"shub_proxy_unavailable:path={request_path}:error={type(e).__name__}:latency_ms={latency_ms:.1f}:correlation_id={correlation_id}",
+tentaculo_link/main_v7.py:1817:                "correlation_id": correlation_id,
+tentaculo_link/main_v7.py:1827:            f"shub_proxy_error:path={request_path}:error={type(e).__name__}:{str(e)[:50]}:correlation_id={correlation_id}",
+tentaculo_link/main_v7.py:1835:                "correlation_id": correlation_id,
+tentaculo_link/main_v7.py:2078:    x_correlation_id: Optional[str] = Header(None),
+tentaculo_link/main_v7.py:2105:    - correlation_id: echoed back for traceability
+tentaculo_link/main_v7.py:2109:    # Generate or use provided correlation_id
+tentaculo_link/main_v7.py:2110:    correlation_id = x_correlation_id or str(uuid.uuid4())
+tentaculo_link/main_v7.py:2183:                    "correlation_id": correlation_id,
+tentaculo_link/main_v7.py:2220:                    f"chat_switch_success:session={session_id}:correlation_id={correlation_id}:model={result.get('model')}",
+tentaculo_link/main_v7.py:2223:                result["correlation_id"] = correlation_id
+tentaculo_link/main_v7.py:2242:                message=req.message, correlation_id=correlation_id
+tentaculo_link/main_v7.py:2245:            # Provider returns: {status, provider, content, reasoning, correlation_id, latency_ms}
+tentaculo_link/main_v7.py:2270:                    "correlation_id": correlation_id,
+tentaculo_link/main_v7.py:2288:                    f"chat_provider_success:provider={response.get('provider')}:session={session_id}:correlation_id={correlation_id}",
+tentaculo_link/main_v7.py:2333:            "correlation_id": correlation_id,
+tentaculo_link/main_v7.py:2368:            "correlation_id": correlation_id,
+tentaculo_link/main_v7.py:2374:    x_correlation_id: Optional[str] = Header(None),
+tentaculo_link/main_v7.py:2386:            "correlation_id": "<uuid>",
+tentaculo_link/main_v7.py:2402:    # Generate or use provided correlation_id
+tentaculo_link/main_v7.py:2403:    correlation_id = x_correlation_id or str(uuid.uuid4())
+tentaculo_link/main_v7.py:2512:            f"operator_api_status:success:correlation_id={correlation_id}",
+tentaculo_link/main_v7.py:2526:                "correlation_id": correlation_id,
+tentaculo_link/main_v7.py:2548:                "correlation_id": correlation_id,
+tentaculo_link/main_v7.py:2558:    x_correlation_id: Optional[str] = Header(None),
+tentaculo_link/main_v7.py:2585:    correlation_id = x_correlation_id or str(uuid.uuid4())
+tentaculo_link/main_v7.py:2600:                        f"events:connection_timeout:correlation_id={correlation_id}",
+tentaculo_link/main_v7.py:2615:                            "correlation_id": correlation_id,
+tentaculo_link/main_v7.py:2626:                            "correlation_id": correlation_id,
+tentaculo_link/main_v7.py:2644:                        f"events:heartbeat:correlation_id={correlation_id}",
+tentaculo_link/main_v7.py:2654:                f"events:cancelled:correlation_id={correlation_id}",
+tentaculo_link/main_v7.py:2666:        f"events:stream_opened:correlation_id={correlation_id}",
+tentaculo_link/main_v7.py:2675:            "X-Correlation-ID": correlation_id,
+tentaculo_link/main_v7.py:2683:    x_correlation_id: Optional[str] = Header(None),
+tentaculo_link/main_v7.py:2698:            "correlation_id": "<uuid>",
+tentaculo_link/main_v7.py:2719:    correlation_id = x_correlation_id or str(uuid.uuid4())
+tentaculo_link/main_v7.py:2765:            f"operator_api_metrics:success:period={period}:correlation_id={correlation_id}",
+tentaculo_link/main_v7.py:2772:                "correlation_id": correlation_id,
+tentaculo_link/main_v7.py:2793:                "correlation_id": correlation_id,
+tentaculo_link/main_v7.py:2802:    x_correlation_id: Optional[str] = Header(None),
+tentaculo_link/main_v7.py:2814:            "correlation_id": "<uuid>",
+tentaculo_link/main_v7.py:2833:    correlation_id = x_correlation_id or str(uuid.uuid4())
+tentaculo_link/main_v7.py:2914:            f"operator_capabilities:success:mode={operational_mode}:correlation_id={correlation_id}",
+tentaculo_link/main_v7.py:2921:                "correlation_id": correlation_id,
+tentaculo_link/main_v7.py:2938:                "correlation_id": correlation_id,
+tentaculo_link/inee_remote_routes.py:34:    correlation_id: Optional[str] = None
+tentaculo_link/inee_remote_routes.py:89:    correlation_id = req.correlation_id or str(uuid.uuid4())
+tentaculo_link/inee_remote_routes.py:98:    #         "correlation_id": correlation_id,
+tentaculo_link/inee_remote_routes.py:105:        "correlation_id": correlation_id,
