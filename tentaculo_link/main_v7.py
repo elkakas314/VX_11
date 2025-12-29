@@ -195,14 +195,26 @@ else:
         level="WARNING",
     )
 
-# Include new operator API routes
+# Include new operator API routes with /operator prefix
 try:
-    app.include_router(api_routes.events.router, tags=["operator-api"])
-    app.include_router(api_routes.settings.router, tags=["operator-api"])
-    app.include_router(api_routes.audit.router, tags=["operator-api"])
-    app.include_router(api_routes.metrics.router, tags=["operator-api"])
-    app.include_router(api_routes.rails.router, tags=["operator-api"])
-    app.include_router(api_routes.window.router, tags=["operator-api"])
+    app.include_router(
+        api_routes.events.router, prefix="/operator", tags=["operator-api"]
+    )
+    app.include_router(
+        api_routes.settings.router, prefix="/operator", tags=["operator-api"]
+    )
+    app.include_router(
+        api_routes.audit.router, prefix="/operator", tags=["operator-api"]
+    )
+    app.include_router(
+        api_routes.metrics.router, prefix="/operator", tags=["operator-api"]
+    )
+    app.include_router(
+        api_routes.rails.router, prefix="/operator", tags=["operator-api"]
+    )
+    app.include_router(
+        api_routes.window.router, prefix="/operator", tags=["operator-api"]
+    )
     write_log("tentaculo_link", "included_operator_api_routers:success")
 except Exception as e:
     write_log(
