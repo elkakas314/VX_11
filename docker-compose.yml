@@ -40,6 +40,8 @@ services:
       - VX11_RATE_LIMIT_PROTECTED=100
       - VX11_METRICS_ENABLED=true
       - VX11_METRICS_PORT=9090
+      - VX11_MANIFESTATOR_ENABLED=true
+      - VX11_REPO_ROOT=/app
       # P0: DeepSeek API fallback for chat (solo_madre policy)
       # NOTE: DEEPSEEK_API_KEY MUST be set from .env (never hardcode in repo)
       # See .env.example for template

@@ -2,17 +2,32 @@
 VX11 Operator Routes: Rails (Manifestator Integration)
 tentaculo_link/routes/rails.py
 
-Endpoint: GET /api/rails/lanes
+Endpoints:
+- GET /api/rails/lanes: List drift detection lanes + validation stages
+- GET /api/rails: List all manifestator constraints/rules
+- GET /api/rails/{lane_id}/status: Detailed lane status + audit findings
 """
 
 from typing import Optional
-from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException, Path as PathParam
 import os
 import json
 import sqlite3
 from pathlib import Path
 
+from hormiguero.manifestator.controller import RailsController
+
 router = APIRouter(prefix="/api", tags=["rails"])
+controller = None
+
+
+def get_controller() -> RailsController:
+    """Get or initialize RailsController"""
+    global controller
+    if controller is None:
+        repo_root = os.environ.get("VX11_REPO_ROOT", "/home/elkakas314/vx11")
+        controller = RailsController(repo_root)
+    return controller
 
 
 def check_auth(x_vx11_token: Optional[str] = Header(None)) -> bool:
@@ -55,14 +70,6 @@ async def get_rails_lanes(auth: bool = Depends(check_auth)):
             }
           ]
         }
-      ],
-      "rails": [
-        {
-          "rail_id": "rail_001_single_entrypoint",
-          "name": "Single Entrypoint Validation",
-          "rule_type": "constraint",
-          "severity": "critical"
-        }
       ]
     }
     """
@@ -75,75 +82,20 @@ async def get_rails_lanes(auth: bool = Depends(check_auth)):
             "error": "feature_disabled",
             "flag": "VX11_MANIFESTATOR_ENABLED",
             "lanes": [],
-            "rails": [],
         }
 
     try:
-        conn = get_db()
-        cursor = conn.cursor()
-
-        # Get lanes
-        cursor.execute(
-            """
-            SELECT lane_id, name, description, stage, checks_json
-            FROM manifestator_lanes
-            ORDER BY stage
-            """
-        )
-        lane_rows = cursor.fetchall()
-
-        # Get rails
-        cursor.execute(
-            """
-            SELECT rail_id, name, description, rule_type, severity_on_violation, active
-            FROM manifestator_rails
-            WHERE active = TRUE
-            ORDER BY severity_on_violation DESC
-            """
-        )
-        rail_rows = cursor.fetchall()
-
-        conn.close()
-
-        lanes = []
-        for row in lane_rows:
-            try:
-                checks = json.loads(row["checks_json"] or "[]")
-            except:
-                checks = []
-
-            lanes.append(
-                {
-                    "lane_id": row["lane_id"],
-                    "name": row["name"],
-                    "description": row["description"],
-                    "stage": row["stage"],
-                    "checks": checks,
-                }
-            )
-
-        rails = []
-        for row in rail_rows:
-            rails.append(
-                {
-                    "rail_id": row["rail_id"],
-                    "name": row["name"],
-                    "description": row["description"],
-                    "rule_type": row["rule_type"],
-                    "severity": row["severity_on_violation"],
-                    "active": row["active"],
-                }
-            )
-
+        ctrl = get_controller()
+        lanes = ctrl.get_all_lanes()
         return {
             "lanes": lanes,
-            "rails": rails,
+            "count": len(lanes),
         }
     except Exception as e:
         return {
             "error": str(e),
             "lanes": [],
-            "rails": [],
+            "count": 0,
         }
 
 
@@ -161,9 +113,10 @@ async def get_rails(auth: bool = Depends(check_auth)):
           "rule_type": "constraint|drift_threshold|naming_convention|schema_rule",
           "severity": "critical|error|warn",
           "active": true,
-          "rule_definition": {...}
+          "description": "..."
         }
-      ]
+      ],
+      "count": 42
     }
     """
 
@@ -175,47 +128,72 @@ async def get_rails(auth: bool = Depends(check_auth)):
             "error": "feature_disabled",
             "flag": "VX11_MANIFESTATOR_ENABLED",
             "rails": [],
+            "count": 0,
         }
 
     try:
-        conn = get_db()
-        cursor = conn.cursor()
-
-        cursor.execute(
-            """
-            SELECT rail_id, name, description, rule_type, rule_definition_json, 
-                   severity_on_violation, active
-            FROM manifestator_rails
-            ORDER BY severity_on_violation DESC
-            """
-        )
-        rows = cursor.fetchall()
-        conn.close()
-
-        rails = []
-        for row in rows:
-            try:
-                rule_def = json.loads(row["rule_definition_json"] or "{}")
-            except:
-                rule_def = {}
-
-            rails.append(
-                {
-                    "rail_id": row["rail_id"],
-                    "name": row["name"],
-                    "description": row["description"],
-                    "rule_type": row["rule_type"],
-                    "severity": row["severity_on_violation"],
-                    "active": row["active"],
-                    "rule_definition": rule_def,
-                }
-            )
-
+        ctrl = get_controller()
+        rails = ctrl.get_all_rails()
         return {
             "rails": rails,
+            "count": len(rails),
         }
     except Exception as e:
         return {
             "error": str(e),
             "rails": [],
+            "count": 0,
+        }
+
+
+@router.get("/rails/{lane_id}/status")
+async def get_lane_status(
+    lane_id: str = PathParam(..., description="Lane ID"),
+    auth: bool = Depends(check_auth),
+):
+    """
+    GET /api/rails/{lane_id}/status - Detailed lane status + audit findings
+
+    Response:
+    {
+      "lane_id": "lane_structure_fs_drift",
+      "name": "Filesystem Drift Detection",
+      "description": "Detect filesystem drift against canonical manifest",
+      "stage": "detect|plan|validate|apply",
+      "checks": [...],
+      "audit_findings": [
+        {
+          "event_id": "uuid",
+          "finding_type": "drift|validation|risk",
+          "severity": "critical|error|warn|info",
+          "summary": "summary",
+          "details": {...},
+          "created_at": "timestamp"
+        }
+      ],
+      "status": "ok",
+      "created_at": "timestamp"
+    }
+    """
+
+    if not os.environ.get("VX11_MANIFESTATOR_ENABLED", "false").lower() in (
+        "true",
+        "1",
+    ):
+        return {
+            "error": "feature_disabled",
+            "flag": "VX11_MANIFESTATOR_ENABLED",
+            "lane_id": lane_id,
+            "status": "disabled",
+        }
+
+    try:
+        ctrl = get_controller()
+        result = ctrl.get_lane_status(lane_id)
+        return result
+    except Exception as e:
+        return {
+            "error": str(e),
+            "lane_id": lane_id,
+            "status": "error",
         }
