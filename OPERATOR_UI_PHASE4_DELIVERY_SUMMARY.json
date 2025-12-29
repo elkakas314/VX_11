@@ -1,0 +1,264 @@
+{
+    "status": "COMPLETE",
+    "project": "VX11 Operator UI - PHASE 4 Architecture Design",
+    "date_completed": "2025-12-29T15:45:00Z",
+    "deliverables": [
+        {
+            "name": "OPERATOR_UI_ARCHITECTURE_PHASE4.json",
+            "type": "json",
+            "description": "Main architectural specification with component hierarchy, state management, API integration, types, Tailwind strategy, and file structure",
+            "sections": [
+                "component_tree (React hierarchy with full depth)",
+                "state_architecture (Zustand stores with actions)",
+                "api_integration (Endpoint mapping per panel)",
+                "types (TypeScript interfaces for all data)",
+                "tailwind_strategy (Dark theme, colors, responsive design)",
+                "file_structure (Proposed directory layout)",
+                "implementation_roadmap (8 phases, 23-32 days)",
+                "deployment_checklist (Pre/during/post deployment)"
+            ],
+            "size": "~50KB",
+            "target_audience": "Architects, Senior Developers"
+        },
+        {
+            "name": "OPERATOR_UI_PHASE4_IMPLEMENTATION_GUIDE.md",
+            "type": "markdown",
+            "description": "Practical code examples for React + TypeScript + Tailwind CSS",
+            "sections": [
+                "Type definitions (services/types.ts)",
+                "Zustand stores with examples (OperatorStore, EventsStore, MetricsStore, RailsStore, FileExplorerStore)",
+                "Custom hooks (useWindowStatus, useEventStream, useMetrics, etc.)",
+                "Component implementations (WindowStatusBar, EventsPanel, MetricsPanel, RailsPanel)",
+                "Tailwind CSS utilities (severity colors, formatting)",
+                "Error handling & loading states",
+                "Testing examples (Unit, Component, E2E)",
+                "Deployment configuration (Dockerfile, package.json scripts)"
+            ],
+            "size": "~30KB",
+            "target_audience": "Frontend Developers, QA Engineers"
+        },
+        {
+            "name": "OPERATOR_UI_COMPONENT_VISUAL_TREE.txt",
+            "type": "text",
+            "description": "ASCII visual representation of component hierarchy, data flows, and responsive design strategy",
+            "sections": [
+                "Root component tree (App → LayoutWrapper → Views)",
+                "Detailed subtrees (OverviewPanel, EventsPanel, MetricsPanel, RailsPanel, FileExplorerPanel)",
+                "Zustand store hierarchy",
+                "API call flows (how data moves from API → Store → Component)",
+                "Responsive design grid (mobile, tablet, desktop)",
+                "Animations and interactions"
+            ],
+            "size": "~15KB",
+            "target_audience": "Visual learners, Product Managers"
+        },
+        {
+            "name": "OPERATOR_UI_ARCHITECTURE_DECISIONS.md",
+            "type": "markdown",
+            "description": "Detailed justification for architectural choices with tool comparisons",
+            "sections": [
+                "State Management: Zustand vs Redux/Context/MobX/Recoil",
+                "API Fetching: React Query vs SWR/Axios/vanilla fetch",
+                "Charts: Recharts vs Chart.js/D3/Victory/ECharts",
+                "Styling: Tailwind vs CSS-in-JS/SCSS/Bootstrap/UnoCSS",
+                "Testing: Vitest + React Testing Library + Playwright",
+                "Build Tool: Vite vs Webpack/Parcel/esbuild/Next.js",
+                "TypeScript Configuration (strict mode justification)",
+                "Component Composition (flat-by-feature vs Atomic Design)",
+                "Data Flow Pattern (Zustand + React Query separation)",
+                "Dark Mode Implementation (CSS variables)",
+                "Error Handling Strategy (Error Boundary + API errors + validation)",
+                "Performance Optimization (virtual scrolling)",
+                "Real-Time Updates (SSE vs WebSocket vs Polling)",
+                "Accessibility (WCAG 2.1 AA with color contrast)",
+                "Deployment Strategy (Vite + serve vs Next.js)"
+            ],
+            "size": "~25KB",
+            "target_audience": "Architects, Tech Leads"
+        }
+    ],
+    "key_architectural_decisions": {
+        "state_management": "Zustand (lightweight, no boilerplate, reactive)",
+        "api_client": "Custom wrapper with React Query integration + SSE for streaming",
+        "charts_library": "Recharts (React-native, composable, TypeScript-friendly)",
+        "styling_framework": "Tailwind CSS (utility-first, dark mode built-in, PurgeCSS)",
+        "testing_framework": "Vitest + React Testing Library + Playwright E2E",
+        "build_tool": "Vite (instant HMR, optimized builds, no config needed)",
+        "component_organization": "Flat-by-feature structure (not Atomic Design)",
+        "real_time_protocol": "SSE for EventsPanel (fallback: polling), polling for others",
+        "performance_optimization": "React Query caching, virtual scrolling for 1000+ items",
+        "accessibility_standard": "WCAG 2.1 Level AA (4.5:1 contrast ratio)"
+    },
+    "component_summary": {
+        "total_components": 45,
+        "panels": 6,
+        "sub_components": 39,
+        "stores": 6,
+        "custom_hooks": 8,
+        "views": 6
+    },
+    "api_endpoints_consumed": {
+        "status": "GET /api/status",
+        "modules": "GET /api/modules",
+        "metrics": "GET /api/metrics",
+        "events": "GET /api/events (with SSE fallback)",
+        "rails_lanes": "GET /api/rails/lanes",
+        "rails_lane_detail": "GET /api/rails/lane/{lane_id}",
+        "file_explorer": "GET /api/fs/list",
+        "total_endpoints": 7
+    },
+    "data_structures": {
+        "type_definitions": 14,
+        "custom_types": 6,
+        "zustand_stores": 6,
+        "total_typescript_interfaces": 20
+    },
+    "implementation_timeline": {
+        "phase_1_foundation": {
+            "description": "Stores, hooks, types",
+            "duration_days": "2-3"
+        },
+        "phase_2_window_status": {
+            "description": "WindowStatusBar component",
+            "duration_days": "1-2"
+        },
+        "phase_3_overview": {
+            "description": "OverviewPanel with health summary",
+            "duration_days": "3-4"
+        },
+        "phase_4_events": {
+            "description": "EventsPanel with SSE + filtering",
+            "duration_days": "4-5"
+        },
+        "phase_5_metrics": {
+            "description": "MetricsPanel with Recharts",
+            "duration_days": "4-5"
+        },
+        "phase_6_rails": {
+            "description": "RailsPanel with lane visualization",
+            "duration_days": "4-5"
+        },
+        "phase_7_explorer": {
+            "description": "FileExplorerPanel with navigation",
+            "duration_days": "2-3"
+        },
+        "phase_8_polish": {
+            "description": "UI polish, testing, accessibility",
+            "duration_days": "3-5"
+        },
+        "total_days": "23-32"
+    },
+    "responsive_design": {
+        "mobile": "< 640px (1 column, stacked layouts)",
+        "tablet": "640px - 1024px (2-3 columns)",
+        "desktop": "> 1024px (3-4 columns, full RailsGrid)"
+    },
+    "dark_theme_colors": {
+        "background_primary": "bg-slate-950",
+        "background_secondary": "bg-slate-900",
+        "background_tertiary": "bg-slate-800",
+        "foreground_primary": "text-slate-100",
+        "foreground_secondary": "text-slate-400",
+        "accent": "cyan-500 (tech blue)",
+        "success": "emerald-500",
+        "warning": "amber-500",
+        "error": "rose-500",
+        "info": "blue-500"
+    },
+    "performance_targets": {
+        "first_contentful_paint_fcp": "< 2 seconds",
+        "largest_contentful_paint_lcp": "< 3 seconds",
+        "time_to_interactive_tti": "< 4 seconds",
+        "cumulative_layout_shift_cls": "< 0.1",
+        "api_response_time_p95": "< 500ms"
+    },
+    "testing_strategy": {
+        "unit_tests": "Vitest + React Testing Library (80% coverage)",
+        "integration_tests": "Mock /api/* endpoints with msw",
+        "e2e_tests": "Playwright (critical user journeys)",
+        "performance_tests": "Lighthouse CI + Sentry RUM",
+        "accessibility_tests": "axe-core + manual WCAG AA audit"
+    },
+    "browser_support": [
+        "Chrome (latest 2 versions)",
+        "Firefox (latest 2 versions)",
+        "Safari (latest 2 versions)",
+        "Edge (latest 2 versions)"
+    ],
+    "deployment": {
+        "container": "Docker (multi-stage build)",
+        "base_image": "node:18-alpine",
+        "service_port": 8020,
+        "entrypoint": "serve -s dist -l 8020",
+        "build_size_gzip": "~150KB"
+    },
+    "constraints_respected": [
+        "Single entrypoint: tentaculo_link:8000 ONLY",
+        "No direct calls to :8001, :8002, etc.",
+        "UI is observational (read-only)",
+        "solo_madre is default policy",
+        "All state changes are audit-tracked",
+        "No shell execution or arbitrary code",
+        "Rate limiting aware (poll intervals configurable)"
+    ],
+    "security_measures": [
+        "Token injection in all API calls (x-vx11-token header)",
+        "Request ID tracking for audit trail",
+        "Auth check gating on all endpoints",
+        "Policy check gating (respects solo_madre policy)",
+        "File explorer allowlist validation",
+        "No path traversal exploits (Path.resolve() used)",
+        "CSP headers recommended",
+        "HTTPS enforced in production"
+    ],
+    "files_created": [
+        "OPERATOR_UI_ARCHITECTURE_PHASE4.json (main spec)",
+        "OPERATOR_UI_PHASE4_IMPLEMENTATION_GUIDE.md (code examples)",
+        "OPERATOR_UI_COMPONENT_VISUAL_TREE.txt (visual hierarchy)",
+        "OPERATOR_UI_ARCHITECTURE_DECISIONS.md (tool justifications)"
+    ],
+    "recommendations": {
+        "short_term": [
+            "Start with Phase 1: Bootstrap stores + types (fastest feedback loop)",
+            "Implement WindowStatusBar (simple, unblocks UI layout)",
+            "Use real API endpoints ASAP (test against actual data)"
+        ],
+        "medium_term": [
+            "Add integration with React Query for caching layer",
+            "Implement virtual scrolling for EventsPanel",
+            "Set up Playwright E2E tests"
+        ],
+        "long_term": [
+            "Monitor Lighthouse scores (target: Performance > 80)",
+            "Implement RUM (Real User Monitoring) via Sentry",
+            "Collect operator feedback for UX improvements",
+            "Consider accessibility audit (WCAG A compliance)"
+        ]
+    },
+    "risk_mitigation": {
+        "api_unavailable": "ErrorBoundary + Toast notifications + retry logic",
+        "performance_degradation": "React Query cache + virtual scrolling + lazy code-split",
+        "accessibility_failure": "Automated axe-core tests + manual WCAG audit",
+        "type_errors": "TypeScript strict mode + comprehensive interfaces",
+        "deployment_failure": "Multi-stage Docker build + smoke test checklist"
+    },
+    "next_actions": [
+        "Review OPERATOR_UI_ARCHITECTURE_PHASE4.json with stakeholders",
+        "Discuss tool choices from OPERATOR_UI_ARCHITECTURE_DECISIONS.md",
+        "Validate component tree with UX team",
+        "Create Jira/GitHub issues for each phase",
+        "Begin Phase 1 implementation (Zustand stores + TypeScript)",
+        "Set up development environment (Vite + ESLint + Prettier)",
+        "Establish testing infrastructure (Vitest + RTL + Playwright)"
+    ],
+    "metadata": {
+        "design_by": "GitHub Copilot",
+        "design_date": "2025-12-29",
+        "design_phase": "PHASE 4",
+        "vx11_version": "7.0",
+        "operator_api_version": "1.0",
+        "entrypoint": "tentaculo_link:8000",
+        "framework": "React 18.2 + TypeScript 5.3 + Tailwind CSS 3.x",
+        "status": "READY FOR IMPLEMENTATION"
+    }
+}

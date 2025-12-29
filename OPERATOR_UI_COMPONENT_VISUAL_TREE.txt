@@ -1,0 +1,501 @@
+```
+VX11 OPERATOR UI - PHASE 4 COMPONENT HIERARCHY VISUAL
+========================================================
+
+ROOT COMPONENT TREE:
+
+┌─────────────────────────────────────────────────────────────────┐
+│ App.tsx (Root Router)                                          │
+│ ├─ Zustand Store Providers                                    │
+│ ├─ Error Boundary                                             │
+│ └─ Router (Tab-based navigation)                              │
+└─────────────────────────────────────────────────────────────────┘
+         ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ LayoutWrapper.tsx (Main Container)                            │
+└─────────────────────────────────────────────────────────────────┘
+         ↓
+         ├──────────────────────────┬──────────────────────────┐
+         ↓                          ↓                          ↓
+    ┌─────────┐          ┌──────────────────┐       ┌─────────────┐
+    │ TopBar  │          │WindowStatusBar   │       │Navigation   │
+    │ (fixed) │          │ (sticky top-0)   │       │ Tabs        │
+    └─────────┘          └──────────────────┘       └─────────────┘
+         │                      │                         │
+         ├──────────────────────┼─────────────────────────┤
+         │                      ↓                         │
+         │            ┌──────────────────────┐           │
+         │            │ ModeIndicator        │           │
+         │            │ HealthStatus         │           │
+         │            │ TTLCountdown         │           │
+         │            │ RequestMetadata      │           │
+         │            └──────────────────────┘           │
+         │                                                │
+         ├────────────────────────────────────────────────┤
+         ↓                                                ↓
+┌──────────────────────────────────────────────────────────────────┐
+│ DegradedModeBanner.tsx (if solo_madre policy)                  │
+└──────────────────────────────────────────────────────────────────┘
+         ↓
+┌──────────────────────────────────────────────────────────────────┐
+│ MainContent.tsx (flex-1, overflow-auto)                         │
+│ View Router:                                                    │
+│  - OverviewPanel                                                │
+│  - EventsPanel                                                  │
+│  - MetricsPanel                                                 │
+│  - RailsPanel                                                   │
+│  - FileExplorerPanel                                            │
+│  - SettingsView                                                 │
+└──────────────────────────────────────────────────────────────────┘
+
+
+DETAILED COMPONENT TREES:
+
+═══════════════════════════════════════════════════════════════════
+
+OverviewPanel TREE:
+─────────────────
+
+OverviewPanel
+│
+├─ SystemHealthCard
+│  ├─ ModuleHealthGrid (3-col grid on desktop)
+│  │  └─ ModuleHealthItem (repeatable x10)
+│  │     ├─ ModuleIcon
+│  │     ├─ HealthStatus
+│  │     └─ ResponseTime
+│  │
+│  └─ StatsRow
+│     ├─ CPU%
+│     ├─ Memory (MB)
+│     └─ DB Size
+│
+├─ RecentEventsPreview
+│  ├─ EventRow (repeatable x5)
+│  │  ├─ SeverityBadge
+│  │  ├─ Timestamp
+│  │  ├─ Module
+│  │  └─ Message (truncated)
+│  │
+│  └─ ViewMoreLink → EventsPanel
+│
+└─ LanesPreview
+   ├─ LaneSummary
+   │  ├─ Total lanes
+   │  ├─ Detect (active)
+   │  ├─ Plan (active)
+   │  ├─ Validate (active)
+   │  └─ Apply (active)
+   │
+   └─ MiniLaneCards (4 columns)
+      └─ LaneCard (repeatable)
+         ├─ Lane ID
+         ├─ Stage badge
+         ├─ Status indicator
+         └─ Severity dot
+
+
+═══════════════════════════════════════════════════════════════════
+
+EventsPanel TREE:
+────────────────
+
+EventsPanel
+│
+├─ EventFilters (sticky)
+│  ├─ SeverityFilter
+│  │  └─ MultiSelect (critical, error, warn, info, debug)
+│  │
+│  ├─ ModuleFilter
+│  │  └─ MultiSelect (madre, hormiguero, switch, etc.)
+│  │
+│  ├─ TimeRangeFilter
+│  │  ├─ DateTimePicker (from)
+│  │  └─ DateTimePicker (to)
+│  │
+│  └─ ClearButton
+│
+├─ ViewToggle (Table | Timeline)
+│  ├─ active_view: 'table' | 'timeline'
+│  └─ toggle button
+│
+├─ IF view === 'table':
+│  │
+│  └─ EventTable (virtual scroll)
+│     ├─ Header (sticky)
+│     │  ├─ Timestamp (sortable)
+│     │  ├─ Severity (color)
+│     │  ├─ Module
+│     │  ├─ Correlation ID
+│     │  ├─ Message (truncated)
+│     │  └─ Actions
+│     │
+│     └─ Body (virtualized, 50 rows visible)
+│        └─ EventRow (repeatable)
+│           ├─ SeverityDot (pulse animation)
+│           ├─ TimeStamp
+│           ├─ Module
+│           ├─ CorrelationID (mono font)
+│           ├─ Message (truncated, hover for full)
+│           └─ ExpandButton
+│
+├─ IF view === 'timeline':
+│  │
+│  └─ EventTimeline
+│     ├─ TimelineContainer
+│     │  └─ TimelineGroup (by hour/minute)
+│     │     ├─ TimeLabel
+│     │     ├─ EventCluster
+│     │     │  └─ EventBubble (repeatable)
+│     │     │     ├─ SeverityColor
+│     │     │     ├─ Module icon
+│     │     │     └─ Message preview
+│     │     │
+│     │     └─ SeverityDistribution (mini chart)
+│
+└─ EventDetails (modal or side panel)
+   ├─ EventHeader
+   │  ├─ Timestamp
+   │  ├─ Severity
+   │  └─ Close button
+   │
+   ├─ EventBody
+   │  ├─ Module
+   │  ├─ Correlation ID
+   │  ├─ Full message
+   │  ├─ Context JSON (collapsible)
+   │  └─ Related Events (linked by correlation_id)
+   │
+   └─ EventActions
+      ├─ Copy Correlation ID
+      └─ Export as JSON
+
+
+═══════════════════════════════════════════════════════════════════
+
+MetricsPanel TREE:
+─────────────────
+
+MetricsPanel
+│
+├─ MetricsControls (sticky)
+│  │
+│  ├─ TimeWindowSelector
+│  │  └─ Buttons: [1h] [6h] [24h] [7d] [30d]
+│  │
+│  ├─ MetricNameSelector
+│  │  └─ MultiSelect with checkboxes
+│  │     ├─ cpu_utilization
+│  │     ├─ memory_usage
+│  │     ├─ db_size
+│  │     ├─ disk_usage
+│  │     ├─ network_io
+│  │     ├─ request_latency
+│  │     └─ error_rate
+│  │
+│  ├─ AggregationSelector
+│  │  └─ Dropdown: [avg] [max] [min] [p50] [p95] [p99]
+│  │
+│  └─ ExportButton
+│     ├─ Export JSON
+│     ├─ Export CSV
+│     └─ Export PNG (screenshot)
+│
+├─ MetricsChart (Recharts LineChart)
+│  ├─ Chart Container (h-96)
+│  │  ├─ SVG Canvas (full responsive)
+│  │  ├─ XAxis (timestamps, formatted)
+│  │  ├─ YAxis (metric values)
+│  │  ├─ CartesianGrid (dashed, low opacity)
+│  │  │
+│  │  ├─ Lines (one per metric)
+│  │  │  ├─ Line 1 (cyan)
+│  │  │  ├─ Line 2 (amber)
+│  │  │  └─ Line N (hsl colors)
+│  │  │
+│  │  └─ Interactions
+│  │     ├─ Tooltip (on hover)
+│  │     ├─ Legend (toggle visibility)
+│  │     ├─ Zoom (mouse wheel)
+│  │     └─ Pan (drag)
+│  │
+│  └─ Legend (below chart)
+│     └─ LegendItems (checkbox per metric)
+│
+└─ LoadingState | ErrorState
+   ├─ Spinner + "Loading metrics..."
+   └─ ErrorBanner + Retry button
+
+
+═══════════════════════════════════════════════════════════════════
+
+RailsPanel TREE:
+───────────────
+
+RailsPanel
+│
+├─ RailsStatusBar
+│  ├─ Total lanes count
+│  ├─ Lanes by stage (badges with counts)
+│  │  ├─ 🔎 Detect: 12
+│  │  ├─ 📋 Plan: 8
+│  │  ├─ ✅ Validate: 5
+│  │  └─ 🚀 Apply: 3
+│  │
+│  └─ Severity summary (mini distribution)
+│     ├─ 🔴 Critical: 2
+│     ├─ ⚠️  Error: 5
+│     └─ 📌 Warn: 8
+│
+├─ RailsGrid (4-column grid, gap-4)
+│  │
+│  ├─ StageColumn (flex-1)
+│  │  ├─ StageHeader ("🔎 Detect (12)")
+│  │  │
+│  │  └─ LanesList (space-y-2)
+│  │     └─ LaneCard (repeatable, draggable)
+│  │        ├─ LaneHeader (flex, space-between)
+│  │        │  ├─ LaneID (mono font)
+│  │        │  └─ SeverityBadge (color: critical|error|warn|info)
+│  │        │
+│  │        ├─ LaneProgress
+│  │        │  └─ Progress bar (check_passed / check_count)
+│  │        │
+│  │        ├─ StatusIndicator
+│  │        │  ├─ "✅ Passed"  (green)
+│  │        │  ├─ "⏱️  In Progress" (blue + pulse)
+│  │        │  ├─ "❌ Failed"  (red)
+│  │        │  └─ "🔒 Blocked" (orange)
+│  │        │
+│  │        ├─ CheckSummary ("3/5 checks passed")
+│  │        │
+│  │        └─ ExpandButton (chevron)
+│  │
+│  ├─ StageColumn (Plan) → [LaneCards...]
+│  ├─ StageColumn (Validate) → [LaneCards...]
+│  └─ StageColumn (Apply) → [LaneCards...]
+│
+├─ LaneDetail (side panel or modal)
+│  ├─ Header
+│  │  ├─ Lane ID
+│  │  ├─ Stage (badge)
+│  │  └─ CloseButton
+│  │
+│  ├─ Timeline (vertical)
+│  │  ├─ detect → plan (arrow + duration)
+│  │  ├─ plan → validate (arrow + duration)
+│  │  ├─ validate → apply (arrow + duration)
+│  │  └─ apply (final state)
+│  │
+│  ├─ ChecksList (collapsible sections per stage)
+│  │  ├─ Check 1 (✅ passed, 1.2s)
+│  │  ├─ Check 2 (❌ failed, 0.5s, error message)
+│  │  └─ Check N
+│  │
+│  ├─ AuditFindingsList (collapsible)
+│  │  ├─ Finding 1 (severity, category, message, remediation)
+│  │  └─ Finding N
+│  │
+│  └─ RelatedEvents (links to /api/events by correlation_id)
+│     └─ EventRow (repeatable)
+│        ├─ Timestamp
+│        ├─ Severity
+│        └─ Message
+
+
+═══════════════════════════════════════════════════════════════════
+
+FileExplorerPanel TREE:
+──────────────────────
+
+FileExplorerPanel
+│
+├─ ExplorerBreadcrumb (sticky)
+│  └─ Breadcrumb path
+│     ├─ / (click → root)
+│     ├─ docs (click → /docs)
+│     ├─ audit (click → /docs/audit)
+│     └─ <timestamp> (current location)
+│
+├─ ExplorerSearchBar
+│  └─ TextInput (placeholder "Search files...")
+│
+├─ ExplorerFileBrowser (flex-1, overflow-auto)
+│  │
+│  ├─ FileRow (header, sticky)
+│  │  ├─ Name
+│  │  ├─ Type
+│  │  ├─ Size
+│  │  └─ Modified
+│  │
+│  └─ FileList
+│     └─ FileItem (repeatable)
+│        ├─ DirectoryRow (if type === 'directory')
+│        │  ├─ 📁 Icon (blue)
+│        │  ├─ FolderName (clickable)
+│        │  ├─ — (no size)
+│        │  └─ Modified date
+│        │
+│        └─ FileRow (if type === 'file')
+│           ├─ 📄 Icon (white)
+│           ├─ FileName (mono font)
+│           ├─ FileSize (human readable)
+│           ├─ Modified date
+│           └─ ContextMenu (right-click)
+│              ├─ Copy path
+│              ├─ Refresh
+│              └─ Delete (if allowed)
+│
+├─ ExplorerMetadata (bottom, sticky)
+│  ├─ Item count: "23 items"
+│  ├─ Total size: "1.2 GB"
+│  ├─ Last refresh: "2 seconds ago"
+│  └─ RefreshButton
+│
+└─ LoadingState | ErrorState
+   ├─ Spinner + "Loading directory..."
+   └─ ErrorBanner + Retry button
+
+
+═══════════════════════════════════════════════════════════════════
+
+ZUSTAND STORE HIERARCHY:
+
+OperatorStore (global)
+├─ mode: 'solo_madre' | 'window_active' | 'full'
+├─ ttl_remaining_ms: number | null
+├─ health: 'ok' | 'degraded' | 'offline'
+├─ request_id: string
+├─ route_taken: string
+└─ last_updated: ISO8601
+
+OverviewStore
+├─ modules: ServiceHealth[]
+├─ metrics_snapshot: MetricsSnapshot
+├─ recent_events: Event[] (last 10)
+├─ active_lanes: number
+└─ loading, error
+
+EventsStore
+├─ events: Event[] (last 10k)
+├─ filters: EventFilter
+├─ is_streaming: boolean
+├─ stream_enabled: boolean
+└─ loading, error
+
+MetricsStore
+├─ datapoints: Datapoint[]
+├─ time_window: '1h' | '6h' | '24h' | '7d' | '30d'
+├─ selected_metrics: string[]
+├─ aggregation: 'avg' | 'max' | 'min' | 'p50' | 'p95' | 'p99'
+└─ loading, error
+
+RailsStore
+├─ lanes: Lane[]
+├─ stages: string[]
+├─ selected_lane_id: string | null
+├─ lane_details: LaneDetails | null
+└─ loading, error
+
+FileExplorerStore
+├─ current_path: string
+├─ contents: FileSystemItem[]
+├─ breadcrumb: string[]
+├─ search_query: string
+└─ loading, error
+
+
+═══════════════════════════════════════════════════════════════════
+
+API CALL FLOWS:
+
+→ WindowStatusBar:
+  └─ Poll /api/status (5s interval) → OperatorStore.updateFromStatus()
+     → WindowStatusBar re-renders with mode, health, ttl_remaining_ms
+
+→ OverviewPanel:
+  ├─ On mount: fetch /api/modules → OverviewStore.modules
+  ├─ On mount: fetch /api/metrics (snapshot) → OverviewStore.metrics_snapshot
+  ├─ On mount: fetch /api/events?limit=10 → OverviewStore.recent_events
+  ├─ On mount: fetch /api/rails/lanes?limit=5 → OverviewStore.active_lanes
+  └─ Poll every 10s
+
+→ EventsPanel:
+  ├─ useEventStream() hook
+  │  ├─ Try SSE /api/events/stream
+  │  │  └─ On 'event': EventsStore.addEvent(event)
+  │  └─ Fallback: Poll /api/events?limit=50 (5s)
+  │     └─ EventsStore.setEvents(events)
+  │
+  └─ User filter change → EventsStore.setFilters()
+     → Local filtering + render
+
+→ MetricsPanel:
+  ├─ User change time_window/metrics/aggregation
+  │  └─ Fetch /api/metrics?window=24h&metrics=...&agg=... 
+  │     → MetricsStore.setDatapoints()
+  │
+  └─ User click export
+     └─ Generate JSON/CSV from MetricsStore.datapoints
+
+→ RailsPanel:
+  ├─ On mount: Poll /api/rails/lanes (10s) → RailsStore.lanes
+  │
+  ├─ User click lane
+  │  └─ Fetch /api/rails/lane/{lane_id} → RailsStore.lane_details
+  │
+  └─ RailsStore mutations → Update local state → Re-render
+
+→ FileExplorerPanel:
+  ├─ On mount: Fetch /api/fs/list?path=/docs/audit → FileExplorerStore.contents
+  │
+  ├─ User double-click folder
+  │  └─ Fetch /api/fs/list?path=... → FileExplorerStore.contents + update breadcrumb
+  │
+  └─ User search → Local filter (no API call)
+     → Render filtered FileExplorerStore.contents
+
+
+═══════════════════════════════════════════════════════════════════
+
+RESPONSIVE DESIGN (Tailwind breakpoints):
+
+MOBILE (< 640px):
+─────────────────
+- Grid layouts: 1 column
+- RailsGrid: 1 column (stages stacked vertically)
+- Font sizes: text-sm
+- Padding: p-2, gap-2
+
+TABLET (640px - 1024px):
+───────────────────────
+- Grid layouts: 2 columns
+- RailsGrid: 2 columns (detect + plan above, validate + apply below)
+- Font sizes: text-base
+- Padding: p-4, gap-3
+
+DESKTOP (> 1024px):
+──────────────────
+- Grid layouts: 3-4 columns
+- RailsGrid: 4 columns (full width)
+- Font sizes: text-base, lg:text-lg
+- Padding: p-6, gap-4
+
+ANIMATIONS:
+───────────
+- Loading: animate-spin (spinner)
+- Pulse: animate-pulse (status indicators, new events)
+- Fade: animate-fade-in (modal entrance)
+- Slide: animate-slide-down (dropdown)
+
+
+═══════════════════════════════════════════════════════════════════
+
+This visual guide shows:
+1. Component hierarchy and relationships
+2. Data flow from stores to UI
+3. API endpoint mapping to components
+4. Responsive design strategy
+5. Animation and interaction points
+
+```

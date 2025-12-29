@@ -1,0 +1,1073 @@
+{
+    "metadata": {
+        "project": "VX11",
+        "phase": "PHASE 4 - UI ARCHITECTURE DESIGN",
+        "focus": "React + TypeScript + Tailwind CSS Component Architecture",
+        "date": "2025-12-29",
+        "entrypoint": "tentaculo_link:8000",
+        "constraints": {
+            "single_entrypoint_only": "No direct calls to :8011, :8001, :8002, etc.",
+            "solo_madre_default": "Operator OFF by policy unless activated",
+            "observational_ui": "Read-only Explorer DB, no shell execution",
+            "mutations_audited": "All state changes tracked in audit logs"
+        }
+    },
+    "component_tree": {
+        "root": "App",
+        "structure": {
+            "App": {
+                "children": [
+                    "LayoutWrapper",
+                    "NavigationBar",
+                    "ViewRouter"
+                ],
+                "state_management": "Zustand store (OperatorStore)"
+            },
+            "LayoutWrapper": {
+                "children": [
+                    "WindowStatusBar",
+                    "DegradedModeBanner",
+                    "MainContent"
+                ],
+                "purpose": "Global layout container with top-level status indicators"
+            },
+            "WindowStatusBar": {
+                "children": [
+                    "ModeIndicator",
+                    "HealthStatus",
+                    "TTLCountdown",
+                    "RequestMetadata"
+                ],
+                "props": {
+                    "mode": "string ('solo_madre' | 'window_active' | 'full')",
+                    "ttl_remaining_ms": "number",
+                    "health": "string ('ok' | 'degraded' | 'offline')",
+                    "request_id": "string",
+                    "route_taken": "string"
+                }
+            },
+            "DegradedModeBanner": {
+                "props": {
+                    "show": "boolean",
+                    "message": "string"
+                },
+                "purpose": "Warning banner when solo_madre policy is active"
+            },
+            "MainContent": {
+                "children": [
+                    "OverviewPanel",
+                    "EventsPanel",
+                    "MetricsPanel",
+                    "RailsPanel",
+                    "FileExplorerPanel"
+                ],
+                "layout": "Tab-based or grid-based switching"
+            },
+            "OverviewPanel": {
+                "children": [
+                    "SystemHealthCard",
+                    "ModuleHealthGrid",
+                    "RecentEventsPreview",
+                    "LanesPreview"
+                ],
+                "purpose": "System health summary (high-level dashboard)"
+            },
+            "SystemHealthCard": {
+                "displays": [
+                    "madre_status (with response time)",
+                    "redis_status (with response time)",
+                    "tentaculo_link_status (with response time)",
+                    "operator_backend_status (with response time)"
+                ],
+                "props": {
+                    "modules": "ServiceHealth[]",
+                    "last_update": "ISO8601"
+                }
+            },
+            "ModuleHealthGrid": {
+                "children": [
+                    "ModuleHealthItem (repeatable)"
+                ],
+                "layout": "3-column grid on desktop, responsive",
+                "renders": [
+                    "CPU utilization (from metrics)",
+                    "Memory usage (from metrics)",
+                    "DB size (from metrics)",
+                    "Active lanes count"
+                ]
+            },
+            "EventsPanel": {
+                "children": [
+                    "EventFilters",
+                    "EventTable",
+                    "EventTimeline",
+                    "EventDetails"
+                ],
+                "purpose": "Real-time event stream with filtering"
+            },
+            "EventFilters": {
+                "children": [
+                    "SeverityFilter",
+                    "ModuleFilter",
+                    "TimeRangeFilter",
+                    "ClearButton"
+                ],
+                "props": {
+                    "severity": "string[] ('critical' | 'error' | 'warn' | 'info' | 'debug')",
+                    "modules": "string[]",
+                    "from_time": "ISO8601",
+                    "to_time": "ISO8601"
+                }
+            },
+            "EventTable": {
+                "columns": [
+                    "timestamp (sortable)",
+                    "severity (color-coded)",
+                    "module",
+                    "correlation_id",
+                    "message (truncated)",
+                    "action_button (expand)"
+                ],
+                "features": {
+                    "virtual_scroll": "For large datasets (1000+ rows)",
+                    "auto_refresh": "SSE or polling (configurable)",
+                    "highlight_recent": "New events flash briefly"
+                }
+            },
+            "EventTimeline": {
+                "purpose": "Alternative view: timeline visualization",
+                "layout": "Vertical timeline with events grouped by severity",
+                "displays": [
+                    "Event clusters by time",
+                    "Severity distribution",
+                    "Module breakdown"
+                ]
+            },
+            "MetricsPanel": {
+                "children": [
+                    "MetricsControls",
+                    "MetricsChart",
+                    "ExportButton"
+                ],
+                "purpose": "Timeseries visualization (Recharts)"
+            },
+            "MetricsControls": {
+                "children": [
+                    "TimeWindowSelector",
+                    "MetricNameSelector",
+                    "AggregationSelector"
+                ],
+                "options": {
+                    "time_windows": [
+                        "1h",
+                        "6h",
+                        "24h",
+                        "7d",
+                        "30d"
+                    ],
+                    "metrics": [
+                        "cpu_utilization",
+                        "memory_usage",
+                        "db_size",
+                        "disk_usage",
+                        "network_io",
+                        "request_latency",
+                        "error_rate"
+                    ],
+                    "aggregations": [
+                        "avg",
+                        "max",
+                        "min",
+                        "p50",
+                        "p95",
+                        "p99"
+                    ]
+                }
+            },
+            "MetricsChart": {
+                "library": "Recharts",
+                "chart_types": {
+                    "timeseries": "Line or Area chart with multiple series",
+                    "comparison": "Stacked bar chart (module-by-module)",
+                    "distribution": "Box plot or violin plot"
+                },
+                "features": [
+                    "Legend with toggle visibility",
+                    "Tooltip with formatted values",
+                    "Crosshair for multi-metric comparison",
+                    "Zoom/pan with mouse wheel",
+                    "Export as SVG inline"
+                ]
+            },
+            "ExportButton": {
+                "exports": [
+                    "JSON (raw datapoints)",
+                    "CSV (tabular format)",
+                    "PNG (snapshot of chart)"
+                ]
+            },
+            "RailsPanel": {
+                "children": [
+                    "RailsStatusBar",
+                    "RailsGrid",
+                    "LaneDetail"
+                ],
+                "purpose": "Manifestator rails/lanes visualization"
+            },
+            "RailsStatusBar": {
+                "displays": [
+                    "Total lanes count",
+                    "Lanes by stage (detect, plan, validate, apply)",
+                    "Severity summary (critical, error, warn)"
+                ]
+            },
+            "RailsGrid": {
+                "layout": "4-column layout (detect | plan | validate | apply)",
+                "children": [
+                    "StageColumn (repeatable x4)"
+                ]
+            },
+            "StageColumn": {
+                "children": [
+                    "LaneCard (repeatable)"
+                ],
+                "header": "Stage name + count",
+                "layout": "Vertical stack with drag-drop reordering (optional)"
+            },
+            "LaneCard": {
+                "displays": [
+                    "Lane ID",
+                    "Lane status (in_progress, passed, failed, blocked)",
+                    "Severity indicator (color badge)",
+                    "Check count (e.g., '3/5 checks passed')",
+                    "Collapsible details"
+                ],
+                "props": {
+                    "lane_id": "string",
+                    "stage": "string",
+                    "status": "string",
+                    "severity": "string ('critical' | 'error' | 'warn' | 'info')",
+                    "checks": "Check[]",
+                    "audit_findings": "AuditFinding[]"
+                }
+            },
+            "LaneDetail": {
+                "when_expanded": "From LaneCard click",
+                "displays": [
+                    "Full lane history",
+                    "Individual check results + times",
+                    "Audit findings (parsed manifestator output)",
+                    "Related events (linked by correlation_id)",
+                    "Timeline of transitions (detect → plan → validate → apply)"
+                ]
+            },
+            "FileExplorerPanel": {
+                "children": [
+                    "ExplorerBreadcrumb",
+                    "ExplorerFileBrowser",
+                    "ExplorerMetadata"
+                ],
+                "purpose": "Sandboxed file explorer (/api/fs/list allowlist)"
+            },
+            "ExplorerBreadcrumb": {
+                "shows_paths": [
+                    "/docs/audit",
+                    "/docs/canon",
+                    "/data/runtime",
+                    "/logs",
+                    "/forensic"
+                ],
+                "interaction": "Clickable path segments for navigation"
+            },
+            "ExplorerFileBrowser": {
+                "displays": [
+                    "Directory/file listings",
+                    "Type indicators (📁 for dir, 📄 for file)",
+                    "File size (human readable)",
+                    "Modified timestamp"
+                ],
+                "features": [
+                    "Double-click to open directory",
+                    "Right-click context menu (copy path, refresh)",
+                    "Search/filter by filename",
+                    "Sort by name/size/date"
+                ]
+            },
+            "ExplorerMetadata": {
+                "displays": [
+                    "Current path",
+                    "Item count",
+                    "Total size of directory",
+                    "Last refresh timestamp"
+                ]
+            }
+        }
+    },
+    "state_architecture": {
+        "engine": "Zustand (lightweight, no boilerplate)",
+        "rationale": "Zustand is simpler than Redux, Context API for this use case",
+        "stores": {
+            "OperatorStore": {
+                "state": {
+                    "window_mode": "('solo_madre' | 'window_active' | 'full') = solo_madre",
+                    "ttl_remaining_ms": "number | null",
+                    "health_status": "('ok' | 'degraded' | 'offline') = 'ok'",
+                    "request_id": "string",
+                    "route_taken": "string"
+                },
+                "actions": [
+                    "setMode(mode)",
+                    "setTTL(ms)",
+                    "setHealth(status)",
+                    "setRequestMetadata(id, route)",
+                    "refresh()"
+                ]
+            },
+            "OverviewStore": {
+                "state": {
+                    "modules": "ServiceHealth[]",
+                    "metrics_snapshot": "MetricsSnapshot",
+                    "recent_events": "Event[] (last 10)",
+                    "active_lanes": "number",
+                    "loading": "boolean",
+                    "error": "string | null"
+                },
+                "actions": [
+                    "loadSystemHealth()",
+                    "loadModules()",
+                    "loadMetricsSnapshot()",
+                    "loadRecentEvents()"
+                ]
+            },
+            "EventsStore": {
+                "state": {
+                    "events": "Event[]",
+                    "filters": {
+                        "severity": "string[]",
+                        "modules": "string[]",
+                        "time_range": {
+                            "from": "ISO8601",
+                            "to": "ISO8601"
+                        }
+                    },
+                    "is_streaming": "boolean",
+                    "stream_enabled": "boolean",
+                    "loading": "boolean",
+                    "error": "string | null"
+                },
+                "actions": [
+                    "addEvent(event)",
+                    "setFilters(filters)",
+                    "clearFilters()",
+                    "setSeverityFilter(severities)",
+                    "setModuleFilter(modules)",
+                    "setTimeRange(from, to)",
+                    "startStream()",
+                    "stopStream()",
+                    "loadEvents(limit, offset)"
+                ]
+            },
+            "MetricsStore": {
+                "state": {
+                    "datapoints": "Datapoint[]",
+                    "time_window": "('1h' | '6h' | '24h' | '7d' | '30d') = '24h'",
+                    "selected_metrics": "string[]",
+                    "aggregation": "('avg' | 'max' | 'min' | 'p50' | 'p95' | 'p99') = 'avg'",
+                    "loading": "boolean",
+                    "error": "string | null"
+                },
+                "actions": [
+                    "loadMetrics(time_window, metrics, aggregation)",
+                    "setTimeWindow(window)",
+                    "setSelectedMetrics(metrics)",
+                    "setAggregation(agg)",
+                    "export(format: 'json' | 'csv' | 'png')"
+                ]
+            },
+            "RailsStore": {
+                "state": {
+                    "lanes": "Lane[]",
+                    "stages": "string[] = ['detect', 'plan', 'validate', 'apply']",
+                    "selected_lane_id": "string | null",
+                    "lane_details": "LaneDetails | null",
+                    "loading": "boolean",
+                    "error": "string | null"
+                },
+                "actions": [
+                    "loadLanes()",
+                    "selectLane(lane_id)",
+                    "loadLaneDetails(lane_id)",
+                    "expandLane(lane_id)",
+                    "collapseLane(lane_id)"
+                ]
+            },
+            "FileExplorerStore": {
+                "state": {
+                    "current_path": "string = '/docs/audit'",
+                    "contents": "FileSystemItem[]",
+                    "breadcrumb": "string[]",
+                    "loading": "boolean",
+                    "error": "string | null",
+                    "search_query": "string"
+                },
+                "actions": [
+                    "navigate(path)",
+                    "goBack()",
+                    "goForward()",
+                    "refresh()",
+                    "search(query)"
+                ]
+            }
+        },
+        "data_flows": {
+            "real_time_events": "SSE from /api/events → EventsStore → EventsPanel (auto-refresh)",
+            "periodic_metrics": "Polling /api/metrics (interval: user-configurable, default 30s) → MetricsStore → MetricsPanel",
+            "ui_interactions": "User action → Zustand action → API call → Store update → Component re-render",
+            "error_handling": "API error → Store.error → <ErrorBoundary> → display toast/banner"
+        }
+    },
+    "api_integration": {
+        "pattern": "React Query (recommended) or fetch + custom hooks",
+        "rationale": "React Query handles caching, polling, SSE, retry logic automatically",
+        "endpoints_by_panel": {
+            "WindowStatusBar": [
+                {
+                    "endpoint": "GET /api/status (tentaculo_link:8000 via /operator/api/status)",
+                    "method": "fetch",
+                    "interval": "Poll every 5 seconds",
+                    "response": {
+                        "mode": "string ('solo_madre' | 'window_active')",
+                        "ttl_remaining_ms": "number | null",
+                        "health": "string ('ok' | 'degraded')",
+                        "request_id": "string",
+                        "route_taken": "string"
+                    }
+                }
+            ],
+            "OverviewPanel": [
+                {
+                    "endpoint": "GET /api/modules (tentaculo_link:8000 via /operator/api/modules)",
+                    "method": "fetch",
+                    "interval": "Poll every 10 seconds",
+                    "response": {
+                        "modules": [
+                            {
+                                "name": "string",
+                                "status": "string ('up' | 'down')",
+                                "health_status": "string ('healthy' | 'degraded' | 'unhealthy')",
+                                "response_time_ms": "number"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "endpoint": "GET /api/metrics (tentaculo_link:8000 via /operator/api/metrics)",
+                    "method": "fetch",
+                    "interval": "Poll every 30 seconds",
+                    "response": {
+                        "cpu": "number (0-100)",
+                        "memory": "number (MB)",
+                        "db_size": "number (bytes)",
+                        "error_rate": "number (0-1)"
+                    }
+                },
+                {
+                    "endpoint": "GET /api/events?limit=10 (tentaculo_link:8000 via /operator/api/events)",
+                    "method": "fetch",
+                    "interval": "One-time on mount + poll every 30s",
+                    "response": {
+                        "events": [
+                            "Event[]"
+                        ]
+                    }
+                }
+            ],
+            "EventsPanel": [
+                {
+                    "endpoint": "GET /api/events?filters=... (tentaculo_link:8000 via /operator/api/events)",
+                    "method": "SSE or fetch",
+                    "mode": "Streaming (SSE preferred) or polling fallback",
+                    "response": {
+                        "events": [
+                            {
+                                "id": "string",
+                                "timestamp": "ISO8601",
+                                "severity": "string ('critical' | 'error' | 'warn' | 'info' | 'debug')",
+                                "module": "string",
+                                "correlation_id": "string",
+                                "message": "string"
+                            }
+                        ]
+                    }
+                }
+            ],
+            "MetricsPanel": [
+                {
+                    "endpoint": "GET /api/metrics?window=24h&metrics=cpu,memory,db_size (tentaculo_link:8000 via /operator/api/metrics)",
+                    "method": "fetch",
+                    "interval": "On-demand (when user changes time window/metrics)",
+                    "response": {
+                        "datapoints": [
+                            {
+                                "timestamp": "ISO8601",
+                                "metric_name": "string",
+                                "value": "number"
+                            }
+                        ]
+                    }
+                }
+            ],
+            "RailsPanel": [
+                {
+                    "endpoint": "GET /api/rails/lanes (tentaculo_link:8000 via /operator/api/rails/lanes)",
+                    "method": "fetch",
+                    "interval": "Poll every 10 seconds",
+                    "response": {
+                        "lanes": [
+                            {
+                                "lane_id": "string",
+                                "stage": "string ('detect' | 'plan' | 'validate' | 'apply')",
+                                "status": "string ('in_progress' | 'passed' | 'failed' | 'blocked')",
+                                "severity": "string",
+                                "check_count": "number",
+                                "checks_passed": "number"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "endpoint": "GET /api/rails/lane/{lane_id} (tentaculo_link:8000 via /operator/api/rails/lane/{lane_id})",
+                    "method": "fetch",
+                    "interval": "On-demand (when user expands lane)",
+                    "response": {
+                        "lane_id": "string",
+                        "details": "LaneDetails",
+                        "audit_findings": [
+                            "AuditFinding[]"
+                        ],
+                        "related_events": [
+                            "Event[]"
+                        ]
+                    }
+                }
+            ],
+            "FileExplorerPanel": [
+                {
+                    "endpoint": "GET /api/fs/list?path=/docs/audit (tentaculo_link:8000 via /operator/api/fs/list)",
+                    "method": "fetch",
+                    "interval": "On-demand (when user navigates)",
+                    "response": {
+                        "path": "string",
+                        "contents": [
+                            {
+                                "name": "string",
+                                "type": "string ('file' | 'directory')",
+                                "size": "number",
+                                "modified": "ISO8601"
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        "error_handling_strategy": {
+            "network_error": "Display toast: 'Network error. Retrying...' → Retry with exponential backoff (max 3x)",
+            "auth_error": "Display banner: 'Authentication expired. Please refresh.' → Offer refresh button",
+            "policy_blocked": "Display banner: 'Operation blocked: solo_madre policy active' → Explain policy",
+            "timeout": "Display warning: 'Request timed out.' → Offer manual retry",
+            "stream_closed": "If SSE closes, fallback to polling automatically"
+        },
+        "fetch_wrapper": {
+            "name": "useOperatorAPI(endpoint, options)",
+            "features": [
+                "Automatic token injection (x-vx11-token header)",
+                "Request ID tracking (x-request-id)",
+                "Timeout handling (5s default)",
+                "Retry logic (exponential backoff)",
+                "Error normalization",
+                "Response caching (via React Query)"
+            ]
+        }
+    },
+    "types": {
+        "TypeScript_Interfaces": {
+            "ServiceHealth": {
+                "name": "string",
+                "status": "'up' | 'down'",
+                "enabled_by_default": "boolean",
+                "profile": "string",
+                "port": "number",
+                "health_status": "'healthy' | 'degraded' | 'unhealthy'",
+                "response_time_ms": "number"
+            },
+            "Event": {
+                "id": "string",
+                "timestamp": "string (ISO8601)",
+                "severity": "'critical' | 'error' | 'warn' | 'info' | 'debug'",
+                "module": "string",
+                "correlation_id": "string",
+                "message": "string",
+                "context": "Record<string, any> (optional)"
+            },
+            "EventFilter": {
+                "severity": "string[]",
+                "modules": "string[]",
+                "time_range": {
+                    "from": "string (ISO8601)",
+                    "to": "string (ISO8601)"
+                }
+            },
+            "Datapoint": {
+                "timestamp": "string (ISO8601)",
+                "metric_name": "string",
+                "value": "number",
+                "tags": "Record<string, string> (optional)"
+            },
+            "Lane": {
+                "lane_id": "string",
+                "stage": "'detect' | 'plan' | 'validate' | 'apply'",
+                "status": "'in_progress' | 'passed' | 'failed' | 'blocked'",
+                "severity": "'critical' | 'error' | 'warn' | 'info'",
+                "check_count": "number",
+                "checks_passed": "number",
+                "created_at": "string (ISO8601)",
+                "updated_at": "string (ISO8601)"
+            },
+            "LaneDetails": {
+                "lane_id": "string",
+                "stage": "string",
+                "history": "LaneStateTransition[]",
+                "checks": "Check[]",
+                "audit_findings": "AuditFinding[]",
+                "related_events": "Event[]"
+            },
+            "Check": {
+                "check_id": "string",
+                "name": "string",
+                "status": "'passed' | 'failed' | 'skipped'",
+                "duration_ms": "number",
+                "error_message": "string | null"
+            },
+            "AuditFinding": {
+                "finding_id": "string",
+                "severity": "string",
+                "category": "string",
+                "message": "string",
+                "remediation": "string (optional)"
+            },
+            "FileSystemItem": {
+                "name": "string",
+                "type": "'file' | 'directory'",
+                "size": "number",
+                "modified": "string (ISO8601)"
+            },
+            "ApiResponse<T>": {
+                "ok": "boolean",
+                "data": "T | null",
+                "error": "string | null",
+                "timestamp": "string (ISO8601)",
+                "request_id": "string (optional)"
+            },
+            "StatusData": {
+                "mode": "string",
+                "ttl_remaining_ms": "number | null",
+                "health": "string",
+                "request_id": "string",
+                "route_taken": "string",
+                "policy": "string"
+            },
+            "MetricsSnapshot": {
+                "cpu": "number",
+                "memory": "number (MB)",
+                "db_size": "number (bytes)",
+                "error_rate": "number (0-1)",
+                "timestamp": "string (ISO8601)"
+            }
+        }
+    },
+    "tailwind_strategy": {
+        "color_scheme": {
+            "background": "bg-slate-950 (deep dark for night mode)",
+            "foreground": "text-slate-100 (off-white)",
+            "accent": "cyan-500 (tech blue, VX11 brand)",
+            "success": "emerald-500",
+            "warning": "amber-500",
+            "error": "rose-500",
+            "info": "blue-500"
+        },
+        "component_css_classes": {
+            "StatusBar": "flex justify-between items-center px-4 py-2 bg-slate-900 border-b border-slate-700",
+            "HealthIndicator": "flex items-center gap-2 text-sm font-mono",
+            "HealthDot": "w-2 h-2 rounded-full animate-pulse (color: bg-green-500 | bg-amber-500 | bg-rose-500)",
+            "Card": "rounded-lg bg-slate-800 border border-slate-700 shadow-lg hover:shadow-xl transition-shadow p-4",
+            "Panel": "w-full h-full overflow-y-auto bg-slate-950 rounded-lg p-6 space-y-4",
+            "EventTable": {
+                "container": "w-full overflow-x-auto",
+                "header": "sticky top-0 bg-slate-800 z-10",
+                "row_normal": "hover:bg-slate-800 transition-colors border-b border-slate-700",
+                "row_critical": "bg-rose-900/20 border-l-4 border-rose-500",
+                "row_error": "bg-rose-900/10 border-l-4 border-rose-500",
+                "row_warn": "bg-amber-900/10 border-l-4 border-amber-500",
+                "row_info": "bg-blue-900/10 border-l-4 border-blue-500"
+            },
+            "MetricsChart": "w-full h-96 bg-slate-800 rounded-lg p-4",
+            "ChartContainer": "flex flex-col gap-4",
+            "Legend": "flex flex-wrap gap-4 text-xs font-mono",
+            "LegendItem": "flex items-center gap-2",
+            "LegendColor": "w-3 h-3 rounded-full",
+            "RailsGrid": "grid grid-cols-4 gap-4 w-full",
+            "StageColumn": "flex flex-col gap-2",
+            "StageHeader": "font-bold text-cyan-400 border-b border-slate-600 pb-2",
+            "LaneCard": "bg-slate-800 border border-slate-700 rounded-lg p-3 hover:shadow-lg transition-all cursor-pointer",
+            "LaneCardCritical": "border-rose-600 bg-rose-900/20",
+            "LaneCardError": "border-rose-500 bg-rose-900/10",
+            "LaneCardWarn": "border-amber-500 bg-amber-900/10",
+            "SeverityBadge": "inline-block w-2 h-2 rounded-full",
+            "BreadcrumbNav": "flex items-center gap-1 text-xs font-mono text-slate-400 pb-4",
+            "BreadcrumbItem": "hover:text-cyan-400 cursor-pointer transition-colors",
+            "Button": {
+                "primary": "bg-cyan-600 hover:bg-cyan-500 text-white px-3 py-1 rounded text-sm font-medium transition-colors",
+                "secondary": "bg-slate-700 hover:bg-slate-600 text-slate-100 px-3 py-1 rounded text-sm transition-colors",
+                "danger": "bg-rose-600 hover:bg-rose-500 text-white px-3 py-1 rounded text-sm transition-colors"
+            },
+            "Input": {
+                "text": "bg-slate-800 border border-slate-700 text-slate-100 px-3 py-2 rounded text-sm focus:outline-none focus:ring focus:ring-cyan-500",
+                "select": "bg-slate-800 border border-slate-700 text-slate-100 px-3 py-2 rounded text-sm focus:outline-none focus:ring focus:ring-cyan-500"
+            },
+            "Filter": "flex items-center gap-3 p-3 bg-slate-800 rounded-lg border border-slate-700",
+            "Badge": "inline-block px-2 py-1 text-xs font-mono rounded bg-slate-700 text-slate-100",
+            "Loading": "flex items-center justify-center gap-2 text-slate-400",
+            "ErrorMessage": "p-3 bg-rose-900/30 border border-rose-600 rounded text-rose-200 text-sm",
+            "Toast": {
+                "container": "fixed bottom-4 right-4 max-w-sm",
+                "success": "bg-emerald-900/80 border border-emerald-600 text-emerald-100 backdrop-blur-sm",
+                "error": "bg-rose-900/80 border border-rose-600 text-rose-100 backdrop-blur-sm",
+                "warning": "bg-amber-900/80 border border-amber-600 text-amber-100 backdrop-blur-sm",
+                "info": "bg-blue-900/80 border border-blue-600 text-blue-100 backdrop-blur-sm"
+            }
+        },
+        "responsive_design": {
+            "breakpoints": {
+                "mobile": "max-w-sm (< 640px)",
+                "tablet": "sm to md (640px - 1024px)",
+                "desktop": "md+ (> 1024px)"
+            },
+            "grid_layouts": {
+                "mobile_overview": "1 column (stack)",
+                "tablet_overview": "2 columns",
+                "desktop_overview": "3-4 columns"
+            },
+            "responsive_classes": [
+                "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4",
+                "flex flex-col md:flex-row",
+                "text-sm md:text-base lg:text-lg"
+            ]
+        },
+        "animation_tokens": {
+            "pulse": "animate-pulse (for status indicators)",
+            "spin": "animate-spin (for loading spinners)",
+            "fade_in": "animate-fade-in (0.3s ease-out)",
+            "slide_down": "animate-slide-down (0.2s ease-out)",
+            "bounce": "animate-bounce (for notifications)"
+        },
+        "dark_mode_config": {
+            "enforced": "Always dark theme (no light mode toggle)",
+            "base": "CSS Cascade > Tailwind dark: prefix",
+            "accent_adjustments": "High contrast for accessibility (WCAG AA)"
+        }
+    },
+    "file_structure": {
+        "proposed_structure": {
+            "operator/frontend/src/": {
+                "components/": {
+                    "layout/": [
+                        "App.tsx (root router)",
+                        "LayoutWrapper.tsx (main container)",
+                        "NavigationBar.tsx (tab navigation)",
+                        "Sidebar.tsx (optional left rail)",
+                        "TopBar.tsx (optional top bar)"
+                    ],
+                    "windows/": [
+                        "WindowStatusBar.tsx",
+                        "WindowStatusBar.module.css (or Tailwind classes inline)",
+                        "ModeIndicator.tsx",
+                        "HealthStatus.tsx",
+                        "TTLCountdown.tsx",
+                        "RequestMetadata.tsx"
+                    ],
+                    "overview/": [
+                        "OverviewPanel.tsx",
+                        "SystemHealthCard.tsx",
+                        "ModuleHealthGrid.tsx",
+                        "ModuleHealthItem.tsx",
+                        "RecentEventsPreview.tsx",
+                        "LanesPreview.tsx"
+                    ],
+                    "events/": [
+                        "EventsPanel.tsx",
+                        "EventFilters.tsx",
+                        "EventTable.tsx",
+                        "EventTimeline.tsx",
+                        "EventRow.tsx",
+                        "EventDetails.tsx",
+                        "SeverityFilter.tsx",
+                        "ModuleFilter.tsx",
+                        "TimeRangeFilter.tsx"
+                    ],
+                    "metrics/": [
+                        "MetricsPanel.tsx",
+                        "MetricsControls.tsx",
+                        "MetricsChart.tsx",
+                        "TimeWindowSelector.tsx",
+                        "MetricNameSelector.tsx",
+                        "AggregationSelector.tsx",
+                        "ExportButton.tsx"
+                    ],
+                    "rails/": [
+                        "RailsPanel.tsx",
+                        "RailsStatusBar.tsx",
+                        "RailsGrid.tsx",
+                        "StageColumn.tsx",
+                        "LaneCard.tsx",
+                        "LaneDetail.tsx",
+                        "LaneCheckList.tsx",
+                        "AuditFindingsList.tsx"
+                    ],
+                    "explorer/": [
+                        "FileExplorerPanel.tsx",
+                        "ExplorerBreadcrumb.tsx",
+                        "ExplorerFileBrowser.tsx",
+                        "ExplorerMetadata.tsx",
+                        "FileRow.tsx",
+                        "DirectoryRow.tsx"
+                    ],
+                    "common/": [
+                        "ErrorBoundary.tsx",
+                        "Loading.tsx",
+                        "Toast.tsx",
+                        "ToastContainer.tsx",
+                        "Badge.tsx",
+                        "SeverityIndicator.tsx",
+                        "HealthIndicator.tsx",
+                        "DegradedModeBanner.tsx"
+                    ]
+                },
+                "views/": [
+                    "OverviewView.tsx",
+                    "EventsView.tsx",
+                    "MetricsView.tsx",
+                    "RailsView.tsx",
+                    "ExplorerView.tsx",
+                    "SettingsView.tsx"
+                ],
+                "services/": [
+                    "api.ts (ApiClient wrapper)",
+                    "useOperatorAPI.ts (React Query hook)",
+                    "useSseStream.ts (SSE hook)",
+                    "usePolling.ts (Polling hook)",
+                    "errorHandler.ts (error normalization)",
+                    "types.ts (shared types)"
+                ],
+                "stores/": [
+                    "operatorStore.ts (Zustand OperatorStore)",
+                    "overviewStore.ts (Zustand OverviewStore)",
+                    "eventsStore.ts (Zustand EventsStore)",
+                    "metricsStore.ts (Zustand MetricsStore)",
+                    "railsStore.ts (Zustand RailsStore)",
+                    "explorerStore.ts (Zustand FileExplorerStore)"
+                ],
+                "hooks/": [
+                    "useWindowStatus.ts (watch window status)",
+                    "useEventStream.ts (SSE + polling)",
+                    "useMetrics.ts (fetch + cache metrics)",
+                    "useRails.ts (fetch lanes)",
+                    "useFileExplorer.ts (navigate FS)",
+                    "useEventFilters.ts (filter state)"
+                ],
+                "utils/": [
+                    "formatting.ts (number, date, file size formatting)",
+                    "validators.ts (input validation)",
+                    "constants.ts (severity levels, time windows, etc.)",
+                    "colors.ts (severity → color mapping)",
+                    "export.ts (JSON/CSV export logic)"
+                ],
+                "styles/": [
+                    "globals.css (Tailwind imports + custom vars)",
+                    "animations.css (custom keyframes)",
+                    "variables.css (CSS custom properties for colors)"
+                ],
+                "__tests__/": [
+                    "components/ (mirror of components tree)",
+                    "services/ (API client tests)",
+                    "stores/ (Zustand store tests)",
+                    "hooks/ (React hooks tests)"
+                ]
+            }
+        },
+        "existing_structure_baseline": {
+            "current_components": [
+                "ChatPanel.tsx",
+                "DebugDrawer.tsx",
+                "DegradedModeBanner.tsx",
+                "HormigueroPanel.tsx",
+                "LeftRail.tsx",
+                "P0ChecksPanel.tsx",
+                "PowerCard.tsx",
+                "RightDrawer.tsx",
+                "StatusCard.tsx"
+            ],
+            "current_views": [
+                "OverviewView.tsx",
+                "ChatView.tsx",
+                "AuditView.tsx",
+                "SettingsView.tsx"
+            ],
+            "current_services": [
+                "api.ts",
+                "markdown.ts"
+            ]
+        },
+        "migration_notes": "Keep existing components/views. Refactor into new structure incrementally. New components should follow naming convention: <Feature><Component>.tsx"
+    },
+    "implementation_roadmap": {
+        "phase_1_foundation": {
+            "goal": "Set up stores, hooks, and type definitions",
+            "tasks": [
+                "Create Zustand stores (OperatorStore, EventsStore, MetricsStore, RailsStore, ExplorerStore)",
+                "Define TypeScript interfaces in types.ts",
+                "Create utility hooks (useWindowStatus, useEventStream, useMetrics, etc.)",
+                "Create custom error boundary and loading states"
+            ],
+            "duration_estimate": "2-3 days"
+        },
+        "phase_2_window_status": {
+            "goal": "Implement WindowStatusBar (top-level status display)",
+            "tasks": [
+                "Build WindowStatusBar component with polling /api/status",
+                "Implement ModeIndicator, HealthStatus, TTLCountdown, RequestMetadata subcomponents",
+                "Add Tailwind styling + animations (pulse, fade-in)",
+                "Add error handling for status API failures"
+            ],
+            "duration_estimate": "1-2 days"
+        },
+        "phase_3_overview": {
+            "goal": "Implement OverviewPanel (dashboard summary)",
+            "tasks": [
+                "Build OverviewPanel with SystemHealthCard, ModuleHealthGrid, RecentEventsPreview, LanesPreview",
+                "Integrate with OverviewStore (load /api/modules, /api/metrics, /api/events, /api/rails/lanes)",
+                "Add responsive grid layout (1 col mobile → 3-4 col desktop)",
+                "Implement loading + error states"
+            ],
+            "duration_estimate": "3-4 days"
+        },
+        "phase_4_events": {
+            "goal": "Implement EventsPanel (stream + filtering)",
+            "tasks": [
+                "Build EventFilters component (severity, module, time range)",
+                "Build EventTable with virtual scrolling (1000+ rows)",
+                "Implement SSE hook with fallback to polling",
+                "Add EventTimeline as alternative view",
+                "Implement real-time event highlighting (pulse on new events)"
+            ],
+            "duration_estimate": "4-5 days"
+        },
+        "phase_5_metrics": {
+            "goal": "Implement MetricsPanel (Recharts timeseries)",
+            "tasks": [
+                "Build MetricsControls (time window, metric selector, aggregation)",
+                "Integrate Recharts for timeseries visualization",
+                "Implement /api/metrics polling with caching",
+                "Add export (JSON/CSV/PNG) functionality",
+                "Add tooltip, crosshair, zoom/pan interactions"
+            ],
+            "duration_estimate": "4-5 days"
+        },
+        "phase_6_rails": {
+            "goal": "Implement RailsPanel (manifestator lanes visualization)",
+            "tasks": [
+                "Build RailsStatusBar with lane summary",
+                "Build RailsGrid (4-column layout: detect → plan → validate → apply)",
+                "Build LaneCard with collapsible details",
+                "Implement /api/rails/lanes polling",
+                "Implement /api/rails/lane/{lane_id} on-demand fetch"
+            ],
+            "duration_estimate": "4-5 days"
+        },
+        "phase_7_explorer": {
+            "goal": "Implement FileExplorerPanel (sandboxed file browser)",
+            "tasks": [
+                "Build ExplorerBreadcrumb navigation",
+                "Build ExplorerFileBrowser with file listing",
+                "Implement /api/fs/list endpoint integration",
+                "Add search/filter by filename",
+                "Add right-click context menu (copy path, refresh)"
+            ],
+            "duration_estimate": "2-3 days"
+        },
+        "phase_8_polish_and_testing": {
+            "goal": "UI polish, accessibility, E2E testing",
+            "tasks": [
+                "Add loading skeletons for all panels",
+                "Implement full error handling + toast notifications",
+                "Add keyboard shortcuts (cmd+k for search, etc.)",
+                "Accessibility audit (WCAG AA contrast, focus states)",
+                "E2E tests (Playwright or Cypress)",
+                "Performance profiling (React DevTools, Lighthouse)"
+            ],
+            "duration_estimate": "3-5 days"
+        },
+        "total_estimate": "23-32 days for full implementation"
+    },
+    "deployment_checklist": {
+        "pre_deployment": [
+            "All tests passing (unit, integration, E2E)",
+            "Lighthouse audit: Accessibility ≥ 90, Performance ≥ 80",
+            "Manual testing on all endpoint responses (with network throttling)",
+            "Error scenario testing (network down, auth expired, timeout)",
+            "Accessibility testing (keyboard navigation, screen reader)",
+            "Browser compatibility (Chrome, Firefox, Safari, Edge latest 2 versions)"
+        ],
+        "build_and_package": [
+            "npm run build",
+            "Verify dist/ artifact size < 500KB gzip",
+            "Source maps generated and uploaded (optional)"
+        ],
+        "deployment": [
+            "Deploy frontend to operator-frontend:8020",
+            "Verify API endpoints reachable via tentaculo_link:8000",
+            "Run smoke tests: /api/status, /api/modules, /api/events",
+            "Monitor error logs (browser console, server logs)",
+            "Canary rollout: 10% → 50% → 100%"
+        ],
+        "post_deployment": [
+            "Real user monitoring (RUM) enabled",
+            "Alert on error rate > 5%",
+            "Collect feedback from operators",
+            "Document known limitations in OPERATOR_UI_KNOWN_ISSUES.md"
+        ]
+    },
+    "notes": {
+        "key_constraints": [
+            "Single entrypoint: tentaculo_link:8000 ONLY",
+            "No direct calls to :8001, :8002, etc.",
+            "UI is observational (read-only)",
+            "solo_madre is default policy (operator OFF by default)",
+            "All state changes must be audit-tracked"
+        ],
+        "performance_targets": [
+            "First Contentful Paint (FCP): < 2 seconds",
+            "Largest Contentful Paint (LCP): < 3 seconds",
+            "Time to Interactive (TTI): < 4 seconds",
+            "Cumulative Layout Shift (CLS): < 0.1",
+            "API response time: < 500ms (p95)"
+        ],
+        "accessibility_standards": "WCAG 2.1 Level AA (color contrast 4.5:1, keyboard navigation, screen reader support)",
+        "browser_support": "Chrome, Firefox, Safari, Edge (latest 2 versions)",
+        "testing_strategy": [
+            "Unit tests: React Testing Library (80% coverage)",
+            "Integration tests: Mock /api/* endpoints with msw",
+            "E2E tests: Playwright (critical user journeys)",
+            "Performance tests: Lighthouse CI + Sentry RUM"
+        ]
+    }
+}

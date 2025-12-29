@@ -1,6 +1,6 @@
 # VX11 Database Map (generated)
 
-Generated at: 2025-12-29T00:45:43.956358Z
+Generated at: 2025-12-29T02:06:07.376431Z
 
 Database file: data/runtime/vx11.db
 
@@ -503,6 +503,93 @@ Database file: data/runtime/vx11.db
   - created_at (DATETIME)
   - updated_at (DATETIME)
 
+### inee_agents — EMPTY (READY)
+
+- Rows: 0
+- Columns:
+  - agent_id (TEXT) PK
+  - colony_id (TEXT) PK NOT NULL
+  - role (TEXT) NOT NULL
+  - status (TEXT)
+  - last_checkin (DATETIME)
+  - telemetry_json (TEXT)
+  - created_at (DATETIME)
+- Foreign keys:
+  - colony_id -> inee_colonies.colony_id (on_update=NO ACTION, on_delete=NO ACTION)
+
+### inee_audit_events — EMPTY (READY)
+
+- Rows: 0
+- Columns:
+  - event_id (TEXT) PK
+  - correlation_id (TEXT) PK NOT NULL
+  - ts (DATETIME) PK
+  - source (TEXT)
+  - event_type (TEXT)
+  - severity (TEXT)
+  - message (TEXT)
+  - structured_json (TEXT)
+  - archive_date (DATETIME)
+
+### inee_colonies — EMPTY (READY)
+
+- Rows: 0
+- Columns:
+  - colony_id (TEXT) PK
+  - name (TEXT)
+  - status (TEXT)
+  - beta_queen_url (TEXT)
+  - protocol (TEXT)
+  - last_heartbeat (DATETIME)
+  - last_seen (DATETIME)
+  - max_agents (INTEGER)
+  - rate_limit_per_minute (INTEGER)
+  - created_at (DATETIME)
+  - created_by (TEXT)
+
+### inee_intents — EMPTY (READY)
+
+- Rows: 0
+- Columns:
+  - intent_id (TEXT) PK
+  - colony_id (TEXT) NOT NULL
+  - agent_id (TEXT)
+  - phase (TEXT) NOT NULL
+  - intent_type (TEXT)
+  - payload_json (TEXT) NOT NULL
+  - correlation_id (TEXT)
+  - created_at (DATETIME)
+  - updated_at (DATETIME)
+  - approver_id (TEXT)
+  - approval_reason (TEXT)
+  - result_json (TEXT)
+- Foreign keys:
+  - colony_id -> inee_colonies.colony_id (on_update=NO ACTION, on_delete=NO ACTION)
+
+### inee_nonces — EMPTY (READY)
+
+- Rows: 0
+- Columns:
+  - nonce (TEXT) PK
+  - colony_id (TEXT) PK NOT NULL
+  - used_at (DATETIME)
+  - request_hash (TEXT)
+- Foreign keys:
+  - colony_id -> inee_colonies.colony_id (on_update=NO ACTION, on_delete=NO ACTION)
+
+### inee_policies — EMPTY (READY)
+
+- Rows: 0
+- Columns:
+  - policy_id (TEXT) PK
+  - policy_type (TEXT)
+  - target_entity (TEXT)
+  - config_json (TEXT) NOT NULL
+  - active (BOOLEAN)
+  - created_at (DATETIME)
+  - updated_at (DATETIME)
+  - updated_by (TEXT)
+
 ### intents_log — ACTIVE
 
 - Module: madre
@@ -559,6 +646,43 @@ Database file: data/runtime/vx11.db
   - enable_autosuspend (BOOLEAN)
   - created_at (DATETIME)
   - updated_at (DATETIME)
+
+### manifestator_audit — EMPTY (READY)
+
+- Rows: 0
+- Columns:
+  - audit_id (TEXT) PK
+  - run_ts (DATETIME)
+  - patch_plan_json (TEXT)
+  - status (TEXT)
+  - applied_at (DATETIME)
+  - applied_by (TEXT)
+  - correlation_id (TEXT)
+  - evidence_paths_json (TEXT)
+
+### manifestator_lanes — ACTIVE
+
+- Rows: 2
+- Columns:
+  - lane_id (TEXT) PK
+  - name (TEXT)
+  - description (TEXT)
+  - stage (TEXT)
+  - checks_json (TEXT)
+  - created_at (DATETIME)
+
+### manifestator_rails — ACTIVE
+
+- Rows: 2
+- Columns:
+  - rail_id (TEXT) PK
+  - name (TEXT)
+  - description (TEXT)
+  - rule_type (TEXT)
+  - rule_definition_json (TEXT) NOT NULL
+  - severity_on_violation (TEXT)
+  - created_at (DATETIME)
+  - active (BOOLEAN)
 
 ### model_registry — ACTIVE
 
@@ -686,6 +810,20 @@ Database file: data/runtime/vx11.db
 - Foreign keys:
   - session_id -> operator_session.session_id (on_update=NO ACTION, on_delete=NO ACTION)
 
+### operator_events — EMPTY (READY)
+
+- Module: operator
+- Rows: 0
+- Columns:
+  - event_id (TEXT) PK
+  - ts (DATETIME)
+  - event_type (TEXT)
+  - severity (TEXT)
+  - module (TEXT)
+  - correlation_id (TEXT)
+  - summary (TEXT)
+  - payload_json (TEXT)
+
 ### operator_jobs — EMPTY (READY)
 
 - Module: operator
@@ -714,6 +852,18 @@ Database file: data/runtime/vx11.db
 - Foreign keys:
   - session_id -> operator_session.session_id (on_update=NO ACTION, on_delete=NO ACTION)
 
+### operator_metrics — EMPTY (READY)
+
+- Module: operator
+- Rows: 0
+- Columns:
+  - metric_id (TEXT) PK
+  - ts (DATETIME)
+  - metric_name (TEXT)
+  - value (REAL)
+  - module (TEXT)
+  - dimensions_json (TEXT)
+
 ### operator_session — ACTIVE
 
 - Module: operator
@@ -725,6 +875,16 @@ Database file: data/runtime/vx11.db
   - source (VARCHAR(50)) NOT NULL
   - created_at (DATETIME)
   - updated_at (DATETIME)
+
+### operator_settings — EMPTY (READY)
+
+- Module: operator
+- Rows: 0
+- Columns:
+  - key (TEXT) PK
+  - value_json (TEXT)
+  - updated_at (DATETIME)
+  - updated_by (TEXT)
 
 ### operator_switch_adjustment — ACTIVE
 
@@ -880,6 +1040,32 @@ Database file: data/runtime/vx11.db
   - created_at (DATETIME)
 - Foreign keys:
   - task_id -> tasks.uuid (on_update=NO ACTION, on_delete=NO ACTION)
+
+### reward_accounts — EMPTY (READY)
+
+- Rows: 0
+- Columns:
+  - account_id (TEXT) PK
+  - entity_type (TEXT) NOT NULL
+  - entity_id (TEXT) NOT NULL
+  - role (TEXT)
+  - balance (INTEGER)
+  - budget_limit (INTEGER)
+  - created_at (DATETIME)
+
+### reward_events — EMPTY (READY)
+
+- Rows: 0
+- Columns:
+  - event_id (TEXT) PK
+  - account_id (TEXT) NOT NULL
+  - transaction_type (TEXT)
+  - amount (INTEGER) NOT NULL
+  - reason (TEXT)
+  - correlation_id (TEXT)
+  - ts (DATETIME)
+- Foreign keys:
+  - account_id -> reward_accounts.account_id (on_update=NO ACTION, on_delete=NO ACTION)
 
 ### routing_events — ACTIVE
 
@@ -1102,4 +1288,13 @@ Database file: data/runtime/vx11.db
   - used_at (DATETIME)
   - used_count (INTEGER)
   - source (VARCHAR(64))
+
+### vx11_migration_log — ACTIVE
+
+- Rows: 1
+- Columns:
+  - migration_id (TEXT) PK
+  - applied_at (DATETIME)
+  - description (TEXT)
+  - source_file (TEXT)
 
