@@ -1,5 +1,5 @@
-from pydantic_settings import BaseSettings
-from pydantic import Field, ConfigDict
+from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import Field
 from typing import Optional
 from pathlib import Path
 import os
@@ -17,7 +17,7 @@ def _resolve_docker_url(module_name: str, port: int) -> str:
 
 
 class VX11Settings(BaseSettings):
-    model_config = ConfigDict(
+    model_config = SettingsConfigDict(
         env_file=".env", case_sensitive=False, protected_namespaces=()
     )
 
@@ -89,6 +89,8 @@ class VX11Settings(BaseSettings):
     token_header: str = "X-VX11-Token"
     require_https: bool = False  # En dev; activar en prod
     allowed_origins: list[str] = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
         "http://localhost:8011",
         "http://localhost:8020",
         "http://127.0.0.1:8011",
@@ -208,4 +210,4 @@ class _SettingsProxy:
 
 
 # Public proxy instance used across the codebase
-settings: VX11Settings = _SettingsProxy()
+settings: _SettingsProxy = _SettingsProxy()
