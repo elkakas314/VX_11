@@ -1,0 +1,80 @@
+COPILOT BOOTSTRAP CHECKLIST (PARA CHAT NUEVO)
+==============================================
+Fecha: 2025-12-28T18:47Z
+Versión: PROMPT 9R
+
+INSTRUCCIONES:
+1. Copia TODO este TXT al inicio del chat nuevo con @vx11
+2. Pídele a Copilot que lea los archivos en orden
+3. NO preguntes; es lectura de contexto obligatoria
+
+ARCHIVOS A LEER (EN ORDEN):
+===========================
+
+1. docs/audit/CLEANUP_EXCLUDES_CORE.txt
+   Propósito: CORE protection list (no tocar estos paths)
+   Criticidad: MÁXIMA (previene borrados destructivos)
+
+2. docs/audit/DB_SCHEMA_v7_FINAL.json
+   Propósito: Schema actual de BD (71 tablas, 1.1M filas)
+   Criticidad: ALTA (truth source para DB)
+
+3. docs/audit/DB_MAP_v7_FINAL.md
+   Propósito: Mapa legible de tablas (generado 2025-12-28T18:04:02Z)
+   Criticidad: ALTA (referencia rápida)
+
+4. docs/audit/PERCENTAGES.json
+   Propósito: Métricas de estabilidad (v9.1, puede estar desfasado)
+   Criticidad: MEDIA (info de salud, requiere regeneración post-cambios)
+
+5. docs/audit/SCORECARD.json
+   Propósito: Audit trail (71 tablas, 1.1M filas, integrity=ok)
+   Criticidad: MEDIA (snapshot actual)
+
+6. docs/canon/VX11_OPERATOR_SUPERPACK_CANONICAL_v7.0.0.json
+   Propósito: Specs operador (endpoints, auth, tipos)
+   Criticidad: ALTA (blueprint de operador)
+
+7. tentaculo_link/main_v7.py
+   Propósito: Código frontera del sistema (proxy)
+   Criticidad: MEDIA (entry point, pero estable)
+
+8. operator/frontend/src/services/api.ts
+   Propósito: Cliente API (TypeScript)
+   Criticidad: ALTA (UX layer)
+
+9. operator/frontend/src/App.tsx
+   Propósito: Componente raíz (React)
+   Criticidad: MEDIA (UI layout)
+
+10. operator/frontend/src/App.css
+    Propósito: Estilos globales
+    Criticidad: BAJA (cosmético)
+
+ESTADO ACTUAL (28-DIC-2025 18:47):
+==================================
+Git branch:  main (f5185e5)
+Servicios:   madre ✅ | redis ✅ | tentáculo ✅ | switch ❌ | 7x ❌
+DB:          591MB, integrity=ok, quick_check=ok
+PERCENTAGES: Desfasado 12h (requiere post_task)
+Policy:      SOLO_MADRE activo (por diseño)
+
+CHECKLIST POST-BOOTSTRAP:
+=========================
+☐ Copilot leyó CLEANUP_EXCLUDES_CORE.txt
+☐ Copilot leyó DB maps (SCHEMA + MAP)
+☐ Copilot leyó PERCENTAGES + SCORECARD
+☐ Copilot leyó CANONICAL SUPERPACK
+☐ Copilot leyó código crítico (tentaculo + operator)
+☐ Copilot está listo para @vx11 <command>
+
+COMANDOS ÚTILES (PARA REFERENCIA):
+===================================
+@vx11 status              → Health check completo
+@vx11 post-task           → Regenerar DB maps + PERCENTAGES
+@vx11 power status        → Estado de servicios
+@vx11 power start <mod>   → Iniciar servicio
+@vx11 solo_madre          → Aplicar SOLO_MADRE policy
+
+FIN DE BOOTSTRAP
+================

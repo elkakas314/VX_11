@@ -24,8 +24,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl && \
 # Copy only Python packages from builder
 COPY --from=builder /root/.local /root/.local
 
-# Copy entire codebase (minimal set per .dockerignore)
-COPY --chown=nobody:nogroup . /app/
+# Copy specific modules + minimal config (safer than copying entire tree)
+COPY config/ /app/config/
+COPY tentaculo_link/ /app/tentaculo_link/
+COPY vx11/ /app/vx11/
+COPY switch/ /app/switch/
+COPY madre/ /app/madre/
+COPY spawner/ /app/spawner/
+COPY sitecustomize.py /app/
+COPY py.typed /app/
 
 # Create directories
 RUN mkdir -p /app/logs /app/data /app/models /app/sandbox

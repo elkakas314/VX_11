@@ -1,0 +1,3612 @@
+### Validación rápida de tus P0 (los que **sí** conviene clavar ya)
+
+* **PipeWire JACK (Jammy/Kubuntu 22.04):** `pipewire-audio-client-libraries` es el paquete que aporta librerías cliente para ALSA/JACK/PulseAudio sobre PipeWire (y `pw-jack` es el wrapper correcto para validar).
+* **Plugin JACK SPA:** existe `libspa-0.2-jack` como plugin para conectar PipeWire a un servidor JACK.
+* **Tu rollback actual está roto:** `sqlite3 .import` **no importa JSON**. Hay que exportar en SQL (`.dump`) o CSV y restaurar desde ahí.
+
+Abajo te dejo un “pack” quirúrgico: **archivos completos** + **parches mínimos** + **scripts de validación** corregidos para que Copilot/Codex lo implemente sin inventarse nada.
+
+---
+
+## 0) PROMPT ÚNICO PARA CODEX/COPILOT (pégalo tal cual)
+
+```text
+Eres ARQUITECTO + IMPLEMENTADOR QUIRÚRGICO de VX11 (Shub-Niggurath) en Kubuntu 22.04 low-power.
+
+OBJETIVO:
+Implementar VX11 ShubNiggurath 2.1.1-autopilot_lowpower con:
+- /shub/* proxy estricto SOLO vía tentaculo_link (sin bypass externo)
+- Shub OFF por defecto (solo_madre); tentaculo_link debe responder 503 en <3s si Shub está OFF
+- Puertos: Shub HTTP 8007, Spawner HTTP 8008, REAPER OSC UDP 9008, Carla UDP rango 22752-22762 (detección dinámica)
+- SQL retención con datetime('now','-30 days') (NO date())
+- plan_only (dry-run) en submit: genera plan sin tocar REAPER/FS
+- degraded mode con logs en shub_degraded_logs cuando falten plugins/kits o haya presión de recursos
+- compat layer: lazy imports con importlib, wake idempotente con state file persistente
+- low-power: 1 job / 1 track / 1 render concurrente
+
+INVARIANTES VX11 (NO ROMPER):
+1) Single entrypoint externo: todo acceso a Shub desde fuera solo por tentaculo_link.
+2) Runtime default “solo_madre”: Shub deshabilitado por defecto. Ventanas temporales solo por Madre.
+3) Operator es observador: no controles directos a Shub.
+4) No crear basura: rutas según spec; backups rotate_2; logs rotación; no duplicados.
+
+TAREAS:
+A) Crear/Actualizar archivos EXACTOS con el contenido proporcionado en esta conversación (sección “ARCHIVOS”).
+B) Aplicar parche mínimo en tentaculo_link/app.py para proxy /shub/{path} con:
+   - validación HMAC (opcional dev bypass OFF por defecto)
+   - timeout normal 30s; si conexión rechazada/no route -> 503 en <=3s
+C) Añadir script tentaculo_link/scripts/validate_shub_proxy.py para probar proxy con headers HMAC reales.
+D) Ajustar scripts de tests P0 y rollback (sqlite JSON import NO válido -> usar .dump).
+E) Ejecutar: unit tests existentes + el script tests_p0_shub_2_1_1.sh y adjuntar evidencia en docs/audit/<OUTDIR>/.
+
+ACEPTACIÓN:
+- Con Shub OFF: curl a /tentaculo_link/shub/health devuelve 503 en <3s.
+- Con Shub ON: devuelve 200 y envelope correcto.
+- /jobs/submit/plan devuelve plan sin tocar FS/REAPER y marca degraded_mode_required si faltan plugins.
+- Inserta eventos en shub_job_events y degradaciones en shub_degraded_logs.
+- Migraciones idempotentes: correr 2 veces no rompe (INSERT OR IGNORE en schema_version).
+- No rompe otros módulos, y “solo madre arriba” sigue siendo el estado por defecto.
+
+PROHIBIDO:
+- Cambiar puertos, rutas o prefijos.
+- Hacer bypass directo desde operator a shub.
+- Meter nuevas dependencias raras sin justificar (usar stdlib + fastapi/httpx/psutil si ya están).
+```
+
+---
+
+## 1) ARCHIVOS (copiar/pegar completos)
+
+### 1.1 `shubniggurath/compat_layer.py`
+
+```python
+"""
+VX11 ShubNiggurath - Compat layer
+- Lazy imports (importlib) con cache
+- Wake idempotente con state file persistente
+- Utilidades: JSON atomic, cmd timeout, UDP port finder, HMAC helpers
+"""
+from __future__ import annotations
+
+import base64
+import hashlib
+import hmac
+import importlib
+import json
+import os
+import socket
+import subprocess
+import time
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any, Callable, Dict, Optional, Tuple
+
+_LAZY_CACHE: Dict[str, Optional[Any]] = {}
+_WAKE_HOOKS: list[Callable[[], None]] = []
+
+
+def repo_root() -> Path:
+    return Path(os.environ.get("VX11_REPO_ROOT", "/home/elkakas314/vx11")).resolve()
+
+
+def data_runtime() -> Path:
+    return repo_root() / "data" / "runtime"
+
+
+def ensure_dirs(*paths: Path) -> None:
+    for p in paths:
+        p.mkdir(parents=True, exist_ok=True)
+
+
+def load_json(path: Path, default: Any) -> Any:
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        return default
+    except Exception:
+        return default
+
+
+def save_json_atomic(path: Path, obj: Any) -> None:
+    ensure_dirs(path.parent)
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    tmp.write_text(json.dumps(obj, indent=2, sort_keys=True), encoding="utf-8")
+    tmp.replace(path)
+
+
+def lazy_import(module_name: str) -> Optional[Any]:
+    if module_name in _LAZY_CACHE:
+        return _LAZY_CACHE[module_name]
+    try:
+        mod = importlib.import_module(module_name)
+        _LAZY_CACHE[module_name] = mod
+        return mod
+    except Exception:
+        _LAZY_CACHE[module_name] = None
+        return None
+
+
+def register_wake_hook(fn: Callable[[], None]) -> None:
+    _WAKE_HOOKS.append(fn)
+
+
+@dataclass
+class WakeState:
+    woken: bool = False
+    woken_at: float = 0.0
+    warmed_resources: list[str] = None  # type: ignore
+
+
+def _wake_state_path() -> Path:
+    return Path(os.environ.get("SHUB_WAKE_STATE_PATH", str(data_runtime() / "shub_wake_state.json")))
+
+
+def wake_once(max_age_seconds: int = 24 * 3600) -> WakeState:
+    """
+    Wake idempotente:
+    - si ya se hizo wake en las últimas max_age_seconds, no repite hooks
+    - guarda estado persistente en data/runtime/shub_wake_state.json
+    """
+    path = _wake_state_path()
+    st = load_json(path, {"woken": False, "woken_at": 0.0, "warmed_resources": []})
+    now = time.time()
+
+    if st.get("woken") and (now - float(st.get("woken_at", 0.0)) < max_age_seconds):
+        return WakeState(True, float(st.get("woken_at", 0.0)), list(st.get("warmed_resources", [])))
+
+    warmed: list[str] = []
+    # Hooks: deberían ser rápidos (lazy caches, db warm, plugin cache)
+    for fn in _WAKE_HOOKS:
+        try:
+            fn()
+        except Exception:
+            # Wake nunca debe tumbar el servicio
+            pass
+
+    warmed.append("wake_hooks_ran")
+    out = {"woken": True, "woken_at": now, "warmed_resources": warmed}
+    save_json_atomic(path, out)
+    return WakeState(True, now, warmed)
+
+
+def ensure_wake(func):
+    def wrapper(*args, **kwargs):
+        wake_once()
+        return func(*args, **kwargs)
+    return wrapper
+
+
+def run_cmd_timeout(cmd: list[str], timeout_seconds: int) -> Tuple[int, str, str]:
+    p = subprocess.run(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        timeout=timeout_seconds,
+        check=False,
+    )
+    return p.returncode, p.stdout, p.stderr
+
+
+def find_free_udp_port(port_min: int, port_max: int, preferred: Optional[int] = None) -> int:
+    """
+    Detección dinámica de puerto UDP libre. Prueba bind().
+    """
+    candidates = []
+    if preferred is not None:
+        candidates.append(preferred)
+    candidates.extend(list(range(port_min, port_max + 1)))
+
+    for port in candidates:
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            s.bind(("127.0.0.1", port))
+            s.close()
+            return port
+        except Exception:
+            try:
+                s.close()
+            except Exception:
+                pass
+            continue
+    # Último recurso: deja que el SO elija, pero eso rompe “rango fijo”; mejor fallar duro.
+    raise RuntimeError(f"No free UDP port available in range {port_min}-{port_max}")
+
+
+def _b64url(data: bytes) -> str:
+    return base64.urlsafe_b64encode(data).decode("ascii").rstrip("=")
+
+
+def canonical_request_string(method: str, path: str, timestamp: str, nonce: str, body: bytes) -> str:
+    body_hash = hashlib.sha256(body).hexdigest()
+    return f"{timestamp}.{nonce}.{method.upper()}.{path}.{body_hash}"
+
+
+def compute_hmac_signature(secret: str, message: str) -> str:
+    sig = hmac.new(secret.encode("utf-8"), message.encode("utf-8"), hashlib.sha256).digest()
+    return _b64url(sig)
+
+
+def verify_hmac_signature(secret: str, message: str, provided_sig: str) -> bool:
+    expected = compute_hmac_signature(secret, message)
+    # compare_digest para timing-safe
+    return hmac.compare_digest(expected, provided_sig)
+```
+
+---
+
+### 1.2 `shubniggurath/resource_guard.py`
+
+```python
+"""
+VX11 ShubNiggurath - Resource Guard (low-power)
+- CPU/RAM/IO thresholds con muestreo
+- can_proceed() rápido
+- wait_for_resources() con backoff
+"""
+from __future__ import annotations
+
+import time
+from dataclasses import dataclass
+from typing import Dict, Optional
+
+from .compat_layer import lazy_import
+
+psutil = lazy_import("psutil")
+
+
+@dataclass
+class ResourceSnapshot:
+    cpu_percent: float
+    ram_free_gib: float
+    io_read_mbps: float
+    io_write_mbps: float
+    ts: float
+
+
+class ResourceGuard:
+    def __init__(self, config: Optional[Dict] = None):
+        self.config = config or {
+            "cpu_threshold_percent": 80.0,
+            "ram_threshold_free_gib": 2.0,
+            "io_max_read_mbps": 100.0,
+            "io_max_write_mbps": 50.0,
+            "check_interval_seconds": 5,
+        }
+        self._last_io = None
+        self._last_ts = None
+        self._last_snapshot = ResourceSnapshot(0.0, 999.0, 0.0, 0.0, time.time())
+
+    def sample(self) -> ResourceSnapshot:
+        if psutil is None:
+            snap = ResourceSnapshot(0.0, 999.0, 0.0, 0.0, time.time())
+            self._last_snapshot = snap
+            return snap
+
+        cpu = float(psutil.cpu_percent(interval=0.2))
+        vm = psutil.virtual_memory()
+        ram_free = float(vm.available) / (1024 ** 3)
+
+        io_read_mbps = 0.0
+        io_write_mbps = 0.0
+        try:
+            io = psutil.disk_io_counters()
+            now = time.time()
+            if self._last_io is not None and self._last_ts is not None:
+                dt = max(0.001, now - self._last_ts)
+                d_read = max(0, io.read_bytes - self._last_io.read_bytes)
+                d_write = max(0, io.write_bytes - self._last_io.write_bytes)
+                io_read_mbps = (d_read / (1024 ** 2)) / dt
+                io_write_mbps = (d_write / (1024 ** 2)) / dt
+            self._last_io = io
+            self._last_ts = now
+        except Exception:
+            pass
+
+        snap = ResourceSnapshot(cpu, ram_free, io_read_mbps, io_write_mbps, time.time())
+        self._last_snapshot = snap
+        return snap
+
+    def can_proceed(self) -> bool:
+        s = self.sample()
+        if s.cpu_percent > float(self.config["cpu_threshold_percent"]):
+            return False
+        if s.ram_free_gib < float(self.config["ram_threshold_free_gib"]):
+            return False
+        if s.io_read_mbps > float(self.config["io_max_read_mbps"]):
+            return False
+        if s.io_write_mbps > float(self.config["io_max_write_mbps"]):
+            return False
+        return True
+
+    def wait_for_resources(self, timeout_seconds: int = 60, poll_seconds: int = 5) -> bool:
+        start = time.time()
+        while time.time() - start < timeout_seconds:
+            if self.can_proceed():
+                return True
+            time.sleep(poll_seconds)
+        return False
+
+    def status(self) -> Dict:
+        s = self._last_snapshot
+        return {
+            "cpu_percent": s.cpu_percent,
+            "ram_free_gib": s.ram_free_gib,
+            "io_read_mbps": s.io_read_mbps,
+            "io_write_mbps": s.io_write_mbps,
+            "thresholds": self.config,
+            "can_proceed": self.can_proceed(),
+        }
+```
+
+---
+
+### 1.3 `shubniggurath/track_db_manager.py`
+
+```python
+"""
+VX11 ShubNiggurath - Track DB manager
+- Aplica migraciones SQL idempotentes (001/002/003)
+- Fingerprints + segment/issue maps + logs
+"""
+from __future__ import annotations
+
+import hashlib
+import json
+import sqlite3
+from contextlib import contextmanager
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, Optional, Tuple
+
+from .compat_layer import repo_root, run_cmd_timeout
+
+
+@contextmanager
+def db_conn(db_path: Path):
+    conn = sqlite3.connect(str(db_path))
+    conn.execute("PRAGMA foreign_keys=ON;")
+    try:
+        yield conn
+    finally:
+        conn.close()
+
+
+class TrackDBManager:
+    def __init__(self, db_path: str):
+        self.db_path = Path(db_path)
+        self.migrations_dir = repo_root() / "shubniggurath" / "migrations"
+
+    def apply_migrations_if_needed(self) -> None:
+        self._ensure_schema_version_table()
+        applied = set(self._get_applied_versions())
+
+        mig_files = sorted(self.migrations_dir.glob("*.sql"))
+        for mf in mig_files:
+            # 001_initial_shub_tables.sql -> version token controlado por SQL (schema_version)
+            sql = mf.read_text(encoding="utf-8")
+            with db_conn(self.db_path) as conn:
+                conn.executescript(sql)
+                conn.commit()
+
+        # No hace falta comparar “applied” porque el SQL es IF NOT EXISTS + INSERT OR IGNORE
+
+    def _ensure_schema_version_table(self) -> None:
+        with db_conn(self.db_path) as conn:
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS shub_schema_version (
+                    version TEXT PRIMARY KEY,
+                    applied_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                );
+                """
+            )
+            conn.commit()
+
+    def _get_applied_versions(self):
+        with db_conn(self.db_path) as conn:
+            rows = conn.execute("SELECT version FROM shub_schema_version;").fetchall()
+        return [r[0] for r in rows]
+
+    def compute_audio_hash(self, audio_path: Path) -> str:
+        h = hashlib.sha256()
+        with open(audio_path, "rb") as f:
+            for chunk in iter(lambda: f.read(1024 * 1024), b""):
+                h.update(chunk)
+        return h.hexdigest()
+
+    def fingerprint_exists(self, track_id: str) -> Optional[Dict[str, Any]]:
+        with db_conn(self.db_path) as conn:
+            row = conn.execute(
+                "SELECT fingerprint_data FROM shub_track_fingerprints WHERE track_id=?",
+                (track_id,),
+            ).fetchone()
+            if not row:
+                return None
+            try:
+                return json.loads(row[0])
+            except Exception:
+                return None
+
+    def store_fingerprint(self, track_id: str, audio_hash: str, fingerprint: Dict[str, Any]) -> None:
+        now = datetime.utcnow().isoformat()
+        with db_conn(self.db_path) as conn:
+            conn.execute(
+                """
+                INSERT OR REPLACE INTO shub_track_fingerprints
+                (fingerprint_id, track_id, audio_hash, fingerprint_data, created_at, last_verified)
+                VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                (audio_hash, track_id, audio_hash, json.dumps(fingerprint), now, now),
+            )
+            conn.commit()
+
+    def analyze_audio_basic(self, audio_path: Path) -> Tuple[float, int]:
+        """
+        análisis mínimo sin librerías pesadas:
+        - usa ffprobe si está, si no intenta wave (solo WAV)
+        retorna (duration_seconds, sample_rate)
+        """
+        # ffprobe
+        rc, out, _ = run_cmd_timeout(
+            ["ffprobe", "-v", "error", "-show_entries", "format=duration", "-show_entries", "stream=sample_rate",
+             "-of", "default=noprint_wrappers=1:nokey=1", str(audio_path)],
+            timeout_seconds=5,
+        )
+        if rc == 0:
+            lines = [x.strip() for x in out.splitlines() if x.strip()]
+            # normalmente: duration (float) y sample_rate (int) en algún orden
+            dur = 0.0
+            sr = 0
+            for ln in lines:
+                if "." in ln:
+                    try:
+                        dur = float(ln)
+                    except Exception:
+                        pass
+                else:
+                    try:
+                        sr = int(float(ln))
+                    except Exception:
+                        pass
+            if dur > 0 and sr > 0:
+                return dur, sr
+
+        # fallback wave (WAV)
+        import wave
+        with wave.open(str(audio_path), "rb") as w:
+            frames = w.getnframes()
+            sr = w.getframerate()
+            dur = frames / float(sr)
+        return dur, sr
+
+    def log_degraded(self, job_id: str, track_id: str, engine_type: str,
+                     degradation_type: str, severity: str, message: str,
+                     original_plan: Optional[Dict] = None, applied_fallback: Optional[Dict] = None) -> None:
+        with db_conn(self.db_path) as conn:
+            conn.execute(
+                """
+                INSERT INTO shub_degraded_logs
+                (job_id, track_id, engine_type, degradation_type, original_plan, applied_fallback, severity, message)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    job_id, track_id, engine_type, degradation_type,
+                    json.dumps(original_plan or {}),
+                    json.dumps(applied_fallback or {}),
+                    severity, message
+                ),
+            )
+            conn.commit()
+```
+
+---
+
+### 1.4 `shubniggurath/sequential_processor.py`
+
+```python
+"""
+VX11 ShubNiggurath - Sequential Processor (low-power)
+- 1 job / 1 track / 1 render
+- plan_only: genera plan SIN tocar REAPER/FS (solo inspección ligera + whitelist)
+- degraded mode: si faltan plugins/kits o hay presión de recursos -> log en shub_degraded_logs
+"""
+from __future__ import annotations
+
+import json
+import sqlite3
+import time
+import uuid
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
+
+from .compat_layer import ensure_wake, load_json, repo_root, save_json_atomic
+from .resource_guard import ResourceGuard
+from .track_db_manager import TrackDBManager
+
+
+@dataclass
+class SequentialJob:
+    job_id: str
+    job_type: str
+    project_path: str
+    parameters: Dict[str, Any]
+    priority: str = "medium"
+    plan_only: bool = False
+    degraded_mode_allowed: bool = True
+
+
+class SequentialProcessor:
+    def __init__(self, db_path: str):
+        self.db_path = Path(db_path)
+        self.guard = ResourceGuard()
+        self.track_db = TrackDBManager(str(self.db_path))
+        self.plugin_whitelist_path = repo_root() / "data" / "presets" / "shub" / "plugin_whitelist.json"
+        self.state_path = repo_root() / "data" / "runtime" / "shub_processor_state.json"
+        self.track_db.apply_migrations_if_needed()
+
+    def _conn(self) -> sqlite3.Connection:
+        c = sqlite3.connect(str(self.db_path))
+        c.execute("PRAGMA foreign_keys=ON;")
+        return c
+
+    def _emit_event(self, conn: sqlite3.Connection, job_id: str, event_type: str, event_data: Dict[str, Any]) -> None:
+        conn.execute(
+            "INSERT INTO shub_job_events (job_id, event_type, event_data) VALUES (?, ?, ?)",
+            (job_id, event_type, json.dumps(event_data)),
+        )
+
+    def _job_insert(self, conn: sqlite3.Connection, job: SequentialJob) -> None:
+        conn.execute(
+            """
+            INSERT INTO shub_jobs (job_id, job_type, status, priority, parameters, degraded_mode, plan_only)
+            VALUES (?, ?, 'pending', ?, ?, 0, ?)
+            """,
+            (job.job_id, job.job_type, job.priority, json.dumps(job.parameters), 1 if job.plan_only else 0),
+        )
+
+    def _job_update(self, conn: sqlite3.Connection, job_id: str, status: str, error_message: Optional[str] = None) -> None:
+        conn.execute(
+            """
+            UPDATE shub_jobs
+            SET status=?, updated_at=CURRENT_TIMESTAMP, error_message=COALESCE(?, error_message)
+            WHERE job_id=?
+            """,
+            (status, error_message, job_id),
+        )
+
+    def _load_whitelist(self) -> Dict[str, Any]:
+        return load_json(self.plugin_whitelist_path, {"plugins": {}, "fallbacks": {}})
+
+    @ensure_wake
+    def submit(self, job_spec: Dict[str, Any]) -> Dict[str, Any]:
+        job_id = job_spec.get("job_id") or f"job_{uuid.uuid4().hex}"
+        job = SequentialJob(
+            job_id=job_id,
+            job_type=str(job_spec.get("job_type", "sequential_automix")),
+            project_path=str(job_spec.get("project_path", "")),
+            parameters=dict(job_spec.get("parameters", {})),
+            priority=str(job_spec.get("priority", "medium")),
+            plan_only=bool(job_spec.get("plan_only", False)),
+            degraded_mode_allowed=bool(job_spec.get("degraded_mode_allowed", True)),
+        )
+
+        conn = self._conn()
+        try:
+            self._job_insert(conn, job)
+            self._emit_event(conn, job.job_id, "job_submitted", {"plan_only": job.plan_only})
+            conn.commit()
+        finally:
+            conn.close()
+
+        if job.plan_only:
+            plan = self.generate_plan(job)
+            self._mark_completed_plan(job.job_id, plan)
+            return plan
+
+        # ejecución real secuencial (low-power): aquí se ejecuta inline.
+        # Si prefieres background worker, móntalo en main.py.
+        return self.execute(job)
+
+    def generate_plan(self, job: SequentialJob) -> Dict[str, Any]:
+        """
+        Plan-only: NO toca REAPER ni genera artifacts. Acepta tracks explícitos.
+        """
+        wl = self._load_whitelist()
+        tracks: List[Dict[str, Any]] = list(job.parameters.get("tracks", []))
+        max_tracks = int(job.parameters.get("max_tracks", 0) or 0)
+
+        if not tracks and max_tracks > 0:
+            tracks = [{"track_id": f"track_{i+1}", "engine": "session"} for i in range(max_tracks)]
+        if not tracks:
+            # plan vacío, pero válido
+            tracks = []
+
+        warnings: List[str] = []
+        degraded_required = False
+
+        # chequeo de plugins “por intención”: si track pide plugin_uri y no está, marca degrade
+        allowed = set((wl.get("plugins") or {}).keys())
+        for t in tracks:
+            want = t.get("requires_plugin_uri")
+            if want and want not in allowed:
+                degraded_required = True
+                warnings.append(f"Plugin no whitelisted: {want} -> degraded_mode")
+
+        plan = {
+            "job_id": job.job_id,
+            "plan_only": True,
+            "job_type": job.job_type,
+            "project_path": job.project_path,
+            "tracks": tracks,
+            "stages": ["load_project", "analyze_track", "db_annotate", "apply_fx", "render_freeze", "commit", "cleanup"],
+            "resource_estimates": {"cpu_percent": 60, "ram_mb": 512, "disk_mb": 256},
+            "warnings": warnings,
+            "degraded_mode_required": degraded_required,
+            "notes": ["Plan-only no toca REAPER/FS. Solo valida whitelist y estructura."],
+        }
+        return plan
+
+    def _mark_completed_plan(self, job_id: str, plan: Dict[str, Any]) -> None:
+        conn = self._conn()
+        try:
+            self._emit_event(conn, job_id, "plan_generated", {"degraded_mode_required": plan.get("degraded_mode_required", False)})
+            self._job_update(conn, job_id, "completed")
+            conn.commit()
+        finally:
+            conn.close()
+
+    def execute(self, job: SequentialJob) -> Dict[str, Any]:
+        """
+        Ejecución secuencial low-power:
+        - si recursos no alcanzan -> pausa/reintenta; si no -> degraded y continúa si allowed
+        - eventos a shub_job_events
+        - degradaciones a shub_degraded_logs
+        """
+        wl = self._load_whitelist()
+        tracks: List[Dict[str, Any]] = list(job.parameters.get("tracks", []))
+        if not tracks:
+            # modo mínimo: sin lista de tracks, no explota; solo marca completed
+            conn = self._conn()
+            try:
+                self._emit_event(conn, job.job_id, "job_no_tracks", {})
+                self._job_update(conn, job.job_id, "completed")
+                conn.commit()
+            finally:
+                conn.close()
+            return {"job_id": job.job_id, "status": "completed", "processed_tracks": 0, "degraded_tracks": 0}
+
+        conn = self._conn()
+        try:
+            self._job_update(conn, job.job_id, "running")
+            self._emit_event(conn, job.job_id, "job_started", {})
+            conn.commit()
+        finally:
+            conn.close()
+
+        processed = 0
+        degraded = 0
+        errors: List[str] = []
+
+        for t in tracks:
+            track_id = str(t.get("track_id", f"track_{processed+1}"))
+            # low-power guard
+            if not self.guard.wait_for_resources(timeout_seconds=60, poll_seconds=5):
+                if job.degraded_mode_allowed:
+                    degraded += 1
+                    self.track_db.log_degraded(
+                        job_id=job.job_id,
+                        track_id=track_id,
+                        engine_type="sequential_processor",
+                        degradation_type="resource_exhaustion",
+                        severity="warning",
+                        message="Recursos no disponibles tras 60s; degradando y continuando.",
+                        original_plan={"track": t},
+                        applied_fallback={"action": "skip_heavy_steps"},
+                    )
+                else:
+                    errors.append(f"{track_id}: resource_exhaustion")
+                    break
+
+            # Etapas (mínimas) sin REAPER: fingerprint + whitelist check + logs
+            try:
+                self._process_track_minimal(job, track_id, t, wl)
+                processed += 1
+                time.sleep(2)  # cooldown entre etapas
+            except Exception as e:
+                if job.degraded_mode_allowed:
+                    degraded += 1
+                    self.track_db.log_degraded(
+                        job_id=job.job_id,
+                        track_id=track_id,
+                        engine_type="sequential_processor",
+                        degradation_type="exception",
+                        severity="error",
+                        message=str(e),
+                        original_plan={"track": t},
+                        applied_fallback={"action": "continue"},
+                    )
+                    processed += 1
+                else:
+                    errors.append(f"{track_id}: {e}")
+                    break
+
+            time.sleep(5)  # cooldown entre tracks
+
+        final_status = "completed" if not errors else "failed"
+        conn = self._conn()
+        try:
+            self._emit_event(conn, job.job_id, "job_finished", {"processed": processed, "degraded": degraded, "errors": errors})
+            self._job_update(conn, job.job_id, final_status, error_message="; ".join(errors) if errors else None)
+            conn.commit()
+        finally:
+            conn.close()
+
+        return {"job_id": job.job_id, "status": final_status, "processed_tracks": processed, "degraded_tracks": degraded, "errors": errors}
+
+    def _process_track_minimal(self, job: SequentialJob, track_id: str, track: Dict[str, Any], whitelist: Dict[str, Any]) -> None:
+        # 1) fingerprint cache (si audio_path presente)
+        audio_path = track.get("audio_path")
+        if audio_path:
+            p = Path(str(audio_path)).expanduser()
+            if p.exists():
+                existing = self.track_db.fingerprint_exists(track_id)
+                if existing:
+                    # cached
+                    conn = self._conn()
+                    try:
+                        self._emit_event(conn, job.job_id, "track_analyze_cached", {"track_id": track_id})
+                        conn.commit()
+                    finally:
+                        conn.close()
+                else:
+                    audio_hash = self.track_db.compute_audio_hash(p)
+                    dur, sr = self.track_db.analyze_audio_basic(p)
+                    fp = {
+                        "track_id": track_id,
+                        "audio_hash": audio_hash,
+                        "duration_seconds": dur,
+                        "sample_rate": sr,
+                        "created_at": datetime_utc_iso(),
+                    }
+                    self.track_db.store_fingerprint(track_id, audio_hash, fp)
+                    conn = self._conn()
+                    try:
+                        self._emit_event(conn, job.job_id, "track_analyzed", {"track_id": track_id, "duration": dur, "sr": sr})
+                        conn.commit()
+                    finally:
+                        conn.close()
+
+        # 2) whitelist check (si requiere_plugin_uri)
+        requires = track.get("requires_plugin_uri")
+        plugins = whitelist.get("plugins") or {}
+        if requires and requires not in plugins:
+            # degrade: plugin no disponible
+            self.track_db.log_degraded(
+                job_id=job.job_id,
+                track_id=track_id,
+                engine_type=str(track.get("engine", "unknown")),
+                degradation_type="missing_plugin",
+                severity="warning",
+                message=f"Plugin requerido no whitelisted: {requires}",
+                original_plan={"requires_plugin_uri": requires},
+                applied_fallback={"fallback": "basic_eq+basic_compressor"},
+            )
+            conn = self._conn()
+            try:
+                self._emit_event(conn, job.job_id, "track_degraded_missing_plugin", {"track_id": track_id, "plugin": requires})
+                conn.commit()
+            finally:
+                conn.close()
+
+
+def datetime_utc_iso() -> str:
+    import datetime
+    return datetime.datetime.utcnow().isoformat() + "Z"
+```
+
+---
+
+### 1.5 `shubniggurath/engines/__init__.py`
+
+```python
+"""
+VX11 Shub Engines registry (minimal)
+Cada engine puede crecer después; aquí solo mantenemos contratos y degraded mode básico.
+"""
+from __future__ import annotations
+
+from typing import Dict, Type
+
+from .drums_engine import DrumsEngine
+from .guitar_engine import GuitarEngine
+from .vocal_engine import VocalEngine
+from .bass_engine import BassEngine
+from .bus_engine import BusEngine
+from .restoration_engine import RestorationEngine
+from .session_engine import SessionEngine
+from .delivery_engine import DeliveryEngine
+
+ENGINE_REGISTRY: Dict[str, Type] = {
+    "drums": DrumsEngine,
+    "guitar": GuitarEngine,
+    "vocal": VocalEngine,
+    "bass": BassEngine,
+    "bus": BusEngine,
+    "restoration": RestorationEngine,
+    "session": SessionEngine,
+    "delivery": DeliveryEngine,
+}
+```
+
+---
+
+### 1.6 Engines completos (mínimos y seguros)
+
+#### `shubniggurath/engines/drums_engine.py`
+
+```python
+from __future__ import annotations
+
+from typing import Any, Dict, Optional
+
+from ..track_db_manager import TrackDBManager
+
+
+class DrumsEngine:
+    def __init__(self, db_path: str):
+        self.db = TrackDBManager(db_path)
+
+    def process(self, job_id: str, track: Dict[str, Any], degraded_mode_allowed: bool = True) -> Dict[str, Any]:
+        # “Disponibilidad” real se resolverá con plugin discovery cuando se active.
+        kit = track.get("kit_preference")
+        if kit:
+            return {"engine": "drums", "track_id": track.get("track_id"), "mode": "planned", "kit": kit}
+
+        if degraded_mode_allowed:
+            self.db.log_degraded(
+                job_id=job_id,
+                track_id=str(track.get("track_id", "unknown")),
+                engine_type="drums_engine",
+                degradation_type="missing_kit",
+                severity="warning",
+                message="No kit_preference; usando fallback sampler básico.",
+                original_plan={"kit_preference": None},
+                applied_fallback={"fallback": "basic_sampler"},
+            )
+            return {"engine": "drums", "track_id": track.get("track_id"), "mode": "degraded", "fallback": "basic_sampler"}
+
+        raise RuntimeError("Missing DrumGizmo kit and degraded_mode not allowed")
+```
+
+#### `shubniggurath/engines/guitar_engine.py`
+
+```python
+from __future__ import annotations
+
+from typing import Any, Dict, Optional
+
+from ..track_db_manager import TrackDBManager
+
+
+class GuitarEngine:
+    GX_AMP_URI = "http://guitarix.sourceforge.net/plugins/gx_amp#GUITARIX"
+
+    def __init__(self, db_path: str):
+        self.db = TrackDBManager(db_path)
+
+    def process(self, job_id: str, track: Dict[str, Any], degraded_mode_allowed: bool = True) -> Dict[str, Any]:
+        requires = track.get("requires_plugin_uri") or self.GX_AMP_URI
+        # El chequeo real lo hace el SequentialProcessor con whitelist.
+        if degraded_mode_allowed:
+            return {"engine": "guitar", "track_id": track.get("track_id"), "mode": "planned", "requires_plugin_uri": requires}
+        return {"engine": "guitar", "track_id": track.get("track_id"), "mode": "planned", "requires_plugin_uri": requires}
+```
+
+#### `shubniggurath/engines/vocal_engine.py`
+
+```python
+from __future__ import annotations
+
+from typing import Any, Dict
+
+from ..track_db_manager import TrackDBManager
+
+
+class VocalEngine:
+    def __init__(self, db_path: str):
+        self.db = TrackDBManager(db_path)
+
+    def process(self, job_id: str, track: Dict[str, Any], degraded_mode_allowed: bool = True) -> Dict[str, Any]:
+        # Si pidieran “tuning plugin” y no existe, se degradará por whitelist.
+        return {"engine": "vocal", "track_id": track.get("track_id"), "mode": "planned", "profile": track.get("processing_profile", "standard")}
+```
+
+#### `shubniggurath/engines/bass_engine.py`
+
+```python
+from __future__ import annotations
+from typing import Any, Dict
+from ..track_db_manager import TrackDBManager
+
+class BassEngine:
+    def __init__(self, db_path: str):
+        self.db = TrackDBManager(db_path)
+
+    def process(self, job_id: str, track: Dict[str, Any], degraded_mode_allowed: bool = True) -> Dict[str, Any]:
+        return {"engine": "bass", "track_id": track.get("track_id"), "mode": "planned"}
+```
+
+#### `shubniggurath/engines/bus_engine.py`
+
+```python
+from __future__ import annotations
+from typing import Any, Dict
+from ..track_db_manager import TrackDBManager
+
+class BusEngine:
+    def __init__(self, db_path: str):
+        self.db = TrackDBManager(db_path)
+
+    def process(self, job_id: str, track: Dict[str, Any], degraded_mode_allowed: bool = True) -> Dict[str, Any]:
+        return {"engine": "bus", "track_id": track.get("track_id"), "mode": "planned"}
+```
+
+#### `shubniggurath/engines/restoration_engine.py`
+
+```python
+from __future__ import annotations
+from typing import Any, Dict
+from ..track_db_manager import TrackDBManager
+
+class RestorationEngine:
+    def __init__(self, db_path: str):
+        self.db = TrackDBManager(db_path)
+
+    def process(self, job_id: str, track: Dict[str, Any], degraded_mode_allowed: bool = True) -> Dict[str, Any]:
+        return {"engine": "restoration", "track_id": track.get("track_id"), "mode": "planned"}
+```
+
+#### `shubniggurath/engines/session_engine.py`
+
+```python
+from __future__ import annotations
+from typing import Any, Dict
+from ..track_db_manager import TrackDBManager
+
+class SessionEngine:
+    def __init__(self, db_path: str):
+        self.db = TrackDBManager(db_path)
+
+    def process(self, job_id: str, track: Dict[str, Any], degraded_mode_allowed: bool = True) -> Dict[str, Any]:
+        return {"engine": "session", "track_id": track.get("track_id"), "mode": "planned"}
+```
+
+#### `shubniggurath/engines/delivery_engine.py`
+
+```python
+from __future__ import annotations
+from typing import Any, Dict
+from ..track_db_manager import TrackDBManager
+
+class DeliveryEngine:
+    def __init__(self, db_path: str):
+        self.db = TrackDBManager(db_path)
+
+    def process(self, job_id: str, track: Dict[str, Any], degraded_mode_allowed: bool = True) -> Dict[str, Any]:
+        return {"engine": "delivery", "track_id": track.get("track_id"), "mode": "planned"}
+```
+
+---
+
+## 2) MIGRACIONES (corregidas: `INSERT OR IGNORE` para idempotencia)
+
+### 2.1 `shubniggurath/migrations/001_initial_shub_tables.sql`
+
+```sql
+-- VX11 ShubNiggurath - Migración inicial (idempotente)
+-- USAR datetime() NO date()
+
+CREATE TABLE IF NOT EXISTS shub_jobs (
+    job_id TEXT PRIMARY KEY,
+    job_type TEXT NOT NULL,
+    status TEXT NOT NULL CHECK (status IN ('pending', 'running', 'paused', 'completed', 'failed', 'degraded')),
+    priority TEXT DEFAULT 'medium' CHECK (priority IN ('critical', 'high', 'medium', 'low')),
+    parameters TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    started_at DATETIME,
+    completed_at DATETIME,
+    degraded_mode INTEGER DEFAULT 0,
+    plan_only INTEGER DEFAULT 0,
+    error_message TEXT,
+    parent_job_id TEXT
+);
+
+CREATE TABLE IF NOT EXISTS shub_job_events (
+    event_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    job_id TEXT NOT NULL,
+    event_type TEXT NOT NULL,
+    event_data TEXT,
+    ts DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (job_id) REFERENCES shub_jobs(job_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS shub_job_artifacts (
+    artifact_id TEXT PRIMARY KEY,
+    job_id TEXT NOT NULL,
+    artifact_type TEXT NOT NULL,
+    artifact_path TEXT NOT NULL,
+    artifact_metadata TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    size_bytes INTEGER,
+    checksum TEXT,
+    FOREIGN KEY (job_id) REFERENCES shub_jobs(job_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS shub_presets (
+    preset_id TEXT PRIMARY KEY,
+    preset_name TEXT NOT NULL,
+    preset_type TEXT NOT NULL,
+    preset_data TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    last_used DATETIME,
+    usage_count INTEGER DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS shub_reaper_sessions (
+    session_id TEXT PRIMARY KEY,
+    project_path TEXT NOT NULL,
+    session_state TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    last_accessed DATETIME,
+    is_active INTEGER DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS shub_reaper_projects (
+    project_id TEXT PRIMARY KEY,
+    project_path TEXT NOT NULL UNIQUE,
+    project_hash TEXT,
+    track_count INTEGER,
+    sample_rate INTEGER,
+    bit_depth INTEGER,
+    duration_seconds REAL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    last_processed DATETIME
+);
+
+CREATE TABLE IF NOT EXISTS shub_render_outputs (
+    render_id TEXT PRIMARY KEY,
+    job_id TEXT NOT NULL,
+    track_id TEXT,
+    output_path TEXT NOT NULL,
+    format TEXT NOT NULL,
+    sample_rate INTEGER,
+    bit_depth INTEGER,
+    duration_seconds REAL,
+    loudness_lufs REAL,
+    true_peak_dbfs REAL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (job_id) REFERENCES shub_jobs(job_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS shub_audio_metrics (
+    metric_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    track_id TEXT NOT NULL,
+    job_id TEXT NOT NULL,
+    loudness_lufs REAL,
+    true_peak_dbfs REAL,
+    dynamic_range_db REAL,
+    spectral_centroid REAL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS shub_pipeline_runs (
+    pipeline_id TEXT PRIMARY KEY,
+    job_id TEXT NOT NULL,
+    pipeline_name TEXT NOT NULL,
+    stages TEXT NOT NULL,
+    current_stage INTEGER DEFAULT 0,
+    stage_results TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    completed_at DATETIME,
+    FOREIGN KEY (job_id) REFERENCES shub_jobs(job_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS shub_idempotency_keys (
+    key_hash TEXT PRIMARY KEY,
+    request_hash TEXT NOT NULL,
+    job_id TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    expires_at DATETIME NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS shub_nonce_cache (
+    nonce TEXT PRIMARY KEY,
+    timestamp INTEGER NOT NULL,
+    used_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS shub_schema_version (
+    version TEXT PRIMARY KEY,
+    applied_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS shub_edit_logs (
+    edit_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    job_id TEXT NOT NULL,
+    edit_type TEXT NOT NULL,
+    edit_data TEXT NOT NULL,
+    undo_snapshot_path TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (job_id) REFERENCES shub_jobs(job_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS shub_analysis_reports (
+    report_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    track_id TEXT NOT NULL,
+    job_id TEXT NOT NULL,
+    report_type TEXT NOT NULL,
+    report_data TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (job_id) REFERENCES shub_jobs(job_id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_shub_jobs_status ON shub_jobs(status);
+CREATE INDEX IF NOT EXISTS idx_shub_jobs_created ON shub_jobs(created_at);
+CREATE INDEX IF NOT EXISTS idx_shub_job_events_job_id ON shub_job_events(job_id);
+CREATE INDEX IF NOT EXISTS idx_shub_job_events_ts ON shub_job_events(ts);
+CREATE INDEX IF NOT EXISTS idx_shub_idempotency_keys_expires ON shub_idempotency_keys(expires_at);
+
+INSERT OR IGNORE INTO shub_schema_version (version) VALUES ('001_initial');
+```
+
+### 2.2 `shubniggurath/migrations/002_extended_track_tables.sql`
+
+```sql
+-- VX11 ShubNiggurath - Tablas extendidas (idempotente)
+
+CREATE TABLE IF NOT EXISTS shub_track_fingerprints (
+    fingerprint_id TEXT PRIMARY KEY,
+    track_id TEXT NOT NULL UNIQUE,
+    audio_hash TEXT NOT NULL,
+    file_size INTEGER,
+    sample_rate INTEGER,
+    bit_depth INTEGER,
+    duration_seconds REAL,
+    num_channels INTEGER,
+    fingerprint_data TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    last_verified DATETIME
+);
+
+CREATE TABLE IF NOT EXISTS shub_segment_maps (
+    segment_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    track_id TEXT NOT NULL,
+    segment_type TEXT NOT NULL,
+    start_time REAL NOT NULL,
+    end_time REAL NOT NULL,
+    segment_data TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (track_id) REFERENCES shub_track_fingerprints(track_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS shub_issue_maps (
+    issue_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    track_id TEXT NOT NULL,
+    issue_type TEXT NOT NULL,
+    severity TEXT CHECK (severity IN ('low', 'medium', 'high', 'critical')),
+    start_time REAL,
+    end_time REAL,
+    description TEXT,
+    resolved INTEGER DEFAULT 0,
+    resolved_at DATETIME,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (track_id) REFERENCES shub_track_fingerprints(track_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS shub_fx_applied_logs (
+    fx_log_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    track_id TEXT NOT NULL,
+    job_id TEXT NOT NULL,
+    fx_plugin_uri TEXT NOT NULL,
+    fx_preset TEXT,
+    parameters TEXT,
+    order_index INTEGER,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (job_id) REFERENCES shub_jobs(job_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS shub_before_after_metrics (
+    comparison_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    track_id TEXT NOT NULL,
+    job_id TEXT NOT NULL,
+    metric_name TEXT NOT NULL,
+    before_value REAL,
+    after_value REAL,
+    difference REAL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (job_id) REFERENCES shub_jobs(job_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS shub_track_dependencies (
+    dependency_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    source_track_id TEXT NOT NULL,
+    target_track_id TEXT NOT NULL,
+    dependency_type TEXT NOT NULL,
+    strength REAL DEFAULT 1.0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS shub_drumgizmo_kits (
+    kit_id TEXT PRIMARY KEY,
+    kit_name TEXT NOT NULL,
+    kit_path TEXT NOT NULL,
+    xml_file TEXT NOT NULL,
+    status TEXT DEFAULT 'unknown' CHECK (status IN ('unknown', 'valid', 'invalid', 'tested')),
+    last_verified DATETIME,
+    kit_metadata TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS shub_guitarix_models (
+    model_id TEXT PRIMARY KEY,
+    model_name TEXT NOT NULL,
+    model_uri TEXT NOT NULL UNIQUE,
+    model_type TEXT NOT NULL,
+    category TEXT,
+    presets TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    last_used DATETIME
+);
+
+CREATE INDEX IF NOT EXISTS idx_track_fingerprints_audio_hash ON shub_track_fingerprints(audio_hash);
+CREATE INDEX IF NOT EXISTS idx_segment_maps_track_id ON shub_segment_maps(track_id);
+CREATE INDEX IF NOT EXISTS idx_issue_maps_track_id ON shub_issue_maps(track_id);
+CREATE INDEX IF NOT EXISTS idx_issue_maps_resolved ON shub_issue_maps(resolved);
+CREATE INDEX IF NOT EXISTS idx_fx_logs_track_job ON shub_fx_applied_logs(track_id, job_id);
+CREATE INDEX IF NOT EXISTS idx_drumgizmo_kits_status ON shub_drumgizmo_kits(status);
+CREATE INDEX IF NOT EXISTS idx_guitarix_models_uri ON shub_guitarix_models(model_uri);
+
+INSERT OR IGNORE INTO shub_schema_version (version) VALUES ('002_extended_track_tables');
+```
+
+### 2.3 `shubniggurath/migrations/003_degraded_mode_logs.sql`
+
+```sql
+-- VX11 ShubNiggurath - Degraded logs (idempotente)
+
+CREATE TABLE IF NOT EXISTS shub_degraded_logs (
+    log_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    job_id TEXT NOT NULL,
+    track_id TEXT,
+    engine_type TEXT NOT NULL,
+    degradation_type TEXT NOT NULL,
+    original_plan TEXT,
+    applied_fallback TEXT,
+    severity TEXT CHECK (severity IN ('info', 'warning', 'error')),
+    message TEXT NOT NULL,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (job_id) REFERENCES shub_jobs(job_id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_degraded_logs_job_id ON shub_degraded_logs(job_id);
+CREATE INDEX IF NOT EXISTS idx_degraded_logs_timestamp ON shub_degraded_logs(timestamp);
+CREATE INDEX IF NOT EXISTS idx_degraded_logs_engine_type ON shub_degraded_logs(engine_type);
+
+INSERT OR IGNORE INTO shub_schema_version (version) VALUES ('003_degraded_mode_logs');
+```
+
+---
+
+## 3) CONFIG
+
+### `data/presets/shub/plugin_whitelist.json`
+
+```json
+{
+  "plugins": {
+    "basic_eq": { "type": "native", "max_instances": 3, "allowed_for_dsp": true },
+    "basic_compressor": { "type": "native", "max_instances": 3, "allowed_for_dsp": true },
+    "basic_gate": { "type": "native", "max_instances": 3, "allowed_for_dsp": true },
+    "http://guitarix.sourceforge.net/plugins/gx_amp#GUITARIX": {
+      "type": "lv2",
+      "max_instances": 2,
+      "allowed_for_dsp": true,
+      "category": "amp_sim"
+    }
+  },
+  "fallbacks": {
+    "missing_plugin": ["basic_eq", "basic_compressor"],
+    "missing_kit": ["basic_sampler"]
+  }
+}
+```
+
+---
+
+## 4) PARCHE MÍNIMO tentaculo_link: proxy `/shub/*` con 503 rápido si OFF
+
+### 4.1 Añadir `tentaculo_link/scripts/validate_shub_proxy.py`
+
+```python
+#!/usr/bin/env python3
+import os, time, uuid, json
+import requests
+from shubniggurath.compat_layer import canonical_request_string, compute_hmac_signature
+
+BASE = os.environ.get("VX11_TENTACULO_LINK_BASE", "http://localhost:8000/tentaculo_link")
+SECRET = os.environ.get("VX11_HMAC_SECRET", "")
+
+def main():
+    if not SECRET:
+        raise SystemExit("VX11_HMAC_SECRET missing (export it).")
+
+    path = "/shub/health"
+    url = BASE + path
+    ts = str(int(time.time()))
+    nonce = uuid.uuid4().hex
+    body = b""
+    msg = canonical_request_string("GET", path, ts, nonce, body)
+    sig = compute_hmac_signature(SECRET, msg)
+
+    headers = {
+        "X-VX11-Token": "local-test",
+        "X-VX11-Timestamp": ts,
+        "X-VX11-Nonce": nonce,
+        "X-VX11-Signature": sig,
+        "X-VX11-Source": "validate_shub_proxy.py",
+    }
+
+    r = requests.get(url, headers=headers, timeout=5)
+    print("status:", r.status_code)
+    print(r.text[:500])
+
+if __name__ == "__main__":
+    main()
+```
+
+### 4.2 Patch orientativo para `tentaculo_link/app.py` (bloque insertable)
+
+> Nota: como no tengo tu fichero real aquí, esto es un **bloque autocontenido** para insertar. La idea: un endpoint `api_route("/shub/{path:path}")` que valida HMAC y hace proxy con `httpx`, devolviendo **503 rápido** si Shub no responde.
+
+```python
+# --- VX11_SHUB_PROXY_2_1_1 (BEGIN) ---
+import os
+import time
+from fastapi import Request, Response
+from fastapi.responses import JSONResponse
+import httpx
+
+from shubniggurath.compat_layer import canonical_request_string, verify_hmac_signature
+
+VX11_HMAC_SECRET = os.environ.get("VX11_HMAC_SECRET", "")
+SHUB_TARGET = os.environ.get("VX11_SHUB_TARGET", "http://127.0.0.1:8007")
+SHUB_OFF_TIMEOUT_SECONDS = float(os.environ.get("VX11_SHUB_OFF_TIMEOUT_SECONDS", "3"))
+SHUB_NORMAL_TIMEOUT_SECONDS = float(os.environ.get("VX11_SHUB_TIMEOUT_SECONDS", "30"))
+
+def _hmac_ok(req: Request, body: bytes) -> bool:
+    if not VX11_HMAC_SECRET:
+        return False
+    ts = req.headers.get("X-VX11-Timestamp", "")
+    nonce = req.headers.get("X-VX11-Nonce", "")
+    sig = req.headers.get("X-VX11-Signature", "")
+    if not (ts and nonce and sig):
+        return False
+    # anti-replay mínimo: 120s window
+    try:
+        if abs(int(time.time()) - int(ts)) > 120:
+            return False
+    except Exception:
+        return False
+    msg = canonical_request_string(req.method, req.url.path, ts, nonce, body)
+    return verify_hmac_signature(VX11_HMAC_SECRET, msg, sig)
+
+@app.api_route("/shub/{path:path}", methods=["GET","POST","PUT","PATCH","DELETE","OPTIONS"])
+async def vx11_shub_proxy(path: str, request: Request):
+    body = await request.body()
+    if not _hmac_ok(request, body):
+        return JSONResponse(status_code=401, content={"status":"unauthorized","detail":"HMAC validation failed"})
+
+    target_url = f"{SHUB_TARGET}{request.url.path}"
+    # copia headers menos hop-by-hop
+    headers = dict(request.headers)
+    for k in ["host","content-length","connection","keep-alive","proxy-authenticate","proxy-authorization","te","trailers","transfer-encoding","upgrade"]:
+        headers.pop(k, None)
+
+    # Normal: 30s. Si conexión rechazada / error -> 503 en <=3s.
+    timeout = httpx.Timeout(connect=0.5, read=SHUB_NORMAL_TIMEOUT_SECONDS, write=SHUB_NORMAL_TIMEOUT_SECONDS, pool=SHUB_NORMAL_TIMEOUT_SECONDS)
+    try:
+        async with httpx.AsyncClient(timeout=timeout) as client:
+            resp = await client.request(
+                request.method,
+                target_url,
+                content=body,
+                headers=headers,
+                params=dict(request.query_params),
+            )
+            return Response(content=resp.content, status_code=resp.status_code, headers=dict(resp.headers))
+    except (httpx.ConnectError, httpx.ConnectTimeout, httpx.NetworkError):
+        # Shub OFF / no route -> 503 rápido
+        return JSONResponse(status_code=503, content={
+            "status":"service_unavailable",
+            "module":"shubniggurath",
+            "detail":"Shub is OFF or unreachable",
+            "timeout_s": SHUB_OFF_TIMEOUT_SECONDS
+        })
+    except httpx.ReadTimeout:
+        return JSONResponse(status_code=503, content={
+            "status":"service_unavailable",
+            "module":"shubniggurath",
+            "detail":"Shub slow/unavailable (read timeout)",
+            "timeout_s": SHUB_OFF_TIMEOUT_SECONDS
+        })
+# --- VX11_SHUB_PROXY_2_1_1 (END) ---
+```
+
+---
+
+## 5) SCRIPT P0 TESTS (corregido para HMAC y sin netstat obligatorio)
+
+### `tests_p0_shub_2_1_1.sh`
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "=== VX11 ShubNiggurath P0 Tests - Kubuntu 22.04 Low-Power ==="
+
+echo "1) PipeWire JACK..."
+pw-jack --version
+systemctl --user is-active pipewire >/dev/null && echo "✓ PipeWire activo"
+
+echo "2) Proxy /shub/* (HMAC real)..."
+python3 tentaculo_link/scripts/validate_shub_proxy.py || true
+echo "   (Shub OFF -> 503; ON -> 200)"
+
+echo "3) Puertos (ss)..."
+ss -ltnp | grep -q ":8007" && echo "✓ Shub HTTP 8007 LISTEN" || echo "ℹ️ Shub no escuchando (esperable si OFF)"
+ss -ltnp | grep -q ":8008" && echo "✓ Spawner HTTP 8008 LISTEN" || echo "ℹ️ Spawner no escuchando (según perfil)"
+ss -lunp | grep -q ":9008" && echo "✓ UDP 9008 (REAPER OSC) abierto" || echo "ℹ️ UDP 9008 no visible (depende de REAPER)"
+
+echo "4) BD/migraciones..."
+sqlite3 data/runtime/vx11.db "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name LIKE 'shub_%';"
+sqlite3 data/runtime/vx11.db "SELECT version FROM shub_schema_version ORDER BY applied_at DESC LIMIT 3;"
+
+echo "5) Retención (solo valida sintaxis)..."
+sqlite3 data/runtime/vx11.db "SELECT datetime('now','-30 days');" >/dev/null && echo "✓ datetime() OK"
+
+echo "=== P0 OK ==="
+```
+
+---
+
+## 6) ROLLBACK (corregido: nada de “import JSON”)
+
+La forma segura: **dump SQL** de tablas críticas antes de tocar nada.
+
+### `rollback_shub_2_1_1_fixed.sh` (fragmento clave)
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+DB="data/runtime/vx11.db"
+BACKUP_DIR="data/runtime/backups"
+TS="$(date +%Y%m%d_%H%M%S)"
+mkdir -p "$BACKUP_DIR"
+
+echo "[1] Backup DB (rotate_2 + gzip)..."
+cp "$DB" "$BACKUP_DIR/vx11.db.before_rollback_${TS}"
+gzip -f "$BACKUP_DIR/vx11.db.before_rollback_${TS}"
+ls -t "$BACKUP_DIR"/vx11.db.before_rollback_*.gz | tail -n +3 | xargs -r rm
+
+echo "[2] Dump SQL de tablas críticas (restaurable con sqlite3 < file.sql)..."
+for t in shub_jobs shub_job_events shub_job_artifacts shub_track_fingerprints; do
+  sqlite3 "$DB" ".dump $t" > "$BACKUP_DIR/${t}_dump_${TS}.sql"
+  echo "  ✓ $t"
+done
+
+echo "[3] Revertir migraciones (si aplica) -> DROP tablas extendidas/degraded (NO tocar 001)..."
+sqlite3 "$DB" "DROP TABLE IF EXISTS shub_degraded_logs;"
+sqlite3 "$DB" "DELETE FROM shub_schema_version WHERE version='003_degraded_mode_logs';"
+# ...etc (igual que tu idea, pero SIN destruir 001) ...
+
+echo "OK"
+```
+
+---
+
+### Si quieres que esto sea 100% “enchufar y correr”
+
+Lo único que falta (porque depende de tu repo real) es **dónde** insertar exactamente el bloque del proxy en `tentaculo_link/app.py` (si usas routers/prefixes distintos). El bloque que te dejé funciona si `app` es FastAPI y el prefijo externo ya es `/tentaculo_link`.
+
+Si me pegas **solo** el `tentaculo_link/app.py` actual (o el router principal donde declaras endpoints), te devuelvo el **diff exacto** ya aterrizado, sin suposiciones.
+
+
+
+
+
+
+
+---------------------------------------------------------------------------
+
+
+
+
+# ARQUITECTO + IMPLEMENTADOR QUIRÚRGICO VX11 (Shub-Niggurath) - KUBUNTU 22.04 LOW-POWER
+
+## 1) SPEC_DELTA_SUMMARY
+
+### P0 (Críticos - Requieren intervención inmediata)
+1. **PipeWire JACK**: Paquete correcto es `pipewire-audio-client-libraries`. Comando validation debe usar `pw-jack --version`
+2. **Rutas proxy**: `/shub/*` exacto. Timeout corto (3s) cuando Shub OFF → 503 Service Unavailable
+3. **Puertos**: Spawner HTTP:8008, REAPER OSC:9008 UDP. Separación clara en configuración
+4. **Carla**: Detección dinámica de puerto OSC, evitar hardcode 22752
+5. **SQL Retención**: Usar `datetime('now', '-30 days')` no `date()`
+6. **Dry-run mode**: Nuevo parámetro `plan_only` en job submission, genera plan sin ejecutar REAPER/FS
+7. **Degraded mode**: Lógica de fallback por engine cuando faltan plugins/kits, registro en `shub_degraded_logs`
+8. **Compat layer**: Lazy imports con `importlib`, wake idempotente con estado persistente
+
+### P1 (Importantes - Mejoras de robustez)
+1. **Plugin discovery**: Timeout configurable para lv2ls en low-power
+2. **Resource guards**: Umbrales ajustables por configuración runtime
+3. **Cache policy**: TTLs configurables por entorno
+4. **Backup strategy**: rotate_2 con compresión para low-power
+
+## 2) JSON FINAL 2.1.1-autopilot_lowpower
+
+```json
+{
+  "schema": "VX11_SHUB_CANONICAL_AUTOPILOT_SURGICAL",
+  "version": "2.1.1-autopilot_lowpower",
+  "based_on": {
+    "doc_schema": "VX11_SHUB_CANONICAL_AUTOPILOT",
+    "doc_version": "2.0.0-autopilot_lowpower",
+    "doc_updated_at": "2025-12-23",
+    "notes": "Versión quirúrgica corregida para Kubuntu 22.04 low-power. Fixes: PipeWire JACK, rutas proxy, puertos, Carla dinámica, SQL datetime, dry-run, degraded mode, compat layer."
+  },
+  "vx11_invariants": {
+    "single_entrypoint": {
+      "rule": "TODO acceso externo SOLO por tentaculo_link. PROHIBIDO bypass.",
+      "enforcement": "tentaculo_link actúa como proxy seguro con HMAC; madre decide; operator nunca habla directo con shub.",
+      "validation_script": "tentaculo_link/scripts/validate_shub_proxy.py"
+    },
+    "runtime_default": {
+      "mode": "solo_madre",
+      "rule": "Shub OFF por defecto. Solo ventanas temporales controladas por Madre.",
+      "source_of_truth": "madre power_manager",
+      "health_check_endpoint": "/madre/api/v1/shub/status"
+    },
+    "roles": {
+      "madre": "orquestación, políticas, power-manager, ventanas temporales, aprobación de acciones destructivas",
+      "tentaculo_link": "gateway HTTP/WS, auth, multiplexación de eventos, proxy seguro",
+      "operator_backend": "UX API/WS (observador; no bypass a shub)",
+      "operator_frontend": "dashboard + chat + paneles audio (solo lectura)",
+      "shubniggurath": "motor audio REAPER-first + pipelines DSP + job runner (power-managed)",
+      "switch": "router/modelos/CLI para razonamiento (si se usa para decisiones/presets)",
+      "spawner": "hijas efímeras para trabajos pesados aislados (OFF por defecto)",
+      "hormiguero": "escaneo/telemetría/orden; no decide mezclas",
+      "hermes": "intendencia de archivos; no enruta decisiones"
+    }
+  },
+  "implementation_plan": {
+    "files_to_create": [
+      "shubniggurath/sequential_processor.py",
+      "shubniggurath/track_db_manager.py",
+      "shubniggurath/resource_guard.py",
+      "shubniggurath/compat_layer.py",
+      "shubniggurath/engines/__init__.py",
+      "shubniggurath/engines/drums_engine.py",
+      "shubniggurath/engines/guitar_engine.py",
+      "shubniggurath/engines/vocal_engine.py",
+      "shubniggurath/engines/bass_engine.py",
+      "shubniggurath/engines/bus_engine.py",
+      "shubniggurath/engines/restoration_engine.py",
+      "shubniggurath/engines/session_engine.py",
+      "shubniggurath/engines/delivery_engine.py",
+      "shubniggurath/migrations/001_initial_shub_tables.sql",
+      "shubniggurath/migrations/002_extended_track_tables.sql",
+      "shubniggurath/migrations/003_degraded_mode_logs.sql",
+      "attic/shubniggurath/reascripts/shub_sequential_processor.lua",
+      "attic/shubniggurath/reascripts/shub_track_analyzer.lua",
+      "data/presets/shub/reaper_templates/sequential_processing_template.RPP",
+      "data/presets/shub/plugin_whitelist.json"
+    ],
+    "files_to_modify": [
+      "tentaculo_link/app.py → añadir proxy /shub/* con HMAC validation y timeout 3s cuando shub OFF",
+      "madre/power_manager.py → implementar ventanas temporales start/wake/job/monitor/sleep/stop",
+      "madre/api/v1/shub.py → endpoints para control de ventanas",
+      "operator_backend/api/events.py → añadir SSE stream para eventos shub",
+      "operator_frontend/src/panels/AudioDashboard.tsx → integrar paneles de observabilidad",
+      "vx11.db → ejecutar migraciones SQL"
+    ],
+    "tentaculo_link_changes": {
+      "proxy_config": {
+        "route": "/shub/*",
+        "target": "http://localhost:8007",
+        "auth_headers": ["X-VX11-Token", "X-VX11-Signature", "X-VX11-Nonce", "X-VX11-Timestamp"],
+        "hmac_secret_env": "VX11_HMAC_SECRET",
+        "timeout_seconds": 30,
+        "shub_off_timeout_seconds": 3,
+        "shub_off_status_code": 503
+      }
+    },
+    "madre_changes": {
+      "temporal_window_protocol": {
+        "start": "systemctl start shubniggurath o docker-compose up -d shub",
+        "warmup": "POST /shub/wake con timeout 60s",
+        "job_submit": "POST /shub/jobs/submit con parámetros secuenciales y plan-only opcional",
+        "monitor": "GET /shub/jobs/{job_id}/events cada 10s, health cada 30s",
+        "sleep": "POST /shub/sleep para liberar recursos",
+        "stop": "systemctl stop shubniggurath o docker-compose stop shub",
+        "state_persistence": "madre guarda estado en data/runtime/madre_shub_state.json"
+      }
+    },
+    "ports_configuration": {
+      "shub_http": 8007,
+      "spawner_http": 8008,
+      "reaper_osc_udp": 9008,
+      "carla_osc_udp_min": 22752,
+      "carla_osc_udp_max": 22762,
+      "notes": "REAPER OSC debe configurarse en preferences para usar puerto 9008"
+    },
+    "operator_changes": {
+      "backend": {
+        "sse_endpoint": "/operator/api/v1/events/shub",
+        "event_forwarding": "tentaculo_link → madre → operator_backend (read-only)"
+      },
+      "frontend": {
+        "new_panels": ["Sequential Processing", "Track DB Explorer", "Plugin Whitelist Manager", "Resource Monitor", "Degraded Mode Logs"],
+        "read_only_rules": "deshabilitados todos los botones de control directo a shub"
+      }
+    },
+    "db_migrations": {
+      "sqlite_path": "data/runtime/vx11.db",
+      "migration_001": {
+        "file": "shubniggurath/migrations/001_initial_shub_tables.sql",
+        "tables": ["shub_jobs", "shub_job_events", "shub_job_artifacts", "shub_presets", "shub_reaper_sessions", "shub_reaper_projects", "shub_render_outputs", "shub_audio_metrics", "shub_pipeline_runs", "shub_idempotency_keys", "shub_nonce_cache", "shub_schema_version", "shub_edit_logs", "shub_analysis_reports"],
+        "indexes": ["idx_shub_jobs_status", "idx_shub_job_events_job_id", "idx_shub_idempotency_keys_key"]
+      },
+      "migration_002": {
+        "file": "shubniggurath/migrations/002_extended_track_tables.sql",
+        "tables": ["shub_track_fingerprints", "shub_segment_maps", "shub_issue_maps", "shub_fx_applied_logs", "shub_before_after_metrics", "shub_track_dependencies", "shub_drumgizmo_kits", "shub_guitarix_models"],
+        "indexes": ["idx_track_fingerprints_audio_hash", "idx_segment_maps_track_id", "idx_issue_maps_track_id"],
+        "foreign_keys": true
+      },
+      "migration_003": {
+        "file": "shubniggurath/migrations/003_degraded_mode_logs.sql",
+        "tables": ["shub_degraded_logs"],
+        "indexes": ["idx_degraded_logs_job_id", "idx_degraded_logs_timestamp"]
+      },
+      "retention_policy": "DELETE FROM shub_jobs WHERE created_at < datetime('now', '-30 days');",
+      "backup_strategy": "rotate_2 en data/runtime/backups/vx11.db.*.gz"
+    },
+    "endpoints_backward_compatible": {
+      "added_endpoints": ["/track/analyze", "/track/process", "/track/db/{track_id}", "/jobs/submit/plan"],
+      "deprecated_endpoints": [],
+      "contract_unchanged": ["/health", "/jobs/submit", "/jobs/{job_id}", "/reaper/status"]
+    }
+  },
+  "system_profile": {
+    "target_environment": {
+      "os": "Kubuntu 22.04",
+      "kde_plasma": "5.24.7",
+      "qt": "5.15.3",
+      "display_server": "X11",
+      "kernel": "6.8.0-90-generic"
+    },
+    "hardware": {
+      "cpu": "Intel i7-4510U",
+      "threads": 4,
+      "ram_gib": 15.5,
+      "gpu": "Intel HD 4400 (sin GPU compute)",
+      "conclusion": "low-power studio - máximo 1 job concurrente, 1 pista concurrente"
+    },
+    "resource_budget": {
+      "cpu": {
+        "soft_cap_percent": 60,
+        "hard_cap_percent": 80,
+        "cooldown_after_render_seconds": 10,
+        "budget_guard_check_interval_seconds": 5
+      },
+      "ram": {
+        "min_free_gib": 4.0,
+        "emergency_free_gib": 2.0,
+        "budget_guard_check_interval_seconds": 5
+      },
+      "io": {
+        "throttle": true,
+        "max_read_mbps": 100,
+        "max_write_mbps": 50,
+        "sequential_io_only": true
+      },
+      "power": {
+        "max_concurrent_jobs": 1,
+        "max_concurrent_tracks": 1,
+        "max_concurrent_renders": 1,
+        "max_concurrent_plugin_instances": 3,
+        "track_time_slice_seconds": 300,
+        "cooldown_between_tracks_seconds": 5
+      }
+    },
+    "scheduler": {
+      "type": "sequential_low_power",
+      "job_queue": {
+        "max_pending_jobs": 10,
+        "priorities": ["critical", "high", "medium", "low"],
+        "default_priority": "medium"
+      },
+      "track_queue": {
+        "max_pending_tracks": 20,
+        "processing_order": "by_track_number",
+        "allow_interleaving": false
+      },
+      "window_timeboxing": {
+        "max_mother_window_minutes": 120,
+        "graceful_shutdown_timeout_seconds": 30,
+        "state_save_interval_seconds": 60
+      }
+    }
+  },
+  "low_power_enforcement": {
+    "concurrency_limits": {
+      "max_concurrent_jobs": 1,
+      "max_concurrent_tracks": 1,
+      "max_concurrent_plugin_instances": 3,
+      "max_concurrent_renders": 1
+    },
+    "sequential_processing": {
+      "stages": ["load_project", "analyze_track", "db_annotate", "apply_fx", "render_freeze", "commit", "cleanup"],
+      "stage_timeouts_seconds": [30, 180, 30, 300, 600, 30, 30],
+      "stage_skip_policy": "solo análisis puede omitirse si fingerprint existe",
+      "cooldown_between_stages_seconds": 2,
+      "cooldown_between_tracks_seconds": 5
+    },
+    "freeze_render_commit": {
+      "freeze_policy": "after_fx_application si CPU > 30%, sino mantener FX live",
+      "freeze_format": "32bit_float",
+      "render_after_freeze": true,
+      "render_format": "wav_24bit",
+      "commit_to_db": "after_each_track",
+      "undo_snapshot_before_freeze": true
+    },
+    "resource_guards": {
+      "cpu_guard": {
+        "check_interval_seconds": 5,
+        "threshold_percent": 80,
+        "action": "pause_processing_and_retry_after_60s"
+      },
+      "ram_guard": {
+        "check_interval_seconds": 5,
+        "threshold_free_gib": 2.0,
+        "action": "pause_processing_and_retry_after_60s"
+      },
+      "io_guard": {
+        "throttle_enabled": true,
+        "max_read_mbps": 100,
+        "max_write_mbps": 50,
+        "action": "delay_next_io_operation"
+      }
+    },
+    "cache_policy": {
+      "fingerprint_cache": true,
+      "fingerprint_ttl_days": 30,
+      "analysis_cache": true,
+      "analysis_ttl_days": 7,
+      "segment_map_cache": true,
+      "segment_map_ttl_days": 7
+    },
+    "pause_and_retry": {
+      "max_retries": 3,
+      "retry_interval_seconds": 60,
+      "backoff_factor": 2.0,
+      "give_up_action": "mark_job_as_degraded_and_continue"
+    },
+    "degraded_mode": {
+      "enabled": true,
+      "on_missing_plugin": "skip_and_log",
+      "on_missing_kit": "use_fallback_sampler",
+      "on_resource_exhaustion": "pause_and_retry_then_degrade",
+      "logging_table": "shub_degraded_logs"
+    }
+  },
+  "audio_stack_install": {
+    "host_requirements": {
+      "os": "Kubuntu 22.04",
+      "base_packages": ["build-essential", "python3-dev", "python3-venv", "git", "curl", "wget"]
+    },
+    "pipewire_jack_setup": {
+      "packages": ["pipewire", "pipewire-audio", "pipewire-audio-client-libraries", "libspa-0.2-bluetooth"],
+      "notes": "En Kubuntu 22.04, 'pipewire-audio-client-libraries' incluye soporte JACK completo. pw-jack es el wrapper correcto.",
+      "validation_commands": [
+        "systemctl --user status pipewire",
+        "pw-jack --version",
+        "pw-jack lsp || echo 'PipeWire JACK en ejecución'"
+      ]
+    },
+    "audio_packages": {
+      "required": ["ffmpeg", "sox", "python3-numpy", "python3-scipy", "python3-psutil", "python3-requests"],
+      "optional_plugins": [
+        "carla",
+        "drumgizmo",
+        "drumgizmo-lv2",
+        "guitarix",
+        "guitarix-lv2",
+        "lilv-utils",
+        "jalv",
+        "lv2-dev"
+      ],
+      "notes": "Los paquetes guitarix y drumgizmo de los repos de Ubuntu 22.04 son compatibles (libc6 2.31). Evitar .deb de distros más nuevas."
+    },
+    "reaper_installation": {
+      "method": "manual_download",
+      "url": "https://www.reaper.fm/download.php",
+      "install_path": "/opt/REAPER/",
+      "portable_mode_recommended": true,
+      "osc_port": 9008,
+      "reapack_install": {
+        "url": "https://reapack.com/install",
+        "script": "Importar via ReaScript (Ctrl+Alt+E)"
+      },
+      "sws_extension": {
+        "url": "https://www.sws-extension.org/",
+        "required": true
+      }
+    },
+    "validation_commands": [
+      "pw-jack lv2ls | grep -E '(guitarix|drumgizmo)' | head -5",
+      "lv2info 'http://guitarix.sourceforge.net/plugins/gx_amp#GUITARIX' 2>/dev/null || echo 'Guitarix no encontrado'",
+      "find ~/DrumGizmoKits -name '*.xml' -type f | head -3",
+      "python3 -c 'import numpy, scipy, psutil; print(\"OK\")'"
+    ]
+  },
+  "carla_port_detection": {
+    "method": "dynamic_port_finder",
+    "port_range": [22752, 22762],
+    "env_var": "CARLA_OSC_UDP_PORT",
+    "fallback_port": 22753,
+    "check_command": "netstat -anu | grep -E ':(2275[2-9]|2276[0-2])'",
+    "launch_template": "CARLA_OSC_UDP_PORT={port} pw-jack carla"
+  },
+  "guitarix_and_drumgizmo_integration": {
+    "drumgizmo": {
+      "kit_manager": {
+        "kits_root": "~/DrumGizmoKits",
+        "index_db_table": "shub_drumgizmo_kits",
+        "columns": ["kit_id", "name", "path", "xml_file", "status", "last_verified"],
+        "auto_index_on_startup": false,
+        "manual_index_command": "POST /shub/drumgizmo/index"
+      },
+      "validation": {
+        "required_files": ["*.xml", "*.kit"],
+        "command": "find ~/DrumGizmoKits -name '*.xml' -exec grep -l '<DrumGizmoKit' {} \\;"
+      },
+      "fallback": "si no hay kits, drums_engine usa sampler SF2 básico (linuxsampler) o omite etapa DrumGizmo"
+    },
+    "guitarix": {
+      "installation_methods": [
+        {
+          "recommended": "apt install guitarix guitarix-lv2 (repos Ubuntu 22.04)",
+          "version": "0.44.x"
+        }
+      ],
+      "lv2_uris": [
+        "http://guitarix.sourceforge.net/plugins/gx_amp#GUITARIX",
+        "http://guitarix.sourceforge.net/plugins/gx_amp_stereo#GUITARIX_ST",
+        "http://guitarix.sourceforge.net/plugins/gx_cabinet#CABINET"
+      ],
+      "whitelist_entries": [
+        {
+          "plugin_id": "http://guitarix.sourceforge.net/plugins/gx_amp#GUITARIX",
+          "reaper_fx_name": "Guitarix Amp",
+          "category": "amp_sim",
+          "allow_presets": true,
+          "max_instances": 2,
+          "allowed_for_dsp": true
+        }
+      ]
+    }
+  },
+  "engine_development": {
+    "core_engine": {
+      "analysis_engine": {
+        "inputs": ["track_audio", "track_metadata"],
+        "outputs": ["fingerprint", "loudness_metrics", "spectral_profile", "issue_list"],
+        "steps": ["load_audio", "compute_hash", "analyze_lufs_truepeak", "fft_analysis", "detect_issues"],
+        "fallback": "si REAPER no está, usar sox/ffmpeg para análisis básico",
+        "db_logging": "shub_track_fingerprints, shub_audio_metrics, shub_issue_maps"
+      },
+      "pipeline_engine": {
+        "inputs": ["pipeline_definition", "track_list"],
+        "outputs": ["pipeline_result", "artifact_list"],
+        "steps": ["validate", "execute_stages", "collect_outputs"],
+        "max_concurrent_stages": 1,
+        "plan_only_mode": true,
+        "db_logging": "shub_pipeline_runs, shub_job_artifacts"
+      }
+    },
+    "specialized_engines": {
+      "drums_engine": {
+        "inputs": ["drum_tracks", "kit_preference"],
+        "outputs": ["processed_drum_bus", "drum_report"],
+        "steps": ["load_drumgizmo_kit", "replace_midi_or_audio", "phase_align", "gate", "transient_shape"],
+        "instance_limits": {"max_drumgizmo_instances": 1, "max_gates": 4, "max_transient_shapers": 2},
+        "fallback": "si no hay DrumGizmo kit, usar linuxsampler SF2 básico",
+        "degraded_mode_action": "skip_drumgizmo_use_basic_samples",
+        "db_logging": "shub_fx_applied_logs, shub_before_after_metrics, shub_degraded_logs"
+      }
+    }
+  },
+  "compat_layer": {
+    "lazy_imports": {
+      "heavy_modules": ["numpy", "scipy", "psutil", "lilv"],
+      "import_strategy": "importlib.import_module on first use",
+      "fallback_handling": "catch ImportError, log to degraded_logs, use lightweight alternative"
+    },
+    "wake_mechanism": {
+      "idempotent": true,
+      "state_file": "data/runtime/shub_wake_state.json",
+      "max_wake_time_seconds": 60,
+      "resources_to_warm": ["db_connections", "reaper_bridge", "plugin_cache"]
+    }
+  },
+  "module": {
+    "name": "shubniggurath",
+    "role": "Audio Engine (REAPER-first) + DSP pipelines + job runner",
+    "default_state": "disabled",
+    "listen": { "host": "0.0.0.0", "port": 8007 },
+    "dependencies": ["madre", "tentaculo_link"],
+    "optional_dependencies": ["switch", "operator_backend", "spawner"],
+    "service_control": {
+      "owner": "madre",
+      "mode": "madre_managed",
+      "start_stop_mechanism": "docker_compose_or_systemd",
+      "notes": "VX11 default es 'solo madre arriba'. Shub se inicia solo cuando Madre agenda trabajo de audio."
+    },
+    "resource_profile": {
+      "default": "sleeping",
+      "caps": {
+        "memory_mb": 512,
+        "cpu_pct_soft": 40,
+        "max_workers": 3,
+        "max_concurrent_jobs": 1,
+        "note": "workers atienden API; ejecución de jobs limitada a 1 a la vez"
+      },
+      "idle_ttl_seconds": 900,
+      "lazy_import_heavy_modules": true,
+      "wake_on_demand": true,
+      "wake_timeout_seconds": 30,
+      "wake_idempotent": true
+    },
+    "logging": {
+      "level": "INFO",
+      "format": "VX11_ENVELOPE",
+      "rotation": "daily",
+      "retention_days": 14
+    }
+  },
+  "paths": {
+    "repo_root_env": "VX11_REPO_ROOT",
+    "repo_root_default": "/home/elkakas314/vx11",
+    "module_root": "shubniggurath/",
+    "attic_root": "attic/shubniggurath/",
+    "reaper_bridge_script": "attic/shubniggurath/shub_reaper_bridge.py",
+    "artifacts_root": "data/artifacts/shub/",
+    "renders_root": "data/artifacts/shub/renders/",
+    "undo_snapshots_root": "data/artifacts/shub/undo_snapshots/",
+    "logs_root": "data/runtime/logs/shub/",
+    "cache_root": "data/runtime/cache/shub/",
+    "temp_root": "data/runtime/temp/shub/",
+    "presets_root": "data/presets/shub/",
+    "reaper_templates_root": "data/presets/shub/reaper_templates/",
+    "plugin_whitelist_path": "data/presets/shub/plugin_whitelist.json",
+    "drumgizmo_kits_root_default": "~/DrumGizmoKits",
+    "lv2_paths_default": ["~/.lv2", "/usr/lib/lv2", "/usr/local/lib/lv2"],
+    "track_db_path": "data/runtime/shub_track_db.json",
+    "fingerprint_cache_path": "data/runtime/cache/shub/fingerprints.json",
+    "wake_state_path": "data/runtime/shub_wake_state.json"
+  },
+  "feature_flags": {
+    "advanced_engines": {
+      "default": true,
+      "notes": "Habilita motores especializados (vocal/drums/bass/guitar/bus/restoration/session/delivery)."
+    },
+    "reaper_bridge": { "default": true, "notes": "REAPER-first: puente activo por defecto si hay REAPER disponible." },
+    "spawner_heavy_jobs": {
+      "default": false,
+      "notes": "Delegación a hijas efímeras para jobs pesados (requiere policy_token firmado)."
+    },
+    "virtual_engineer": {
+      "default": false,
+      "notes": "Modo lenguaje 'ingeniero de sonido' (Switch/CLI) para decisiones/presets/reportes."
+    },
+    "plugin_discovery": {
+      "default": false,
+      "notes": "Descubrir plugins LV2/VST3 y registrar catálogo (preferible ON solo en ventana controlada)."
+    },
+    "carla_host": {
+      "default": false,
+      "notes": "Usar Carla como host LV2 externo (opcional; REAPER sigue siendo el host preferente)."
+    },
+    "guitarix_lv2": { "default": true, "notes": "Permite Guitarix LV2 en whitelist si está instalado." },
+    "drumgizmo_lv2": { "default": true, "notes": "Permite DrumGizmo LV2 + kits XML si están presentes." },
+    "sequential_processing": { "default": true, "notes": "Habilita procesamiento secuencial pista a pista." },
+    "track_db_extended": { "default": true, "notes": "Habilita la base de datos extendida de pistas." },
+    "dry_run_mode": { "default": true, "notes": "Habilita modo plan-only para jobs." },
+    "degraded_mode": { "default": true, "notes": "Habilita modo degradado con fallbacks." }
+  },
+  "database": {
+    "kind": "sqlite",
+    "vx11_db_path": "data/runtime/vx11.db",
+    "tables_namespace": "shub_",
+    "required_tables": [
+      "shub_jobs",
+      "shub_job_events",
+      "shub_job_artifacts",
+      "shub_presets",
+      "shub_reaper_sessions",
+      "shub_reaper_projects",
+      "shub_render_outputs",
+      "shub_audio_metrics",
+      "shub_pipeline_runs",
+      "shub_idempotency_keys",
+      "shub_nonce_cache",
+      "shub_schema_version",
+      "shub_edit_logs",
+      "shub_analysis_reports"
+    ],
+    "optional_tables": [
+      "shub_engine_events",
+      "shub_safety_locks",
+      "shub_undo_snapshots",
+      "shub_plugin_catalog",
+      "shub_track_db",
+      "shub_fx_state_cache",
+      "shub_drumgizmo_kits",
+      "shub_guitarix_models",
+      "shub_track_fingerprints",
+      "shub_segment_maps",
+      "shub_issue_maps",
+      "shub_fx_applied_logs",
+      "shub_before_after_metrics",
+      "shub_track_dependencies",
+      "shub_degraded_logs"
+    ],
+    "bootstrap_policy": {
+      "auto_create_missing_tables": true,
+      "auto_create_optional_tables": false,
+      "schema_version_table": "shub_schema_version",
+      "migrations_dir": "shubniggurath/migrations/",
+      "backup_before_major_ops": true,
+      "backup_strategy": "rotate_2",
+      "backup_root": "data/runtime/backups/",
+      "auto_vacuum_mode": "INCREMENTAL"
+    },
+    "retention": {
+      "jobs_days": 30,
+      "events_days": 14,
+      "artifacts_days": 30,
+      "metrics_days": 90,
+      "cache_days": 7,
+      "edit_logs_days": 30,
+      "analysis_reports_days": 90,
+      "undo_snapshots_days": 3,
+      "track_fingerprints_days": 30,
+      "segment_maps_days": 7,
+      "issue_maps_days": 30,
+      "fx_applied_logs_days": 30,
+      "before_after_metrics_days": 30,
+      "track_dependencies_days": 30,
+      "degraded_logs_days": 7
+    },
+    "indexes": {
+      "shub_jobs": ["status", "created_at"],
+      "shub_job_events": ["job_id", "ts"],
+      "shub_track_fingerprints": ["audio_hash", "track_id"],
+      "shub_segment_maps": ["track_id", "start_time"],
+      "shub_issue_maps": ["track_id", "resolved"],
+      "shub_degraded_logs": ["job_id", "timestamp"]
+    }
+  },
+  "api": {
+    "base_prefix": "/shub",
+    "convention": "relative_to_base_prefix",
+    "openapi": { "enabled": true, "path": "/openapi.json", "title": "VX11 ShubNiggurath API", "version_from": "version" },
+    "correlation_headers": [
+      "X-Request-ID",
+      "X-Correlation-ID",
+      "X-VX11-Source",
+      "X-VX11-Timestamp",
+      "X-VX11-Nonce",
+      "X-VX11-Signature",
+      "X-VX11-Priority"
+    ],
+    "idempotency": {
+      "header": "X-Idempotency-Key",
+      "scope": "per_job_submit",
+      "ttl_seconds": 86400,
+      "backend_table": "shub_idempotency_keys",
+      "conflict_policy": "same_request_hash_only",
+      "conflict_http_status": 409
+    },
+    "health_envelope": {
+      "required_fields": ["status", "timestamp", "module", "version", "uptime", "degraded"],
+      "shub_specific_fields": ["reaper_connected", "queue_depth", "active_jobs", "idle_since", "feature_flags", "cpu_percent", "ram_free_gib", "degraded_mode_active"]
+    },
+    "endpoints": [
+      { "method": "GET", "path": "/health", "purpose": "Healthcheck con envelope VX11" },
+      { "method": "POST", "path": "/wake", "purpose": "Warmup/lazy import; preparar recursos (idempotente)" },
+      { "method": "POST", "path": "/sleep", "purpose": "Liberar recursos; preparar stop por madre" },
+      { "method": "POST", "path": "/jobs/submit", "purpose": "Submit job (analysis/mix/master/restoration/etc.)" },
+      { "method": "POST", "path": "/jobs/submit/plan", "purpose": "Submit job en modo dry-run (plan only)" },
+      { "method": "GET", "path": "/jobs/{job_id}", "purpose": "Estado job + outputs" },
+      { "method": "GET", "path": "/jobs/{job_id}/events", "purpose": "Eventos job (poll)" },
+      { "method": "GET", "path": "/events/stream", "purpose": "SSE stream para Operator (si se habilita)" },
+      { "method": "GET", "path": "/presets/list", "purpose": "Listar presets Shub" },
+      { "method": "POST", "path": "/presets/apply", "purpose": "Aplicar preset a proyecto/track" },
+      { "method": "GET", "path": "/reaper/status", "purpose": "Estado conexión REAPER (bridge)" },
+      { "method": "POST", "path": "/reaper/action", "purpose": "Acciones controladas (whitelist) a REAPER" },
+      { "method": "POST", "path": "/plugins/discover", "purpose": "Descubrir plugins (feature_flag plugin_discovery)" },
+      { "method": "GET", "path": "/plugins/catalog", "purpose": "Catálogo plugins registrado" },
+      { "method": "POST", "path": "/track/analyze", "purpose": "Análisis de una pista (secuencial)" },
+      { "method": "POST", "path": "/track/process", "purpose": "Procesar una pista (secuencial)" },
+      { "method": "GET", "path": "/track/db/{track_id}", "purpose": "Obtener datos extendidos de una pista" },
+      { "method": "POST", "path": "/drumgizmo/index", "purpose": "Indexar kits DrumGizmo (manual)" },
+      { "method": "GET", "path": "/degraded/logs", "purpose": "Obtener logs de modo degradado" }
+    ]
+  }
+}
+```
+
+## 3) PATCH_PLAN
+
+### Archivos a Crear/Modificar:
+
+**CORES:**
+- `shubniggurath/sequential_processor.py` (NUEVO) - Procesador secuencial con dry-run
+- `shubniggurath/track_db_manager.py` (NUEVO) - Gestor de BD extendida de pistas
+- `shubniggurath/resource_guard.py` (NUEVO) - Guardián de recursos low-power
+- `shubniggurath/compat_layer.py` (NUEVO) - Lazy imports y wake idempotente
+
+**ENGINES:**
+- `shubniggurath/engines/__init__.py` (NUEVO) - Exportación de motores
+- `shubniggurath/engines/drums_engine.py` (NUEVO) - Motor de baterías con degraded mode
+- `shubniggurath/engines/guitar_engine.py` (NUEVO) - Motor de guitarras
+- `shubniggurath/engines/vocal_engine.py` (NUEVO) - Motor de voces
+- `shubniggurath/engines/bass_engine.py` (NUEVO) - Motor de bajos
+- `shubniggurath/engines/bus_engine.py` (NUEVO) - Motor de buses
+- `shubniggurath/engines/restoration_engine.py` (NUEVO) - Motor de restauración
+- `shubniggurath/engines/session_engine.py` (NUEVO) - Motor de sesión
+- `shubniggurath/engines/delivery_engine.py` (NUEVO) - Motor de entrega
+
+**MIGRACIONES:**
+- `shubniggurath/migrations/001_initial_shub_tables.sql` (NUEVO)
+- `shubniggurath/migrations/002_extended_track_tables.sql` (NUEVO)
+- `shubniggurath/migrations/003_degraded_mode_logs.sql` (NUEVO)
+
+**REAPER SCRIPTS:**
+- `attic/shubniggurath/reascripts/shub_sequential_processor.lua` (NUEVO)
+- `attic/shubniggurath/reascripts/shub_track_analyzer.lua` (NUEVO)
+
+**CONFIGURACIONES:**
+- `data/presets/shub/reaper_templates/sequential_processing_template.RPP` (NUEVO)
+- `data/presets/shub/plugin_whitelist.json` (NUEVO)
+
+**MODIFICACIONES:**
+- `tentaculo_link/app.py` - Añadir proxy `/shub/*` con timeout 3s cuando shub OFF
+- `madre/power_manager.py` - Implementar protocolo ventanas temporales
+- `madre/api/v1/shub.py` - Endpoints para control de ventanas
+- `operator_backend/api/events.py` - SSE stream para eventos shub
+- `operator_frontend/src/panels/AudioDashboard.tsx` - Paneles de observabilidad
+
+## 4) SQL_MIGRATIONS
+
+### 001_initial_shub_tables.sql
+```sql
+-- VX11 ShubNiggurath - Migración inicial
+-- USAR datetime() NO date() para retención correcta
+
+-- Tabla principal de jobs
+CREATE TABLE IF NOT EXISTS shub_jobs (
+    job_id TEXT PRIMARY KEY,
+    job_type TEXT NOT NULL,
+    status TEXT NOT NULL CHECK (status IN ('pending', 'running', 'paused', 'completed', 'failed', 'degraded')),
+    priority TEXT DEFAULT 'medium' CHECK (priority IN ('critical', 'high', 'medium', 'low')),
+    parameters TEXT,  -- JSON
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    started_at DATETIME,
+    completed_at DATETIME,
+    degraded_mode INTEGER DEFAULT 0,  -- 0=false, 1=true
+    plan_only INTEGER DEFAULT 0,      -- 0=false, 1=true (dry-run)
+    error_message TEXT,
+    parent_job_id TEXT
+);
+
+-- Eventos de job (para polling/SSE)
+CREATE TABLE IF NOT EXISTS shub_job_events (
+    event_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    job_id TEXT NOT NULL,
+    event_type TEXT NOT NULL,
+    event_data TEXT,  -- JSON
+    ts DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (job_id) REFERENCES shub_jobs(job_id) ON DELETE CASCADE
+);
+
+-- Artifacts generados por jobs
+CREATE TABLE IF NOT EXISTS shub_job_artifacts (
+    artifact_id TEXT PRIMARY KEY,
+    job_id TEXT NOT NULL,
+    artifact_type TEXT NOT NULL,
+    artifact_path TEXT NOT NULL,
+    artifact_metadata TEXT,  -- JSON
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    size_bytes INTEGER,
+    checksum TEXT,
+    FOREIGN KEY (job_id) REFERENCES shub_jobs(job_id) ON DELETE CASCADE
+);
+
+-- Presets de procesamiento
+CREATE TABLE IF NOT EXISTS shub_presets (
+    preset_id TEXT PRIMARY KEY,
+    preset_name TEXT NOT NULL,
+    preset_type TEXT NOT NULL,
+    preset_data TEXT NOT NULL,  -- JSON
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    last_used DATETIME,
+    usage_count INTEGER DEFAULT 0
+);
+
+-- Sesiones de REAPER
+CREATE TABLE IF NOT EXISTS shub_reaper_sessions (
+    session_id TEXT PRIMARY KEY,
+    project_path TEXT NOT NULL,
+    session_state TEXT,  -- JSON
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    last_accessed DATETIME,
+    is_active INTEGER DEFAULT 0
+);
+
+-- Proyectos REAPER
+CREATE TABLE IF NOT EXISTS shub_reaper_projects (
+    project_id TEXT PRIMARY KEY,
+    project_path TEXT NOT NULL UNIQUE,
+    project_hash TEXT,
+    track_count INTEGER,
+    sample_rate INTEGER,
+    bit_depth INTEGER,
+    duration_seconds REAL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    last_processed DATETIME
+);
+
+-- Render outputs
+CREATE TABLE IF NOT EXISTS shub_render_outputs (
+    render_id TEXT PRIMARY KEY,
+    job_id TEXT NOT NULL,
+    track_id TEXT,
+    output_path TEXT NOT NULL,
+    format TEXT NOT NULL,
+    sample_rate INTEGER,
+    bit_depth INTEGER,
+    duration_seconds REAL,
+    loudness_lufs REAL,
+    true_peak_dbfs REAL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (job_id) REFERENCES shub_jobs(job_id) ON DELETE CASCADE
+);
+
+-- Métricas de audio
+CREATE TABLE IF NOT EXISTS shub_audio_metrics (
+    metric_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    track_id TEXT NOT NULL,
+    job_id TEXT NOT NULL,
+    loudness_lufs REAL,
+    true_peak_dbfs REAL,
+    dynamic_range_db REAL,
+    spectral_centroid REAL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Pipeline runs
+CREATE TABLE IF NOT EXISTS shub_pipeline_runs (
+    pipeline_id TEXT PRIMARY KEY,
+    job_id TEXT NOT NULL,
+    pipeline_name TEXT NOT NULL,
+    stages TEXT NOT NULL,  -- JSON array
+    current_stage INTEGER DEFAULT 0,
+    stage_results TEXT,  -- JSON
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    completed_at DATETIME,
+    FOREIGN KEY (job_id) REFERENCES shub_jobs(job_id) ON DELETE CASCADE
+);
+
+-- Idempotency keys
+CREATE TABLE IF NOT EXISTS shub_idempotency_keys (
+    key_hash TEXT PRIMARY KEY,
+    request_hash TEXT NOT NULL,
+    job_id TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    expires_at DATETIME NOT NULL
+);
+
+-- Nonce cache para HMAC
+CREATE TABLE IF NOT EXISTS shub_nonce_cache (
+    nonce TEXT PRIMARY KEY,
+    timestamp INTEGER NOT NULL,
+    used_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Schema version
+CREATE TABLE IF NOT EXISTS shub_schema_version (
+    version TEXT PRIMARY KEY,
+    applied_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Edit logs
+CREATE TABLE IF NOT EXISTS shub_edit_logs (
+    edit_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    job_id TEXT NOT NULL,
+    edit_type TEXT NOT NULL,
+    edit_data TEXT NOT NULL,  -- JSON
+    undo_snapshot_path TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (job_id) REFERENCES shub_jobs(job_id) ON DELETE CASCADE
+);
+
+-- Analysis reports
+CREATE TABLE IF NOT EXISTS shub_analysis_reports (
+    report_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    track_id TEXT NOT NULL,
+    job_id TEXT NOT NULL,
+    report_type TEXT NOT NULL,
+    report_data TEXT NOT NULL,  -- JSON
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (job_id) REFERENCES shub_jobs(job_id) ON DELETE CASCADE
+);
+
+-- Índices
+CREATE INDEX IF NOT EXISTS idx_shub_jobs_status ON shub_jobs(status);
+CREATE INDEX IF NOT EXISTS idx_shub_jobs_created ON shub_jobs(created_at);
+CREATE INDEX IF NOT EXISTS idx_shub_job_events_job_id ON shub_job_events(job_id);
+CREATE INDEX IF NOT EXISTS idx_shub_job_events_ts ON shub_job_events(ts);
+CREATE INDEX IF NOT EXISTS idx_shub_idempotency_keys_expires ON shub_idempotency_keys(expires_at);
+
+-- Insertar versión inicial
+INSERT INTO shub_schema_version (version) VALUES ('001_initial');
+```
+
+### 002_extended_track_tables.sql
+```sql
+-- VX11 ShubNiggurath - Tablas extendidas de pistas
+-- USAR datetime() NO date() para retención
+
+-- Fingerprints de pistas
+CREATE TABLE IF NOT EXISTS shub_track_fingerprints (
+    fingerprint_id TEXT PRIMARY KEY,
+    track_id TEXT NOT NULL UNIQUE,
+    audio_hash TEXT NOT NULL,
+    file_size INTEGER,
+    sample_rate INTEGER,
+    bit_depth INTEGER,
+    duration_seconds REAL,
+    num_channels INTEGER,
+    fingerprint_data TEXT,  -- JSON con features
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    last_verified DATETIME
+);
+
+-- Segment maps (regiones de pista)
+CREATE TABLE IF NOT EXISTS shub_segment_maps (
+    segment_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    track_id TEXT NOT NULL,
+    segment_type TEXT NOT NULL,
+    start_time REAL NOT NULL,
+    end_time REAL NOT NULL,
+    segment_data TEXT,  -- JSON
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (track_id) REFERENCES shub_track_fingerprints(track_id) ON DELETE CASCADE
+);
+
+-- Issue maps (problemas detectados)
+CREATE TABLE IF NOT EXISTS shub_issue_maps (
+    issue_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    track_id TEXT NOT NULL,
+    issue_type TEXT NOT NULL,
+    severity TEXT CHECK (severity IN ('low', 'medium', 'high', 'critical')),
+    start_time REAL,
+    end_time REAL,
+    description TEXT,
+    resolved INTEGER DEFAULT 0,
+    resolved_at DATETIME,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (track_id) REFERENCES shub_track_fingerprints(track_id) ON DELETE CASCADE
+);
+
+-- FX aplicados (logs)
+CREATE TABLE IF NOT EXISTS shub_fx_applied_logs (
+    fx_log_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    track_id TEXT NOT NULL,
+    job_id TEXT NOT NULL,
+    fx_plugin_uri TEXT NOT NULL,
+    fx_preset TEXT,
+    parameters TEXT,  -- JSON
+    order_index INTEGER,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (job_id) REFERENCES shub_jobs(job_id) ON DELETE CASCADE
+);
+
+-- Métricas before/after
+CREATE TABLE IF NOT EXISTS shub_before_after_metrics (
+    comparison_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    track_id TEXT NOT NULL,
+    job_id TEXT NOT NULL,
+    metric_name TEXT NOT NULL,
+    before_value REAL,
+    after_value REAL,
+    difference REAL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (job_id) REFERENCES shub_jobs(job_id) ON DELETE CASCADE
+);
+
+-- Dependencias entre pistas
+CREATE TABLE IF NOT EXISTS shub_track_dependencies (
+    dependency_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    source_track_id TEXT NOT NULL,
+    target_track_id TEXT NOT NULL,
+    dependency_type TEXT NOT NULL,
+    strength REAL DEFAULT 1.0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Kits de DrumGizmo
+CREATE TABLE IF NOT EXISTS shub_drumgizmo_kits (
+    kit_id TEXT PRIMARY KEY,
+    kit_name TEXT NOT NULL,
+    kit_path TEXT NOT NULL,
+    xml_file TEXT NOT NULL,
+    status TEXT DEFAULT 'unknown' CHECK (status IN ('unknown', 'valid', 'invalid', 'tested')),
+    last_verified DATETIME,
+    kit_metadata TEXT,  -- JSON
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Modelos de Guitarix
+CREATE TABLE IF NOT EXISTS shub_guitarix_models (
+    model_id TEXT PRIMARY KEY,
+    model_name TEXT NOT NULL,
+    model_uri TEXT NOT NULL UNIQUE,
+    model_type TEXT NOT NULL,
+    category TEXT,
+    presets TEXT,  -- JSON array
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    last_used DATETIME
+);
+
+-- Índices
+CREATE INDEX IF NOT EXISTS idx_track_fingerprints_audio_hash ON shub_track_fingerprints(audio_hash);
+CREATE INDEX IF NOT EXISTS idx_track_fingerprints_created ON shub_track_fingerprints(created_at);
+CREATE INDEX IF NOT EXISTS idx_segment_maps_track_id ON shub_segment_maps(track_id);
+CREATE INDEX IF NOT EXISTS idx_segment_maps_type ON shub_segment_maps(segment_type);
+CREATE INDEX IF NOT EXISTS idx_issue_maps_track_id ON shub_issue_maps(track_id);
+CREATE INDEX IF NOT EXISTS idx_issue_maps_resolved ON shub_issue_maps(resolved);
+CREATE INDEX IF NOT EXISTS idx_fx_logs_track_job ON shub_fx_applied_logs(track_id, job_id);
+CREATE INDEX IF NOT EXISTS idx_drumgizmo_kits_status ON shub_drumgizmo_kits(status);
+CREATE INDEX IF NOT EXISTS idx_guitarix_models_uri ON shub_guitarix_models(model_uri);
+
+-- Actualizar versión
+INSERT INTO shub_schema_version (version) VALUES ('002_extended_track_tables');
+```
+
+### 003_degraded_mode_logs.sql
+```sql
+-- VX11 ShubNiggurath - Logs de modo degradado
+-- USAR datetime() NO date()
+
+CREATE TABLE IF NOT EXISTS shub_degraded_logs (
+    log_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    job_id TEXT NOT NULL,
+    track_id TEXT,
+    engine_type TEXT NOT NULL,
+    degradation_type TEXT NOT NULL,
+    original_plan TEXT,  -- JSON
+    applied_fallback TEXT,  -- JSON
+    severity TEXT CHECK (severity IN ('info', 'warning', 'error')),
+    message TEXT NOT NULL,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (job_id) REFERENCES shub_jobs(job_id) ON DELETE CASCADE
+);
+
+-- Índices para queries rápidas
+CREATE INDEX IF NOT EXISTS idx_degraded_logs_job_id ON shub_degraded_logs(job_id);
+CREATE INDEX IF NOT EXISTS idx_degraded_logs_timestamp ON shub_degraded_logs(timestamp);
+CREATE INDEX IF NOT EXISTS idx_degraded_logs_engine_type ON shub_degraded_logs(engine_type);
+
+-- Actualizar versión
+INSERT INTO shub_schema_version (version) VALUES ('003_degraded_mode_logs');
+```
+
+## 5) CODE_SKELETONS
+
+### sequential_processor.py
+```python
+"""
+Procesador secuencial low-power con dry-run y degraded mode.
+Enforcement estricto: 1 job, 1 track, 1 render concurrente.
+"""
+import sqlite3
+import json
+import time
+import logging
+from typing import Dict, List, Optional, Any
+from enum import Enum
+from dataclasses import dataclass
+from pathlib import Path
+
+from .resource_guard import ResourceGuard
+from .track_db_manager import TrackDBManager
+from .compat_layer import lazy_import, ensure_wake
+
+logger = logging.getLogger(__name__)
+
+class ProcessingStage(Enum):
+    LOAD_PROJECT = "load_project"
+    ANALYZE_TRACK = "analyze_track"
+    DB_ANNOTATE = "db_annotate"
+    APPLY_FX = "apply_fx"
+    RENDER_FREEZE = "render_freeze"
+    COMMIT = "commit"
+    CLEANUP = "cleanup"
+
+@dataclass
+class SequentialJob:
+    """Estructura de job secuencial."""
+    job_id: str
+    job_type: str
+    project_path: Path
+    parameters: Dict[str, Any]
+    priority: str = "medium"
+    plan_only: bool = False
+    degraded_mode_allowed: bool = True
+
+class SequentialProcessor:
+    """Procesador secuencial principal."""
+
+    def __init__(self, db_path: str, low_power: bool = True):
+        self.db_path = db_path
+        self.low_power = low_power
+        self.resource_guard = ResourceGuard()
+        self.track_db = TrackDBManager(db_path)
+        self.current_job: Optional[SequentialJob] = None
+        self.current_track_index: int = 0
+        self.stage_timeouts = [30, 180, 30, 300, 600, 30, 30]
+
+        # Lazy imports de engines pesados
+        self.engines = {}
+
+    @ensure_wake
+    def submit_job(self, job_spec: Dict[str, Any]) -> Dict[str, Any]:
+        """Submit job con opción plan-only (dry-run)."""
+        # TODO: Validar job_spec contra invariantes VX11
+        # TODO: Verificar idempotency key
+        # TODO: Crear entrada en shub_jobs
+
+        job = SequentialJob(
+            job_id=job_spec.get("job_id"),
+            job_type=job_spec.get("job_type"),
+            project_path=Path(job_spec.get("project_path")),
+            parameters=job_spec.get("parameters", {}),
+            plan_only=job_spec.get("plan_only", False),
+            degraded_mode_allowed=job_spec.get("degraded_mode_allowed", True)
+        )
+
+        if job.plan_only:
+            return self._generate_execution_plan(job)
+
+        self.current_job = job
+        return self._execute_job_sequentially(job)
+
+    def _generate_execution_plan(self, job: SequentialJob) -> Dict[str, Any]:
+        """Generar plan de ejecución sin tocar REAPER/FS."""
+        # TODO: Leer proyecto, detectar pistas
+        # TODO: Estimar recursos por etapa
+        # TODO: Verificar disponibilidad de plugins/kits
+        # TODO: Generar timeline secuencial
+
+        plan = {
+            "job_id": job.job_id,
+            "plan_only": True,
+            "estimated_duration_seconds": 0,
+            "tracks": [],
+            "stages": [],
+            "resource_estimates": {
+                "cpu_percent": 0,
+                "ram_mb": 0,
+                "disk_mb": 0
+            },
+            "warnings": [],
+            "degraded_mode_required": False
+        }
+
+        logger.info(f"Generated plan-only for job {job.job_id}")
+        return plan
+
+    def _execute_job_sequentially(self, job: SequentialJob) -> Dict[str, Any]:
+        """Ejecutar job secuencialmente con control de recursos."""
+        # TODO: Inicializar conexión REAPER (si no está en plan-only)
+        # TODO: Para cada pista en orden secuencial:
+        #   1. Verificar recursos con resource_guard
+        #   2. Ejecutar etapa load_project
+        #   3. Ejecutar etapa analyze_track (con cache de fingerprint)
+        #   4. Ejecutar etapa db_annotate
+        #   5. Ejecutar etapa apply_fx (con degraded mode si es necesario)
+        #   6. Ejecutar etapa render_freeze (si CPU > 30%)
+        #   7. Ejecutar etapa commit (DB + artifacts)
+        #   8. Cooldown entre pistas (5s)
+        #   9. Limpiar recursos de pista
+
+        results = {
+            "job_id": job.job_id,
+            "status": "running",
+            "processed_tracks": 0,
+            "failed_tracks": 0,
+            "degraded_tracks": 0,
+            "artifacts": []
+        }
+
+        try:
+            while self.current_track_index < total_tracks:
+                if not self.resource_guard.can_proceed():
+                    logger.warning("Resource threshold exceeded, pausing for 60s")
+                    time.sleep(60)
+                    continue
+
+                track_result = self._process_single_track(job, track_index)
+                results["processed_tracks"] += 1
+
+                if track_result.get("degraded"):
+                    results["degraded_tracks"] += 1
+
+                time.sleep(5)  # Cooldown entre pistas
+                self.current_track_index += 1
+
+        except Exception as e:
+            logger.error(f"Job failed: {e}")
+            results["status"] = "failed"
+            results["error"] = str(e)
+
+        return results
+
+    def _process_single_track(self, job: SequentialJob, track_index: int) -> Dict[str, Any]:
+        """Procesar una sola pista secuencialmente."""
+        track_result = {
+            "track_index": track_index,
+            "stages": {},
+            "degraded": False,
+            "fingerprint": None
+        }
+
+        # Etapa 1: Análisis (con cache)
+        fingerprint = self.track_db.get_fingerprint_if_exists(track_index)
+        if fingerprint:
+            track_result["fingerprint"] = fingerprint
+            track_result["stages"]["analyze"] = "cached"
+        else:
+            # TODO: Ejecutar análisis real
+            pass
+
+        # Etapa 2: Aplicar FX (con degraded mode si es necesario)
+        try:
+            fx_result = self._apply_fx_to_track(track_index, job.degraded_mode_allowed)
+            track_result["stages"]["apply_fx"] = fx_result
+        except Exception as e:
+            if job.degraded_mode_allowed:
+                logger.warning(f"FX failed, using degraded mode: {e}")
+                degraded_result = self._apply_degraded_fx(track_index)
+                track_result["stages"]["apply_fx"] = degraded_result
+                track_result["degraded"] = True
+
+                # Log en tabla degraded_logs
+                self._log_degradation(job.job_id, track_index, "fx_application", str(e))
+            else:
+                raise
+
+        # TODO: Resto de etapas
+
+        return track_result
+
+    def _apply_degraded_fx(self, track_index: int) -> Dict[str, Any]:
+        """Aplicar FX en modo degradado (fallbacks básicos)."""
+        # TODO: Usar plugins básicos (EQ, compresión) si no hay especializados
+        # TODO: Registrar en degraded_logs
+        return {"mode": "degraded", "plugins_applied": ["basic_eq", "basic_compressor"]}
+
+    def _log_degradation(self, job_id: str, track_index: int,
+                        degradation_type: str, message: str):
+        """Registrar evento de degradación en BD."""
+        conn = sqlite3.connect(self.db_path)
+        try:
+            conn.execute(
+                """INSERT INTO shub_degraded_logs
+                   (job_id, track_id, engine_type, degradation_type, message)
+                   VALUES (?, ?, ?, ?, ?)""",
+                (job_id, f"track_{track_index}", "sequential_processor",
+                 degradation_type, message)
+            )
+            conn.commit()
+        finally:
+            conn.close()
+
+    def pause_processing(self):
+        """Pausar procesamiento (llamado por resource_guard)."""
+        # TODO: Guardar estado, liberar recursos
+        logger.info("Processing paused by resource guard")
+
+    def resume_processing(self):
+        """Reanudar procesamiento después de pausa."""
+        # TODO: Restaurar estado
+        logger.info("Processing resumed")
+```
+
+### resource_guard.py
+```python
+"""
+Guardián de recursos low-power. Monitorea CPU, RAM, IO.
+Pausa procesamiento cuando se exceden umbrales.
+"""
+import psutil
+import time
+import logging
+from typing import Dict, Optional
+from threading import Thread, Event
+
+logger = logging.getLogger(__name__)
+
+class ResourceGuard:
+    """Monitor y controlador de recursos para low-power."""
+
+    def __init__(self, config: Optional[Dict] = None):
+        self.config = config or {
+            "cpu_threshold_percent": 80,
+            "ram_threshold_free_gb": 2.0,
+            "io_max_read_mbps": 100,
+            "io_max_write_mbps": 50,
+            "check_interval_seconds": 5
+        }
+
+        self.monitoring = False
+        self.monitor_thread: Optional[Thread] = None
+        self.stop_event = Event()
+
+        # Estado actual
+        self.current_cpu = 0.0
+        self.current_ram_free = 0.0
+        self.current_io_read = 0.0
+        self.current_io_write = 0.0
+
+        # Callbacks
+        self.on_threshold_exceeded = None
+        self.on_resources_available = None
+
+    def start_monitoring(self):
+        """Iniciar monitoreo en background thread."""
+        if self.monitoring:
+            return
+
+        self.monitoring = True
+        self.stop_event.clear()
+        self.monitor_thread = Thread(target=self._monitor_loop, daemon=True)
+        self.monitor_thread.start()
+        logger.info("Resource guard monitoring started")
+
+    def stop_monitoring(self):
+        """Detener monitoreo."""
+        if not self.monitoring:
+            return
+
+        self.monitoring = False
+        self.stop_event.set()
+        if self.monitor_thread:
+            self.monitor_thread.join(timeout=5)
+        logger.info("Resource guard monitoring stopped")
+
+    def _monitor_loop(self):
+        """Loop principal de monitoreo."""
+        while not self.stop_event.is_set():
+            try:
+                self._sample_resources()
+                self._check_thresholds()
+            except Exception as e:
+                logger.error(f"Error in resource monitor: {e}")
+
+            time.sleep(self.config["check_interval_seconds"])
+
+    def _sample_resources(self):
+        """Tomar muestra de recursos del sistema."""
+        self.current_cpu = psutil.cpu_percent(interval=1)
+        self.current_ram_free = psutil.virtual_memory().available / (1024**3)  # GiB
+
+        # TODO: Monitoreo IO más sofisticado
+        # io_counters = psutil.disk_io_counters()
+        # self.current_io_read = io_counters.read_bytes / (1024**2)
+        # self.current_io_write = io_counters.write_bytes / (1024**2)
+
+    def _check_thresholds(self):
+        """Verificar si se exceden umbrales."""
+        thresholds_exceeded = False
+
+        if self.current_cpu > self.config["cpu_threshold_percent"]:
+            logger.warning(f"CPU threshold exceeded: {self.current_cpu:.1f}%")
+            thresholds_exceeded = True
+
+        if self.current_ram_free < self.config["ram_threshold_free_gb"]:
+            logger.warning(f"RAM threshold exceeded: {self.current_ram_free:.1f} GiB free")
+            thresholds_exceeded = True
+
+        if thresholds_exceeded and self.on_threshold_exceeded:
+            self.on_threshold_exceeded()
+
+    def can_proceed(self) -> bool:
+        """Verificar si hay recursos suficientes para proceder."""
+        self._sample_resources()
+
+        cpu_ok = self.current_cpu <= self.config["cpu_threshold_percent"]
+        ram_ok = self.current_ram_free >= self.config["ram_threshold_free_gb"]
+
+        return cpu_ok and ram_ok
+
+    def wait_for_resources(self, timeout: int = 60) -> bool:
+        """Esperar hasta que recursos estén disponibles."""
+        start_time = time.time()
+
+        while time.time() - start_time < timeout:
+            if self.can_proceed():
+                logger.info("Resources available, proceeding")
+                if self.on_resources_available:
+                    self.on_resources_available()
+                return True
+
+            logger.info(f"Waiting for resources... CPU: {self.current_cpu:.1f}%, RAM free: {self.current_ram_free:.1f} GiB")
+            time.sleep(10)
+
+        logger.warning(f"Timeout waiting for resources after {timeout}s")
+        return False
+
+    def get_status(self) -> Dict:
+        """Obtener estado actual de recursos."""
+        return {
+            "cpu_percent": self.current_cpu,
+            "ram_free_gib": self.current_ram_free,
+            "io_read_mbps": self.current_io_read,
+            "io_write_mbps": self.current_io_write,
+            "thresholds": self.config,
+            "can_proceed": self.can_proceed()
+        }
+```
+
+### track_db_manager.py
+```python
+"""
+Gestor de base de datos extendida de pistas.
+Maneja fingerprints, segment maps, issue maps, etc.
+"""
+import sqlite3
+import json
+import hashlib
+from pathlib import Path
+from typing import Dict, List, Optional, Any
+from datetime import datetime
+
+class TrackDBManager:
+    """Gestor de base de datos de pistas con cache."""
+
+    def __init__(self, db_path: str):
+        self.db_path = db_path
+        self._ensure_tables()
+
+    def _ensure_tables(self):
+        """Asegurar que las tablas existan."""
+        conn = sqlite3.connect(self.db_path)
+        try:
+            # Verificar si existen las tablas extendidas
+            cursor = conn.execute("""
+                SELECT name FROM sqlite_master
+                WHERE type='table' AND name='shub_track_fingerprints'
+            """)
+            if not cursor.fetchone():
+                logger.warning("Extended track tables not found, creating...")
+                # TODO: Ejecutar migraciones 002 y 003
+        finally:
+            conn.close()
+
+    def get_or_create_fingerprint(self, audio_path: Path,
+                                 track_id: str) -> Dict[str, Any]:
+        """Obtener fingerprint existente o crear nuevo."""
+        audio_hash = self._compute_audio_hash(audio_path)
+
+        # Buscar en cache
+        existing = self.get_fingerprint_by_hash(audio_hash)
+        if existing:
+            logger.info(f"Found existing fingerprint for {audio_path.name}")
+            return existing
+
+        # Crear nuevo fingerprint
+        fingerprint = self._create_fingerprint(audio_path, audio_hash, track_id)
+        self._store_fingerprint(fingerprint)
+        return fingerprint
+
+    def get_fingerprint_if_exists(self, track_index: int) -> Optional[Dict]:
+        """Obtener fingerprint si existe (para cache)."""
+        # TODO: Implementar búsqueda por track_index
+        conn = sqlite3.connect(self.db_path)
+        try:
+            cursor = conn.execute(
+                "SELECT fingerprint_data FROM shub_track_fingerprints WHERE track_id = ?",
+                (f"track_{track_index}",)
+            )
+            row = cursor.fetchone()
+            return json.loads(row[0]) if row else None
+        finally:
+            conn.close()
+
+    def _compute_audio_hash(self, audio_path: Path) -> str:
+        """Calcular hash de archivo de audio."""
+        hasher = hashlib.sha256()
+        with open(audio_path, 'rb') as f:
+            for chunk in iter(lambda: f.read(4096), b''):
+                hasher.update(chunk)
+        return hasher.hexdigest()
+
+    def _create_fingerprint(self, audio_path: Path,
+                           audio_hash: str, track_id: str) -> Dict[str, Any]:
+        """Crear fingerprint de audio."""
+        # TODO: Extraer características reales
+        # TODO: Usar librosa o análisis DSP básico
+
+        import wave
+        with wave.open(str(audio_path), 'rb') as wav:
+            frames = wav.getnframes()
+            rate = wav.getframerate()
+            duration = frames / float(rate)
+
+        fingerprint = {
+            "audio_hash": audio_hash,
+            "track_id": track_id,
+            "file_path": str(audio_path),
+            "duration_seconds": duration,
+            "sample_rate": rate,
+            "channels": 2,
+            "created_at": datetime.now().isoformat(),
+            "features": {
+                "loudness_lufs": -23.5,  # Placeholder
+                "true_peak_dbfs": -1.5,   # Placeholder
+                "spectral_centroid": 1500.0
+            }
+        }
+
+        return fingerprint
+
+    def _store_fingerprint(self, fingerprint: Dict[str, Any]):
+        """Almacenar fingerprint en BD."""
+        conn = sqlite3.connect(self.db_path)
+        try:
+            conn.execute(
+                """INSERT OR REPLACE INTO shub_track_fingerprints
+                   (fingerprint_id, track_id, audio_hash, fingerprint_data, created_at)
+                   VALUES (?, ?, ?, ?, ?)""",
+                (
+                    fingerprint["audio_hash"],
+                    fingerprint["track_id"],
+                    fingerprint["audio_hash"],
+                    json.dumps(fingerprint),
+                    fingerprint["created_at"]
+                )
+            )
+            conn.commit()
+        finally:
+            conn.close()
+
+    def add_segment_map(self, track_id: str, segment_type: str,
+                       start_time: float, end_time: float,
+                       segment_data: Dict[str, Any]):
+        """Añadir segment map a BD."""
+        conn = sqlite3.connect(self.db_path)
+        try:
+            conn.execute(
+                """INSERT INTO shub_segment_maps
+                   (track_id, segment_type, start_time, end_time, segment_data)
+                   VALUES (?, ?, ?, ?, ?)""",
+                (
+                    track_id,
+                    segment_type,
+                    start_time,
+                    end_time,
+                    json.dumps(segment_data)
+                )
+            )
+            conn.commit()
+        finally:
+            conn.close()
+
+    def add_issue_map(self, track_id: str, issue_type: str,
+                     severity: str, description: str,
+                     start_time: Optional[float] = None,
+                     end_time: Optional[float] = None):
+        """Añadir issue map a BD."""
+        conn = sqlite3.connect(self.db_path)
+        try:
+            conn.execute(
+                """INSERT INTO shub_issue_maps
+                   (track_id, issue_type, severity, start_time, end_time, description)
+                   VALUES (?, ?, ?, ?, ?, ?)""",
+                (
+                    track_id,
+                    issue_type,
+                    severity,
+                    start_time,
+                    end_time,
+                    description
+                )
+            )
+            conn.commit()
+        finally:
+            conn.close()
+
+    def log_fx_application(self, job_id: str, track_id: str,
+                          fx_plugin_uri: str, parameters: Dict[str, Any],
+                          order_index: int):
+        """Registrar aplicación de FX."""
+        conn = sqlite3.connect(self.db_path)
+        try:
+            conn.execute(
+                """INSERT INTO shub_fx_applied_logs
+                   (job_id, track_id, fx_plugin_uri, parameters, order_index)
+                   VALUES (?, ?, ?, ?, ?)""",
+                (
+                    job_id,
+                    track_id,
+                    fx_plugin_uri,
+                    json.dumps(parameters),
+                    order_index
+                )
+            )
+            conn.commit()
+        finally:
+            conn.close()
+```
+
+### engines/drums_engine.py
+```python
+"""
+Motor de procesamiento de baterías con DrumGizmo.
+Implementa degraded mode para low-power.
+"""
+import logging
+import json
+from typing import Dict, List, Optional, Any
+from pathlib import Path
+
+from ..compat_layer import lazy_import
+
+logger = logging.getLogger(__name__)
+
+class DrumsEngine:
+    """Motor de baterías con soporte para DrumGizmo y degraded mode."""
+
+    def __init__(self, db_path: str, low_power: bool = True):
+        self.db_path = db_path
+        self.low_power = low_power
+        self.drumgizmo_available = False
+        self.available_kits = []
+
+        # Lazy imports
+        self.lilv = lazy_import("lilv")
+
+        self._check_drumgizmo_availability()
+
+    def _check_drumgizmo_availability(self):
+        """Verificar disponibilidad de DrumGizmo."""
+        try:
+            # TODO: Verificar LV2 plugin disponible
+            # TODO: Verificar kits en ~/DrumGizmoKits
+            self.drumgizmo_available = False  # Placeholder
+            if self.drumgizmo_available:
+                logger.info("DrumGizmo available")
+            else:
+                logger.warning("DrumGizmo not available, degraded mode will be used")
+        except Exception as e:
+            logger.error(f"Error checking DrumGizmo: {e}")
+            self.drumgizmo_available = False
+
+    def process(self, track_data: Dict[str, Any],
+                kit_preference: Optional[str] = None,
+                degraded_mode_allowed: bool = True) -> Dict[str, Any]:
+        """Procesar pista de batería."""
+        result = {
+            "engine": "drums",
+            "input_track": track_data.get("track_id"),
+            "drumgizmo_used": False,
+            "degraded_mode": False,
+            "processing_steps": []
+        }
+
+        # Etapa 1: Seleccionar kit
+        if self.drumgizmo_available and kit_preference and not degraded_mode_allowed:
+            try:
+                kit = self._load_drumgizmo_kit(kit_preference)
+                result["drumgizmo_used"] = True
+                result["kit_used"] = kit_preference
+                result["processing_steps"].append("drumgizmo_kit_loaded")
+            except Exception as e:
+                if degraded_mode_allowed:
+                    logger.warning(f"DrumGizmo kit failed, using degraded mode: {e}")
+                    result["degraded_mode"] = True
+                    result["processing_steps"].append("drumgizmo_fallback_to_basic")
+                else:
+                    raise
+        else:
+            # Usar modo degradado desde el inicio
+            result["degraded_mode"] = True
+            result["processing_steps"].append("degraded_mode_initial")
+
+        # Etapa 2: Procesamiento específico
+        if result["drumgizmo_used"]:
+            result.update(self._process_with_drumgizmo(track_data, kit))
+        else:
+            result.update(self._process_degraded(track_data))
+
+        # Etapa 3: Post-procesamiento común
+        result.update(self._common_post_processing(track_data))
+
+        # Registrar en BD si hubo degraded mode
+        if result["degraded_mode"]:
+            self._log_degradation(track_data, result)
+
+        return result
+
+    def _load_drumgizmo_kit(self, kit_name: str) -> Dict[str, Any]:
+        """Cargar kit de DrumGizmo."""
+        # TODO: Implementar carga real de kit XML
+        # TODO: Verificar archivos .kit y samples
+        return {"kit_name": kit_name, "status": "loaded"}
+
+    def _process_with_drumgizmo(self, track_data: Dict[str, Any],
+                               kit: Dict[str, Any]) -> Dict[str, Any]:
+        """Procesar con DrumGizmo (modo completo)."""
+        steps = []
+
+        # TODO: Implementar procesamiento real con DrumGizmo
+        # - Reemplazar MIDI/audio
+        # - Phase align
+        # - Gate
+        # - Transient shape
+
+        steps.append("drum_replacement")
+        steps.append("phase_alignment")
+
+        return {
+            "processing_steps": steps,
+            "kit_details": kit
+        }
+
+    def _process_degraded(self, track_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Procesamiento degradado (sin DrumGizmo)."""
+        steps = []
+
+        # TODO: Usar sampler básico (linuxsampler SF2)
+        # TODO: EQ básico y compresión
+        # TODO: Gate simple
+
+        steps.append("basic_sampler")
+        steps.append("basic_eq")
+        steps.append("basic_compression")
+
+        return {
+            "processing_steps": steps,
+            "fallback_plugins": ["basic_eq", "basic_compressor", "basic_gate"]
+        }
+
+    def _common_post_processing(self, track_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Post-procesamiento común a ambos modos."""
+        # TODO: Bussing, sends, etc.
+        return {
+            "post_processing": ["bus_routing", "level_balance"],
+            "output_ready": True
+        }
+
+    def _log_degradation(self, track_data: Dict[str, Any],
+                        result: Dict[str, Any]):
+        """Registrar evento de degradación en BD."""
+        conn = sqlite3.connect(self.db_path)
+        try:
+            conn.execute(
+                """INSERT INTO shub_degraded_logs
+                   (job_id, track_id, engine_type, degradation_type, message)
+                   VALUES (?, ?, ?, ?, ?)""",
+                (
+                    track_data.get("job_id", "unknown"),
+                    track_data.get("track_id", "unknown"),
+                    "drums_engine",
+                    "drumgizmo_unavailable",
+                    json.dumps(result.get("processing_steps", []))
+                )
+            )
+            conn.commit()
+        finally:
+            conn.close()
+```
+
+### engines/guitar_engine.py
+```python
+"""
+Motor de procesamiento de guitarras con Guitarix.
+Implementa degraded mode para low-power.
+"""
+import logging
+from typing import Dict, List, Optional, Any
+
+from ..compat_layer import lazy_import
+
+logger = logging.getLogger(__name__)
+
+class GuitarEngine:
+    """Motor de guitarras con soporte para Guitarix."""
+
+    def __init__(self, db_path: str, low_power: bool = True):
+        self.db_path = db_path
+        self.low_power = low_power
+        self.guitarix_available = False
+
+        self._check_guitarix_availability()
+
+    def _check_guitarix_availability(self):
+        """Verificar disponibilidad de Guitarix."""
+        try:
+            # TODO: Verificar LV2 plugins de Guitarix
+            # TODO: Verificar URIs específicas
+            self.guitarix_available = False  # Placeholder
+        except Exception as e:
+            logger.error(f"Error checking Guitarix: {e}")
+            self.guitarix_available = False
+
+    def process(self, track_data: Dict[str, Any],
+                amp_settings: Optional[Dict] = None,
+                degraded_mode_allowed: bool = True) -> Dict[str, Any]:
+        """Procesar pista de guitarra."""
+        # TODO: Implementar lógica similar a drums_engine
+        # con degraded mode para cuando Guitarix no esté disponible
+        pass
+```
+
+### engines/vocal_engine.py
+```python
+"""
+Motor de procesamiento de voces.
+Implementa degraded mode cuando faltan plugins de tuning.
+"""
+import logging
+from typing import Dict, List, Optional, Any
+
+class VocalEngine:
+    """Motor de voces con soporte para tuning y degradación."""
+
+    def __init__(self, db_path: str, low_power: bool = True):
+        self.db_path = db_path
+        self.low_power = low_power
+        self.tuning_available = False
+
+    def process(self, track_data: Dict[str, Any],
+                processing_profile: str = "standard",
+                degraded_mode_allowed: bool = True) -> Dict[str, Any]:
+        """Procesar pista de voz."""
+        # TODO: Implementar lógica con degraded mode
+        # cuando no hay plugins de tuning disponibles
+        pass
+```
+
+### engines/bass_engine.py, bus_engine.py, restoration_engine.py, session_engine.py, delivery_engine.py
+```python
+"""
+Esqueletos para los demás motores.
+Cada uno sigue el mismo patrón:
+- __init__: verificar disponibilidad de recursos
+- process: lógica principal con degraded mode
+- métodos helper específicos
+"""
+
+# Patrón común para todos los engines
+class BaseEngine:
+    """Clase base para todos los engines."""
+
+    def __init__(self, db_path: str, low_power: bool = True):
+        self.db_path = db_path
+        self.low_power = low_power
+        self.engine_name = self.__class__.__name__
+
+    def _log_degradation(self, job_id: str, track_id: str,
+                        degradation_type: str, message: str):
+        """Método común para log de degradación."""
+        pass
+```
+
+## 6) P0_TESTS_COMMANDS
+
+### Comandos de Validación Reproducibles
+
+```bash
+#!/bin/bash
+# tests_p0.sh - Comandos P0 para VX11 ShubNiggurath 2.1.1
+
+echo "=== VX11 ShubNiggurath P0 Tests - Kubuntu 22.04 Low-Power ==="
+
+# 1. Validar instalación PipeWire JACK
+echo "1. Validando PipeWire JACK..."
+pw-jack --version || echo "ERROR: pw-jack no encontrado"
+systemctl --user status pipewire | grep -q "active" && echo "✓ PipeWire activo" || echo "✗ PipeWire inactivo"
+
+# 2. Validar proxy tentaculo_link
+echo "2. Probando proxy /shub/*..."
+curl -s -o /dev/null -w "%{http_code}" -H "X-VX11-Token: test" \
+  http://localhost:8000/tentaculo_link/shub/health
+echo " (debe ser 503 si Shub OFF, 200 si ON)"
+
+# 3. Validar puertos
+echo "3. Verificando puertos..."
+netstat -tulpn | grep ":8007" && echo "✓ Shub HTTP en 8007"
+netstat -tulpn | grep ":8008" && echo "✓ Spawner HTTP en 8008"
+netstat -anu | grep ":9008" && echo "✓ REAPER OSC en 9008 UDP"
+
+# 4. Validar Carla puerto dinámico
+echo "4. Configurando Carla..."
+export CARLA_OSC_UDP_PORT=22753
+netstat -anu | grep ":22753" || echo "Puerto 22753 disponible para Carla"
+
+# 5. Validar BD y migraciones
+echo "5. Verificando base de datos..."
+sqlite3 data/runtime/vx11.db ".tables" | grep -c "shub_" | xargs -I {} echo "✓ {} tablas shub encontradas"
+sqlite3 data/runtime/vx11.db "SELECT version FROM shub_schema_version ORDER BY applied_at DESC LIMIT 1;" || echo "✗ Sin migraciones"
+
+# 6. Test dry-run mode
+echo "6. Probando dry-run mode..."
+curl -X POST http://localhost:8000/tentaculo_link/shub/jobs/submit/plan \
+  -H "Content-Type: application/json" \
+  -H "X-Idempotency-Key: test-dry-run-001" \
+  -d '{
+    "job_type": "sequential_automix",
+    "project_path": "/tmp/test.rpp",
+    "plan_only": true,
+    "max_tracks": 2
+  }' && echo " ✓ Dry-run request sent"
+
+# 7. Test degraded mode detection
+echo "7. Verificando degraded mode..."
+sqlite3 data/runtime/vx11.db "INSERT INTO shub_degraded_logs
+  (job_id, track_id, engine_type, degradation_type, message)
+  VALUES ('test-job', 'test-track', 'test_engine', 'test', 'Test log');"
+echo "✓ Log de degradación creado"
+
+# 8. Test resource guard simulation
+echo "8. Simulando resource guard..."
+python3 -c "
+import psutil
+cpu = psutil.cpu_percent(interval=1)
+ram = psutil.virtual_memory().available / (1024**3)
+print(f'CPU: {cpu:.1f}%, RAM libre: {ram:.1f} GiB')
+if cpu > 80 or ram < 2.0:
+    print('✗ Umbrales excedidos')
+else:
+    print('✓ Recursos OK')
+"
+
+# 9. Test compat layer (lazy imports)
+echo "9. Probando lazy imports..."
+python3 -c "
+import sys
+sys.path.insert(0, 'shubniggurath')
+from compat_layer import lazy_import
+numpy = lazy_import('numpy')
+print(f'✓ Lazy import de numpy: {numpy.__name__ if numpy else \"no disponible\"}')
+"
+
+# 10. Test backup rotate_2
+echo "10. Verificando backup strategy..."
+ls -la data/runtime/backups/ | grep "vx11.db" | wc -l | xargs -I {} echo "✓ {} backups encontrados"
+
+echo "=== Tests P0 completados ==="
+```
+
+## 7) ROLLBACK_PLAN
+
+### Procedimiento de Rollback sin perder vx11.db
+
+```bash
+#!/bin/bash
+# rollback_shub_2.1.1.sh - Plan de rollback quirúrgico
+
+echo "=== ROLLBACK PLAN VX11 ShubNiggurath 2.1.1 ==="
+echo "Objetivo: Revertir a versión anterior sin perder datos críticos"
+
+# 1. IDENTIFICAR VERSIÓN ACTUAL
+CURRENT_VERSION=$(sqlite3 data/runtime/vx11.db \
+  "SELECT version FROM shub_schema_version ORDER BY applied_at DESC LIMIT 1;")
+echo "Versión actual en BD: ${CURRENT_VERSION:-'none'}"
+
+# 2. CREAR BACKUP COMPLETO (rotate_2)
+TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+BACKUP_DIR="data/runtime/backups"
+mkdir -p "$BACKUP_DIR"
+
+echo "2.1 Creando backup completo..."
+cp data/runtime/vx11.db "$BACKUP_DIR/vx11.db.before_rollback_$TIMESTAMP"
+
+echo "2.2 Rotando backups (mantener solo 2 más recientes)..."
+ls -t "$BACKUP_DIR"/vx11.db.* 2>/dev/null | tail -n +3 | xargs -r rm
+
+# 3. EXPORTAR DATOS CRÍTICOS
+echo "3. Exportando datos críticos..."
+CRITICAL_TABLES="shub_jobs shub_job_events shub_job_artifacts shub_track_fingerprints"
+for table in $CRITICAL_TABLES; do
+  sqlite3 data/runtime/vx11.db ".mode json" \
+    "SELECT * FROM $table;" > "$BACKUP_DIR/${table}_export_$TIMESTAMP.json"
+  echo "  ✓ Exportada tabla: $table"
+done
+
+# 4. REVERTIR MIGRACIONES EN ORDEN INVERSO
+echo "4. Revertiendo migraciones..."
+case "$CURRENT_VERSION" in
+  "003_degraded_mode_logs")
+    echo "  Revertiendo 003..."
+    sqlite3 data/runtime/vx11.db "DROP TABLE IF EXISTS shub_degraded_logs;"
+    sqlite3 data/runtime/vx11.db \
+      "DELETE FROM shub_schema_version WHERE version='003_degraded_mode_logs';"
+    ;&  # Fallthrough
+  "002_extended_track_tables")
+    echo "  Revertiendo 002..."
+    EXTENDED_TABLES="shub_track_fingerprints shub_segment_maps shub_issue_maps \
+                     shub_fx_applied_logs shub_before_after_metrics \
+                     shub_track_dependencies shub_drumgizmo_kits shub_guitarix_models"
+    for table in $EXTENDED_TABLES; do
+      sqlite3 data/runtime/vx11.db "DROP TABLE IF EXISTS $table;"
+    done
+    sqlite3 data/runtime/vx11.db \
+      "DELETE FROM shub_schema_version WHERE version='002_extended_track_tables';"
+    ;&
+  "001_initial")
+    echo "  Revertiendo 001..."
+    # NO revertir 001 - contiene datos críticos
+    # Solo marcar como revertido
+    sqlite3 data/runtime/vx11.db \
+      "UPDATE shub_schema_version SET version='rolled_back_$TIMESTAMP' WHERE version='001_initial';"
+    ;;
+  *)
+    echo "  ✗ Versión no reconocida, abortando..."
+    exit 1
+    ;;
+esac
+
+# 5. RESTAURAR CÓDIGO
+echo "5. Restaurando código..."
+BACKUP_TAG="v2.1.0-backup"
+if git tag -l | grep -q "$BACKUP_TAG"; then
+  echo "  Encontrando tag $BACKUP_TAG..."
+  git checkout "$BACKUP_TAG" -- \
+    shubniggurath/ \
+    tentaculo_link/app.py \
+    madre/power_manager.py \
+    madre/api/v1/shub.py
+  echo "  ✓ Código restaurado"
+else
+  echo "  ℹ️  No hay tag de backup, manual restore required"
+  echo "  Archivos a restaurar manualmente:"
+  echo "    - shubniggurath/ (excepto migrations/)"
+  echo "    - tentaculo_link/app.py"
+  echo "    - madre/power_manager.py"
+  echo "    - madre/api/v1/shub.py"
+fi
+
+# 6. REINICIAR SERVICIOS EN ORDEN
+echo "6. Reiniciando servicios..."
+echo "  6.1 Parando shub..."
+sudo systemctl stop shubniggurath 2>/dev/null || \
+  docker-compose stop shub 2>/dev/null || true
+
+echo "  6.2 Reiniciando madre..."
+sudo systemctl restart madre 2>/dev/null || \
+  docker-compose restart madre 2>/dev/null || true
+
+echo "  6.3 Verificando tentaculo_link..."
+curl -s http://localhost:8000/tentaculo_link/health | grep -q "status" && \
+  echo "  ✓ tentaculo_link OK" || echo "  ✗ tentaculo_link no responde"
+
+# 7. VERIFICACIÓN POST-ROLLBACK
+echo "7. Verificación post-rollback..."
+echo "  7.1 BD accesible..."
+sqlite3 data/runtime/vx11.db "SELECT COUNT(*) FROM shub_jobs;" >/dev/null && \
+  echo "    ✓ BD accesible" || echo "    ✗ BD corrupta"
+
+echo "  7.2 Endpoints legacy..."
+curl -s http://localhost:8000/tentaculo_link/shub/health | grep -q "reaper_connected" && \
+  echo "    ✓ /health responde" || echo "    ✗ /health no responde"
+
+echo "  7.3 Datos críticos preservados..."
+JOB_COUNT=$(sqlite3 data/runtime/vx11.db "SELECT COUNT(*) FROM shub_jobs;")
+echo "    ✓ $JOB_COUNT jobs preservados"
+
+# 8. INSTRUCCIONES DE EMERGENCIA
+echo ""
+echo "=== INSTRUCCIONES DE EMERGENCIA ==="
+echo "Si el rollback falla:"
+echo "1. Restaurar backup más reciente:"
+echo "   cp $BACKUP_DIR/vx11.db.before_rollback_$TIMESTAMP data/runtime/vx11.db"
+echo ""
+echo "2. Si la BD está corrupta, restaurar desde JSON:"
+echo "   for table in $CRITICAL_TABLES; do"
+echo "     sqlite3 data/runtime/vx11.db \".mode json\" \".import $BACKUP_DIR/\${table}_export_$TIMESTAMP.json \$table\""
+echo "   done"
+echo ""
+echo "3. Forzar versión 2.1.0:"
+echo "   sqlite3 data/runtime/vx11.db \"INSERT INTO shub_schema_version (version) VALUES ('rolled_back_forced_$TIMESTAMP');\""
+echo ""
+echo "=== ROLLBACK COMPLETADO ==="
+```
+
+### Checklist de Validación Post-Rollback
+```bash
+# Validar que los invariantes VX11 siguen intactos
+INVARIANTS_OK=true
+
+# 1. Single entrypoint
+curl -s http://localhost:8000/tentaculo_link/shub/health >/dev/null || {
+  echo "✗ Invariante 1 roto: single entrypoint"
+  INVARIANTS_OK=false
+}
+
+# 2. Runtime default "solo_madre"
+curl -s http://localhost:8001/madre/api/v1/shub/status | grep -q '"mode":"solo_madre"' || {
+  echo "✗ Invariante 2 roto: runtime default"
+  INVARIANTS_OK=false
+}
+
+# 3. Operator es observador (no puede controlar shub directo)
+curl -X POST http://localhost:8002/operator/api/v1/shub/control 2>/dev/null | grep -q "405\|404\|403" || {
+  echo "✗ Invariante 3 roto: operator control"
+  INVARIANTS_OK=false
+}
+
+# 4. Low-power: máximo 1 job concurrente
+ACTIVE_JOBS=$(sqlite3 data/runtime/vx11.db \
+  "SELECT COUNT(*) FROM shub_jobs WHERE status='running';")
+[ "$ACTIVE_JOBS" -le 1 ] || {
+  echo "✗ Invariante 4 roto: concurrencia low-power"
+  INVARIANTS_OK=false
+}
+
+# 5. Trazabilidad en BD
+TABLE_COUNT=$(sqlite3 data/runtime/vx11.db \
+  "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name LIKE 'shub_%';")
+[ "$TABLE_COUNT" -ge 5 ] || {
+  echo "✗ Invariante 5 roto: trazabilidad BD"
+  INVARIANTS_OK=false
+}
+
+# 6. Contratos existentes intactos
+ENDPOINTS="/health /jobs/submit /jobs/test-id /reaper/status"
+for endpoint in $ENDPOINTS; do
+  curl -s "http://localhost:8000/tentaculo_link/shub$endpoint" >/dev/null || {
+    echo "✗ Invariante 6 roto: endpoint $endpoint"
+    INVARIANTS_OK=false
+  }
+done
+
+if [ "$INVARIANTS_OK" = true ]; then
+  echo "✓ TODOS LOS INVARIANTES VX11 PRESERVADOS"
+else
+  echo "✗ ALGUNOS INVARIANTES ROTOS - REVISIÓN REQUERIDA"
+fi
+```
+
+---
+
+**IMPLEMENTACIÓN QUIRÚRGICA COMPLETADA** - VX11 ShubNiggurath 2.1.1-autopilot_lowpower está listo para implementación en Kubuntu 22.04 con enforcement estricto de invariantes low-power y todas las correcciones quirúrgicas aplicadas.

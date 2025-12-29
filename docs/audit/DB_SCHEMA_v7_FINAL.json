@@ -1,5 +1,5 @@
 {
-  "generated_at": "2025-12-28T22:06:53.054348Z",
+  "generated_at": "2025-12-29T00:16:56.614674Z",
   "database": "data/runtime/vx11.db",
   "tables": [
     {
@@ -801,7 +801,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 124,
+      "rows": 123,
       "status": "ACTIVE",
       "module": "hermes"
     },
@@ -4903,7 +4903,7 @@
         }
       ],
       "foreign_keys": [],
-      "rows": 24,
+      "rows": 23,
       "status": "ACTIVE",
       "module": "switch"
     },

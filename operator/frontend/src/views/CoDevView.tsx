@@ -36,7 +36,7 @@ export function CoDevView() {
         setResponse(null)
 
         try {
-            const resp = await apiClient.post('/operator/api/assist/deepseek_r1', {
+            const resp = await apiClient.request('POST', '/operator/api/assist/deepseek_r1', {
                 purpose,
                 prompt,
                 temperature: 1.0,
@@ -44,7 +44,7 @@ export function CoDevView() {
             })
 
             if (resp.ok && resp.data) {
-                setResponse(resp.data)
+                setResponse(resp.data as CoDevResponse)
             } else {
                 throw new Error(resp.error || 'Co-Dev request failed')
             }

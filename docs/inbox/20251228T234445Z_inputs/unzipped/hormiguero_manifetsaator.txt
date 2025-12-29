@@ -1,0 +1,3273 @@
+ 
+
+
+
+
+# FILE: VX11_INEE_BUILDER_COLONIAREMOTA_HANDOFF.txt
+# PURPOSE: Handoff directo al ARQUITECTO VX11 para integrar INEE + Hormiga Builder + Colonia Remota como PAQUETE DORMIDO (OFF por defecto)
+
+## INPUTS (adjuntos/pegados por el usuario)
+1) MASTER_SPEC.md (VX11 INEE + Builder + Colonia Remota - Especificación Maestra)
+2) ASSUMPTIONS.md
+3) FLOWS.md (Refinado)
+
+## REGLAS DURAS / INVARIANTES (NO NEGOCIABLES)
+1) Single entrypoint externo: TODO tráfico remoto entra SOLO por `tentaculo_link`. Prohibido exponer `hormiguero` al exterior.
+2) Runtime default: `solo_madre`. Todo lo nuevo debe quedar “dormido”: sin tasks, sin timers, sin threads, sin colas activas, sin WS abiertos.
+3) OFF por defecto: flags/env en false; endpoints pueden existir pero deben responder “disabled” sin efectos (503/403) y SIN tocar estado salvo auditoría mínima.
+4) Additive-only: no romper endpoints/DB/contratos existentes. Cambios compatibles hacia atrás.
+5) Sin nuevos servicios Docker top-level: INEE/Builder/Rewards viven como módulos internos (preferente dentro de `hormiguero`). Si se requiere aislamiento, SIEMPRE vía HIJA efímera (Spawner).
+6) Ejecución real (adult/execute) requiere: ventana abierta por MADRE + aprobación humana (Operator). Si no, bloqueado.
+7) Auditoría total: todo evento con correlation_id. Append-only donde aplique.
+
+## LO QUE SE QUIERE CONSEGUIR (RESULTADO FINAL)
+A) Código de INEE + Builder + Rewards + Remote Plane integrado en repo VX11 como “feature pack” completo.
+B) Por defecto NO CAMBIA el comportamiento actual: health/P0/contratos siguen OK en modo `solo_madre`.
+C) Activación controlada por ventanas temporales de MADRE: simulate/execute/builder.
+D) Comunicación remota (colonia) mediante envelopes HMAC + nonce + ACK/retry + dedupe.
+E) Operator añade UI (aunque sea behind-flag) para: colonias/agentes/intents/ventanas/recompensas/killswitch.
+
+## ARQUITECTURA DE UBICACIÓN (OBJETIVO)
+- Dentro de `hormiguero/`:
+  - `hormiguero/inee/` (core INEE: registry, intents, policies, audit, dedupe, killswitch)
+  - `hormiguero/builder/` (Hormiga Builder: packaging + evidence; delega pesado a HIJA)
+  - `hormiguero/rewards/` (Reward engine + budgets + penalties)
+- Dentro de `tentaculo_link/`:
+  - rutas/API: `/api/v1/inee/*` (register/heartbeat/submit_intents/windows/status)
+  - (opcional) WS `/ws/inee` detrás de flag y sin abrir sockets por defecto
+- Dentro de `operator/`:
+  - pantallas INEE behind-flag (sin romper el dashboard existente)
+
+## DB (SQLite vx11.db) — ADDITIVE
+- Crear tablas `inee_*` y `reward_*` (según spec) + índices obligatorios:
+  - `inee_colonies(status,last_seen)`, `inee_agents(colony_id,role)`, `inee_intents(status,created_at)`,
+    `inee_audit_events(correlation_id,created_at)`, `inee_nonces(colony_id,nonce)` UNIQUE,
+    `reward_accounts(entity_type,entity_id)` UNIQUE, `reward_events(account_id,created_at)`, etc.
+- Importante: NO hacer table scans. Queries siempre indexadas.
+- Respetar el patrón VX11 de “module assignment”/metadata si existe.
+
+## GATING “PAQUETE DORMIDO” (P0)
+- Nada se registra/ejecuta automáticamente si:
+  - `VX11_INEE_ENABLED=false` o `VX11_INEE_REMOTE_PLANE_ENABLED=false`
+  - `HORMIGUERO_BUILDER_ENABLED=false`
+  - `VX11_REWARDS_ENABLED=false`
+  - `VX11_INEE_WS_ENABLED=false`
+- Requisito: imports sin side-effects (especialmente `__init__.py`).
+
+## CONTRATOS DE SEGURIDAD (MINIMO)
+- HMAC SHA-256 sobre canonical JSON (orden estable).
+- timestamp con ventana (ej 5 min), nonce dedupe, rate-limit por colonia/IP.
+- killswitch global/por colonia: soft/hard (soft = solo telemetría; hard = bloquear todo menos health/auditoría mínima).
+- Onboarding manual: registro queda “pending” hasta aprobación en Operator.
+
+## VENTANAS TEMPORALES (MADRE)
+- Debe existir interfaz clara:
+  - request_window(type,duration,reason,requested_by)
+  - is_window_open(type)
+  - close_window(id,reason)
+- Si MADRE no tiene esto, implementarlo de forma additive (sin romper).
+- Ventanas:
+  - `inee_simulate`, `inee_execute`, `builder_active`
+- En cierre: abortar o finalizar y volver a modo dormido.
+
+## HIJAS (Spawner) — USO CANÓNICO
+- Simulaciones y validaciones pesadas SIEMPRE en HIJA efímera sandbox.
+- Builder no aplica: solo empaqueta patch/module + evidencia.
+
+## ACCEPTANCE / DONE (OBLIGATORIO)
+1) En modo default (`solo_madre`): P0/contratos/health siguen PASS (sin degradación).
+2) Endpoints INEE devuelven “disabled” de forma consistente cuando flags=false.
+3) Con ventana simulate: intents simulate corren en HIJA y registran auditoría.
+4) Con ventana execute + aprobación humana: execute corre en HIJA y registra auditoría + rewards (si enabled).
+5) Dedupe nonce funciona (replay -> 409).
+6) Evidencias (logs/results/artifacts) quedan enlazadas por correlation_id.
+7) Documentación: `docs/spec/inee/` con los 3 md + `docs/audit/INEE_INTEGRATION_REPORT.md`.
+
+## NOTA P0 (CUIDADO CON BUGS CONOCIDOS)
+- No asumir que `execute_query()` devuelve IDs si retorna rowcount. Usar `lastrowid`/RETURNING/función correcta.
+- Mantener compatibilidad con schemas/handlers existentes.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-------------------------------------------------------
+-------------------------------------------------------
+-------------------------------------------------------
+-------------------------------------------------------
+
+# Fase 1: MASTER_SPEC.md
+
+```markdown
+# VX11 INEE + Builder + Colonia Remota - Especificación Maestra
+
+## Visión General
+Sistema de automatización distribuida que extiende VX11 con:
+- **INEE**: Plano interno para gestionar colonias remotas de agentes inteligentes
+- **Hormiga Builder**: Constructor híbrido (hormiga/hija) para crear/parchear módulos
+- **Colonia Remota**: Agentes neuronales (egg/larva/adult) con Beta Queen agregadora
+- **Sistema de Recompensas**: Economía interna basada en méritos auditables
+- **Manifestator Extendido**: Genera planes, prompt-packs y diagram-packs
+
+## Principios Fundamentales
+1. **OFF por defecto**: Todo desactivado hasta que MADRE abre ventana temporal
+2. **Single Entrypoint**: `tentaculo_link` único punto de entrada externo
+3. **solo_madre**: Estado por defecto, solo telemetría básica
+4. **Additive-only**: No romper endpoints/schemas existentes
+5. **Auditoría total**: Todo evento registrado y correlacionado
+
+## Componentes Clave
+
+### 1. INEE (Internal Neural Execution Environment)
+- **Registro**: Colonias y agentes remotos
+- **Intents**: Procesamiento de intenciones (simulate/validate/apply)
+- **Políticas**: Motor de reglas (budgets, permisos, killswitch)
+- **Auditoría**: Traza completa de todos los eventos
+- **Tablas DB**: `inee_*` (colonies, agents, intents, policies, audit, pheromones, killswitch)
+
+### 2. Colonia Remota
+- **Beta Queen**: Agregadora local, único punto de contacto con VX11
+- **Agentes Neuronales**:
+  - **Egg**: Solo telemetría (read-only)
+  - **Larva**: Aprende y propone intents (simulate-only)
+  - **Adult**: Ejecuta bundles firmados/whitelist
+- **Protocolo**: HMAC-signed envelopes con nonce, ACK/retry, deduplicación
+- **Modos**: Pull (heartbeat), Push (WebSocket), Batch
+
+### 3. Hormiga Builder (Híbrida)
+- **Naturaleza**: Entre hormiga normal e hija, ligera, feromona-driven
+- **Responsabilidad**: Construir patchsets/module-packs + evidencia
+- **Delegación**: Trabajo pesado → HIJA vía SPAWNER
+- **Estados**: idle → sniffing → plan_received → packaging → built → awaiting_approval
+- **No aplica directamente**: Solo produce artefactos para aprobación
+
+### 4. Sistema de Recompensas
+- **Economía interna**: No dinero real, capacidad/prioridad/quotas
+- **Recompensas**: Simulaciones acertadas, drift útil, patchsets limpios
+- **Penalizaciones**: Spam, violaciones políticas, intents peligrosos
+- **Budgets**: Por colonia y rol (egg/larva/adult/beta_queen)
+- **Tablas DB**: `reward_*` (accounts, events, balances, budgets, penalties)
+
+### 5. Manifestator Extendido
+- **Valida canon**: Contra especificación VX11
+- **Genera**:
+  - Patch plans (drift repair, new modules)
+  - Prompt-packs (para Builder/HIJAs)
+  - Diagram-packs (Mermaid para coherencia)
+- **Rails**: Listas de verificación y constraints estrictos
+
+## Flujos Principales
+
+### A. Ciclo de Intent
+1. Larva detecta → propone (simulate-only)
+2. Beta Queen valida local → envía a VX11
+3. INEE procesa (simula en HIJA si necesario)
+4. Si adult y ejecución: requiere ventana + aprobación humana
+5. Ejecuta en HIJA sandbox → resultados → auditoría
+
+### B. Detección y Reparación de Drift
+1. Hormiguero detecta drift > umbral
+2. Notifica a MADRE → abre ventana si política permite
+3. Manifestator genera patch plan
+4. Builder construye patchset + evidencia (HIJA para tests)
+5. Aprobación (auto para low, humana para medium/high)
+6. Aplicación en ventana controlada
+
+### C. Creación de Nuevo Módulo
+1. Larva/Beta Queen detecta necesidad repetitiva
+2. Propone creación de módulo
+3. Manifestator valida naming/convenciones
+4. Builder crea skeleton + tests + documentación
+5. Validación en HIJA sandbox
+6. Aprobación humana (siempre requerida)
+7. Integración additive-only
+
+### D. Transmisión Bidireccional
+- **Colonia→VX11**: Heartbeats, intents, audit batches, pheromones
+- **VX11→Colonia**: Políticas, recompensas, killswitch, aprobaciones
+- **Protocolo**: Envelope firmado (HMAC) con seq, nonce, timestamp
+- **Modos**: HTTP Pull, WebSocket Push, Batch con ACK/retry
+
+## Seguridad y Auditoría
+
+### Controles
+- **HMAC/mTLS**: Autenticación colonias
+- **Rate limiting**: Por colonia/IP
+- **Replay protection**: Nonce + ventana temporal
+- **Killswitch**: Global/colonia-específico (SOFT/HARD)
+- **Scopes**: Permisos por rol de agente
+- **Rotation**: Tokens periódicos
+
+### Auditoría
+- Todo intent registrado con correlation_id
+- Evidencia adjunta (logs, resultados, artifacts)
+- Traza completa en `inee_audit_events`
+- Inmutabilidad: append-only, firmado
+
+## Activación (Operaciones)
+
+### Estado Default
+```
+VX11_INEE_ENABLED=false
+VX11_INEE_REMOTE_PLANE_ENABLED=false
+VX11_INEE_EXECUTION_ENABLED=false
+HORMIGUERO_BUILDER_ENABLED=false
+VX11_REWARDS_ENABLED=false
+VX11_INEE_WS_ENABLED=false
+```
+
+### Ventana Temporal
+1. Operador solicita ventana desde dashboard Operator
+2. MADRE valida (hora, carga, políticas)
+3. Si aprueba: abre ventana con timeout (ej: 30 min)
+4. Durante ventana:
+   - INEE execution enabled
+   - Builder enabled
+   - Se permiten applies
+5. Al timeout o cierre manual: vuelve a solo_madre
+
+## Arquitectura de Despliegue
+
+### Sin Nuevos Servicios Docker
+- INEE, Builder, Reward Engine: módulos dentro de `hormiguero`
+- No nuevos contenedores top-level
+- Si necesita aislamiento: usa HIJA vía SPAWNER (contenedor efímero)
+
+### Base de Datos
+- SQLite `vx11.db` con tablas `inee_*` y `reward_*`
+- Migraciones additive-only
+- Índices para queries eficientes
+
+### Comunicación Interna
+- Entre módulos: llamadas directas (mismo proceso)
+- Con HIJAs: SPAWNER (IPC/HTTP interno)
+- Con colonias: `tentaculo_link` (HTTP/WebSocket)
+
+## Consideraciones de Performance
+
+### Low-power por Defecto
+- Queries usan índices, sin table scans
+- Heartbeats batch (cada 60s)
+- Intents procesados en colas prioritarias
+- Builder: delegación a HIJA para trabajo pesado
+
+### Escalabilidad
+- Por colonia: hasta 1000 agentes
+- Por intent: rate limiting configurable
+- Por HIJA: recursos limitados (CPU/memory)
+- Por auditoría: retention policies (30 días default)
+
+## Monitoreo y Operaciones
+
+### Dashboard Operator
+- Estado colonias/agentes
+- Intents pendientes/aprobados/ejecutados
+- Recompensas/budgets
+- Killswitch control
+- Logs de auditoría
+
+### Alertas
+- Colonia stale (>5 heartbeats perdidos)
+- Budget excedido
+- Killswitch activado
+- Ventana temporal próxima a expirar
+
+---
+
+## Resumen Técnico en 10 Puntos
+
+1. **TODO OFF por defecto** - Solo se activa en ventanas temporales
+2. **Single entrypoint** - `tentaculo_link` único punto externo
+3. **solo_madre default** - Solo telemetría básica
+4. **Agentes con roles** - egg/larva/adult/beta_queen con permisos escalonados
+5. **Builder híbrido** - Ligero, feromona-driven, delega pesado a HIJAs
+6. **Transmisión bidireccional** - HTTP Pull + WebSocket Push con ACK/retry
+7. **Economía de recompensas** - Méritos internos, no dinero real
+8. **Manifestator extendido** - Genera planes, prompts y diagramas
+9. **Auditoría total** - Todo evento registrado e inmutable
+10. **Sin nuevos servicios** - Todo dentro de hormiguero existente
+```
+
+# ASSUMPTIONS.md
+
+```markdown
+# Suposiciones del Diseño VX11 INEE
+
+## Suposiciones del Repositorio Base
+
+### 1. Estructura Existente
+- Se asume que VX11 ya tiene la siguiente estructura básica:
+  ```
+  /hormiguero/           # Servicio principal
+  /madre/               # Orquestador central
+  /manifestator/        # Validador de canon y generador de planes
+  /spawner/             # Creador de hijas efímeras
+  /tentaculo_link/      # Gateway único externo
+  /operator/            # Dashboard de operaciones (o similar)
+  /vx11.db              # Base de datos SQLite
+  ```
+
+### 2. APIs Internas Existentes
+- `madre` tiene mecanismo para abrir/cerrar "ventanas temporales"
+- `spawner` puede crear `hijas` efímeras con sandbox
+- `manifestator` puede validar contra canon y generar patch plans
+- `tentaculo_link` tiene middleware de autenticación y rate limiting
+
+### 3. Configuración y Flags
+- Sistema soporta variables de entorno y/o `config.py`
+- Flags pueden ser leídos en runtime y cambiados dinámicamente
+- Existe mecanismo para "recargar" configuración sin reinicio
+
+### 4. Base de Datos
+- SQLite con soporte para JSON columns (SQLite 3.24+)
+- Migraciones manejadas via algún sistema (alembic o similar)
+- Transacciones ACID disponibles
+
+### 5. Comunicación Interna
+- Los servicios pueden comunicarse via HTTP interno (localhost)
+- O via llamadas directas Python (mismo proceso para módulos)
+- Hay cola de eventos o bus interno para notificaciones
+
+### 6. Seguridad Base
+- `tentaculo_link` ya tiene TLS terminado
+- Existe sistema de tokens (JWT/HMAC) para autenticación
+- Rate limiting básico ya implementado
+
+## Suposiciones de Diseño Específicas
+
+### 7. Hormiga Builder Híbrida
+- Puede existir como "hormiga especial" dentro del swarm
+- Tiene acceso al sistema de feromonas existente
+- Puede solicitar recursos a `spawner` para crear hijas
+- No requiere contenedor Docker permanente
+
+### 8. Colonia Remota
+- Tiene conectividad saliente a VX11 (no inbound)
+- Puede mantener conexión WebSocket persistente
+- Tiene almacenamiento local para buffer cuando offline
+- Implementa lógica de retry exponencial
+
+### 9. Sistema de Recompensas
+- No requiere integración con sistemas financieros reales
+- Los "puntos" son solo para economía interna
+- No hay necesidad de criptografía avanzada (no blockchain)
+
+### 10. Manifestator Extendido
+- Puede generar contenido estructurado (JSON) además de código
+- Tiene acceso a plantillas para prompts y diagramas
+- Puede validar contra "rails" predefinidos
+
+## Suposiciones de Performance
+
+### 11. Escala Esperada
+- Máximo 50 colonias remotas por instancia VX11
+- Máximo 1000 agentes por colonia
+- Máximo 100 intents por minuto por colonia
+- Heartbeats cada 60 segundos
+
+### 12. Recursos
+- `hormiguero` corre en hardware limitado (Raspberry Pi 4+)
+- Memoria disponible: 2-4GB
+- Almacenamiento: 32GB+ (para logs y artifacts)
+- CPU: 4 cores
+
+### 13. Red
+- Latencia colonia→VX11: < 1000ms
+- Ancho de banda: ~100KB/s por colonia
+- WebSocket mantiene 1 conexión por colonia activa
+
+## Suposiciones de Operaciones
+
+### 14. Onboarding Manual
+- Primera colonia requiere aprobación manual via dashboard
+- Tokens HMAC generados manualmente y distribuidos fuera de banda
+- No autodiscovery/autoregistro sin supervisión
+
+### 15. Backup y Recovery
+- `vx11.db` ya tiene sistema de backup
+- Artifacts de builder se almacenan en sistema de archivos con retención
+- Logs rotados y comprimidos
+
+### 16. Monitoreo
+- Existe sistema de logging centralizado (ELK o similar)
+- Métricas básicas (CPU, memoria, disk) ya recogidas
+- Alertas configuradas para componentes críticos
+
+## Limitaciones Conocidas
+
+### 17. No Implementado en Base (Requiere Desarrollo)
+1. WebSocket en `tentaculo_link` (si no existe)
+2. Sistema de feromonas avanzado (si no existe)
+3. Dashboard Operator para INEE (nuevo)
+4. Generación de diagramas Mermaid automática
+
+### 18. Dependencias Externas
+- Python 3.9+
+- SQLite 3.24+
+- Librerías: websockets, cryptography, pydantic
+
+### 19. Consideraciones de Tiempo Real
+- No es sistema hard real-time
+- Latencias de hasta varios segundos aceptables
+- Heartbeats pueden perderse sin catastrófico
+
+## Decisiones de Diseño por Asunción
+
+### 20. Decidido por Simplicidad
+1. **HMAC sobre mTLS**: Más simple para clientes remotos
+2. **SQLite sobre PostgreSQL**: Ya existe en VX11, suficiente para escala
+3. **HTTP/WebSocket sobre gRPC**: Compatibilidad más amplia
+4. **JSON sobre protobuf**: Más fácil depuración
+
+### 21. Decidido por Seguridad
+1. **OFF por defecto**: Requiere activación explícita
+2. **Aprobación humana**: Siempre para nuevos módulos y operaciones riesgosas
+3. **Ventanas temporales**: Limita tiempo de exposición
+4. **Auditoría total**: Traza completa para forensia
+
+### 22. Decidido por Mantenibilidad
+1. **Additive-only**: No rompe compatibilidad
+2. **Módulos separados**: INEE, Builder, Rewards desacoplados
+3. **Interfaces claras**: Entre componentes bien definidas
+4. **Tests P0**: Cubren flujos críticos
+
+---
+
+## Notas para Implementación Real
+
+Al implementar en código real, verificar:
+
+1. ¿Existe ya `madre.open_window()` API? Si no, diseñar.
+2. ¿Cómo se comunican `hormiguero` y `spawner` actualmente?
+3. ¿Qué sistema de configuración usa VX11 (env vars, YAML, etc.)?
+4. ¿Existen hooks para extensión en `manifestator`?
+5. ¿`tentaculo_link` soporta WebSocket actualmente?
+
+Estas suposiciones permiten un diseño coherente que puede ajustarse durante la implementación real.
+```
+
+# Fase 2: FLOWS.md Refinado
+
+```markdown
+# VX11 INEE - Flujos Detallados (Refinado)
+
+## Flujo 1: Registro y Heartbeat de Colonia Remota
+
+### Objetivo
+Establecer conexión segura entre colonia remota y VX11, manteniendo estado y recibiendo políticas.
+
+### Participantes
+- **Agente Beta Queen** (colonia remota)
+- **tentaculo_link** (gateway único)
+- **hormiguero/inee** (registro interno)
+- **madre** (control de ventanas)
+- **Operator Dashboard** (aprobación humana)
+
+### Diagrama de Estados (Colonia)
+```
+[OFFLINE] → [PENDING] → [ACTIVE] → [STALE] → [LOST]
+      ↓          ↓          ↓          ↓         ↓
+   initial    awaiting   normal   5 missed  24h stale
+   register  approval   operation  heartbeats
+```
+
+### Pasos Detallados
+
+#### 1.1 Preparación Beta Queen
+```python
+# En colonia remota
+config = {
+    "vx11_endpoint": "https://vx11.example.com",
+    "hmac_secret": lee_de_tokens_env("INEE_HMAC_SECRET"),
+    "colony_id": "taller-01",
+    "location": "rack-42",
+    "capabilities": ["telemetry", "propose_intents"]
+}
+```
+
+#### 1.2 Registro Inicial (POST `/api/v1/inee/colonies/register`)
+```json
+{
+  "envelope": {
+    "id": "env-001",
+    "colony_id": "taller-01",
+    "timestamp": "2025-12-28T10:00:00Z",
+    "nonce": "a1b2c3d4",
+    "action": "register"
+  },
+  "payload": {
+    "beta_queen_version": "1.0.0",
+    "capabilities": ["telemetry", "propose_intents"],
+    "location": "taller/rack-42",
+    "initial_agent_count": 15,
+    "public_key": "base64...",
+    "contact": "admin@taller.example.com"
+  },
+  "signature": "hmac-sha256(...)"
+}
+```
+
+#### 1.3 Procesamiento en tentaculo_link
+```python
+def process_inee_request(request):
+    # 1. Verificar HMAC
+    if not verify_hmac(request):
+        return 401, "Invalid signature"
+
+    # 2. Rate limiting por IP/colonia
+    if rate_limit_exceeded(request):
+        return 429, "Rate limit exceeded"
+
+    # 3. Verificar nonce (replay protection)
+    if nonce_already_used(request.envelope.nonce):
+        return 409, "Duplicate nonce"
+
+    # 4. Verificar timestamp (ventana 5 minutos)
+    if abs(now() - request.envelope.timestamp) > 300:
+        return 400, "Timestamp out of window"
+
+    # 5. Pasar a hormiguero/inee internamente
+    return forward_to_hormiguero_inee(request)
+```
+
+#### 1.4 Procesamiento en hormiguero/inee
+```python
+def handle_colony_register(envelope, payload):
+    # Verificar flags
+    if not config.VX11_INEE_ENABLED:
+        raise ServiceDisabled("INEE disabled")
+
+    if not config.VX11_INEE_REMOTE_PLANE_ENABLED:
+        raise ServiceDisabled("Remote plane disabled")
+
+    # Insertar en DB (estado pending)
+    with db.transaction():
+        colony_id = insert_colony(
+            id=payload["colony_id"],
+            status="pending",
+            capabilities=payload["capabilities"],
+            location=payload["location"],
+            public_key=payload.get("public_key"),
+            created_at=now()
+        )
+
+        # Crear cuenta de recompensas inicial
+        if config.VX11_REWARDS_ENABLED:
+            create_reward_account(colony_id, initial_budget=1000)
+
+    # Notificar a MADRE para aprobación humana
+    madre.notify(
+        event="colony_registration_pending",
+        colony_id=payload["colony_id"],
+        details=payload
+    )
+
+    return {
+        "status": "pending_approval",
+        "message": "Awaiting manual approval from operator",
+        "next_steps": "Operator will review in dashboard"
+    }
+```
+
+#### 1.5 Aprobación Humana (Dashboard Operator)
+1. Operador ve "Nueva colonia pendiente"
+2. Revisa detalles (ubicación, capacidades, contacto)
+3. Decide:
+   - **Aprobar**: Estado → "active", se permiten heartbeats
+   - **Rechazar**: Estado → "rejected", se notifica a colonia
+   - **Quarantine**: Estado → "quarantine", más investigación
+
+#### 1.6 Heartbeats Periódicos
+```json
+{
+  "envelope": {
+    "id": "env-002",
+    "colony_id": "taller-01",
+    "timestamp": "2025-12-28T10:01:00Z",
+    "nonce": "b2c3d4e5",
+    "action": "heartbeat",
+    "sequence": 1,
+    "ack_sequence": null  # Para respuesta
+  },
+  "payload": {
+    "agent_count": 15,
+    "state_counts": {"egg": 5, "larva": 7, "adult": 3},
+    "resources": {
+      "cpu_percent": 45.2,
+      "memory_mb": 1234,
+      "disk_free_gb": 50,
+      "energy_percent": 85.5
+    },
+    "pending_intents": 2,
+    "last_intent_id": "intent-123"
+  }
+}
+```
+
+#### 1.7 Procesamiento Heartbeat
+```python
+def handle_heartbeat(colony_id, payload):
+    # 1. Verificar colonia activa
+    colony = get_colony(colony_id)
+    if colony.status != "active":
+        raise ColonyNotActive(colony.status)
+
+    # 2. Actualizar last_seen
+    update_colony_last_seen(colony_id)
+
+    # 3. Insertar métricas para historial
+    insert_heartbeat_metrics(colony_id, payload)
+
+    # 4. Verificar health (alerts si necesario)
+    check_colony_health(colony_id, payload)
+
+    # 5. Preparar respuesta con políticas/recompensas
+    response = {
+        "status": "ok",
+        "ack_sequence": payload.envelope.sequence,
+        "next_heartbeat_in": 60
+    }
+
+    # 6. Añadir políticas si hay cambios
+    policies = get_updated_policies_for_colony(colony_id)
+    if policies:
+        response["policies"] = policies
+
+    # 7. Añadir recompensas acumuladas
+    if config.VX11_REWARDS_ENABLED:
+        rewards = get_pending_rewards(colony_id)
+        if rewards:
+            response["rewards"] = rewards
+
+    # 8. Añadir killswitch status
+    killswitch = get_killswitch_status(colony_id)
+    response["killswitch"] = killswitch
+
+    return response
+```
+
+### Puntos de Decisión Críticos
+
+| Punto | Condición | Acción | Código |
+|-------|-----------|--------|--------|
+| D1 | HMAC inválido | Rechazar | HTTP 401 |
+| D2 | Rate limit excedido | Rechazar | HTTP 429 |
+| D3 | Nonce duplicado | Rechazar | HTTP 409 |
+| D4 | Timestamp fuera ventana | Rechazar | HTTP 400 |
+| D5 | INEE disabled | Rechazar | HTTP 503 |
+| D6 | Remote plane disabled | Rechazar | HTTP 403 |
+| D7 | Colonia no aprobada | Rechazar | HTTP 403 |
+| D8 | >5 heartbeats perdidos | Estado → stale | DB update |
+| D9 | >24h stale | Estado → lost | DB update |
+
+### Manejo de Errores y Retry
+
+#### En Beta Queen:
+```python
+class BetaQueenClient:
+    def send_with_retry(self, endpoint, data, max_retries=3):
+        for attempt in range(max_retries):
+            try:
+                response = self.post(endpoint, data)
+                if response.status_code in [200, 201, 202]:
+                    return response
+                elif response.status_code in [429, 503]:
+                    # Backoff exponencial
+                    sleep(2 ** attempt)
+                    continue
+                else:
+                    # Error no recuperable
+                    break
+            except ConnectionError:
+                sleep(2 ** attempt)
+
+        # Fallback: almacenar en buffer local
+        self.buffer.append((endpoint, data, time.time()))
+        return None
+
+    def process_buffer(self):
+        """Intenta reenviar elementos en buffer"""
+        for item in self.buffer.copy():
+            endpoint, data, timestamp = item
+            if time.time() - timestamp > 3600:  # 1 hora máximo
+                self.buffer.remove(item)
+                continue
+
+            if self.send_with_retry(endpoint, data):
+                self.buffer.remove(item)
+```
+
+### Auditoría
+Cada heartbeat genera evento de auditoría:
+```sql
+INSERT INTO inee_audit_events
+(colony_id, event_type, details, created_at)
+VALUES
+('taller-01', 'heartbeat_received',
+ '{"agent_count": 15, "resources": {...}}',
+ CURRENT_TIMESTAMP);
+```
+
+---
+
+## Flujo 2: Envío y Procesamiento de Intents
+
+### Objetivo
+Procesar intenciones de agentes remotos (larva: simulate, adult: execute) con control total de VX11.
+
+### Participantes
+- **Agente Larva/Adult** (colonia remota)
+- **Beta Queen** (agregador local)
+- **tentaculo_link** (gateway)
+- **hormiguero/inee** (procesador)
+- **madre** (control ventanas)
+- **manifestator** (validador)
+- **spawner/hija** (ejecución sandbox)
+- **Operator Dashboard** (aprobación humana)
+
+### Diagrama de Estados (Intent)
+```mermaid
+graph TD
+    A[DRAFT] --> B[SUBMITTED]
+    B --> C{simulate_only?}
+    C -->|Sí| D[SIMULATING]
+    C -->|No| E[VALIDATION_PENDING]
+    D --> F[SIMULATED]
+    E --> G{¿Ventana abierta?}
+    G -->|Sí| H[VALIDATING]
+    G -->|No| I[BLOCKED_NO_WINDOW]
+    H --> J[VALIDATED]
+    J --> K[APPROVAL_PENDING]
+    K --> L{¿Aprobado?}
+    L -->|Sí| M[APPROVED]
+    L -->|No| N[REJECTED]
+    M --> O[EXECUTING]
+    O --> P{¿Éxito?}
+    P -->|Sí| Q[COMPLETED]
+    P -->|No| R[FAILED]
+    I --> S[RETRY_PENDING]
+    S --> B
+```
+
+### Tipos de Intent
+
+#### 2.1 Intent de Simulación (Larva)
+```json
+{
+  "intent_id": "intent-sim-001",
+  "type": "automation",
+  "colony_id": "taller-01",
+  "agent_id": "larva-sensor-05",
+  "agent_role": "larva",
+  "simulate_only": true,
+  "action": {
+    "type": "adjust_cooling",
+    "target": "rack-42-cooler",
+    "parameters": {"fan_speed": 80, "duration_minutes": 30},
+    "expected_impact": {"temperature_change": -5.0}
+  },
+  "context": {
+    "detected_condition": "temperature_high",
+    "sensor_readings": [{"sensor": "temp-1", "value": 45.2}],
+    "timestamp": "2025-12-28T10:30:00Z"
+  },
+  "proposed_by": "pattern_detector_v1"
+}
+```
+
+#### 2.2 Intent de Ejecución (Adult)
+```json
+{
+  "intent_id": "intent-exec-001",
+  "type": "maintenance",
+  "colony_id": "taller-01",
+  "agent_id": "adult-maintainer-03",
+  "agent_role": "adult",
+  "simulate_only": false,
+  "action": {
+    "type": "update_firmware",
+    "target": "device-xyz",
+    "parameters": {"version": "2.1.4", "force": false},
+    "bundle_id": "firmware-updater-v2",
+    "bundle_signature": "sig-base64...",
+    "bundle_hash": "sha256:abc123..."
+  },
+  "evidence": {
+    "previous_simulations": ["intent-sim-001"],
+    "success_rate": 0.95,
+    "risk_assessment": "low"
+  },
+  "budget_requested": 50
+}
+```
+
+### Pasos Detallados
+
+#### 2.3 Validación Local (Beta Queen)
+```python
+class BetaQueen:
+    def validate_intent_local(self, intent):
+        # 1. Verificar rol del agente
+        agent = self.get_agent(intent["agent_id"])
+        if not agent:
+            return False, "Agent not registered"
+
+        # 2. Verificar permisos según rol
+        if intent["agent_role"] == "egg":
+            return False, "Egg cannot submit intents"
+
+        if intent["agent_role"] == "larva" and not intent.get("simulate_only", True):
+            return False, "Larva can only simulate"
+
+        # 3. Verificar bundle signature (para adult)
+        if intent["agent_role"] == "adult" and not intent.get("simulate_only", False):
+            if not self.verify_bundle_signature(intent):
+                return False, "Invalid bundle signature"
+
+            if not self.is_bundle_whitelisted(intent["action"]["bundle_id"]):
+                return False, "Bundle not whitelisted"
+
+        # 4. Aplicar políticas locales
+        if not self.apply_local_policies(intent):
+            return False, "Local policy violation"
+
+        # 5. Verificar budget disponible
+        if intent.get("budget_requested", 0) > self.get_available_budget():
+            return False, "Insufficient budget"
+
+        return True, "OK"
+```
+
+#### 2.4 Envío Batch a VX11
+```json
+{
+  "envelope": {
+    "id": "batch-123",
+    "colony_id": "taller-01",
+    "timestamp": "2025-12-28T10:31:00Z",
+    "nonce": "c3d4e5f6",
+    "action": "submit_intents",
+    "sequence": 2
+  },
+  "payload": {
+    "intents": [
+      { /* intent-sim-001 */ },
+      { /* intent-exec-001 */ }
+    ],
+    "batch_info": {
+      "total_intents": 2,
+      "simulate_only": 1,
+      "execute": 1,
+      "total_budget": 50
+    }
+  }
+}
+```
+
+#### 2.5 Procesamiento en hormiguero/inee
+
+##### Para simulate_only:
+```python
+def process_simulate_intent(intent):
+    # 1. Registrar intent
+    intent_id = register_intent(intent, status="simulating")
+
+    # 2. Validar con manifestator
+    validation = manifestator.validate_canon(intent["action"])
+    if not validation["valid"]:
+        update_intent_status(intent_id, "failed", validation["errors"])
+        return
+
+    # 3. Crear hija para simulación
+    hija_id = spawner.create_hija(
+        type="inee_simulation",
+        intent_id=intent_id,
+        timeout=300,
+        resources={"cpus": 0.2, "memory_mb": 256}
+    )
+
+    # 4. Hija ejecuta simulación
+    # (en sandbox, sin efectos reales)
+    result = hija.execute_simulation(intent["action"])
+
+    # 5. Registrar resultados
+    update_intent_simulation_result(intent_id, result)
+
+    # 6. Calcular recompensa si aplica
+    if config.VX11_REWARDS_ENABLED:
+        reward = calculate_simulation_reward(intent, result)
+        if reward > 0:
+            add_reward(intent["colony_id"], intent["agent_id"],
+                      "simulation_accurate", reward)
+
+    # 7. Estado final
+    status = "simulated" if result["success"] else "simulation_failed"
+    update_intent_status(intent_id, status)
+```
+
+##### Para ejecución (non simulate_only):
+```python
+def process_execute_intent(intent):
+    # 1. Verificar flags de ejecución
+    if not config.VX11_INEE_EXECUTION_ENABLED:
+        update_intent_status(intent["intent_id"], "blocked_execution_disabled")
+        return
+
+    # 2. Verificar ventana temporal
+    if not madre.is_window_open("inee_execution"):
+        update_intent_status(intent["intent_id"], "blocked_no_window")
+
+        # Notificar a madre para posible apertura
+        madre.notify_intent_waiting(intent)
+        return
+
+    # 3. Validación completa
+    validation = validate_execution_intent(intent)
+    if not validation["valid"]:
+        update_intent_status(intent["intent_id"], "validation_failed",
+                           validation["errors"])
+        return
+
+    update_intent_status(intent["intent_id"], "validated")
+
+    # 4. Esperar aprobación humana
+    # (notificar dashboard, esperar respuesta)
+    request_approval(intent)
+```
+
+#### 2.6 Aprobación Humana
+
+##### Interfaz Dashboard:
+```
+Intent ID: intent-exec-001
+Tipo: update_firmware
+Agente: adult-maintainer-03 (Adult)
+Colonia: taller-01
+
+Evidencia:
+- 3 simulaciones previas exitosas
+- Success rate: 95%
+- Risk assessment: LOW
+- Bundle: firmware-updater-v2 (whitelisted)
+
+Riesgos identificados:
+- Device unreachable (2% probability)
+- Rollback necesario (5% probability)
+
+Acciones:
+[ APPROVE ] [ REQUEST_CHANGES ] [ DENY ] [ SCHEDULE_LATER ]
+
+Comentarios del operador: ________________
+```
+
+##### Proceso de aprobación:
+```python
+def handle_operator_approval(intent_id, decision, comments=None):
+    intent = get_intent(intent_id)
+
+    if decision == "approve":
+        # 1. Verificar ventana aún abierta
+        if not madre.is_window_open("inee_execution"):
+            return {"error": "Window closed, cannot execute"}
+
+        # 2. Actualizar estado
+        update_intent_status(intent_id, "approved",
+                           {"approved_by": operator_id,
+                            "approved_at": now(),
+                            "comments": comments})
+
+        # 3. Ejecutar en hija
+        execute_intent_in_hija(intent_id)
+
+    elif decision == "request_changes":
+        update_intent_status(intent_id, "changes_requested",
+                           {"requested_by": operator_id,
+                            "comments": comments})
+        # Notificar a Beta Queen
+
+    elif decision == "deny":
+        update_intent_status(intent_id, "rejected",
+                           {"rejected_by": operator_id,
+                            "comments": comments})
+        # Aplicar penalización si es necesario
+        if config.VX11_REWARDS_ENABLED:
+            apply_penalty(intent["colony_id"], intent["agent_id"],
+                         "intent_rejected", -10)
+```
+
+#### 2.7 Ejecución en HIJA Sandbox
+```python
+def execute_intent_in_hija(intent_id):
+    intent = get_intent(intent_id)
+
+    # 1. Crear hija con sandbox estricto
+    hija_config = {
+        "type": "inee_execution",
+        "intent_id": intent_id,
+        "timeout": intent["action"].get("timeout", 600),
+        "resources": {
+            "cpus": 0.5,
+            "memory_mb": 512,
+            "disk_mb": 100,
+            "network": "none"  # Sin red por defecto
+        },
+        "filesystem": "ro_except_temp",
+        "capabilities": intent["action"].get("required_caps", [])
+    }
+
+    hija_id = spawner.create_hija(hija_config)
+
+    # 2. Preparar entorno de ejecución
+    execution_env = prepare_execution_environment(intent)
+
+    # 3. Ejecutar
+    try:
+        result = hija.execute(execution_env)
+
+        # 4. Verificar resultado
+        if result["success"]:
+            status = "completed"
+
+            # Recompensa por ejecución exitosa
+            if config.VX11_REWARDS_ENABLED:
+                add_reward(intent["colony_id"], intent["agent_id"],
+                          "execution_successful",
+                          calculate_execution_reward(intent, result))
+        else:
+            status = "failed"
+
+            # Penalización por fallo
+            if config.VX11_REWARDS_ENABLED:
+                apply_penalty(intent["colony_id"], intent["agent_id"],
+                            "execution_failed", -20)
+
+        # 5. Actualizar estado
+        update_intent_execution_result(intent_id, result, status)
+
+        # 6. Auditoría completa
+        audit_execution(intent_id, hija_id, result)
+
+    except Exception as e:
+        # Error en el sistema, no en la ejecución
+        update_intent_status(intent_id, "system_error",
+                           {"error": str(e), "hija_id": hija_id})
+```
+
+### Puntos de Decisión Críticos
+
+| Punto | Condición | Acción | Auditoría |
+|-------|-----------|--------|-----------|
+| D1 | Agente no registrado | Rechazar | agent_not_found |
+| D2 | Rol no autorizado | Rechazar | role_violation |
+| D3 | Bundle no firmado/whitelist | Rechazar | bundle_invalid |
+| D4 | Política local violada | Rechazar | policy_violation |
+| D5 | Budget insuficiente | Rechazar | budget_exceeded |
+| D6 | INEE execution disabled | Bloquear | execution_disabled |
+| D7 | Sin ventana temporal | Poner en espera | waiting_for_window |
+| D8 | Validación fallida | Rechazar | validation_failed |
+| D9 | Aprobación denegada | Rechazar | human_rejected |
+| D10 | Ejecución fallida | Marcar failed | execution_failed |
+
+### Manejo de Errores
+
+#### En Beta Queen:
+```python
+def handle_intent_response(batch_response):
+    for intent_result in batch_response["results"]:
+        intent_id = intent_result["intent_id"]
+        status = intent_result["status"]
+
+        if status in ["simulated", "completed"]:
+            # Éxito - limpiar de cola local
+            self.remove_from_queue(intent_id)
+
+        elif status in ["blocked_no_window", "rate_limited"]:
+            # Reintentar más tarde (backoff exponencial)
+            self.schedule_retry(intent_id,
+                              delay=calculate_backoff(intent_id))
+
+        elif status in ["validation_failed", "rejected"]:
+            # Error permanente - notificar al agente
+            self.notify_agent_failure(intent_id, intent_result)
+
+            # Aplicar penalización local si es necesario
+            if "penalty_applied" in intent_result:
+                self.apply_local_penalty(intent_result["agent_id"])
+```
+
+### Auditoría y Trazabilidad
+
+Cada intent genera múltiples eventos de auditoría:
+
+```sql
+-- Eventos de auditoría de ejemplo
+INSERT INTO inee_audit_events (event_type, intent_id, details) VALUES
+('intent_received', 'intent-001', '{"colony": "taller-01", "agent": "larva-05"}'),
+('intent_validated', 'intent-001', '{"validation_result": {...}}'),
+('simulation_started', 'intent-001', '{"hija_id": "hija-123"}'),
+('simulation_completed', 'intent-001', '{"result": {...}}'),
+('reward_calculated', 'intent-001', '{"amount": 5, "reason": "accurate_simulation"}');
+```
+
+---
+
+## Flujo 3: Detección y Reparación de Drift
+
+### Objetivo
+Detectar automáticamente desviaciones del canon VX11 y repararlas con aprobación controlada.
+
+### Participantes
+- **hormiguero** (detección)
+- **madre** (orquestación)
+- **manifestator** (generación de plan)
+- **hormiga builder** (construcción de patch)
+- **spawner/hija** (validación)
+- **Operator Dashboard** (aprobación para medium/high)
+
+### Estados del Proceso
+```
+[IDLE] → [DRIFT_DETECTED] → [ANALYZING] → [PLAN_GENERATED] →
+[BUILDING] → [VALIDATING] → [APPROVAL_PENDING] → [APPROVED] →
+[APPLYING] → [APPLIED] → [VERIFIED] → [IDLE]
+```
+
+### Detección de Drift
+
+#### 3.1 Monitoreo Periódico
+```python
+class DriftDetector:
+    CHECK_INTERVAL = 21600  # 6 horas
+
+    def check_drift(self):
+        # 1. Verificar sistema de archivos
+        fs_drift = self.check_filesystem_drift()
+
+        # 2. Verificar esquema de base de datos
+        db_drift = self.check_database_drift()
+
+        # 3. Verificar configuraciones
+        config_drift = self.check_configuration_drift()
+
+        # 4. Verificar dependencias
+        deps_drift = self.check_dependencies_drift()
+
+        # 5. Calcular severidad total
+        total_drift = self.calculate_total_drift(
+            fs_drift, db_drift, config_drift, deps_drift
+        )
+
+        # 6. Si supera umbral, notificar
+        if total_drift["severity"] != "none":
+            self.report_drift(total_drift)
+
+    def check_filesystem_drift(self):
+        """Compara FS actual con canon manifestator"""
+        canon = manifestator.get_canon_filesystem()
+        current = self.scan_filesystem()
+
+        drift = {
+            "files_added": [],
+            "files_modified": [],
+            "files_deleted": [],
+            "permissions_changed": []
+        }
+
+        for path, expected in canon.items():
+            if path not in current:
+                drift["files_deleted"].append(path)
+            elif not self.files_match(path, expected, current[path]):
+                drift["files_modified"].append(path)
+
+        for path in current:
+            if path not in canon and not self.is_ignored_path(path):
+                drift["files_added"].append(path)
+
+        return drift
+```
+
+#### 3.2 Cálculo de Severidad
+```python
+def calculate_severity(drift_details):
+    score = 0
+
+    # Ponderaciones
+    weights = {
+        "critical_files_modified": 10,
+        "db_schema_changed": 8,
+        "config_files_modified": 6,
+        "test_files_modified": 2,
+        "log_files_added": 0.1
+    }
+
+    for item, count in drift_details.items():
+        score += weights.get(item, 1) * count
+
+    # Determinar severidad
+    if score >= 20:
+        return "high"
+    elif score >= 10:
+        return "medium"
+    elif score >= 5:
+        return "low"
+    else:
+        return "none"
+```
+
+### Generación de Plan de Reparación
+
+#### 3.3 Manifestator Genera Patch Plan
+```python
+def generate_patch_plan(drift_details):
+    """Genera plan para reparar drift"""
+
+    plan = {
+        "patch_id": f"patch-{generate_uuid()}",
+        "timestamp": now(),
+        "drift_detected": drift_details,
+        "operations": [],
+        "rollback_operations": [],
+        "estimated_duration": 0,
+        "risk_assessment": "unknown",
+        "validation_requirements": []
+    }
+
+    # Para cada tipo de drift, agregar operaciones
+    for file_path in drift_details.get("files_modified", []):
+        operation = create_file_restore_operation(file_path)
+        plan["operations"].append(operation)
+        plan["rollback_operations"].append(
+            create_backup_operation(file_path)
+        )
+
+    for schema_change in drift_details.get("db_schema_changes", []):
+        operation = create_db_migration_operation(schema_change)
+        plan["operations"].append(operation)
+        plan["rollback_operations"].append(
+            create_rollback_migration(schema_change)
+        )
+
+    # Calcular estimaciones
+    plan["estimated_duration"] = estimate_duration(plan["operations"])
+    plan["risk_assessment"] = assess_risk(plan["operations"])
+
+    # Requisitos de validación
+    plan["validation_requirements"] = [
+        "all_unit_tests_pass",
+        "system_health_check_pass",
+        "no_new_errors_in_logs"
+    ]
+
+    return plan
+```
+
+### Construcción del Patch
+
+#### 3.4 Hormiga Builder Construye Patchset
+```python
+class HormigaBuilder:
+    def build_patch(self, patch_plan):
+        # 1. Verificar que builder está habilitado
+        if not config.HORMIGUERO_BUILDER_ENABLED:
+            raise BuilderDisabled()
+
+        # 2. Verificar ventana temporal
+        if not madre.is_window_open("builder_patch"):
+            raise NoWindowOpen()
+
+        # 3. Crear sandbox temporal
+        sandbox_dir = self.create_sandbox()
+
+        try:
+            # 4. Aplicar operaciones en sandbox
+            for operation in patch_plan["operations"]:
+                self.apply_operation_in_sandbox(sandbox_dir, operation)
+
+            # 5. Ejecutar validación en HIJA
+            validation_result = self.validate_in_hija(sandbox_dir, patch_plan)
+
+            if not validation_result["success"]:
+                raise ValidationFailed(validation_result["errors"])
+
+            # 6. Empaquetar patchset
+            patchset = self.create_patchset(sandbox_dir, patch_plan, validation_result)
+
+            # 7. Generar evidencia
+            evidence = self.generate_evidence(patchset, validation_result)
+
+            return {
+                "status": "built",
+                "patchset": patchset,
+                "evidence": evidence,
+                "validation_result": validation_result
+            }
+
+        finally:
+            # 8. Limpiar sandbox
+            self.cleanup_sandbox(sandbox_dir)
+```
+
+#### 3.5 Validación en HIJA
+```python
+def validate_in_hija(sandbox_dir, patch_plan):
+    """Ejecuta validaciones en hija sandbox"""
+
+    hija_config = {
+        "type": "patch_validation",
+        "timeout": 600,
+        "resources": {"cpus": 1, "memory_mb": 1024},
+        "filesystem": {
+            "source": sandbox_dir,
+            "mode": "rw"
+        }
+    }
+
+    hija = spawner.create_hija(hija_config)
+
+    # Ejecutar tests de validación
+    results = []
+    for requirement in patch_plan["validation_requirements"]:
+        if requirement == "all_unit_tests_pass":
+            result = hija.run_unit_tests()
+            results.append(("unit_tests", result))
+
+        elif requirement == "system_health_check_pass":
+            result = hija.run_health_check()
+            results.append(("health_check", result))
+
+    # Determinar si pasa
+    success = all(r[1]["passed"] for r in results)
+
+    return {
+        "success": success,
+        "results": results,
+        "hija_id": hija.id,
+        "logs": hija.get_logs()
+    }
+```
+
+### Aprobación y Aplicación
+
+#### 3.6 Proceso de Aprobación
+```python
+def handle_patch_approval(patch_id, approval_decision, operator_id=None):
+    patch = get_patch(patch_id)
+
+    if approval_decision == "auto_approve":
+        # Solo para low severity y validaciones pasadas
+        if patch["severity"] != "low":
+            raise CannotAutoApprove("Only low severity patches can be auto-approved")
+
+        if not patch["validation_passed"]:
+            raise CannotAutoApprove("Validation failed")
+
+        apply_patch(patch_id)
+
+    elif approval_decision == "manual_approve":
+        # Requiere operador humano
+        if not operator_id:
+            raise OperatorRequired()
+
+        # Registrar aprobación
+        record_approval(patch_id, operator_id, "approved")
+
+        apply_patch(patch_id)
+
+    elif approval_decision == "reject":
+        # Registrar rechazo
+        record_approval(patch_id, operator_id or "system", "rejected")
+
+        # Notificar razones
+        notify_patch_rejected(patch_id, operator_id)
+```
+
+#### 3.7 Aplicación del Patch
+```python
+def apply_patch(patch_id):
+    patch = get_patch(patch_id)
+
+    # 1. Crear backup completo
+    backup_id = create_system_backup(f"pre-patch-{patch_id}")
+
+    try:
+        # 2. Aplicar operaciones en orden
+        for operation in patch["patchset"]["operations"]:
+            apply_operation(operation)
+
+            # Verificar después de cada operación
+            if not verify_operation_applied(operation):
+                raise OperationFailed(operation)
+
+        # 3. Ejecutar post-apply validation
+        validation = run_post_apply_validation()
+
+        if not validation["success"]:
+            # Rollback automático
+            rollback_patch(patch_id, backup_id)
+            raise ValidationFailedPostApply()
+
+        # 4. Marcar como aplicado
+        update_patch_status(patch_id, "applied", {
+            "applied_at": now(),
+            "backup_id": backup_id,
+            "validation_result": validation
+        })
+
+        # 5. Notificar éxito
+        notify_patch_applied(patch_id)
+
+        # 6. Recompensar si aplica
+        if config.VX11_REWARDS_ENABLED:
+            reward_patch_contributors(patch_id)
+
+    except Exception as e:
+        # Rollback en caso de error
+        rollback_patch(patch_id, backup_id)
+        raise
+```
+
+### Puntos de Decisión Críticos
+
+| Punto | Condición | Acción | Notas |
+|-------|-----------|--------|-------|
+| D1 | Drift bajo umbral | Ignorar | No generar ruido |
+| D2 | Severidad = low + validation pass | Auto-aprobar | Sin intervención humana |
+| D3 | Severidad = medium/high | Requerir aprobación humana | Dashboard operator |
+| D4 | Validación falla | No aprobar | Requerir fixes |
+| D5 | Ventana cerrada | Pausar | Esperar próxima ventana |
+| D6 | Post-apply validation falla | Rollback automático | Restaurar backup |
+
+---
+
+## Flujo 4: Creación de Nuevo Módulo
+
+### Objetivo
+Permitir que colonias remotas propongan y VX11 cree nuevos módulos de automatización de manera segura y controlada.
+
+### Participantes
+- **Larva/Beta Queen** (detección de necesidad)
+- **manifestator** (validación y diseño)
+- **hormiga builder** (construcción del módulo)
+- **spawner/hija** (tests y validación)
+- **madre** (orquestación)
+- **Operator Dashboard** (aprobación siempre requerida)
+
+### Estados del Módulo
+```
+[IDEA] → [PROPOSED] → [VALIDATING] → [DESIGNING] → [BUILDING] →
+[TESTING] → [APPROVAL_PENDING] → [APPROVED] → [INTEGRATED] →
+[AVAILABLE]
+```
+
+### Detección de Necesidad
+
+#### 4.1 Larva Detecta Patrón
+```python
+class LarvaAgent:
+    def detect_pattern(self, observations):
+        # Analiza observaciones para patrones repetitivos
+        patterns = self.analyze_for_patterns(observations)
+
+        for pattern in patterns:
+            if pattern["frequency"] > self.THRESHOLD_FREQUENCY:
+                # Considerar creación de módulo
+                module_proposal = self.create_module_proposal(pattern)
+
+                # Validar localmente
+                if self.validate_proposal_locally(module_proposal):
+                    # Enviar a Beta Queen
+                    self.submit_to_beta_queen(module_proposal)
+
+    def create_module_proposal(self, pattern):
+        return {
+            "proposal_id": f"modprop-{generate_uuid()}",
+            "detected_by": self.agent_id,
+            "pattern_summary": pattern["description"],
+            "frequency": pattern["frequency"],
+            "estimated_effort": pattern["complexity"],
+            "module_concept": {
+                "name": self.generate_module_name(pattern),
+                "purpose": pattern["automation_opportunity"],
+                "inputs": self.identify_inputs(pattern),
+                "outputs": self.identify_outputs(pattern),
+                "triggers": pattern["triggers"],
+                "estimated_value": self.estimate_value(pattern)
+            }
+        }
+```
+
+### Validación y Diseño
+
+#### 4.2 Manifestator Valida y Diseña
+```python
+def validate_and_design_module(proposal):
+    """Valida propuesta y genera diseño detallado"""
+
+    # 1. Validación básica
+    validation_errors = []
+
+    # Nombre único
+    if module_name_exists(proposal["module_concept"]["name"]):
+        validation_errors.append("Module name already exists")
+
+    # Cumple convenciones de nomenclatura
+    if not name_follows_conventions(proposal["module_concept"]["name"]):
+        validation_errors.append("Name doesn't follow conventions")
+
+    # No rompe aislamiento
+    if breaks_isolation(proposal):
+        validation_errors.append("Would break module isolation")
+
+    if validation_errors:
+        return {"valid": False, "errors": validation_errors}
+
+    # 2. Generar diseño detallado
+    design = {
+        "module_name": proposal["module_concept"]["name"],
+        "module_path": f"modules/{proposal['module_concept']['name']}",
+        "structure": generate_module_structure(proposal),
+        "contract": generate_module_contract(proposal),
+        "dependencies": identify_dependencies(proposal),
+        "tests_required": generate_test_requirements(proposal),
+        "documentation_required": True,
+        "security_considerations": identify_security_considerations(proposal)
+    }
+
+    # 3. Generar prompt-pack para builder
+    prompt_pack = generate_prompt_pack(design)
+
+    # 4. Generar diagram-pack para coherencia
+    diagram_pack = generate_diagram_pack(design)
+
+    return {
+        "valid": True,
+        "design": design,
+        "prompt_pack": prompt_pack,
+        "diagram_pack": diagram_pack,
+        "estimated_build_time": estimate_build_time(design)
+    }
+```
+
+### Construcción del Módulo
+
+#### 4.3 Hormiga Builder Construye Módulo
+```python
+def build_module(design, prompt_pack):
+    """Construye módulo basado en diseño y prompt-pack"""
+
+    # 1. Crear sandbox para construcción
+    sandbox = create_sandbox()
+
+    try:
+        # 2. Generar estructura de archivos
+        create_module_structure(sandbox, design["structure"])
+
+        # 3. Generar código usando prompt-pack
+        for file_spec in prompt_pack["files_to_generate"]:
+            content = generate_file_content(
+                file_spec["template"],
+                file_spec["context"],
+                design
+            )
+            write_file(sandbox / file_spec["path"], content)
+
+        # 4. Generar tests
+        generate_tests(sandbox, design["tests_required"])
+
+        # 5. Generar documentación
+        generate_documentation(sandbox, design)
+
+        # 6. Validar en HIJA
+        validation_result = validate_module_in_hija(sandbox, design)
+
+        if not validation_result["success"]:
+            return {
+                "status": "validation_failed",
+                "errors": validation_result["errors"],
+                "artifacts": None
+            }
+
+        # 7. Empaquetar módulo
+        module_package = create_module_package(sandbox, design)
+
+        # 8. Generar evidencia
+        evidence = {
+            "validation_results": validation_result,
+            "generated_files": list_generated_files(sandbox),
+            "test_coverage": calculate_test_coverage(sandbox),
+            "size_metrics": calculate_size_metrics(sandbox)
+        }
+
+        return {
+            "status": "built",
+            "module_package": module_package,
+            "evidence": evidence,
+            "validation_result": validation_result
+        }
+
+    finally:
+        cleanup_sandbox(sandbox)
+```
+
+#### 4.4 Validación en HIJA
+```python
+def validate_module_in_hija(sandbox_dir, design):
+    """Valida módulo completo en sandbox"""
+
+    hija_config = {
+        "type": "module_validation",
+        "timeout": 900,
+        "resources": {"cpus": 1, "memory_mb": 1024},
+        "filesystem": {"source": sandbox_dir, "mode": "ro"}
+    }
+
+    hija = spawner.create_hija(hija_config)
+
+    results = {
+        "import_tests": hija.run_import_tests(),
+        "unit_tests": hija.run_unit_tests(),
+        "contract_tests": hija.run_contract_tests(design["contract"]),
+        "security_scan": hija.run_security_scan(),
+        "performance_baseline": hija.run_performance_baseline()
+    }
+
+    # Determinar si pasa
+    success = (
+        results["import_tests"]["passed"] and
+        results["unit_tests"]["passed"] and
+        results["contract_tests"]["passed"] and
+        not results["security_scan"]["critical_vulnerabilities"]
+    )
+
+    return {
+        "success": success,
+        "results": results,
+        "hija_id": hija.id,
+        "logs": hija.get_logs()
+    }
+```
+
+### Aprobación e Integración
+
+#### 4.5 Aprobación Humana (Siempre Requerida)
+```python
+def request_module_approval(module_package, evidence, proposal):
+    """Solicita aprobación humana para nuevo módulo"""
+
+    approval_request = {
+        "request_id": f"modapproval-{generate_uuid()}",
+        "module_name": module_package["module_name"],
+        "proposed_by": proposal["detected_by"],
+        "colony": proposal["colony_id"],
+        "evidence": evidence,
+        "risk_assessment": assess_module_risk(module_package),
+        "estimated_maintenance_cost": estimate_maintenance_cost(module_package)
+    }
+
+    # Enviar a dashboard operator
+    operator_dashboard.submit_approval_request(approval_request)
+
+    # Esperar respuesta (con timeout)
+    return wait_for_approval(approval_request["request_id"], timeout=86400)  # 24h
+```
+
+#### 4.6 Integración del Módulo
+```python
+def integrate_module(module_package, approval_record):
+    """Integra módulo aprobado al sistema"""
+
+    # 1. Verificar que aún no existe
+    if module_exists(module_package["module_name"]):
+        raise ModuleAlreadyExists()
+
+    # 2. Crear backup pre-integration
+    backup_id = create_system_backup(f"pre-module-{module_package['module_name']}")
+
+    try:
+        # 3. Extraer y colocar en ubicación correcta
+        extract_path = extract_module_package(module_package)
+        target_path = MODULES_DIR / module_package["module_name"]
+
+        # 4. Mover a ubicación final
+        shutil.move(extract_path, target_path)
+
+        # 5. Actualizar registro de módulos
+        register_module_in_db(
+            name=module_package["module_name"],
+            version="1.0.0",
+            path=str(target_path),
+            colony_id=approval_record["colony"],
+            created_by=approval_record["proposed_by"],
+            approved_by=approval_record["approved_by"],
+            approval_timestamp=approval_record["approved_at"]
+        )
+
+        # 6. Actualizar manifestator canon
+        manifestator.update_canon_with_module(module_package)
+
+        # 7. Ejecutar tests de integración
+        integration_result = run_integration_tests(target_path)
+
+        if not integration_result["success"]:
+            raise IntegrationTestsFailed()
+
+        # 8. Notificar a colonia solicitante
+        notify_colony_module_available(
+            colony_id=approval_record["colony"],
+            module_name=module_package["module_name"],
+            module_version="1.0.0"
+        )
+
+        # 9. Recompensar contribuidores
+        if config.VX11_REWARDS_ENABLED:
+            reward_module_creation(
+                colony_id=approval_record["colony"],
+                agent_id=approval_record["proposed_by"],
+                module_name=module_package["module_name"],
+                evidence=evidence
+            )
+
+        return {
+            "status": "integrated",
+            "module_path": str(target_path),
+            "integration_result": integration_result
+        }
+
+    except Exception as e:
+        # Rollback en caso de error
+        rollback_module_integration(module_package["module_name"], backup_id)
+        raise
+```
+
+### Puntos de Decisión Críticos
+
+| Punto | Condición | Acción | Notas |
+|-------|-----------|--------|-------|
+| D1 | Nombre duplicado | Rechazar propuesta | Evitar conflictos |
+| D2 | Rompe aislamiento | Rechazar diseño | Seguridad primero |
+| D3 | Tests fallan | No construir | Calidad requerida |
+| D4 | Sin aprobación humana | No integrar | Siempre requerida |
+| D5 | Tests integración fallan | Rollback | Mantener estabilidad |
+
+---
+
+## Flujo 5: Sistema de Recompensas
+
+### Objetivo
+Incentivar comportamientos deseables y desincentivar riesgos mediante economía interna de méritos.
+
+### Componentes
+- **Reward Engine**: Calcula recompensas/penalizaciones
+- **Budget Manager**: Asigna y controla presupuestos
+- **Audit Trail**: Registra todas las transacciones
+- **Dashboard**: Visualización de balances y rankings
+
+### Tablas de Base de Datos
+```sql
+-- reward_accounts: Cuentas principales
+CREATE TABLE reward_accounts (
+    id TEXT PRIMARY KEY,
+    entity_type TEXT NOT NULL, -- 'colony', 'agent', 'system'
+    entity_id TEXT NOT NULL,   -- colony-01, agent-123
+    balance INTEGER DEFAULT 0,
+    total_earned INTEGER DEFAULT 0,
+    total_spent INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- reward_events: Eventos que generan recompensas
+CREATE TABLE reward_events (
+    id TEXT PRIMARY KEY,
+    account_id TEXT NOT NULL,
+    event_type TEXT NOT NULL,  -- simulation_accurate, intent_completed, etc.
+    points INTEGER NOT NULL,
+    reason TEXT,
+    reference_id TEXT,         -- intent_id, patch_id, etc.
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (account_id) REFERENCES reward_accounts(id)
+);
+
+-- reward_budgets: Límites por período
+CREATE TABLE reward_budgets (
+    id TEXT PRIMARY KEY,
+    account_id TEXT NOT NULL,
+    budget_type TEXT NOT NULL, -- 'daily', 'weekly', 'monthly', 'per_intent'
+    max_points INTEGER NOT NULL,
+    current_period_start TIMESTAMP,
+    current_period_used INTEGER DEFAULT 0,
+    FOREIGN KEY (account_id) REFERENCES reward_accounts(id)
+);
+
+-- reward_penalties: Penalizaciones aplicadas
+CREATE TABLE reward_penalties (
+    id TEXT PRIMARY KEY,
+    account_id TEXT NOT NULL,
+    penalty_type TEXT NOT NULL, -- spam, violation, failure
+    points INTEGER NOT NULL,
+    reason TEXT,
+    expires_at TIMESTAMP,       -- Para penalizaciones temporales
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (account_id) REFERENCES reward_accounts(id)
+);
+```
+
+### Cálculo de Recompensas
+
+#### 5.1 Reglas de Recompensa
+```python
+REWARD_RULES = {
+    "simulation_accurate": {
+        "base_points": 5,
+        "multipliers": {
+            "high_complexity": 1.5,
+            "low_risk": 1.2,
+            "with_evidence": 1.1
+        },
+        "max_per_day": 100,
+        "requires": ["validation_passed"]
+    },
+
+    "intent_completed_successfully": {
+        "base_points": 20,
+        "multipliers": {
+            "complex_action": 2.0,
+            "zero_downtime": 1.5,
+            "under_budget": 1.3
+        },
+        "max_per_day": 200,
+        "requires": ["human_approval", "execution_success"]
+    },
+
+    "drift_detected_valuable": {
+        "base_points": 15,
+        "multipliers": {
+            "security_related": 2.0,
+            "performance_impact": 1.8,
+            "prevented_outage": 3.0
+        },
+        "max_per_day": 300,
+        "requires": ["confirmed_by_system"]
+    },
+
+    "patch_created_clean": {
+        "base_points": 30,
+        "multipliers": {
+            "high_severity": 2.0,
+            "includes_tests": 1.5,
+            "includes_docs": 1.2
+        },
+        "max_per_day": 150,
+        "requires": ["validation_passed", "applied_successfully"]
+    },
+
+    "module_created": {
+        "base_points": 100,
+        "multipliers": {
+            "high_utility": 2.0,
+            "excellent_tests": 1.8,
+            "well_documented": 1.5
+        },
+        "max_per_week": 500,
+        "requires": ["human_approval", "integration_success"]
+    }
+}
+```
+
+#### 5.2 Aplicación de Recompensas
+```python
+class RewardEngine:
+    def calculate_reward(self, event_type, context):
+        # 1. Obtener regla
+        rule = REWARD_RULES.get(event_type)
+        if not rule:
+            return 0
+
+        # 2. Verificar requisitos
+        for requirement in rule.get("requires", []):
+            if not self.requirement_met(requirement, context):
+                return 0
+
+        # 3. Calcular puntos base
+        points = rule["base_points"]
+
+        # 4. Aplicar multiplicadores
+        for multiplier_key, multiplier_value in rule.get("multipliers", {}).items():
+            if self.has_multiplier(multiplier_key, context):
+                points *= multiplier_value
+
+        # 5. Aplicar límites diarios/semanales
+        points = self.apply_limits(event_type, points, context["account_id"])
+
+        # 6. Verificar budget disponible
+        points = self.check_budget(points, context["account_id"])
+
+        return int(points)
+
+    def apply_reward(self, account_id, event_type, points, reason, reference_id=None):
+        """Aplica recompensa a cuenta"""
+
+        with db.transaction():
+            # 1. Actualizar balance
+            update_account_balance(account_id, points)
+
+            # 2. Registrar evento
+            record_reward_event(
+                account_id=account_id,
+                event_type=event_type,
+                points=points,
+                reason=reason,
+                reference_id=reference_id
+            )
+
+            # 3. Actualizar estadísticas
+            update_account_stats(account_id, points)
+
+            # 4. Notificar si es significativo
+            if points >= NOTIFICATION_THRESHOLD:
+                self.notify_reward_awarded(account_id, points, reason)
+```
+
+### Penalizaciones
+
+#### 5.3 Reglas de Penalización
+```python
+PENALTY_RULES = {
+    "intent_spam": {
+        "base_points": -10,
+        "triggers": ["rate_limit_exceeded", "duplicate_intents"],
+        "max_per_day": -50,
+        "cooldown_hours": 24
+    },
+
+    "policy_violation": {
+        "base_points": -20,
+        "triggers": ["bypass_attempt", "unauthorized_access"],
+        "max_per_day": -100,
+        "cooldown_hours": 72
+    },
+
+    "execution_failure_risky": {
+        "base_points": -30,
+        "triggers": ["system_damage", "downtime_caused"],
+        "max_per_day": -200,
+        "cooldown_days": 7
+    },
+
+    "simulation_inaccurate": {
+        "base_points": -5,
+        "triggers": ["false_positive", "missed_risks"],
+        "max_per_day": -25,
+        "cooldown_hours": 12
+    },
+
+    "replay_attempt": {
+        "base_points": -50,
+        "triggers": ["duplicate_nonce", "timestamp_replay"],
+        "max_per_day": -200,
+        "cooldown_days": 30
+    }
+}
+```
+
+#### 5.4 Aplicación de Penalizaciones
+```python
+def apply_penalty(account_id, penalty_type, context):
+    """Aplica penalización a cuenta"""
+
+    # 1. Obtener regla
+    rule = PENALTY_RULES.get(penalty_type)
+    if not rule:
+        return
+
+    # 2. Verificar cooldown
+    if is_in_cooldown(account_id, penalty_type):
+        return
+
+    # 3. Calcular puntos
+    points = rule["base_points"]
+
+    # 4. Aplicar límites
+    points = max(points, rule.get("max_per_day", -1000))
+
+    # 5. Aplicar a cuenta
+    with db.transaction():
+        # Actualizar balance
+        update_account_balance(account_id, points)
+
+        # Registrar penalización
+        record_penalty(
+            account_id=account_id,
+            penalty_type=penalty_type,
+            points=points,
+            reason=context.get("reason"),
+            expires_at=calculate_expiry(penalty_type)
+        )
+
+        # Si balance bajo umbral, aplicar restricciones
+        balance = get_account_balance(account_id)
+        if balance < LOW_BALANCE_THRESHOLD:
+            apply_restrictions(account_id)
+
+        # Notificar
+        notify_penalty_applied(account_id, points, penalty_type)
+```
+
+### Budgets y Límites
+
+#### 5.5 Gestión de Budgets
+```python
+class BudgetManager:
+    def check_budget(self, account_id, points_needed, budget_type="daily"):
+        """Verifica si hay budget disponible"""
+
+        budget = get_budget(account_id, budget_type)
+        if not budget:
+            # Budget ilimitado por defecto
+            return points_needed
+
+        # Verificar período actual
+        if budget.current_period_start is None:
+            budget.current_period_start = now()
+            budget.current_period_used = 0
+
+        # Verificar si período ha expirado
+        if self.period_expired(budget, budget_type):
+            budget.current_period_start = now()
+            budget.current_period_used = 0
+
+        # Verificar disponibilidad
+        available = budget.max_points - budget.current_period_used
+        if available >= points_needed:
+            return points_needed
+        else:
+            # Solo asignar lo disponible
+            return available
+
+    def use_budget(self, account_id, points_used, budget_type="daily"):
+        """Consume budget"""
+
+        with db.transaction():
+            budget = get_budget_for_update(account_id, budget_type)
+            budget.current_period_used += points_used
+            save_budget(budget)
+```
+
+### Efectos de las Recompensas
+
+#### 5.6 Beneficios por Balance Alto
+```python
+def apply_reward_benefits(account_id):
+    """Aplica beneficios basados en balance"""
+
+    balance = get_account_balance(account_id)
+    entity_type = get_entity_type(account_id)
+
+    benefits = []
+
+    if balance >= 1000:  # Tier 3: Elite
+        benefits.append({
+            "type": "priority_processing",
+            "value": "high",
+            "description": "Intents processed first"
+        })
+        benefits.append({
+            "type": "higher_quotas",
+            "value": "2x",
+            "description": "Double daily intent quota"
+        })
+
+    elif balance >= 500:  # Tier 2: Advanced
+        benefits.append({
+            "type": "priority_processing",
+            "value": "medium",
+            "description": "Intents processed faster"
+        })
+        benefits.append({
+            "type": "access_to_beta",
+            "value": True,
+            "description": "Access to beta features"
+        })
+
+    elif balance >= 100:  # Tier 1: Basic
+        benefits.append({
+            "type": "basic_priority",
+            "value": "low",
+            "description": "Slight processing priority"
+        })
+
+    # Aplicar beneficios
+    apply_benefits_to_entity(account_id, benefits)
+
+    return benefits
+```
+
+#### 5.7 Restricciones por Balance Bajo
+```python
+def apply_low_balance_restrictions(account_id):
+    """Aplica restricciones por balance bajo"""
+
+    balance = get_account_balance(account_id)
+
+    restrictions = []
+
+    if balance <= -100:  # Tier 3: Critical
+        restrictions.append({
+            "type": "killswitch",
+            "value": "soft",
+            "description": "Only telemetry allowed"
+        })
+        restrictions.append({
+            "type": "manual_review",
+            "value": True,
+            "description": "All intents require manual review"
+        })
+
+    elif balance <= -50:  # Tier 2: Warning
+        restrictions.append({
+            "type": "reduced_quotas",
+            "value": "0.5x",
+            "description": "Half normal quotas"
+        })
+        restrictions.append({
+            "type": "slow_processing",
+            "value": True,
+            "description": "Intents processed last"
+        })
+
+    elif balance <= 0:  # Tier 1: Alert
+        restrictions.append({
+            "type": "warning",
+            "value": True,
+            "description": "Balance low warning"
+        })
+
+    # Aplicar restricciones
+    apply_restrictions_to_entity(account_id, restrictions)
+
+    return restrictions
+```
+
+### Dashboard y Reportes
+
+#### 5.8 Reportes de Recompensas
+```json
+{
+  "colony_id": "taller-01",
+  "period": "2025-12",
+  "summary": {
+    "starting_balance": 1250,
+    "ending_balance": 1420,
+    "total_earned": 450,
+    "total_spent": 280,
+    "net_change": 170
+  },
+  "top_earners": [
+    {"agent_id": "adult-03", "points": 180, "main_source": "patch_creation"},
+    {"agent_id": "larva-12", "points": 95, "main_source": "simulation_accurate"},
+    {"agent_id": "larva-07", "points": 75, "main_source": "drift_detection"}
+  ],
+  "top_events": [
+    {"event_type": "intent_completed", "count": 12, "total_points": 240},
+    {"event_type": "simulation_accurate", "count": 25, "total_points": 125},
+    {"event_type": "patch_created", "count": 2, "total_points": 60}
+  ],
+  "budget_usage": {
+    "daily": {"allocated": 200, "used": 187, "remaining": 13},
+    "weekly": {"allocated": 1000, "used": 820, "remaining": 180}
+  }
+}
+```
+
+### Anti-Gaming Measures
+
+#### 5.9 Detección de Gaming
+```python
+class AntiGamingDetector:
+    def detect_gaming_patterns(self, account_id, time_window=86400):
+        """Detecta intentos de manipular sistema de recompensas"""
+
+        patterns = []
+
+        # 1. Detectar micro-intents (muchos intents pequeños)
+        micro_intents = self.detect_micro_intents(account_id, time_window)
+        if micro_intents:
+            patterns.append({
+                "type": "micro_intent_spam",
+                "count": micro_intents["count"],
+                "confidence": micro_intents["confidence"]
+            })
+
+        # 2. Detectar simulación circular
+        circular_sims = self.detect_circular_simulations(account_id, time_window)
+        if circular_sims:
+            patterns.append({
+                "type": "circular_simulation",
+                "chains": circular_sims["chains"],
+                "confidence": circular_sims["confidence"]
+            })
+
+        # 3. Detectar collusión entre agentes
+        collusion = self.detect_collusion(account_id, time_window)
+        if collusion:
+            patterns.append({
+                "type": "collusion",
+                "agents_involved": collusion["agents"],
+                "confidence": collusion["confidence"]
+            })
+
+        # 4. Si hay patrones sospechosos, investigar
+        if patterns:
+            self.investigate_gaming(account_id, patterns)
+
+            # Aplicar penalización si confirmado
+            if self.confirm_gaming(patterns):
+                apply_penalty(account_id, "gaming_attempt", {
+                    "patterns": patterns,
+                    "points": -100
+                })
+
+        return patterns
+```
+
+---
+
+## Flujo 6: Transmisión Bidireccional Remota
+
+### Objetivo
+Comunicación confiable, segura y eficiente entre colonias remotas y VX11.
+
+### Protocolo de Envelope
+
+#### 6.1 Estructura del Envelope
+```json
+{
+  "envelope": {
+    "version": "1.0",
+    "id": "env-001234",
+    "colony_id": "taller-01",
+    "timestamp": "2025-12-28T10:00:00.000Z",
+    "nonce": "a1b2c3d4e5f6",
+    "sequence": 42,
+    "ack_sequence": 41,
+    "action": "heartbeat",
+    "compression": "gzip",
+    "expires_at": "2025-12-28T10:05:00.000Z"
+  },
+  "payload": { /* datos específicos de la acción */ },
+  "signature": "hmac-sha256-base64(...)"
+}
+```
+
+#### 6.2 Generación de Firma HMAC
+```python
+def generate_hmac_signature(envelope, payload, secret_key):
+    """Genera firma HMAC para mensaje"""
+
+    # 1. Serializar envelope y payload de manera determinista
+    message = canonical_json_serialize({
+        "envelope": envelope,
+        "payload": payload
+    })
+
+    # 2. Calcular HMAC-SHA256
+    hmac_obj = hmac.new(
+        key=secret_key.encode('utf-8'),
+        msg=message.encode('utf-8'),
+        digestmod=hashlib.sha256
+    )
+
+    # 3. Codificar en base64
+    signature = base64.b64encode(hmac_obj.digest()).decode('utf-8')
+
+    return signature
+
+def verify_hmac_signature(envelope, payload, signature, secret_key):
+    """Verifica firma HMAC"""
+
+    # 1. Regenerar firma esperada
+    expected_signature = generate_hmac_signature(envelope, payload, secret_key)
+
+    # 2. Comparar de manera segura contra timing attacks
+    return hmac.compare_digest(signature, expected_signature)
+```
+
+### Modos de Transmisión
+
+#### 6.3 Modo Pull (HTTP Long Polling)
+```python
+class PullTransmitter:
+    def transmit_pull(self, endpoint, data, timeout=55):
+        """Transmisión HTTP con long polling"""
+
+        # Headers para autenticación
+        headers = {
+            "X-inee-colony-id": self.colony_id,
+            "X-inee-nonce": generate_nonce(),
+            "X-inee-timestamp": now().isoformat(),
+            "Authorization": f"HMAC {self.hmac_signature}"
+        }
+
+        # Enviar request
+        response = requests.post(
+            endpoint,
+            json=data,
+            headers=headers,
+            timeout=timeout
+        )
+
+        # Procesar respuesta
+        if response.status_code == 200:
+            return self.process_success_response(response)
+        elif response.status_code == 202:
+            # Accepted - procesar más tarde
+            return self.handle_accepted_response(response)
+        else:
+            return self.handle_error_response(response)
+
+    def process_success_response(self, response):
+        """Procesa respuesta exitosa"""
+
+        data = response.json()
+
+        # 1. Verificar firma de respuesta (opcional)
+        if "signature" in data:
+            if not verify_response_signature(data):
+                raise SignatureVerificationFailed()
+
+        # 2. Procesar ACKs
+        if "ack_sequence" in data:
+            self.confirm_delivery(data["ack_sequence"])
+
+        # 3. Procesar políticas/recompensas
+        if "policies" in data:
+            self.apply_new_policies(data["policies"])
+
+        if "rewards" in data:
+            self.process_rewards(data["rewards"])
+
+        # 4. Procesar killswitch
+        if "killswitch" in data:
+            self.handle_killswitch(data["killswitch"])
+
+        return data
+```
+
+#### 6.4 Modo Push (WebSocket)
+```python
+class WebSocketTransmitter:
+    def __init__(self):
+        self.ws = None
+        self.connected = False
+        self.reconnect_attempts = 0
+        self.max_reconnect_attempts = 10
+
+    async def connect(self):
+        """Establece conexión WebSocket"""
+
+        while self.reconnect_attempts < self.max_reconnect_attempts:
+            try:
+                # Conectar con autenticación en query params
+                ws_url = f"{self.ws_endpoint}?colony_id={self.colony_id}&token={self.auth_token}"
+
+                self.ws = await websockets.connect(ws_url, ping_interval=30, ping_timeout=10)
+                self.connected = True
+                self.reconnect_attempts = 0
+
+                # Iniciar handlers
+                asyncio.create_task(self.receive_handler())
+                asyncio.create_task(self.heartbeat_handler())
+
+                break
+
+            except Exception as e:
+                self.reconnect_attempts += 1
+                delay = min(2 ** self.reconnect_attempts, 60)
+                await asyncio.sleep(delay)
+
+    async def receive_handler(self):
+        """Maneja mensajes recibidos"""
+
+        try:
+            async for message in self.ws:
+                data = json.loads(message)
+
+                # Procesar según tipo
+                if data.get("type") == "policy_update":
+                    await self.handle_policy_update(data)
+                elif data.get("type") == "reward_notification":
+                    await self.handle_reward_notification(data)
+                elif data.get("type") == "killswitch":
+                    await self.handle_killswitch(data)
+                elif data.get("type") == "intent_status_update":
+                    await self.handle_intent_status_update(data)
+
+        except websockets.exceptions.ConnectionClosed:
+            self.connected = False
+            await self.connect()  # Reconectar
+
+    async def send_message(self, message_type, data):
+        """Envía mensaje a través de WebSocket"""
+
+        if not self.connected:
+            raise NotConnectedError()
+
+        envelope = {
+            "type": message_type,
+            "colony_id": self.colony_id,
+            "timestamp": now().isoformat(),
+            "sequence": self.get_next_sequence()
+        }
+
+        full_message = {
+            "envelope": envelope,
+            "payload": data,
+            "signature": self.sign_message(envelope, data)
+        }
+
+        await self.ws.send(json.dumps(full_message))
+```
+
+#### 6.5 Modo Batch
+```python
+class BatchTransmitter:
+    def __init__(self):
+        self.buffer = []
+        self.buffer_max_size = 100
+        self.buffer_max_age = 300  # 5 minutos
+        self.compression_threshold = 1024  # 1KB
+
+    def add_to_buffer(self, item_type, data):
+        """Añade elemento al buffer para envío batch"""
+
+        self.buffer.append({
+            "type": item_type,
+            "data": data,
+            "timestamp": time.time(),
+            "attempts": 0
+        })
+
+        # Verificar si buffer está lleno
+        if len(self.buffer) >= self.buffer_max_size:
+            self.flush_buffer()
+
+    def flush_buffer(self):
+        """Envía contenido del buffer"""
+
+        if not self.buffer:
+            return
+
+        # 1. Filtrar elementos muy viejos
+        current_time = time.time()
+        self.buffer = [item for item in self.buffer
+                      if current_time - item["timestamp"] < self.buffer_max_age]
+
+        if not self.buffer:
+            return
+
+        # 2. Agrupar por tipo
+        grouped = {}
+        for item in self.buffer:
+            if item["type"] not in grouped:
+                grouped[item["type"]] = []
+            grouped[item["type"]].append(item["data"])
+
+        # 3. Preparar payload batch
+        payload = {
+            "batch_id": generate_uuid(),
+            "timestamp": now().isoformat(),
+            "counts": {k: len(v) for k, v in grouped.items()},
+            "data": grouped
+        }
+
+        # 4. Comprimir si es grande
+        if self.should_compress(payload):
+            payload = self.compress_payload(payload)
+
+        # 5. Enviar
+        try:
+            response = self.transmitter.send("batch", payload)
+
+            # Si éxito, limpiar buffer
+            if response.get("status") == "received":
+                self.buffer = []
+            else:
+                # Incrementar attempts y schedule retry
+                self.handle_failed_batch()
+
+        except Exception as e:
+            self.handle_transmission_error(e)
+
+    def should_compress(self, payload):
+        """Determina si comprimir payload"""
+        payload_size = len(json.dumps(payload).encode('utf-8'))
+        return payload_size > self.compression_threshold
+
+    def compress_payload(self, payload):
+        """Comprime payload usando gzip"""
+
+        json_str = json.dumps(payload)
+        compressed = gzip.compress(json_str.encode('utf-8'))
+
+        return {
+            "compressed": True,
+            "algorithm": "gzip",
+            "original_size": len(json_str),
+            "compressed_size": len(compressed),
+            "data": base64.b64encode(compressed).decode('utf-8')
+        }
+```
+
+### Manejo de ACK y Retry
+
+#### 6.6 Sistema de ACK
+```python
+class AckSystem:
+    def __init__(self):
+        self.pending_acks = {}  # sequence -> (timestamp, data, callback)
+        self.max_pending_time = 300  # 5 minutos
+        self.cleanup_interval = 60  # 1 minuto
+
+    def send_with_ack(self, sequence, data, callback):
+        """Envía mensaje y espera ACK"""
+
+        # Registrar como pendiente
+        self.pending_acks[sequence] = {
+            "timestamp": time.time(),
+            "data": data,
+            "callback": callback,
+            "attempts": 0
+        }
+
+        # Enviar mensaje
+        self.send_message(sequence, data)
+
+        # Programar timeout
+        asyncio.create_task(self.wait_for_ack(sequence))
+
+    async def wait_for_ack(self, sequence):
+        """Espera ACK con timeout"""
+
+        await asyncio.sleep(self.ack_timeout)
+
+        # Verificar si ya recibimos ACK
+        if sequence in self.pending_acks:
+            # No recibido - reintentar
+            await self.retry_message(sequence)
+
+    def receive_ack(self, ack_sequence):
+        """Procesa ACK recibido"""
+
+        if ack_sequence in self.pending_acks:
+            item = self.pending_acks.pop(ack_sequence)
+
+            # Ejecutar callback de éxito
+            if item["callback"]:
+                item["callback"](True, ack_sequence)
+
+            # Registrar éxito para métricas
+            self.record_success(ack_sequence)
+
+    async def retry_message(self, sequence):
+        """Reintenta mensaje no confirmado"""
+
+        if sequence not in self.pending_acks:
+            return
+
+        item = self.pending_acks[sequence]
+        item["attempts"] += 1
+
+        # Verificar máximo de intentos
+        if item["attempts"] >= self.max_retries:
+            # Dar por perdido
+            self.pending_acks.pop(sequence)
+
+            if item["callback"]:
+                item["callback"](False, sequence, "max_retries_exceeded")
+
+            # Registrar fallo
+            self.record_failure(sequence)
+            return
+
+        # Calcular backoff exponencial
+        delay = min(2 ** item["attempts"], self.max_backoff)
+        await asyncio.sleep(delay)
+
+        # Reenviar
+        self.send_message(sequence, item["data"])
+
+        # Reprogramar espera de ACK
+        asyncio.create_task(self.wait_for_ack(sequence))
+
+    def cleanup_old_pending(self):
+        """Limpia ACKs pendientes muy viejos"""
+
+        current_time = time.time()
+        to_remove = []
+
+        for sequence, item in self.pending_acks.items():
+            if current_time - item["timestamp"] > self.max_pending_time:
+                to_remove.append(sequence)
+
+        for sequence in to_remove:
+            item = self.pending_acks.pop(sequence)
+
+            if item["callback"]:
+                item["callback"](False, sequence, "timeout")
+
+            self.record_timeout(sequence)
+```
+
+#### 6.7 Deduplicación
+```python
+class DeduplicationSystem:
+    def __init__(self, window_size=300):
+        self.received_nonces = set()
+        self.nonce_window = window_size
+        self.cleanup_interval = 60
+
+    def check_and_record_nonce(self, nonce, timestamp):
+        """Verifica si nonce es único y lo registra"""
+
+        # 1. Limpiar nonces viejos
+        self.cleanup_old_nonces()
+
+        # 2. Verificar si ya existe
+        if nonce in self.received_nonces:
+            return False
+
+        # 3. Verificar timestamp dentro de ventana
+        if abs(time.time() - timestamp) > self.nonce_window:
+            return False
+
+        # 4. Registrar
+        self.received_nonces.add((nonce, timestamp))
+        return True
+
+    def cleanup_old_nonces(self):
+        """Elimina nonces fuera de ventana temporal"""
+
+        current_time = time.time()
+        to_remove = []
+
+        for nonce, timestamp in self.received_nonces:
+            if current_time - timestamp > self.nonce_window:
+                to_remove.append((nonce, timestamp))
+
+        for item in to_remove:
+            self.received_nonces.discard(item)
+
+    def is_replay_attack(self, envelope):
+        """Detecta posibles replay attacks"""
+
+        # Verificar nonce único
+        if not self.check_and_record_nonce(envelope["nonce"], envelope["timestamp"]):
+            return True
+
+        # Verificar timestamp razonable
+        if abs(time.time() - envelope["timestamp"]) > self.nonce_window:
+            return True
+
+        # Verificar sequence monotónico (si aplica)
+        if "sequence" in envelope:
+            if not self.check_sequence_monotonic(envelope["colony_id"], envelope["sequence"]):
+                return True
+
+        return False
+```
+
+### Compresión y Optimización
+
+#### 6.8 Compresión Selectiva
+```python
+class SelectiveCompressor:
+    COMPRESSION_THRESHOLDS = {
+        "heartbeat": 512,      # 0.5KB
+        "intent": 1024,        # 1KB
+        "audit_batch": 5120,   # 5KB
+        "pheromones": 2048     # 2KB
+    }
+
+    def compress_if_needed(self, data_type, payload):
+        """Comprime payload si supera umbral"""
+
+        threshold = self.COMPRESSION_THRESHOLDS.get(data_type, 1024)
+
+        # Serializar para medir tamaño
+        json_str = json.dumps(payload)
+        size = len(json_str.encode('utf-8'))
+
+        if size <= threshold:
+            return payload, False, size
+
+        # Comprimir
+        compressed = self.compress_json(payload)
+        compressed_size = len(compressed)
+
+        # Solo usar si hay beneficio significativo
+        if compressed_size < size * 0.8:  # Al menos 20% de reducción
+            return compressed, True, compressed_size
+        else:
+            return payload, False, size
+
+    def compress_json(self, payload):
+        """Comprime JSON usando técnicas específicas"""
+
+        # 1. Eliminar whitespace
+        compressed = json.dumps(payload, separators=(',', ':'))
+
+        # 2. Comprimir con gzip
+        gzipped = gzip.compress(compressed.encode('utf-8'))
+
+        # 3. Codificar en base64 para transmisión segura
+        encoded = base64.b64encode(gzipped).decode('utf-8')
+
+        return {
+            "_compressed": True,
+            "algorithm": "gzip+base64",
+            "data": encoded
+        }
+```
+
+### Métricas y Monitoreo
+
+#### 6.9 Métricas de Transmisión
+```python
+class TransmissionMetrics:
+    def record_transmission(self, colony_id, message_type, size, success, latency):
+        """Registra métricas de transmisión"""
+
+        metrics = {
+            "timestamp": now().isoformat(),
+            "colony_id": colony_id,
+            "message_type": message_type,
+            "size_bytes": size,
+            "success": success,
+            "latency_ms": latency,
+            "compression_ratio": self.calculate_compression_ratio(size)
+        }
+
+        # Insertar en DB para análisis
+        db.insert("inee_transmission_metrics", metrics)
+
+        # Actualizar estadísticas en tiempo real
+        self.update_realtime_stats(colony_id, metrics)
+
+        # Alertar si hay problemas
+        if not success or latency > self.LATENCY_THRESHOLD:
+            self.alert_transmission_issue(colony_id, metrics)
+
+    def calculate_compression_ratio(self, size):
+        """Calcula ratio de compresión si aplica"""
+        # Implementación según datos disponibles
+        pass
+
+    def get_colony_connection_health(self, colony_id):
+        """Obtiene salud de conexión de colonia"""
+
+        # Obtener métricas recientes (últimas 24h)
+        recent_metrics = db.query("""
+            SELECT
+                COUNT(*) as total_messages,
+                SUM(CASE WHEN success THEN 1 ELSE 0 END) as successful_messages,
+                AVG(latency_ms) as avg_latency,
+                MAX(latency_ms) as max_latency
+            FROM inee_transmission_metrics
+            WHERE colony_id = ?
+            AND timestamp > datetime('now', '-1 day')
+        """, (colony_id,))
+
+        if not recent_metrics:
+            return "unknown"
+
+        metrics = recent_metrics[0]
+
+        # Calcular score de salud
+        success_rate = metrics["successful_messages"] / metrics["total_messages"]
+        avg_latency = metrics["avg_latency"]
+
+        if success_rate >= 0.95 and avg_latency < 1000:
+            return "excellent"
+        elif success_rate >= 0.90 and avg_latency < 2000:
+            return "good"
+        elif success_rate >= 0.80:
+            return "fair"
+        else:
+            return "poor"
+```
+
+---
+
+## Flujo 7: Ventanas Temporales y Control de Poder
+
+### Objetivo
+Controlar cuándo y cómo se activan capacidades avanzadas mediante ventanas temporales autorizadas por MADRE.
+
+### Estados del Sistema
+
+#### 7.1 Estados Globales
+```
+solo_madre:        Solo telemetría básica, todo lo demás OFF
+inee_simulate:     INEE habilitado solo para simulación
+inee_execute:      INEE habilitado para ejecución (requiere ventana)
+builder_active:    Builder habilitado (requiere ventana)
+full_operation:    Todo habilitado (solo para mantenimiento)
+killswitch:        Todo bloqueado excepto telemetría esencial
+```
+
+#### 7.2 Transiciones de Estado
+```python
+STATE_TRANSITIONS = {
+    "solo_madre": {
+        "to_inee_simulate": {
+            "condition": "config.VX11_INEE_ENABLED and madre.approve_window('inee_simulate')",
+            "actions": ["enable_inee_simulation", "notify_operator"]
+        },
+        "to_killswitch": {
+            "condition": "operator.activate_killswitch()",
+            "actions": ["disable_all_non_essential", "notify_all_colonies"]
+        }
+    },
+    "inee_simulate": {
+        "to_inee_execute": {
+            "condition": "config.VX11_INEE_EXECUTION_ENABLED and madre.approve_window('inee_execute')",
+            "actions": ["enable_inee_execution", "open_execution_window"]
+        },
+        "to_solo_madre": {
+            "condition": "window_expired or madre.close_window()",
+            "actions": ["disable_inee", "cleanup_temporary_resources"]
+        }
+    },
+    "inee_execute": {
+        "to_builder_active": {
+            "condition": "config.HORMIGUERO_BUILDER_ENABLED and madre.approve_window('builder')",
+            "actions": ["enable_builder", "allocate_builder_resources"]
+        },
+        "to_solo_madre": {
+            "condition": "window_expired or emergency_close",
+            "actions": ["abort_running_intents", "disable_inee_execution", "close_window"]
+        }
+    }
+}
+```
+
+### Gestión de Ventanas
+
+#### 7.3 Interfaz de Ventanas en MADRE
+```python
+class WindowManager:
+    def request_window(self, window_type, requested_by, duration=None, reason=""):
+        """Solicita apertura de ventana temporal"""
+
+        # 1. Validar tipo de ventana
+        if window_type not in VALID_WINDOW_TYPES:
+            raise InvalidWindowType(window_type)
+
+        # 2. Verificar que no hay ventana activa del mismo tipo
+        if self.is_window_active(window_type):
+            raise WindowAlreadyActive(window_type)
+
+        # 3. Verificar políticas de tiempo
+        if not self.check_time_policies(window_type):
+            raise TimePolicyViolation(window_type)
+
+        # 4. Verificar carga del sistema
+        if not self.check_system_load():
+            raise SystemLoadTooHigh()
+
+        # 5. Determinar duración
+        if duration is None:
+            duration = self.get_default_duration(window_type)
+
+        # 6. Determinar si requiere aprobación humana
+        requires_human = self.requires_human_approval(window_type, duration)
+
+        if requires_human:
+            # Solicitar aprobación a operador
+            approval_request = {
+                "window_type": window_type,
+                "requested_by": requested_by,
+                "duration": duration,
+                "reason": reason,
+                "timestamp": now().isoformat()
+            }
+
+            return self.request_human_approval(approval_request)
+        else:
+            # Auto-aprobar según políticas
+            return self.open_window_auto(window_type, duration, requested_by, reason)
+
+    def open_window_auto(self, window_type, duration, requested_by, reason):
+        """Abre ventana automáticamente (sin aprobación humana)"""
+
+        window_id = generate_uuid()
+
+        window = {
+            "id": window_id,
+            "type": window_type,
+            "status": "active",
+            "opened_at": now().isoformat(),
+            "opens_at": now().isoformat(),
+            "closes_at": (now() + timedelta(seconds=duration)).isoformat(),
+            "requested_by": requested_by,
+            "reason": reason,
+            "approved_by": "system",
+            "max_extension": self.calculate_max_extension(window_type)
+        }
+
+        # Insertar en DB
+        db.insert("inee_windows", window)
+
+        # Aplicar cambios de estado del sistema
+        self.apply_window_state(window_type, "open")
+
+        # Notificar componentes relevantes
+        self.notify_window_opened(window)
+
+        # Programar cierre automático
+        asyncio.create_task(self.schedule_window_close(window_id, duration))
+
+        return window_id
+
+    async def schedule_window_close(self, window_id, duration):
+        """Programa cierre automático de ventana"""
+
+        await asyncio.sleep(duration)
+
+        # Verificar si ya fue cerrada manualmente
+        window = db.get_window(window_id)
+        if window and window["status"] == "active":
+            await self.close_window(window_id, "auto_timeout")
+```
+
+#### 7.4 Cierre de Ventana
+```python
+async def close_window(self, window_id, reason="manual"):
+    """Cierra ventana temporal"""
+
+    window = db.get_window(window_id)
+    if not window or window["status"] != "active":
+        raise WindowNotActive(window_id)
+
+    # 1. Actualizar estado
+    window["status"] = "closed"
+    window["closed_at"] = now().isoformat()
+    window["close_reason"] = reason
+
+    db.update_window(window_id, window)
+
+    # 2. Aplicar cambios de estado del sistema
+    self.apply_window_state(window["type"], "closed")
+
+    # 3. Limpiar recursos temporales
+    await self.cleanup_window_resources(window_id)
+
+    # 4. Notificar a todos los componentes
+    await self.notify_window_closed(window)
+
+    # 5. Registrar auditoría
+    self.audit_window_closure(window, reason)
+
+    # 6. Si hay intents en ejecución, abortar o completar
+    if window["type"] == "inee_execute":
+        await self.handle_running_intents_on_close(window)
+```
+
+### Control de Recursos
+
+#### 7.5 Límites de Recursos por Ventana
+```python
+WINDOW_RESOURCE_LIMITS = {
+    "inee_simulate": {
+        "max_concurrent_simulations": 10,
+        "max_cpu_percent": 30,
+        "max_memory_mb": 1024,
+        "max_disk_mb": 500,
+        "max_network_kbps": 100
+    },
+    "inee_execute": {
+        "max_concurrent_executions": 5,
+        "max_cpu_percent": 50,
+        "max_memory_mb": 2048,
+        "max_disk_mb": 1000,
+        "max_network_kbps": 500,
+        "allowed_intent_types": ["maintenance", "update", "configuration"]
+    },
+    "builder_active": {
+        "max_concurrent_builds": 3,
+        "max_cpu_percent": 70,
+        "max_memory_mb": 4096,
+        "max_disk_mb": 2000,
+        "max_network_kbps": 1000,
+        "allowed_operations": ["build_patch", "build_module", "validate"]
+    }
+}
+
+class ResourceMonitor:
+    def check_window_resources(self, window_type):
+        """Verifica que hay recursos disponibles para ventana"""
+
+        limits = WINDOW_RESOURCE_LIMITS.get(window_type, {})
+
+        # Verificar cada recurso
+        for resource, limit in limits.items():
+            if resource.startswith("max_"):
+                current = self.get_current_usage(resource)
+                if current > limit * 0.8:  # Si ya estamos al 80%
+                    return False, f"resource_{resource}_near_limit"
+
+        return True, "ok"
+
+    def allocate_window_resources(self, window_id, window_type):
+        """Asigna recursos para ventana"""
+
+        allocation = {
+            "window_id": window_id,
+            "window_type": window_type,
+            "allocated_at": now().isoformat(),
+            "resources": WINDOW_RESOURCE_LIMITS.get(window_type, {}).copy()
+        }
+
+        # Registrar asignación
+        db.insert("inee_resource_allocations", allocation)
+
+        # Aplicar límites en el sistema
+        self.apply_resource_limits(window_type)
+
+        return allocation
+```
+
+### Extensiones y Emergencias
+
+#### 7.6 Extensión de Ventana
+```python
+def request_window_extension(self, window_id, additional_duration, reason):
+    """Solicita extensión de ventana activa"""
+
+    window = db.get_window(window_id)
+    if not window or window["status"] != "active":
+        raise WindowNotActive(window_id)
+
+    # 1. Verificar máximo de extensión
+    max_extension = window.get("max_extension", 3600)  # 1 hora por defecto
+    if additional_duration > max_extension:
+        raise ExtensionExceedsLimit(additional_duration, max_extension)
+
+    # 2. Verificar si requiere aprobación humana
+    total_duration = (parse_iso(window["closes_at"]) - parse_iso(window["opens_at"])).total_seconds()
+    new_total = total_duration + additional_duration
+
+    if new_total > self.AUTO_APPROVAL_MAX_DURATION.get(window["type"], 1800):
+        # Requiere aprobación humana
+        return self.request_extension_approval(window_id, additional_duration, reason)
+    else:
+        # Auto-aprobar
+        return self.grant_extension_auto(window_id, additional_duration, reason)
+
+def grant_extension_auto(self, window_id, additional_duration, reason):
+    """Concede extensión automáticamente"""
+
+    # Actualizar ventana
+    window = db.get_window(window_id)
+    window["closes_at"] = (parse_iso(window["closes_at"]) +
+                          timedelta(seconds=additional_duration)).isoformat()
+    window["extensions"].append({
+        "granted_at": now().isoformat(),
+        "additional_duration": additional_duration,
+        "reason": reason,
+        "granted_by": "system"
+    })
+
+    db.update_window(window_id, window)
+
+    # Reprogramar cierre
+    asyncio.create_task(self.reschedule_window_close(window_id, additional_duration))
+
+    # Notificar
+    self.notify_window_extended(window_id, additional_duration, reason)
+
+    return True
+```
+
+#### 7.7 Cierre de Emergencia
+```python
+def emergency_close_all_windows(self, reason, initiated_by):
+    """Cierra todas las ventanas de emergencia"""
+
+    # 1. Obtener todas las ventanas activas
+    active_windows = db.get_active_windows()
+
+    # 2. Para cada ventana
+    for window in active_windows:
+        # 3. Abortar operaciones en curso
+        self.abort_window_operations(window["id"])
+
+        # 4. Cerrar ventana
+        asyncio.create_task(self.emergency_close_window(
+            window["id"], reason, initiated_by
+        ))
+
+    # 5. Cambiar estado global a solo_madre
+    self.set_global_state("solo_madre")
+
+    # 6. Notificar a todas las colonias
+    self.notify_all_colonies_emergency(reason)
+
+    # 7. Registrar evento de auditoría crítico
+    self.audit_emergency_close(reason, initiated_by, len(active_windows))
+
+    return len(active_windows)
+```
+
+### Auditoría de Ventanas
+
+#### 7.8 Registro Completo de Ventanas
+```python
+def audit_window_operation(self, operation, window_id, details):
+    """Registra operación de ventana para auditoría"""
+
+    audit_record = {
+        "id": generate_uuid(),
+        "timestamp": now().isoformat(),
+        "operation": operation,  # open, close, extend, etc.
+        "window_id": window_id,
+        "initiated_by": details.get("initiated_by"),
+        "details": details,
+        "system_state_before": self.get_system_state(),
+        "system_state_after": None  # Se actualizará después
+    }
+
+    # Insertar en DB
+    db.insert("inee_window_audit", audit_record)
+
+    return audit_record["id"]
+
+def get_window_statistics(self, time_range="day"):
+    """Obtiene estadísticas de uso de ventanas"""
+
+    query = """
+        SELECT
+            window_type,
+            COUNT(*) as total_windows,
+            SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) as active_windows,
+            AVG(julianday(closes_at) - julianday(opens_at)) * 86400 as avg_duration_seconds,
+            SUM(CASE WHEN close_reason = 'auto_timeout' THEN 1 ELSE 0 END) as auto_closed,
+            SUM(CASE WHEN close_reason = 'manual' THEN 1 ELSE 0 END) as manually_closed,
+            SUM(CASE WHEN close_reason LIKE 'emergency%' THEN 1 ELSE 0 END) as emergency_closed
+        FROM inee_windows
+        WHERE opens_at > datetime('now', ?)
+        GROUP BY window_type
+    """
+
+    time_map = {
+        "day": "-1 day",
+        "week": "-7 days",
+        "month": "-30 days"
+    }
+
+    results = db.query(query, (time_map.get(time_range, "-1 day"),))
+
+    return {
+        "time_range": time_range,
+        "statistics": results,
+        "summary": self.calculate_window_summary(results)
+    }
+```
+
+### Integración con Dashboard Operator
+
+#### 7.9 Interfaz de Control de Ventanas
+```json
+{
+  "current_state": "solo_madre",
+  "active_windows": [],
+  "window_requests_pending": [
+    {
+      "id": "req-001",
+      "window_type": "inee_execute",
+      "requested_by": "colony:taller-01",
+      "reason": "emergency_firmware_update",
+      "requested_duration": 1800,
+      "requested_at": "2025-12-28T10:00:00Z",
+      "requires_human_approval": true
+    }
+  ],
+  "window_history_recent": [
+    {
+      "id": "win-123",
+      "type": "inee_simulate",
+      "status": "closed",
+      "duration_seconds": 7200,
+      "opened_at": "2025-12-27T14:00:00Z",
+      "closed_at": "2025-12-27T16:00:00Z",
+      "reason": "routine_simulation_batch"
+    }
+  ],
+  "resource_usage": {
+    "cpu_percent": 45.2,
+    "memory_mb": 2048,
+    "memory_total_mb": 8192,
+    "active_hijas": 3,
+    "max_hijas_allowed": 10
+  },
+  "next_allowed_window": "2025-12-28T22:00:00Z"
+}
+```
+
+### Comandos de Operación
+
+#### 7.10 API de Control
+```python
+# Solicitar ventana (desde colonia o internamente)
+POST /api/v1/inee/windows/request
+{
+  "window_type": "inee_execute",
+  "duration": 3600,
+  "reason": "critical_maintenance",
+  "priority": "high"
+}
+
+# Aprobar/rechazar ventana (operador)
+POST /api/v1/operator/windows/approve
+{
+  "window_request_id": "req-001",
+  "decision": "approve",  # or "deny"
+  "approved_duration": 1800,  # puede ser menor que solicitado
+  "comments": "Approved for emergency maintenance"
+}
+
+# Ver estado actual
+GET /api/v1/inee/windows/status
+
+# Cerrar ventana manualmente
+POST /api/v1/inee/windows/close
+{
+  "window_id": "win-123",
+  "reason": "maintenance_completed"
+}
+
+# Extender ventana
+POST /api/v1/inee/windows/extend
+{
+  "window_id": "win-123",
+  "additional_duration": 900,
+  "reason": "update_taking_longer"
+}
+```
+
+---
+
+*Nota: Este documento FLOWS.md refinado cubre los flujos principales. Los detalles de implementación específicos de código, prompts, diagramas y SQL se encuentran en los siguientes archivos entregables.*
