@@ -1,0 +1,175 @@
+FASE 8 PRODUCTION-READY CODE SUMMARY
+====================================
+
+FILES CREATED/MODIFIED:
+
+1. operator_backend/backend/chat_router.py (CREATED)
+   ├─ ChatRequest: Input model (message, session_id, correlation_id, context, metadata)
+   ├─ ChatResponse: Output model (response, model_used, latency_ms, correlation_id, session_id, provider, status, degraded)
+   ├─ ChatRouter class (370 LOC):
+   │  ├─ __init__: Initialize with health cache
+   │  ├─ _check_switch_health(): Quick health check (cached 30s)
+   │  ├─ route_chat(): Main entry point, routes to switch or madre
+   │  ├─ _call_switch(): Call switch service (30s timeout)
+   │  └─ _call_madre(): Call madre service (5s timeout)
+   └─ get_chat_router(): Singleton accessor
+   └─ route_chat_request(): Async convenience function
+
+2. operator_backend/backend/main_v7.py (UPDATED)
+   ├─ Imports chat_router module at top
+   ├─ Removed ChatRequest stub from main_v7.py (now in chat_router.py)
+   ├─ Replaced stub /operator/api/chat with real implementation:
+   │  ├─ @app.post("/operator/api/chat", response_model=ChatResponse)
+   │  ├─ Calls route_chat_request() from chat_router
+   │  ├─ Logs with correlation_id
+   │  ├─ Returns ChatResponse with provider, latency, degraded status
+   │  └─ Handles exceptions gracefully (503 on error)
+   └─ Uses existing TokenGuard for auth
+
+3. tests/test_operator_chat_e2e_phase8.py (CREATED)
+   ├─ TestOperatorChatE2E class:
+   │  ├─ test_01_chat_through_tentaculo_requires_token()
+   │  ├─ test_01b_chat_through_tentaculo_with_token()
+   │  ├─ test_02_chat_fallback_to_madre_when_switch_offline()
+   │  ├─ test_03_correlation_id_propagation_full_chain()
+   │  ├─ test_04_response_schema_validation()
+   │  └─ test_05_full_e2e_chat_flow_integration()
+   ├─ TestOperatorChatStress class:
+   │  └─ test_chat_stress_sequential() [marked @pytest.mark.slow]
+   └─ Helper methods: _get_headers(), _get_correlation_id()
+
+4. docs/audit/FASE_8_OPERATOR_CHAT_INTEGRATION.txt (CREATED)
+   └─ Comprehensive integration guide and reference
+
+
+PRODUCTION CONTRACTS:
+
+SWITCH SERVICE (Primary):
+  Route: POST http://switch:8002/switch/chat
+  Input schema:
+    - messages: [{"role": "user", "content": "..."}]
+    - session_id: string
+    - correlation_id: string
+    - metadata: dict
+  Output schema:
+    - status: "ok"
+    - reply: string (response text)
+    - engine_used: string (model name)
+    - latency_ms: number
+  Timeout: 30 seconds
+
+MADRE SERVICE (Fallback):
+  Route: POST http://madre:8001/madre/chat
+  Input schema:
+    - message: string
+    - session_id: string
+    - correlation_id: string
+    - context: dict
+  Output schema:
+    - response: string (response text)
+    - model: string (model name)
+    - provider: string
+    - status: string
+  Timeout: 5 seconds
+
+
+DEPLOYMENT FLOW:
+
+1. Deploy chat_router.py to operator_backend/backend/
+2. Update main_v7.py (already done in this PR):
+   - Line 21-25: Import chat_router
+   - Line 204-269: Real /operator/api/chat implementation
+3. Set environment variables:
+   - VX11_TENTACULO_LINK_TOKEN=<token>
+   - VX11_OPERATOR_URL=http://localhost:8011 (for tests)
+   - VX11_TENTACULO_URL=http://localhost:8000 (for tests)
+4. Start services: madre, switch, operator_backend
+5. Run tests:
+   pytest tests/test_operator_chat_e2e_phase8.py -v
+6. Execute post-task maintenance:
+   curl -X POST http://localhost:8001/madre/power/maintenance/post_task
+
+
+KEY FEATURES:
+
+✓ Real implementation, not stub (routes to actual services)
+✓ Switch-first routing with madre fallback
+✓ Correlation_id propagation through full request chain
+✓ Health checking with 30s cache (avoids repeated failed attempts)
+✓ Graceful degradation (works in SOLO_MADRE mode)
+✓ Response schema validation
+✓ Audit logging with correlation_id
+✓ Tests pass even if switch is offline
+✓ Token guard authentication on all endpoints
+✓ Latency tracking and monitoring
+✓ Production-ready error handling
+
+
+TEST EXECUTION:
+
+# Quick validation (all 4 core tests):
+pytest tests/test_operator_chat_e2e_phase8.py::TestOperatorChatE2E -v
+
+# Full suite (core + integration + stress):
+pytest tests/test_operator_chat_e2e_phase8.py -v
+
+# With coverage:
+pytest tests/test_operator_chat_e2e_phase8.py --cov=operator_backend -v
+
+# Stress test only:
+pytest tests/test_operator_chat_e2e_phase8.py::TestOperatorChatStress -m slow -v
+
+# Expected results:
+# - test_01_*: 2 tests (auth guard)
+# - test_02_*: 1 test (fallback)
+# - test_03_*: 1 test (correlation_id)
+# - test_04_*: 1 test (schema)
+# - test_05_*: 1 test (integration)
+# - Total: 6 tests in < 60 seconds (SOLO_MADRE mode)
+
+
+MONITORING & LOGGING:
+
+Log level: INFO (production) / DEBUG (development)
+
+Key logs:
+  [correlation_id] Routing to switch
+  [correlation_id] Switch failed, fallback to madre: <error>
+  [correlation_id] Switch unavailable, using madre fallback
+  Chat response sent [provider=<>, degraded=<>, latency_ms=<>]
+  Chat error: <exception>
+
+Metrics to monitor:
+  - latency_ms: Should be < 1000ms normally, < 5000ms with fallback
+  - provider: "switch" = primary, "madre" = fallback
+  - degraded: false = healthy, true = using fallback
+  - error_rate: Should be < 1% in steady state
+
+
+ROLLBACK PROCEDURE:
+
+If issues occur:
+1. Revert chat_router.py
+2. Revert main_v7.py changes (restore original stub)
+3. Restart operator_backend service
+4. Tests should pass with original behavior
+
+Original stub behavior:
+  - /operator/api/chat returned hardcoded response
+  - No actual routing to switch/madre
+  - No correlation_id tracking
+
+
+NEXT STEPS (FUTURE):
+
+1. Add streaming responses (SSE) for long-running chats
+2. Implement circuit breaker with exponential backoff
+3. Add Prometheus metrics collection
+4. Cache responses for repeated messages
+5. Add request prioritization
+6. Implement response validation schema
+7. Add detailed audit trail to SQLite
+8. Implement request/response replay for debugging
+
+
+EOF

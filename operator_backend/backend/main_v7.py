@@ -11,11 +11,20 @@ This module exists to satisfy import requirements and provide a canonical contra
 
 import os
 import uuid
+import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from fastapi import Depends, FastAPI, Header, HTTPException
 from pydantic import BaseModel
+
+from operator_backend.backend.chat_router import (
+    ChatRequest,
+    ChatResponse,
+    route_chat_request,
+)
+
+log = logging.getLogger("vx11.operator")
 
 # Token from config
 VX11_TOKEN = (
@@ -198,25 +207,68 @@ class ChatRequest(BaseModel):
     message: str
     session_id: Optional[str] = None
     correlation_id: Optional[str] = None
+    context: Optional[Dict[str, Any]] = None
+    metadata: Optional[Dict[str, Any]] = None
 
 
-@app.post("/operator/api/chat")
+class ChatResponse(BaseModel):
+    """Chat response model."""
+
+    response: str
+    model_used: str
+    latency_ms: float
+    correlation_id: str
+    session_id: str
+    provider: str
+    status: str = "ok"
+    degraded: bool = False
+
+
+@app.post("/operator/api/chat", response_model=ChatResponse)
 async def operator_api_chat(
     req: ChatRequest,
     _: bool = Depends(token_guard),
 ):
-    """Chat endpoint (may be degraded if switch is dormant)."""
-    correlation_id = req.correlation_id or str(uuid.uuid4())
-    return {
-        "ok": True,
-        "data": {
-            "correlation_id": correlation_id,
-            "session_id": req.session_id or str(uuid.uuid4()),
-            "response": "Chat service available (dormant/active determined by ventana)",
-            "model": "switch_routed",
-            "timestamp": datetime.utcnow().isoformat(),
-        },
-    }
+    """
+    Chat endpoint (real implementation, routes to switch → madre fallback).
+
+    Features:
+    - Maintains correlation_id through full request chain
+    - Switches to madre if switch service is dormant
+    - Returns degraded status if using fallback
+    - Logs all interactions for audit trail
+    """
+    try:
+        correlation_id = req.correlation_id or str(uuid.uuid4())
+        session_id = req.session_id or str(uuid.uuid4())
+
+        log.info(
+            f"Chat request received [correlation_id={correlation_id}]",
+            extra={"correlation_id": correlation_id, "session_id": session_id},
+        )
+
+        resp = await route_chat_request(req)
+
+        log.info(
+            f"Chat response sent [provider={resp.provider}, "
+            f"degraded={resp.degraded}, latency_ms={resp.latency_ms}]",
+            extra={
+                "correlation_id": correlation_id,
+                "provider": resp.provider,
+                "degraded": resp.degraded,
+            },
+        )
+
+        return resp
+    except Exception as e:
+        log.error(
+            f"Chat error: {e}",
+            extra={"correlation_id": req.correlation_id or "unknown"},
+            exc_info=True,
+        )
+        raise HTTPException(
+            status_code=503, detail=f"Chat service unavailable: {str(e)}"
+        )
 
 
 @app.post("/operator/capabilities")

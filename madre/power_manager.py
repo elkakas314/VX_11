@@ -215,7 +215,7 @@ def _run_sqlite_check(
         fh.write(res.get("stdout", ""))
         if res.get("stderr"):
             fh.write("\n# STDERR:\n")
-            fh.write(res.get("stderr"))
+            fh.write(res.get("stderr", ""))
     return res
 
 
@@ -274,6 +274,7 @@ def _db_services() -> List[str]:
     )
     if not os.path.exists(db_path):
         return []
+    conn = None
     try:
         conn = sqlite3.connect(db_path)
         cur = conn.cursor()
@@ -288,10 +289,11 @@ def _db_services() -> List[str]:
     except Exception:
         return []
     finally:
-        try:
-            conn.close()
-        except Exception:
-            pass
+        if conn is not None:
+            try:
+                conn.close()
+            except Exception:
+                pass
 
 
 def _allowlist() -> Tuple[List[str], str]:

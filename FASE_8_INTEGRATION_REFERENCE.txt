@@ -1,0 +1,231 @@
+FASE 8: CODE INTEGRATION REFERENCE
+====================================
+
+This file shows exact locations and integration points for FASE 8 code.
+
+
+FILE 1: operator_backend/backend/chat_router.py
+================================================
+[NEW FILE - 370 LOC]
+
+Location: /home/elkakas314/vx11/operator_backend/backend/chat_router.py
+
+Imports in this file:
+  import asyncio
+  import httpx
+  import json
+  import logging
+  import time
+  import uuid
+  from typing import Any, Dict, Optional
+  from datetime import datetime
+  from pydantic import BaseModel
+
+Key classes:
+  - ChatRequest(BaseModel): Input schema
+  - ChatResponse(BaseModel): Output schema  
+  - ChatRouter: Main routing logic
+
+Public API:
+  get_chat_router() -> ChatRouter: Get singleton instance
+  route_chat_request(req: ChatRequest) -> ChatResponse: Async entry point
+
+Configuration constants:
+  SWITCH_BASE_URL = "http://switch:8002"
+  MADRE_BASE_URL = "http://madre:8001"
+  REQUEST_TIMEOUT = 30.0 (for switch)
+  FALLBACK_TIMEOUT = 5.0 (for madre)
+
+
+FILE 2: operator_backend/backend/main_v7.py
+=============================================
+[MODIFIED FILE - 398 LOC total, ~70 LOC changed]
+
+Location: /home/elkakas314/vx11/operator_backend/backend/main_v7.py
+
+Changes (3 sections):
+
+Section 1 - Imports (line 1-31):
+  ADDED:
+    import logging
+    from operator_backend.backend.chat_router import (
+        ChatRequest,
+        ChatResponse,
+        route_chat_request,
+    )
+    log = logging.getLogger("vx11.operator")
+
+Section 2 - Schema Definitions (line 203-230):
+  KEPT (from original): ChatRequest class definition
+  KEPT (from original): ChatResponse class definition
+  Note: These duplicate definitions exist in both files for backward compatibility
+        In production, could consolidate into chat_router.py only
+
+Section 3 - Endpoint Implementation (line 232-270):
+  REPLACED:
+    OLD: Stub that returned hardcoded response
+    NEW: Real implementation with:
+      - Async call to route_chat_request()
+      - Logging with correlation_id
+      - Error handling with 503 status code
+      - Return ChatResponse type
+
+Endpoint signature:
+  @app.post("/operator/api/chat", response_model=ChatResponse)
+  async def operator_api_chat(
+      req: ChatRequest,
+      _: bool = Depends(token_guard),
+  ) -> ChatResponse:
+
+Response flow:
+  1. Token guard validates x-vx11-token header
+  2. ChatRequest parsed from JSON body
+  3. route_chat_request() called (routes to switch or madre)
+  4. ChatResponse returned with provider/latency/degraded status
+  5. On error: HTTPException(503) raised
+
+
+FILE 3: tests/test_operator_chat_e2e_phase8.py
+================================================
+[NEW FILE - 500+ LOC]
+
+Location: /home/elkakas314/vx11/tests/test_operator_chat_e2e_phase8.py
+
+Test classes:
+  - TestOperatorChatE2E: Main E2E test suite (6 tests)
+  - TestOperatorChatStress: Optional stress tests (1 test marked @pytest.mark.slow)
+
+Environment variables (read from os.getenv):
+  VX11_OPERATOR_URL: "http://localhost:8011" (default)
+  VX11_TENTACULO_URL: "http://localhost:8000" (default)
+  VX11_MADRE_URL: "http://localhost:8001" (default)
+  VX11_SWITCH_URL: "http://localhost:8002" (default)
+  VX11_TOKEN: "test-token-vx11" (default)
+
+Test methods (execution order):
+  1. test_01_chat_through_tentaculo_requires_token() [1-2 sec]
+     Verify: 401/403 without token
+  
+  2. test_01b_chat_through_tentaculo_with_token() [3-5 sec]
+     Verify: 200 with token, response structure
+  
+  3. test_02_chat_fallback_to_madre_when_switch_offline() [3-5 sec]
+     Verify: Works even if switch offline
+  
+  4. test_03_correlation_id_propagation_full_chain() [3-5 sec]
+     Verify: correlation_id maintained in response
+  
+  5. test_04_response_schema_validation() [3-5 sec]
+     Verify: All fields present with correct types
+  
+  6. test_05_full_e2e_chat_flow_integration() [5-10 sec]
+     Verify: Both direct and proxied paths work
+
+  7. test_chat_stress_sequential() [10-20 sec, marked @pytest.mark.slow]
+     Verify: 5 sequential requests, latency < 5000ms each
+
+Total runtime: ~20-45 seconds in SOLO_MADRE mode
+
+
+INTEGRATION CHECKLIST
+======================
+
+File deployment:
+  [ ] Copy operator_backend/backend/chat_router.py to /operator_backend/backend/
+  [ ] Update operator_backend/backend/main_v7.py (imports + endpoint)
+  [ ] Copy tests/test_operator_chat_e2e_phase8.py to /tests/
+
+Environment setup:
+  [ ] Set VX11_TENTACULO_LINK_TOKEN in .env or docker-compose.yml
+  [ ] Ensure VX11_TOKEN matches across services
+  [ ] Configure SWITCH_BASE_URL to reach switch service (http://switch:8002)
+  [ ] Configure MADRE_BASE_URL to reach madre service (http://madre:8001)
+
+Service startup:
+  [ ] Start madre (port 8001)
+  [ ] Start switch (port 8002)
+  [ ] Start operator_backend (port 8011)
+  [ ] Verify healthchecks: /health on each service
+
+Testing:
+  [ ] Run: pytest tests/test_operator_chat_e2e_phase8.py -v
+  [ ] Expected: 6 tests PASSED in < 60 seconds
+  [ ] Check logs for correlation_id tracking
+  [ ] Verify provider field shows "switch" or "madre"
+
+Validation:
+  [ ] curl -H "x-vx11-token: $VX11_TOKEN" -X POST \
+         http://localhost:8011/operator/api/chat \
+         -H "Content-Type: application/json" \
+         -d '{"message": "test", "session_id": "test-1"}'
+  [ ] Response includes: response, model_used, latency_ms, correlation_id, provider
+
+Post-deployment:
+  [ ] Execute post-task: curl -X POST \
+         http://localhost:8001/madre/power/maintenance/post_task
+  [ ] Commit changes: git add -A && git commit -m "vx11: chat_router: fase 8 real chat"
+  [ ] Push to vx_11_remote: git push vx_11_remote main
+
+
+ERROR TROUBLESHOOTING
+======================
+
+Error: "ModuleNotFoundError: No module named 'operator_backend.backend.chat_router'"
+Solution: Ensure chat_router.py is in operator_backend/backend/ directory
+          Check PYTHONPATH includes project root
+
+Error: "ConnectionRefusedError" at switch service
+Solution: Switch service not running - tests will use madre fallback (expected)
+          Verify madre is running on port 8001
+
+Error: "401 Unauthorized" on /operator/api/chat
+Solution: Missing or incorrect x-vx11-token header
+          Set header: x-vx11-token: <VX11_TOKEN>
+
+Error: Tests timeout (> 60 seconds)
+Solution: Services responding slowly - check service health
+          Run: curl http://localhost:8001/health (madre)
+          Run: curl http://localhost:8002/health (switch)
+
+Error: "response_model validation error"
+Solution: Response from switch/madre doesn't match ChatResponse schema
+          Check fields: response, model_used, latency_ms, correlation_id, 
+                       session_id, provider, status, degraded
+
+
+MIGRATION FROM STUB
+====================
+
+Before (stub):
+  @app.post("/operator/api/chat")
+  async def operator_api_chat(req: ChatRequest, _: bool = Depends(token_guard)):
+      return {
+          "ok": True,
+          "data": {
+              "correlation_id": str(uuid.uuid4()),
+              "response": "Chat service available (dormant/active...)",
+              "model": "switch_routed",
+          },
+      }
+
+After (real):
+  @app.post("/operator/api/chat", response_model=ChatResponse)
+  async def operator_api_chat(req: ChatRequest, _: bool = Depends(token_guard)):
+      resp = await route_chat_request(req)
+      return resp  # ChatResponse with real data
+
+Response structure change:
+  OLD: {"ok": True, "data": {...}}
+  NEW: ChatResponse model (Pydantic) → serialized as {"response": "...", "provider": "...", ...}
+
+
+VERSION CONSTRAINTS
+===================
+
+Python: 3.11+ (uses asyncio.run, async/await)
+FastAPI: 0.100+ (response_model parameter)
+Pydantic: 2.0+ (BaseModel with validators)
+httpx: 0.24+ (AsyncClient context manager)
+
+
+EOF
