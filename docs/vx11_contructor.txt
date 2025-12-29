@@ -1,0 +1,1005 @@
+ 
+# 0) Executive Summary (máx 25 líneas)
+
+* Se canonizan **dos módulos full_profile** (sin activarlos): **Manifestator v7.0.0** y **Shub-Niggurath v1.7.1**, en `docs/canonical/modules/...`, con **aliases idénticos**.
+* Se integra en el canon VX11 **sin romper “SOLO MADRE ARRIBA”**: se actualizan **CANONICAL_FS** (nuevos paths) y **CANONICAL_RUNTIME_POLICY** (ventana temporal permitida), manteniendo la constraint **“remain OFF by default”** intacta.
+* **No se “enciende” nada**: Manifestator y Shub quedan **disabled by default**; solo se levantan bajo **ventana temporal explícita** de Madre (mantenimiento/verify).
+* **P0 principal**: el verificador del canon podría ser estricto con `CANONICAL_MASTER_VX11.json` (`sha256` y/o `canonical_files`). Decisión segura: **NO añadir `canonical_files.modules` ni hashes de módulos al master** sin evidencia del parser; **sí actualizar los hashes existentes** de los 5 canónicos cuando cambien.
+* **Automatismos**: en Manifestator, `auto_scan` y `ai_suggestions` quedan **OFF por defecto** (el DOCX venía con ON; se corrige para cumplir policy).
+* Evidencia obligatoria: se genera `docs/audit/<timestamp>/` con hashes, diffs, y resultado de verificación canónica.
+
+---
+
+# 1) Inventory del ZIP (lista de archivos + “source of truth”)
+
+| Archivo (en `vx11_contructor.zip`)                                   |                                             Propósito | Prioridad | Decisión / Source of truth                                                                           |
+| -------------------------------------------------------------------- | ----------------------------------------------------: | --------: | ---------------------------------------------------------------------------------------------------- |
+| `Crear manifestador canonico(1).docx`                                |       **Spec principal Manifestator** (JSON completo) |        P0 | **Fuente de verdad Manifestator**. Se corrige solo lo necesario para policy (automatismos OFF).      |
+| `Auditoría y Cierre del Módulo Shub-Niggurath (VX11).docx`           |        **Spec principal Shub** (JSON completo v1.7.0) |        P0 | **Fuente de verdad Shub**. Se bump a **1.7.1** por integración (sin inventar features).              |
+| `CANONICAL_MASTER_VX11.json`                                         |                   Canon master (5 canónicos + sha256) |        P0 | **No añadir `modules`** sin evidencia del parser. **Sí actualizar hashes existentes** tras cambios.  |
+| `CANONICAL_FS_VX11.json`                                             |                       Snapshot FS (lista de archivos) |        P0 | Añadir 4 nuevos JSONs canónicos de módulos y mantener orden.                                         |
+| `CANONICAL_RUNTIME_POLICY_VX11.json`                                 |             Policy `solo_madre` + ventanas temporales |        P0 | Añadir `manifestator` y `shubniggurath` a `allowed_temporal_window_core` **sin tocar constraints**.  |
+| `CANONICAL_SEMANTIC_VX11.json`                                       |                         Declara full_profile/disabled |        P0 | Ya incluye manifestator/shubniggurath como full_profile → **solo verificar, no inventar**.           |
+| `CANONICAL_TARGET_FS_VX11.json`                                      |                                     Invariantes/roots |        P1 | No requiere cambio (los nuevos paths están bajo `docs/`). Verificar invariantes.                     |
+| `CANONICAL_FLOWS_VX11.json`                                          |                                      Flujos canónicos |        P1 | No se toca salvo evidencia de dependencia explícita (no aportada aquí).                              |
+| `[1] EXEC SUMMARY.pdf`                                               |      Investigación + patch plan + propuesta de hashes |        P1 | Checklist/plan. Ojo: propone meter `modules` en master → **bloqueado** hasta confirmar verificador.  |
+| `[1] EXEC SUMMARY(1).docx`                                           | Misma info en DOCX (incluye JSON minimal 1.7.1/7.0.0) |        P1 | Se usa como **checklist** (nombres de salida, rutas), no como spec final.                            |
+| `Plan de Integración de Manifestator y Shub-Niggurath en VX11.pdf`   |                                   Plan de integración |        P1 | Referencia de pasos; no sustituye specs DOCX principales.                                            |
+| `Plan de Integración de Manifestator y Shub-Niggurath en VX11-1.pdf` |                                     Variante del plan |        P2 | Solo redundancia.                                                                                    |
+| `Plan de Integración ... .docx`                                      |                                Variante docx del plan |        P2 | Redundante.                                                                                          |
+| `vx11_manifestator_shub_input_gap_*.md`                              |                       Report viejo de “faltan inputs” |        P2 | Obsoleto (ya están en ZIP). Se conserva como evidencia histórica.                                    |
+| `vx11_isolation_diff_*.txt`                                          |                                      Placeholder diff |        P2 | Sin contenido útil (solo ruta).                                                                      |
+
+**Fuentes de verdad fijadas:**
+
+* A) Shub canon: `Auditoría y Cierre ... Shub ... .docx` (JSON completo) + bump versión a 1.7.1 por integración.
+* B) Manifestator canon: `Crear manifestador canonico(1).docx` (JSON completo) + automatismos OFF por policy.
+* C) Cambios CANONICAL_*: `CANONICAL_FS_*`, `CANONICAL_RUNTIME_POLICY_*`, `CANONICAL_MASTER_*` + checklist en EXEC SUMMARY.
+
+---
+
+# 2) Canon Final: SHUB (JSON inline)
+
+```json
+{
+  "schema": "VX11_SHUB_CANONICAL",
+  "version": "1.7.1",
+  "changelog": [
+    {
+      "id": "1.7.1",
+      "summary": "Canonical freeze for VX11 integration (no runtime behavior changes; OFF by default; docs/canonical/modules placement).",
+      "type": "patch",
+      "notes": [
+        "Bumps version from 1.7.0 → 1.7.1 to match VX11 integration bundle expectations.",
+        "No breaking changes; existing endpoints and job taxonomy unchanged.",
+        "Module remains disabled by default under SOLO_MADRE policy."
+      ]
+    },
+    {
+      "id": "1.7.0",
+      "summary": "Expanded engines and pipelines, enhanced contracts, improved safety and observability.",
+      "type": "minor",
+      "notes": [
+        "Adds/expands engine registry and pipelines.",
+        "Clarifies VX11 integration: Madre-managed lifecycle, Tentaculo_link relay-only access.",
+        "Adds feature flags and safety constraints; defaults set to minimize accidental activation."
+      ]
+    }
+  ],
+  "compatibility": {
+    "breaking_changes": [],
+    "compat_shims": {
+      "job_type_enum_unchanged": true,
+      "existing_endpoints_unchanged": true,
+      "contract_extensions_backward_compatible": true
+    },
+    "migration_notes": "New optional tables added. Existing job data unaffected. New feature flags default to false. (1.7.1: canonical freeze/version bump only; no migration required.)"
+  },
+  "module": {
+    "name": "shubniggurath",
+    "role": "Audio Engine (REAPER-first) + DSP pipelines + job runner",
+    "default_state": "disabled",
+    "listen": {
+      "host": "0.0.0.0",
+      "port": 8007
+    },
+    "dependencies": [
+      "madre",
+      "tentaculo_link"
+    ],
+    "optional_dependencies": [
+      "switch",
+      "operator_backend",
+      "spawner"
+    ],
+    "service_control": {
+      "owner": "madre",
+      "mode": "madre_managed",
+      "start_stop_mechanism": "docker_compose_or_systemd",
+      "notes": "VX11 default is 'solo madre arriba'. Shub is started only when Madre schedules audio work."
+    },
+    "resource_profile": {
+      "default": "sleeping",
+      "caps": {
+        "max_workers": 2,
+        "max_concurrent_jobs": 2,
+        "max_concurrent_renders": 1,
+        "max_concurrent_uploads": 1
+      },
+      "idle_ttl_seconds": 180,
+      "lazy_import_heavy_modules": true,
+      "wake_on_demand": true,
+      "wake_timeout_seconds": 30
+    },
+    "logging": {
+      "level": "INFO",
+      "structured": true,
+      "audit_events": true,
+      "redact_tokens": true,
+      "log_root": "forensic/shub/"
+    }
+  },
+  "api": {
+    "base_prefix": "/shub",
+    "convention": "All endpoints are under /shub/* and are accessed via tentaculo_link relay only (no direct public exposure).",
+    "health_envelope": {
+      "fields": [
+        "ok",
+        "module",
+        "version",
+        "state",
+        "timestamp_utc",
+        "details"
+      ],
+      "notes": "Health responses must be stable for Madre/Operator dashboards."
+    },
+    "error_envelope": {
+      "fields": [
+        "ok",
+        "error_code",
+        "message",
+        "correlation_id",
+        "retryable",
+        "details"
+      ]
+    },
+    "auth_headers": {
+      "token_header": "X-VX11-Token",
+      "signature_header": "X-VX11-Signature",
+      "timestamp_header": "X-VX11-Timestamp",
+      "nonce_header": "X-VX11-Nonce",
+      "notes": "Tentaculo_link is the trust boundary; Shub validates signed relay requests."
+    },
+    "idempotency": {
+      "header": "Idempotency-Key",
+      "enforced_on": [
+        "POST /shub/jobs",
+        "POST /shub/jobs/{job_id}/actions",
+        "POST /shub/presets",
+        "POST /shub/uploads",
+        "POST /shub/reaper/session"
+      ],
+      "storage_table": "shub_idempotency_keys",
+      "notes": "Idempotency is mandatory for job submission and side-effectful actions."
+    },
+    "openapi": true,
+    "endpoints": [
+      {
+        "method": "GET",
+        "path": "/health",
+        "contract": "Healthcheck",
+        "security": {
+          "required": false
+        }
+      },
+      {
+        "method": "GET",
+        "path": "/ready",
+        "contract": "Readinesscheck",
+        "security": {
+          "required": true
+        }
+      },
+      {
+        "method": "GET",
+        "path": "/version",
+        "contract": "VersionInfo",
+        "security": {
+          "required": false
+        }
+      },
+      {
+        "method": "POST",
+        "path": "/jobs",
+        "contract": "SubmitJob",
+        "security": {
+          "required": true
+        }
+      },
+      {
+        "method": "GET",
+        "path": "/jobs/{job_id}",
+        "contract": "GetJob",
+        "security": {
+          "required": true
+        }
+      },
+      {
+        "method": "GET",
+        "path": "/jobs/{job_id}/events",
+        "contract": "GetJobEvents",
+        "security": {
+          "required": true
+        }
+      },
+      {
+        "method": "GET",
+        "path": "/jobs/{job_id}/artifacts",
+        "contract": "ListArtifacts",
+        "security": {
+          "required": true
+        }
+      },
+      {
+        "method": "GET",
+        "path": "/jobs/{job_id}/artifacts/{artifact_id}",
+        "contract": "DownloadArtifact",
+        "security": {
+          "required": true
+        },
+        "returns": "ShubJobArtifact",
+        "notes": "Must be accessed via tentaculo_link relay only."
+      },
+      {
+        "method": "POST",
+        "path": "/jobs/{job_id}/actions",
+        "contract": "JobAction",
+        "security": {
+          "required": true
+        }
+      },
+      {
+        "method": "POST",
+        "path": "/presets",
+        "contract": "PresetUpsert",
+        "security": {
+          "required": true
+        }
+      },
+      {
+        "method": "GET",
+        "path": "/presets",
+        "contract": "PresetList",
+        "security": {
+          "required": true
+        }
+      },
+      {
+        "method": "POST",
+        "path": "/uploads",
+        "contract": "UploadArtifact",
+        "security": {
+          "required": true
+        }
+      },
+      {
+        "method": "POST",
+        "path": "/reaper/session",
+        "contract": "ReaperSessionStart",
+        "security": {
+          "required": true
+        }
+      },
+      {
+        "method": "POST",
+        "path": "/reaper/session/{session_id}/close",
+        "contract": "ReaperSessionClose",
+        "security": {
+          "required": true
+        }
+      },
+      {
+        "method": "GET",
+        "path": "/engines",
+        "contract": "EngineList",
+        "security": {
+          "required": true
+        }
+      },
+      {
+        "method": "GET",
+        "path": "/pipelines",
+        "contract": "PipelineList",
+        "security": {
+          "required": true
+        }
+      },
+      {
+        "method": "POST",
+        "path": "/pipelines/run",
+        "contract": "PipelineRun",
+        "security": {
+          "required": true
+        }
+      },
+      {
+        "method": "GET",
+        "path": "/metrics",
+        "contract": "Metrics",
+        "security": {
+          "required": true
+        }
+      },
+      {
+        "method": "GET",
+        "path": "/events/stream",
+        "contract": "OperatorEventStream",
+        "security": {
+          "required": true
+        },
+        "returns": "SSE stream",
+        "notes": "SSE stream for Operator dashboard via tentaculo_link relay only."
+      }
+    ],
+    "rate_limiting": {
+      "enabled": true,
+      "notes": "Rate limits are enforced at tentaculo_link and optionally at Shub for defense-in-depth."
+    }
+  },
+  "security": {
+    "mode": "HMAC",
+    "algorithm": "HMAC-SHA256",
+    "signature_header": "X-VX11-Signature",
+    "timestamp_header": "X-VX11-Timestamp",
+    "nonce_header": "X-VX11-Nonce",
+    "shared_secret_env": [
+      "VX11_GATEWAY_TOKEN",
+      "VX11_TENTACULO_LINK_TOKEN"
+    ],
+    "max_clock_skew_seconds": 60,
+    "signing_string": "METHOD\\nPATH\\nTIMESTAMP\\nNONCE\\nBODY_SHA256",
+    "replay_protection": {
+      "enabled": true,
+      "nonce_table": "shub_nonce_cache",
+      "nonce_ttl_seconds": 300
+    },
+    "allowlist": {
+      "enabled": true,
+      "trusted_callers": [
+        "tentaculo_link",
+        "madre"
+      ]
+    },
+    "trust_boundary": "No direct external callers. All traffic relayed and signed by tentaculo_link."
+  },
+  "database": {
+    "kind": "sqlite",
+    "vx11_db_path": "data/runtime/vx11.db",
+    "tables_namespace": "shub_",
+    "required_tables": [
+      "shub_jobs",
+      "shub_job_events",
+      "shub_job_artifacts",
+      "shub_presets",
+      "shub_reaper_sessions",
+      "shub_reaper_projects",
+      "shub_render_outputs",
+      "shub_audio_metrics",
+      "shub_pipeline_runs",
+      "shub_idempotency_keys",
+      "shub_nonce_cache",
+      "shub_schema_version",
+      "shub_edit_logs"
+    ],
+    "optional_tables": {
+      "enabled": true,
+      "tables": [
+        "shub_error_reports",
+        "shub_undo_snapshots"
+      ],
+      "auto_create_optional_tables": false,
+      "schema_version_table": "shub_schema_version",
+      "migrations_dir": "shubniggurath/migrations/"
+    },
+    "retention": {
+      "jobs_days": 30,
+      "events_days": 14,
+      "artifacts_days": 30,
+      "metrics_days": 90,
+      "cache_days": 7,
+      "edit_logs_days": 30,
+      "analysis_reports_days": 90,
+      "undo_snapshots_days": 3
+    },
+    "backup": {
+      "before_major_ops": true,
+      "strategy": "rotate_2",
+      "backup_root": "data/runtime/backups/",
+      "auto_vacuum_mode": "INCREMENTAL",
+      "vacuum_on_startup": false
+    }
+  },
+  "engines": {
+    "registry": [
+      {
+        "name": "reaper_bridge",
+        "role": "REAPER session orchestration and render control",
+        "notes": "REAPER-first. Must support headless operation where possible."
+      },
+      {
+        "name": "pipeline_engine",
+        "role": "DSP pipeline execution and chaining",
+        "notes": "Executes declared pipelines with safety caps and degraded modes."
+      },
+      {
+        "name": "edit_engine",
+        "role": "Comping/editing automation",
+        "notes": "Assemble best parts of multiple takes with audit trail."
+      },
+      {
+        "name": "analysis_engine",
+        "role": "Audio analysis and metrics extraction",
+        "notes": "Provides metrics for dashboards and quality checks."
+      }
+    ],
+    "degraded_modes": {
+      "enabled": true,
+      "modes": [
+        "no_reaper",
+        "no_uploads",
+        "analysis_only",
+        "export_only"
+      ],
+      "notes": "When dependencies are missing (REAPER/plugins), Shub must degrade safely instead of crashing."
+    }
+  },
+  "pipelines": {
+    "registry": [
+      {
+        "name": "mixdown_basic",
+        "purpose": "Mixdown pipeline (basic)",
+        "inputs": [
+          "project_path"
+        ],
+        "outputs": [
+          "render_path",
+          "processed_audio"
+        ]
+      },
+      {
+        "name": "mastering_basic",
+        "purpose": "Mastering pipeline (basic)",
+        "inputs": [
+          "audio_path"
+        ],
+        "outputs": [
+          "master_path",
+          "final_processed"
+        ]
+      }
+    ],
+    "notes": "Pipeline registry is declarative; implementation must respect resource caps and idempotency."
+  },
+  "feature_flags": {
+    "reaper_bridge": {
+      "default": true,
+      "description": "Enable REAPER bridge engine"
+    },
+    "pipeline_engine": {
+      "default": true,
+      "description": "Enable DSP pipeline engine"
+    },
+    "virtual_engineer": {
+      "default": false,
+      "description": "Enable 'virtual engineer' behavior (Operator Shub Mode)."
+    },
+    "operator_stream": {
+      "default": true,
+      "description": "SSE events for Operator dashboard"
+    },
+    "spawner_heavy_jobs": {
+      "default": false,
+      "description": "Allow delegating heavy jobs to spawner daughters"
+    },
+    "uploads": {
+      "default": false,
+      "description": "Enable uploads endpoint"
+    },
+    "advanced_engines": {
+      "default": true,
+      "description": "Enable extended engine set"
+    },
+    "vocal_engine": {
+      "default": false,
+      "description": "Enable vocal processing engine"
+    },
+    "drums_engine": {
+      "default": false,
+      "description": "Enable drums processing engine"
+    },
+    "bass_engine": {
+      "default": false,
+      "description": "Enable bass processing engine"
+    },
+    "guitar_engine": {
+      "default": false,
+      "description": "Enable guitar processing engine"
+    },
+    "bus_engine": {
+      "default": false,
+      "description": "Enable bus/stem processing engine"
+    },
+    "delivery_engine": {
+      "default": false,
+      "description": "Enable delivery/export engine"
+    },
+    "restoration_engine": {
+      "default": false,
+      "description": "Enable restoration/noise-reduction engine"
+    },
+    "session_engine": {
+      "default": false,
+      "description": "Enable session lifecycle engine"
+    }
+  },
+  "job_events": {
+    "taxonomy": [
+      "JOB_SUBMITTED",
+      "JOB_ACCEPTED",
+      "JOB_RUNNING",
+      "JOB_PROGRESS",
+      "JOB_ARTIFACT",
+      "JOB_COMPLETED",
+      "JOB_FAILED",
+      "JOB_CANCELED"
+    ]
+  },
+  "validation": {
+    "preflight_checks": [
+      "vx11_db_path exists or is creatable",
+      "required tables exist or migrations available",
+      "disk space threshold",
+      "REAPER availability (if reaper_bridge enabled)",
+      "plugin dependencies (optional)",
+      "port bind and health endpoints"
+    ],
+    "notes": "Preflight must be run on wake/start; failures force degraded mode or safe refusal."
+  },
+  "A_B_C_extensions": {
+    "A_artifacts_download": "Artifact downloads must be streamed; tentaculo_link relays and enforces auth headers; Shub never exposes raw filesystem paths.",
+    "B_idempotency_and_replay": "All POST side-effect endpoints must enforce idempotency and HMAC replay protection.",
+    "C_virtual_engineer_mode": "Operator 'Shub Mode' + SSE event stream + optional Switch language assist (no audio processing in Switch)."
+  },
+  "vx11_alignment": {
+    "runtime_policy": "solo_madre",
+    "default_disabled": true,
+    "temporal_window_required": true,
+    "notes": "Shub is full_profile and must remain OFF by default. Madre controls wake/sleep windows; tentaculo_link is the only ingress."
+  }
+}
+```
+
+**10 puntos críticos (Shub):**
+
+1. Todo bajo `/shub/*` y **relay-only** por `tentaculo_link`.
+2. **OFF por defecto** (`default_state: disabled`) y **Madre-managed** (`service_control`).
+3. Seguridad **HMAC-SHA256** con headers `X-VX11-Signature/Timestamp/Nonce` y replay protection (`shub_nonce_cache`).
+4. **Idempotencia** obligatoria para POST con `Idempotency-Key` y tabla `shub_idempotency_keys`.
+5. **SSE**: `/shub/events/stream` solo vía relay, pensado para Operator.
+6. DB unificada: `data/runtime/vx11.db`, namespace `shub_`, tablas requeridas listadas.
+7. Migrations referenciadas: `shubniggurath/migrations/` (DDL exacto **FALTA INPUT en docs**, se extrae del repo/DB y se deja en `docs/audit/`).
+8. Modos degradados definidos: no reaper / analysis_only / etc.
+9. Resource caps y TTL (`idle_ttl_seconds`, `max_concurrent_*`).
+10. No hardcode de modelos/CLIs: Switch/Hermes quedan fuera (alineado con policy).
+
+---
+
+# 3) Canon Final: MANIFESTATOR (JSON inline)
+
+```json
+{
+  "format_version": "vx11_module_config_v1",
+  "module": "manifestator",
+  "canonical_version": "vx11_canon_v7",
+  "module_version": "7.0.0",
+  "role": "Canonical drift detector + patch planner (stateless comparator, conservative)",
+  "generated_at_utc": "2025-12-21T01:00:00Z",
+  "description": "Manifestator is VX11's architectural drift detector and conservative patch planner. It compares repo state vs canonical docs (FS snapshot/target, flows, semantic, runtime policy), produces a plan/diff, and NEVER applies changes by default. It runs only when Madre opens an explicit maintenance window. Compatibility: original doc spec tagged as module_version '7.0.0-canon'; this canonical file exposes '7.0.0' for stable filenames, keeping semantics identical.",
+  "owners": [
+    "vx11_architect",
+    "madre"
+  ],
+  "invariants": [
+    "Default state is disabled; must remain OFF under solo_madre unless explicitly enabled in a temporal maintenance window.",
+    "Stateless comparator: no side effects during scan/compare.",
+    "Patch planner is conservative: if uncertain, output NO_ACTION with rationale.",
+    "Never hardcode tokens; secrets remain outside repo.",
+    "No auto-apply changes unless explicit permission is provided by Madre/operator."
+  ],
+  "default_state": "disabled",
+  "default_state_description": "OFF by default. Activated only by Madre in explicit maintenance window. No background scanning when disabled.",
+  "default_profile": "low_power",
+  "profiles": {
+    "low_power": {
+      "enabled_by_default": false,
+      "description": "Minimal scan scope and conservative diff plan output. Designed for quick audits."
+    },
+    "full_audit": {
+      "enabled_by_default": false,
+      "description": "Full repo audit vs canonical: deeper checks, richer evidence output, still no apply."
+    }
+  },
+  "auto_scan": {
+    "enabled": false,
+    "interval_minutes": 10,
+    "description": "Automatically scan for file or configuration drift. Disabled by default. NOTE: MUST remain OFF by default; enable only inside an explicit Madre-authorized temporal maintenance window."
+  },
+  "auto_patch": {
+    "enabled": false,
+    "description": "Automatically generate and apply patches for detected drift. Disabled by default. NOTE: Patch APPLY is always gated by explicit operator/Madre permission; Manifestator MUST NOT self-apply by default."
+  },
+  "patch_validation": {
+    "enabled": true,
+    "require_tests": true,
+    "require_canonical_verify": true,
+    "description": "Before any patch is considered for application, require JSON lint, canonical verify, and tests. If any check fails, do not proceed (no automatic application)."
+  },
+  "rollback_on_error": {
+    "enabled": true,
+    "description": "Automatically roll back any changes if a patch application fails. Ensures system reverts to stable state on errors."
+  },
+  "ai_suggestions": {
+    "enabled": false,
+    "provider": "deepseek",
+    "description": "Use AI to suggest fixes and reasoning for detected drift. Disabled by default. NOTE: MUST remain OFF by default; when enabled, do not hardcode provider tokens—resolve via VX11 Switch/CLI catalog."
+  },
+  "authentication": {
+    "enabled": false,
+    "default_method": "HMAC",
+    "JWT": {
+      "secret_env": "JWT_SECRET_KEY",
+      "algorithm": "HS256",
+      "token_header": "X-VX11-Token",
+      "token_expiration_hours": 24,
+      "notes": "JWT authentication settings. Secret key and algorithm must be provided via environment (JWT_SECRET_KEY); clients must send a valid JWT in X-VX11-Token header."
+    },
+    "HMAC": {
+      "shared_token_env": [
+        "VX11_GATEWAY_TOKEN",
+        "VX11_TENTACULO_LINK_TOKEN"
+      ],
+      "notes": "HMAC authentication settings. Uses a shared secret token from gateway/tentaculo_link; only requests with a correct signature from tentaculo_link gateway are accepted."
+    },
+    "description": "Optional authentication for incoming requests. By default, module stays disabled; when enabled, integrate with the central gateway's security mechanism."
+  },
+  "logging": {
+    "level": "INFO",
+    "structured": true,
+    "audit_events": true,
+    "redact_tokens": true,
+    "log_root": "forensic/manifestator/"
+  },
+  "io": {
+    "repo_root_env": "VX11_REPO_ROOT",
+    "canonical_master_path": "docs/CANONICAL_MASTER_VX11.json",
+    "canonical_files_expected": [
+      "docs/CANONICAL_FS_VX11.json",
+      "docs/CANONICAL_TARGET_FS_VX11.json",
+      "docs/CANONICAL_FLOWS_VX11.json",
+      "docs/CANONICAL_SEMANTIC_VX11.json",
+      "docs/CANONICAL_RUNTIME_POLICY_VX11.json"
+    ],
+    "outputs_root": "docs/audit/",
+    "plan_output_name": "MANIFESTATOR_PATCH_PLAN.json",
+    "diff_output_name": "MANIFESTATOR_DIFF.txt",
+    "evidence_output_name": "MANIFESTATOR_EVIDENCE.md",
+    "notes": "Outputs are written only when explicitly run in maintenance. No writes when disabled."
+  },
+  "safety": {
+    "never_apply_by_default": true,
+    "sandbox_required_for_temp": true,
+    "no_renames_core_modules": true,
+    "no_token_reads": true,
+    "notes": "If any ambiguity arises, prefer NO_ACTION. If temp files are needed, use sandbox and clean up."
+  },
+  "git_ops": {
+    "allowed": true,
+    "modes": [
+      "diff_only",
+      "plan_only"
+    ],
+    "apply_mode": {
+      "enabled": false,
+      "requires_explicit_flag": true,
+      "requires_tests": true
+    },
+    "notes": "Manifestator can generate patch plans and diffs; apply requires explicit flag and passing checks."
+  },
+  "operation_phases": [
+    "discover",
+    "compare",
+    "plan",
+    "evidence",
+    "exit"
+  ],
+  "operation_phases_description": "discover: locate repo_root + canonical files; compare: evaluate drift; plan: produce conservative patch plan; evidence: write audit evidence; exit: no side effects beyond outputs."
+}
+```
+
+**10 puntos críticos (Manifestator):**
+
+1. **OFF por defecto** (solo se ejecuta en ventana temporal de Madre).
+2. Comparator **stateless**: no toca nada durante compare.
+3. Planner **conservador**: si duda → `NO_ACTION`.
+4. `auto_scan` y `ai_suggestions` **corregidos a OFF por policy**.
+5. `auto_patch` sigue OFF; apply siempre “gated”.
+6. Outputs solo a `docs/audit/` (plan/diff/evidence).
+7. Auth opcional (HMAC/JWT) pero `authentication.enabled=false` por defecto.
+8. No tokens en repo, redacción de logs, forensic roots definidos.
+9. No renombrar módulos core, sandbox si temporales.
+10. Se mantiene compatible con el “v7” (solo cambia etiqueta `module_version` para nombre estable).
+
+---
+
+# 4) Updates requeridos a CANONICAL_*.json (Patch Plan CANON)
+
+## 4.1 `docs/CANONICAL_FS_VX11.json` (P0)
+
+**Cambio exacto**: añadir estos 4 paths a `files[]` y mantener orden alfabético:
+
+* `docs/canonical/modules/manifestator/VX11_MANIFESTATOR_CANONICAL_v7.0.0.json`
+* `docs/canonical/modules/manifestator/manifestator_canonical.json`
+* `docs/canonical/modules/shubniggurath/VX11_SHUB_CANONICAL_v1.7.1.json`
+* `docs/canonical/modules/shubniggurath/shubniggurath_canonical.json`
+
+**Justificación**: congelar specs canónicas dentro del snapshot FS (canon verifica estructura).
+**Riesgo**: si el verificador exige orden/format exacto, reordenar mal rompe verify.
+**Verificar**: JSON lint + ejecutar verificador canónico del repo (ver matriz tests).
+
+## 4.2 `docs/CANONICAL_RUNTIME_POLICY_VX11.json` (P0)
+
+**Cambio exacto**:
+
+* En `allowed_temporal_window_core[]`, añadir: `manifestator`, `shubniggurath`
+* **No tocar** `default_mode: "solo_madre"`
+* **No tocar** `constraints[]` (debe seguir: “Manifestator and shubniggurath remain OFF by default”)
+
+**Justificación**: permitir ventanas temporales controladas sin activar por defecto.
+**Riesgo**: mínimo; es lista allow.
+**Verificar**: canonical verify + grep de policy en runtime scripts (si existen).
+
+## 4.3 `docs/CANONICAL_SEMANTIC_VX11.json` (P0 → solo verify)
+
+**Acción**: **no modificar** si ya contiene:
+
+* `manifestator` como `status: full_profile` y “disabled by default”
+* `shubniggurath` como `status: full_profile` y “disabled by default”
+
+**Verificar**: comprobar entradas existentes (no “creatividad libre”).
+
+## 4.4 `docs/CANONICAL_MASTER_VX11.json` (P0)
+
+**Decisión (segura, sin evidencia del parser)**:
+
+* **NO** añadir `canonical_files.modules`.
+* **NO** añadir hashes de módulos al objeto `sha256`.
+* **SÍ** actualizar los hashes existentes (solo 5 keys) cuando cambien `CANONICAL_FS` y/o `CANONICAL_RUNTIME_POLICY`.
+
+**FALTA INPUT**: compatibilidad del verificador con claves extra en `sha256` y/o bloque `canonical_files.modules`.
+**Cómo medir en el repo (estático)**:
+
+* `rg -n "CANONICAL_MASTER_VX11|canonical_files|sha256" -S scripts .github workflows tests`
+* abrir el parser/verificador y confirmar si:
+
+  * compara claves exactas (estricto) o itera dinámicamente (tolerante).
+
+---
+
+# 5) Patch Plan de Repo (Implementación quirúrgica)
+
+## 5.1 Archivos a crear (P0)
+
+Crear carpetas y archivos:
+
+* `docs/canonical/modules/manifestator/VX11_MANIFESTATOR_CANONICAL_v7.0.0.json`  *(contenido = JSON Manifestator de arriba)*
+* `docs/canonical/modules/manifestator/manifestator_canonical.json` *(copia idéntica)*
+* `docs/canonical/modules/shubniggurath/VX11_SHUB_CANONICAL_v1.7.1.json` *(contenido = JSON Shub de arriba)*
+* `docs/canonical/modules/shubniggurath/shubniggurath_canonical.json` *(copia idéntica)*
+
+**Regla**: aliases = contenido idéntico, sin symlinks salvo que el repo ya use symlinks (si no hay evidencia, usar copias).
+
+## 5.2 Archivos a modificar (P0)
+
+* `docs/CANONICAL_FS_VX11.json` → añadir 4 paths.
+* `docs/CANONICAL_RUNTIME_POLICY_VX11.json` → permitir ventana temporal para manifestator y shub.
+* `docs/CANONICAL_MASTER_VX11.json` → actualizar hashes sha256 **solo** para los 5 canónicos (los que cambien).
+
+## 5.3 Cambios por módulo (sin inventar, “quirúrgico”)
+
+* **madre**: **NO** se cambia aquí (este bundle congela specs + policy). Si ya existe start/stop por ventana, se respeta. Si no existe, queda como **NV/FALTA** y se planifica en PR futura con evidencia.
+* **tentaculo_link**: **NO** se cambia aquí. El canon Shub ya define “relay-only” y headers; implementación se ajusta en PR futura si falla contract/health.
+* **shubniggurath**: **NO** se reescribe código. Solo canon. DDL exacto queda como evidencia (ver test matrix).
+* **manifestator**: idem. Solo canon; ejecución real se valida por presencia de binario/módulo y endpoints si existen (si no, NV y se crea stub mínimo en PR futura).
+
+---
+
+# 6) Test Matrix (mínimo ejecutable)
+
+> Objetivo: probar **canonicidad** y **no romper solo_madre**. Lo demás se marca NV si el repo no tiene tests/endpoints.
+
+## 6.1 Lint JSON (PASS/FAIL)
+
+```bash
+python -m json.tool docs/CANONICAL_FS_VX11.json >/dev/null
+python -m json.tool docs/CANONICAL_RUNTIME_POLICY_VX11.json >/dev/null
+python -m json.tool docs/CANONICAL_MASTER_VX11.json >/dev/null
+python -m json.tool docs/canonical/modules/manifestator/VX11_MANIFESTATOR_CANONICAL_v7.0.0.json >/dev/null
+python -m json.tool docs/canonical/modules/shubniggurath/VX11_SHUB_CANONICAL_v1.7.1.json >/dev/null
+```
+
+## 6.2 Canonical verify (PASS/FAIL)
+
+**FALTA INPUT**: comando exacto del verificador en el repo.
+**Cómo encontrarlo (sin humo)**:
+
+```bash
+rg -n "CANONICAL_MASTER_VX11|canonical verify|verify_canon|sha256" -S .github scripts tests
+```
+
+Luego ejecutar el comando encontrado (por ejemplo, si existe `scripts/verify_canon.py`):
+
+```bash
+python scripts/verify_canon.py docs/CANONICAL_MASTER_VX11.json
+```
+
+## 6.3 Evidencia “SOLO MADRE ARRIBA” (PASS/FAIL)
+
+Si el repo usa docker compose:
+
+```bash
+docker compose ps > docs/audit/<timestamp>/docker_ps_before.txt
+# levantar solo madre (según compose real del repo; NO inventar servicios)
+docker compose up -d madre
+docker compose ps > docs/audit/<timestamp>/docker_ps_final.txt
+```
+
+**PASS**: solo `madre` (y lo que el propio canon core permita en default) aparece “Up”; **Manifestator** y **Shub** no deben estar levantados.
+
+## 6.4 DB integrity (PASS/FAIL)
+
+Si existe `data/runtime/vx11.db`:
+
+```bash
+sqlite3 data/runtime/vx11.db "PRAGMA integrity_check;" | tee docs/audit/<timestamp>/db_integrity_check.txt
+sqlite3 data/runtime/vx11.db "PRAGMA foreign_key_check;" | tee docs/audit/<timestamp>/db_foreign_key_check.txt
+sqlite3 data/runtime/vx11.db ".tables" | tee docs/audit/<timestamp>/db_tables.txt
+```
+
+**PASS**: `integrity_check` devuelve `ok` y foreign_key_check vacío.
+
+## 6.5 DDL mínimo Shub (EVIDENCIA; puede ser NV)
+
+```bash
+sqlite3 data/runtime/vx11.db ".schema shub_jobs" > docs/audit/<timestamp>/ddl_shub_jobs.sql || true
+sqlite3 data/runtime/vx11.db ".schema shub_schema_version" > docs/audit/<timestamp>/ddl_shub_schema_version.sql || true
+```
+
+**NV** si las tablas no existen aún (porque Shub permanece OFF y no migra).
+
+---
+
+# 7) PROMPT FINAL PARA CODEX (VS Code, GPT-5.2 Codex, FULL AGENT)
+
+```text
+ROL: Eres Codex FULL-AGENT (VS Code Extension) para VX11. Objetivo: integrar Shub + Manifestator como canónicos “congelados” SIN romper el runtime policy “SOLO MADRE ARRIBA”.
+
+HARD RULES:
+- No preguntar; si falta algo, lo infieres leyendo el repo y lo documentas como FALTA INPUT + cómo medir.
+- NO activar Shub/Manifestator por defecto. Deben quedar disabled by default.
+- NO hardcode de tokens. Nada de secrets en repo.
+- Cambios quirúrgicos: mínimos diffs, sin renombrar carpetas core.
+- Si creas temporales: a sandbox y cleanup.
+
+REPO:
+- Repo root esperado: /home/elkakas314/vx11 (pero trabaja con el checkout actual).
+- Canon master: docs/CANONICAL_MASTER_VX11.json (vx11_canonical_master_v2).
+- Policy: default_mode = solo_madre. Manifestator y shubniggurath OFF por defecto.
+
+INPUT (ya en el chat/ZIP):
+- vx11_contructor.zip contiene:
+  - DOCX specs: Crear manifestador canonico(1).docx (fuente de verdad Manifestator),
+                Auditoría y Cierre del Módulo Shub-Niggurath (VX11).docx (fuente de verdad Shub).
+  - Canónicos: CANONICAL_MASTER/FS/TARGET_FS/FLOWS/SEMANTIC/RUNTIME_POLICY.
+  - EXEC SUMMARY: checklist/plan.
+
+TAREA A (crear canónicos de módulos):
+1) Crear directorios:
+   - docs/canonical/modules/manifestator/
+   - docs/canonical/modules/shubniggurath/
+2) Crear archivos EXACTOS (contenido JSON provisto abajo, sin “…”):
+   - docs/canonical/modules/manifestator/VX11_MANIFESTATOR_CANONICAL_v7.0.0.json
+   - docs/canonical/modules/manifestator/manifestator_canonical.json (copia idéntica)
+   - docs/canonical/modules/shubniggurath/VX11_SHUB_CANONICAL_v1.7.1.json
+   - docs/canonical/modules/shubniggurath/shubniggurath_canonical.json (copia idéntica)
+
+TAREA B (integración en CANONICAL_* sin riesgo):
+3) Editar docs/CANONICAL_FS_VX11.json:
+   - Añadir los 4 paths anteriores a files[], mantener orden alfabético.
+4) Editar docs/CANONICAL_RUNTIME_POLICY_VX11.json:
+   - Añadir “manifestator” y “shubniggurath” a allowed_temporal_window_core[].
+   - NO tocar default_mode ni constraints (debe seguir “remain OFF by default”).
+5) CANONICAL_SEMANTIC_VX11.json:
+   - Solo verificar que manifestator y shubniggurath ya están como full_profile + disabled by default. No inventar.
+6) Editar docs/CANONICAL_MASTER_VX11.json:
+   - NO añadir canonical_files.modules ni hashes de módulos.
+   - SÍ actualizar sha256 de los 5 canónicos si cambian (FS y runtime policy cambiarán seguro).
+   - Genera los hashes a partir de los bytes finales de los archivos.
+
+COMANDOS (ejecución + evidencia):
+7) Crear OUTDIR evidencia:
+   - OUTDIR=docs/audit/vx11_canon_modules_$(date -u +%Y%m%dT%H%M%SZ)
+   - mkdir -p "$OUTDIR"
+8) Lint JSON:
+   - python -m json.tool docs/CANONICAL_FS_VX11.json >/dev/null
+   - python -m json.tool docs/CANONICAL_RUNTIME_POLICY_VX11.json >/dev/null
+   - python -m json.tool docs/CANONICAL_MASTER_VX11.json >/dev/null
+   - python -m json.tool docs/canonical/modules/manifestator/VX11_MANIFESTATOR_CANONICAL_v7.0.0.json >/dev/null
+   - python -m json.tool docs/canonical/modules/shubniggurath/VX11_SHUB_CANONICAL_v1.7.1.json >/dev/null
+9) Canon verify (descubrir comando real):
+   - rg -n "CANONICAL_MASTER_VX11|canonical verify|verify_canon|sha256" -S .github scripts tests | tee "$OUTDIR/rg_verify_hits.txt"
+   - Ejecuta el verificador encontrado y guarda output en $OUTDIR/canonical_verify.txt
+   - Si no existe verificador, implementa una comprobación mínima BACKWARD COMPATIBLE (solo lectura): cargar master, calcular sha256 de los 5 canonical_files, comparar.
+10) “SOLO MADRE ARRIBA” (si hay docker compose):
+   - docker compose ps > "$OUTDIR/docker_ps_before.txt" || true
+   - docker compose up -d madre || true
+   - docker compose ps > "$OUTDIR/docker_ps_final.txt" || true
+   - PASS si no aparecen contenedores manifestator/shub levantados por defecto.
+11) DB integrity (si existe data/runtime/vx11.db):
+   - sqlite3 data/runtime/vx11.db "PRAGMA integrity_check;" | tee "$OUTDIR/db_integrity_check.txt" || true
+   - sqlite3 data/runtime/vx11.db "PRAGMA foreign_key_check;" | tee "$OUTDIR/db_foreign_key_check.txt" || true
+   - sqlite3 data/runtime/vx11.db ".tables" | tee "$OUTDIR/db_tables.txt" || true
+   - Extraer DDL shub_* si existen tablas: sqlite3 ... ".schema shub_jobs" > "$OUTDIR/ddl_shub_jobs.sql" || true
+
+COMMITS:
+12) Commits atómicos recomendados:
+   - commit 1: “Add canonical module specs for manifestator and shub”
+   - commit 2: “Update CANONICAL_FS and RUNTIME_POLICY for module spec paths”
+   - commit 3: “Update CANONICAL_MASTER sha256 for canonical files”
+
+ENTREGABLES OBLIGATORIOS:
+- Los 4 archivos en docs/canonical/modules/... exactamente.
+- CANONICAL_FS_VX11.json actualizado con esos paths.
+- CANONICAL_RUNTIME_POLICY_VX11.json actualizado (allowed_temporal_window_core incluye manifestator/shubniggurath).
+- CANONICAL_MASTER_VX11.json con sha256 actualizado (solo 5 canónicos).
+- Evidencia en $OUTDIR: diffs, lint ok, verify output, docker_ps_final.txt, db checks si aplican.
+
+CONTENIDO JSON EXACTO:
+- Pega aquí los JSONs completos suministrados por el arquitecto (este chat) sin modificar estructura salvo que el repo tenga un validador que lo requiera; si lo requiere, haz el parche mínimo backward-compatible y documenta.
+
+NO TOCAR:
+- Tokens/secrets (solo referencias env).
+- Encendido por defecto de shub/manifestator.
+- Estructura core de servicios.
+```
+
+---
+
+# 8) Checklist Post-PR (operación)
+
+## DONE significa:
+
+* [ ] Los 4 JSONs canónicos existen en `docs/canonical/modules/...` y pasan `python -m json.tool`.
+* [ ] `docs/CANONICAL_FS_VX11.json` incluye los 4 paths (orden correcto).
+* [ ] `docs/CANONICAL_RUNTIME_POLICY_VX11.json` incluye `manifestator` y `shubniggurath` en `allowed_temporal_window_core` y mantiene constraints intactas.
+* [ ] `docs/CANONICAL_MASTER_VX11.json` tiene `sha256` coherente con los 5 canónicos tras el cambio (sin añadir `modules`).
+* [ ] Evidencia en `docs/audit/<timestamp>/`:
+
+  * `rg_verify_hits.txt`, `canonical_verify.txt` (o verificador mínimo documentado),
+  * `docker_ps_final.txt` mostrando “solo madre arriba” por defecto,
+  * checks DB si aplican.
+* [ ] No hay nuevos scripts basura fuera de lo estrictamente necesario; temporales limpiados.
+
+---
+
+## EVIDENCIA DEL REPO (GitHub)
+
+**FALTA INPUT (bloqueador de “evidencia GitHub” real)**: este entorno no trae un lector directo del repo remoto; en este entregable, la “ground truth” operativa se apoya en el **ZIP** (que incluye los canónicos y specs).
+**Cómo convertirlo en evidencia del repo en la PR (sin humo)**:
+
+* En el repo real, ejecutar:
+
+  * `rg -n "CANONICAL_MASTER_VX11|vx11_canonical_master_v2|sha256|canonical_files" -S .github scripts tests`
+  * Abrir el verificador hallado y documentar si es **estricto** (claves fijas) o **tolerante** (itera claves).
+* Archivos clave usados (del ZIP; deben existir/igualarse en repo):
+
+  * `docs/CANONICAL_MASTER_VX11.json` (master + sha256 de 5 canónicos)
+  * `docs/CANONICAL_FS_VX11.json` (snapshot files[])
+  * `docs/CANONICAL_RUNTIME_POLICY_VX11.json` (solo_madre + constraints)
+  * Specs: `Crear manifestador canonico(1).docx`, `Auditoría y Cierre...Shub...docx`
+
+**Compatibilidad del verificador canónico**
+
+* **No verificado** si acepta `sha256` con claves extra o `canonical_files.modules`.
+* Decisión aplicada (segura): **no se usa** `canonical_files.modules` ni hashes de módulos en master; se congela por **FS snapshot** + evidencia en `docs/audit/`.
+
+---

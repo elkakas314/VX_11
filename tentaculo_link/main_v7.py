@@ -48,6 +48,9 @@ from tentaculo_link.clients import get_clients
 from tentaculo_link.context7_middleware import get_context7_manager
 from tentaculo_link.deepseek_client import DeepSeekClient, save_chat_to_db
 from tentaculo_link.deepseek_r1_client import get_deepseek_r1_client
+from tentaculo_link import (
+    routes as api_routes,
+)  # Import routes package to avoid name collision
 
 # Load environment tokens
 load_tokens()
@@ -189,6 +192,22 @@ else:
     write_log(
         "tentaculo_link",
         f"WARNING: operator_ui not found:{operator_ui_path}",
+        level="WARNING",
+    )
+
+# Include new operator API routes
+try:
+    app.include_router(api_routes.events.router, tags=["operator-api"])
+    app.include_router(api_routes.settings.router, tags=["operator-api"])
+    app.include_router(api_routes.audit.router, tags=["operator-api"])
+    app.include_router(api_routes.metrics.router, tags=["operator-api"])
+    app.include_router(api_routes.rails.router, tags=["operator-api"])
+    app.include_router(api_routes.window.router, tags=["operator-api"])
+    write_log("tentaculo_link", "included_operator_api_routers:success")
+except Exception as e:
+    write_log(
+        "tentaculo_link",
+        f"WARNING: failed to include operator routers: {e}",
         level="WARNING",
     )
 

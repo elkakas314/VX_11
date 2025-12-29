@@ -1,0 +1,677 @@
+# Power Windows + E2E Test Conductor Design
+
+## A) Diagramas Mermaid
+
+### Control-Plane
+```mermaid
+graph TB
+    subgraph "SOLO_MADRE (Default State)"
+        M[Madre Service<br/>tentaculo_link:8000]
+        PM[Power Manager<br/>Module]
+        TC[Test Conductor<br/>Scheduler]
+        WL[Window Lifespan<br/>Tracker]
+    end
+
+    subgraph "Test Orchestration"
+        TQ[Test Queue]
+        TM[Test Matrix<br/>Executor]
+        MET[Metrics<br/>Collector]
+        REC[Recovery<br/>Handler]
+    end
+
+    subgraph "Data-Plane (Ephemeral)"
+        WS1[Window Service A<br/>docker-compose up]
+        WS2[Window Service B<br/>docker-compose up]
+        WS3[Window Service N...]
+    end
+
+    M --> PM
+    PM -->|control| WS1
+    PM -->|control| WS2
+    PM -->|control| WS3
+
+    TC --> TQ
+    TQ --> TM
+    TM -->|executes| MET
+    MET -->|logs| EL[(Evidence Log<br/>/var/log/vx11/e2e/)]
+
+    TM -->|triggers| PM
+    REC -->|analyzes| EL
+    REC -->|generates| PI[PATCH_INTENT.md]
+
+    WL -->|monitors| WS1
+    WL -->|monitors| WS2
+    WL -->|monitors| WS3
+    WL -->|signals| PM
+
+    style M fill:#e1f5e1
+    style WS1 fill:#fff3e0
+    style WS2 fill:#fff3e0
+    style WS3 fill:#fff3e0
+```
+
+### Data-Plane & Evidence Flow
+```mermaid
+sequenceDiagram
+    participant TC as Test Conductor
+    participant PM as Power Manager
+    participant DC as Docker Compose
+    participant SVC as Service Window
+    participant MET as Metrics Collector
+    participant LOG as Evidence Log
+
+    TC->>PM: open_window(service, ttl, hold_flag)
+    PM->>DC: docker-compose up service
+    DC-->>SVC: Container started
+    SVC-->>MET: Health check OK
+
+    loop E2E Test Execution
+        TC->>SVC: HTTP/gRPC request
+        SVC-->>MET: Response + timing
+        MET->>LOG: timestamp,latency,resource_usage
+    end
+
+    alt TTL expired OR test complete
+        PM->>DC: docker-compose stop service
+        DC-->>PM: Container stopped
+        PM->>TC: window_closed(service_id)
+    end
+
+    TC->>PM: ensure_solo_madre()
+    PM->>DC: stop all except madre
+    PM-->>TC: SOLO_MADRE confirmed
+```
+
+## B) Matriz E2E (12 casos mínimos)
+
+```yaml
+test_matrix:
+  base_asserts:
+    - system_returns_to_solo_madre
+    - tentaculo_link_available
+    - no_resource_leaks
+
+  cases:
+    - id: TC-001
+      description: "Start single service window, minimal TTL"
+      services: ["auth-service"]
+      actions:
+        - open_window: auth-service
+          params: {ttl: 30s, hold: false}
+        - e2e_test: auth_endpoints
+        - wait: 35s
+      asserts:
+        - window_auto_closed: true
+        - max_cpu_percent: < 5%
+        - memory_delta_mb: < 50
+      metrics:
+        - startup_time_ms
+        - service_uptime_s
+        - cleanup_time_ms
+
+    - id: TC-002
+      description: "Multiple overlapping windows"
+      services: ["auth-service", "api-gateway", "cache"]
+      actions:
+        - open_window: [auth-service, api-gateway]
+          params: {ttl: 60s}
+        - wait: 10s
+        - open_window: cache
+          params: {ttl: 40s}
+        - e2e_test: integrated_flow
+      asserts:
+        - concurrent_windows: 3
+        - no_port_conflicts: true
+        - inter_service_latency_ms: < 100
+      metrics:
+        - total_memory_peak_mb
+        - network_iops
+        - cross_service_rtt
+
+    - id: TC-003
+      description: "Hold window beyond TTL"
+      services: ["db-migration"]
+      actions:
+        - open_window: db-migration
+          params: {ttl: 15s, hold: true}
+        - e2e_test: migration_validation
+        - wait: 30s
+        - release_hold: db-migration
+      asserts:
+        - service_running_after_ttl: true
+        - auto_close_after_release: true
+        - migration_complete: true
+      metrics:
+        - hold_duration_s
+        - db_transaction_rate
+
+    - id: TC-004
+      description: "Resource throttling validation"
+      services: ["data-processor"]
+      actions:
+        - set_throttle: {cpu: 0.5, memory: 256MB, iops: 100}
+        - open_window: data-processor
+        - e2e_test: stress_processing
+      asserts:
+        - cpu_not_exceeded: 55%
+        - memory_not_exceeded: 270MB
+        - iops_within_limit: true
+      metrics:
+        - throttle_effectiveness_percent
+        - throughput_vs_baseline
+
+    - id: TC-005
+      description: "Forced window closure during operation"
+      services: ["upload-service"]
+      actions:
+        - open_window: upload-service
+        - e2e_test: large_upload
+        - interrupt: close_window (mid-operation)
+        - wait: 5s
+      asserts:
+        - graceful_shutdown: true
+        - no_data_corruption: true
+        - temp_files_cleaned: true
+      metrics:
+        - interruption_latency_ms
+        - cleanup_completeness
+
+    - id: TC-006
+      description: "Dependency chain startup"
+      services: ["service-a", "service-b", "service-c"]
+      dependencies:
+        service-a: []
+        service-b: ["service-a"]
+        service-c: ["service-b"]
+      actions:
+        - open_window: service-c
+        - e2e_test: chain_validation
+      asserts:
+        - startup_order_correct: true
+        - dependency_health_checks_pass: true
+        - circular_dependency_detected: false
+      metrics:
+        - chain_startup_time_ms
+        - dependency_wait_time_ms
+
+    - id: TC-007
+      description: "Evidence logging completeness"
+      services: ["logging-service"]
+      actions:
+        - open_window: logging-service
+        - e2e_test: log_ingestion
+        - force_failure: network_partition
+      asserts:
+        - evidence_timestamped: true
+        - logs_persisted_before_crash: true
+        - audit_trail_complete: true
+      metrics:
+        - log_persistence_latency_ms
+        - evidence_size_bytes
+
+    - id: TC-008
+      description: "Token authentication flow"
+      services: ["auth-service", "resource-service"]
+      actions:
+        - open_window: [auth-service, resource-service]
+        - e2e_test: token_flow
+          steps:
+            - get_token
+            - access_protected_resource
+            - token_expiry
+            - refresh_flow
+      asserts:
+        - token_validity_enforced: true
+        - expired_token_rejected: true
+        - refresh_works: true
+      metrics:
+        - token_issue_time_ms
+        - auth_overhead_ms
+
+    - id: TC-009
+      description: "Allowlist security validation"
+      services: ["allowed-service", "blocked-service"]
+      actions:
+        - attempt_open: blocked-service
+        - open_window: allowed-service
+        - e2e_test: security_boundaries
+      asserts:
+        - blocked_service_rejected: true
+        - allowlist_enforced: true
+        - no_side_effects_from_blocked: true
+      metrics:
+        - security_check_overhead_ms
+        - isolation_score
+
+    - id: TC-010
+      description: "Backwards compatibility check"
+      services: ["legacy-api-v1", "modern-api-v2"]
+      actions:
+        - open_window: [legacy-api-v1, modern-api-v2]
+        - e2e_test: compatibility_matrix
+      asserts:
+        - v1_endpoints_work: true
+        - v2_new_features_available: true
+        - shared_data_consistent: true
+      metrics:
+        - v1_vs_v2_latency_ratio
+        - feature_parity_score
+
+    - id: TC-011
+      description: "Patch-intent trigger on failure"
+      services: ["buggy-service"]
+      actions:
+        - open_window: buggy-service
+        - e2e_test: failure_scenario
+        - expect_failure: true
+      asserts:
+        - patch_intent_generated: true
+        - system_recovered_to_solo_madre: true
+        - no_auto_patch_applied: true
+      metrics:
+        - failure_detection_time_ms
+        - recovery_time_ms
+
+    - id: TC-012
+      description: "Concurrent test execution isolation"
+      services: ["service-x", "service-y"]
+      actions:
+        - parallel:
+            - thread_1: open_window(service-x)
+            - thread_2: open_window(service-y)
+        - e2e_test: concurrent_access
+      asserts:
+        - no_resource_contention: true
+        - isolation_maintained: true
+        - results_deterministic: true
+      metrics:
+        - parallelization_efficiency
+        - contention_count
+```
+
+## C) Endpoints de Madre + Reglas de Seguridad
+
+```yaml
+# Madre API Specification (tentaculo_link:8000)
+endpoints:
+  # Power Management
+  - path: /api/v1/windows/open
+    method: POST
+    auth: required
+    request:
+      service: string          # Nombre del servicio
+      ttl: integer             # Segundos (opcional, default: 300)
+      hold: boolean            # Prevenir cierre automático
+      resources: object        # Límites CPU/memory/IO
+    response:
+      window_id: uuid
+      expires_at: timestamp
+      endpoints: array         # URLs expuestas
+
+  - path: /api/v1/windows/close
+    method: POST
+    auth: required
+    request:
+      window_id: uuid          # O service_name
+      force: boolean           # Forzar cierre inmediato
+
+  - path: /api/v1/windows/hold
+    method: POST
+    auth: required
+    request:
+      window_id: uuid
+      hold: boolean            # Activar/desactivar hold
+
+  - path: /api/v1/windows/status
+    method: GET
+    auth: required
+    response:
+      windows: array
+      solo_madre: boolean
+
+  # Test Conductor
+  - path: /api/v1/tests/execute
+    method: POST
+    auth: required
+    request:
+      matrix_id: string        # Referencia a matriz E2E
+      evidence_path: string    # Donde guardar logs
+      throttle_profile: string # low_power/baseline/stress
+
+  - path: /api/v1/tests/results/{test_id}
+    method: GET
+    auth: required
+
+  # System Control
+  - path: /api/v1/system/solo_madre
+    method: POST
+    auth: required
+    description: "Forzar retorno a estado seguro"
+
+# Security Rules
+security:
+  token_validation:
+    issuer: "vx11-madre"
+    algorithm: "HS256"
+    required_claims: ["sub", "exp", "scope"]
+
+  allowlist_rules:
+    - type: "service_allowlist"
+      source: "/etc/vx11/allowed_services.yaml"
+      validation: sha256
+      refresh_interval: 300s
+
+    - type: "endpoint_allowlist"
+      default: "DENY_ALL"
+      exceptions:
+        - method: "GET"
+          path: "/health"
+          auth: "none"
+        - method: "POST"
+          path: "/api/v1/windows/close"
+          auth: "required"
+          scope: "power:write"
+
+  rate_limiting:
+    requests_per_minute: 60
+    burst_size: 10
+    by_token: true
+
+  evidence_requirements:
+    - all_actions_logged: true
+    - timestamps_ns_precision: true
+    - immutable_logs: true
+    - retention_days: 30
+```
+
+## D) Diseño de Test Conductor
+
+```
+/vx11-test-conductor/
+├── config/
+│   ├── matrix/              # Definiciones de matriz E2E
+│   │   ├── tc-001.yaml
+│   │   ├── tc-002.yaml
+│   │   └── ...
+│   ├── services/           # Definiciones de servicios
+│   │   ├── auth-service.yaml
+│   │   ├── api-gateway.yaml
+│   │   └── ...
+│   └── profiles/
+│       ├── low-power.yaml  # Throttling profiles
+│       └── stress.yaml
+├── src/
+│   ├── conductor.py       # Orchestrator principal
+│   ├── power_manager.py   # Interfaz con Madre
+│   ├── metrics/
+│   │   ├── collector.py
+│   │   ├── analyzer.py
+│   │   └── reporter.py
+│   ├── evidence/
+│   │   ├── logger.py
+│   │   └── validator.py
+│   └── recovery/
+│       ├── patch_intent.py
+│       └── rollback.py
+├── tests/
+│   ├── e2e/              # Tests específicos
+│   ├── unit/
+│   └── integration/
+├── evidence/             # Logs generados
+│   ├── {timestamp}-{test_id}/
+│   └── index.json
+└── patch_intents/       # Intenciones generadas
+```
+
+**Pseudocódigo principal:**
+```python
+class TestConductor:
+    def __init__(self, madre_endpoint, auth_token):
+        self.power = PowerManager(madre_endpoint, auth_token)
+        self.metrics = MetricsCollector()
+        self.evidence = EvidenceLogger()
+
+    def execute_matrix(self, matrix_id, throttle_profile="low_power"):
+        """Ejecuta matriz E2E completa"""
+
+        # 1. Estado inicial: SOLO_MADRE
+        assert self.power.verify_solo_madre()
+
+        matrix = self.load_matrix(matrix_id)
+        results = []
+
+        for test_case in matrix.cases:
+            test_result = self.execute_test_case(test_case, throttle_profile)
+            results.append(test_result)
+
+            # 2. Siempre volver a SOLO_MADRE entre tests
+            self.power.ensure_solo_madre(timeout=30)
+
+            # 3. Si falla, generar patch-intent
+            if test_result.failed:
+                self.generate_patch_intent(test_case, test_result)
+
+        # 4. Generar reporte consolidado
+        report = self.generate_report(results)
+        self.evidence.finalize(report)
+
+        return results
+
+    def execute_test_case(self, test_case, throttle_profile):
+        """Ejecuta un caso individual con throttling"""
+
+        # Aplicar perfil de bajo consumo
+        self.apply_throttle_profile(throttle_profile)
+
+        # Registrar inicio
+        self.evidence.start_test(test_case.id)
+
+        # Abrir ventanas necesarias
+        windows = []
+        for service in test_case.services:
+            window = self.power.open_window(
+                service=service,
+                ttl=test_case.ttl,
+                hold=test_case.hold,
+                resources=throttle_profile
+            )
+            windows.append(window)
+
+            # Esperar health check
+            if not self.wait_for_healthy(window, timeout=10):
+                return TestResult(failed=True)
+
+        # Ejecutar acciones E2E
+        metrics_start = self.metrics.capture_snapshot()
+
+        for action in test_case.actions:
+            result = self.execute_action(action, windows)
+            if not result.success:
+                break
+
+        metrics_end = self.metrics.capture_snapshot()
+
+        # Cerrar ventanas
+        for window in windows:
+            if not window.hold:
+                self.power.close_window(window.id)
+
+        # Validar asserts
+        validation = self.validate_asserts(test_case.asserts, metrics_start, metrics_end)
+
+        return TestResult(
+            passed=validation.all_passed,
+            metrics=self.metrics.diff(metrics_start, metrics_end),
+            evidence_path=self.evidence.current_path
+        )
+```
+
+## E) Formato PATCH_INTENT.md
+
+```markdown
+# PATCH INTENT - VX11 E2E Test Failure
+
+## Metadata
+- **Intent ID:** `PI-{timestamp}-{test_id}`
+- **Generated:** {iso_timestamp}
+- **Test Case:** {test_case_id}
+- **Conductor Version:** {version}
+- **Evidence Location:** {path_to_evidence}
+
+## Failure Summary
+| Metric | Value |
+|--------|-------|
+| Failure Detected At | {timestamp} |
+| Test Phase | {phase} |
+| Error Code | {code} |
+| Impact Level | {LOW/MEDIUM/HIGH} |
+
+## Technical Details
+### Context Before Failure
+```
+{pre-failure system state}
+```
+
+### Failure Manifestation
+```
+{error logs, stack traces, metrics anomaly}
+```
+
+### Evidence Points
+1. **Timestamp {t1}:** {observation}
+2. **Timestamp {t2}:** {observation}
+3. **Metrics Deviation:** {specific metrics}
+
+## Root Cause Analysis
+### Primary Suspect
+{Service/component suspected}
+
+### Supporting Evidence
+- {Evidence point 1}
+- {Evidence point 2}
+- {Cross-reference with other tests}
+
+### Alternative Hypotheses
+1. {Hypothesis A} - {confidence}% confidence
+2. {Hypothesis B} - {confidence}% confidence
+
+## Proposed Patch
+```yaml
+# NO APLICAR AUTOMÁTICAMENTE
+patch:
+  type: {config/code/dependency}
+  target: {service/component}
+  changes:
+    - file: {path}
+      line: {number}
+      from: {current}
+      to: {proposed}
+  validation_required:
+    - [ ] Test matrix re-run
+    - [ ] Backwards compatibility check
+    - [ ] Performance impact assessment
+    - [ ] Security review
+```
+
+## Impact Assessment
+### Affected Systems
+- [ ] tentaculo_link availability
+- [ ] SOLO_MADRE integrity
+- [ ] Other services
+
+### Resource Implications
+| Resource | Current | Post-Patch (Estimated) | Change |
+|----------|---------|------------------------|--------|
+| CPU Usage | {value} | {value} | {delta} |
+| Memory | {value} | {value} | {delta} |
+| IOPS | {value} | {value} | {delta} |
+
+## Rollback Plan
+```bash
+# Steps to revert if patch causes issues
+1. {step 1}
+2. {step 2}
+3. {step 3}
+```
+
+## Next Actions Required
+- [ ] Human review of this intent
+- [ ] Schedule patch validation window
+- [ ] Update test matrix to catch regression
+- [ ] Document in knowledge base
+
+## Sign-off
+| Role | Name | Date | Approval |
+|------|------|------|----------|
+| Reviewer | | | |
+| Approver | | | |
+```
+
+## F) Recomendación CORE Mínimo
+
+```yaml
+# /etc/vx11/core_services.yaml
+core_services:
+  # Nivel 0: Crítico para tentaculo_link
+  - name: "tentaculo_proxy"
+    image: "vx11/tentaculo-proxy:stable"
+    ports: ["8000:8000"]
+    resources:
+      cpu: 0.1
+      memory: 64M
+    health_check: "/health"
+    always_on: true
+
+  - name: "madre"
+    image: "vx11/madre:stable"
+    environment:
+      - MODE=SOLO_MADRE
+      - ALLOWLIST_ENFORCE=true
+    resources:
+      cpu: 0.2
+      memory: 128M
+    depends_on: ["tentaculo_proxy"]
+
+  # Nivel 1: Soporte básico (opcional, baja carga)
+  - name: "evidence_collector"
+    image: "vx11/evidence-minimal:stable"
+    resources:
+      cpu: 0.05
+      memory: 32M
+    volumes:
+      - "/var/log/vx11:/logs:ro"
+    start_mode: "on-demand"  # Solo se activa cuando hay logs
+
+# Reglas de seguridad CORE
+security_rules:
+  1. "SOLO_MADRE significa: solo madre + tentaculo_link running"
+  2. "CORE services no exponen endpoints públicos excepto :8000"
+  3. "CORE memory footprint < 256MB total"
+  4. "CORE CPU throttled a 0.5 cores máximo"
+  5. "No persistent storage excepto /var/log/vx11 (read-only para CORE)"
+  6. "Network policy: deny all inbound except :8000"
+  7. "CORE services no pueden abrir ventanas adicionales"
+
+# Health monitoring mínimo
+health_checks:
+  tentaculo_link:
+    check: "curl -f http://localhost:8000/health"
+    interval: 30s
+    timeout: 3s
+    retries: 2
+
+  solo_madre_verification:
+    check: "verify only madre running"
+    interval: 60s
+    action: "alert_only"  # No auto-repair en CORE
+```
+
+**Resumen CORE:**
+- **2 servicios siempre activos**: `tentaculo_proxy` + `madre`
+- **Footprint**: < 200MB RAM, < 0.3 CPU cores
+- **Endpoints**: Solo `:8000` expuesto
+- **Default**: `SOLO_MADRE` estricto
+- **Additive-only**: Nuevos servicios solo via ventanas temporales
+- **Backwards compatible**: No cambia comportamiento existente
+
+Este diseño mantiene el entrypoint disponible mientras preserva el principio de seguridad por defecto.
