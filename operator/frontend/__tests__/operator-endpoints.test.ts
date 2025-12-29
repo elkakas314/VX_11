@@ -22,10 +22,10 @@ describe('PHASE 5: Operator Endpoints - Comprehensive Test Suite', () => {
     })
 
     // ========================================================================
-    // TEST GROUP 1: /api/events - Event Stream
+    // TEST GROUP 1: /operator/api/v1/events - Event Stream
     // ========================================================================
 
-    describe('GET /api/events - Event Stream', () => {
+    describe('GET /operator/api/v1/events - Event Stream', () => {
         it('should fetch events with default pagination', async () => {
             const mockEvents = {
                 events: [
@@ -50,7 +50,7 @@ describe('PHASE 5: Operator Endpoints - Comprehensive Test Suite', () => {
                 status: 200,
             } as any)
 
-            const response = await fetch(`${BASE_URL}/api/events`, {
+            const response = await fetch(`${BASE_URL}/operator/api/v1/events`, {
                 headers: { 'x-vx11-token': TOKEN },
             })
 
@@ -83,7 +83,7 @@ describe('PHASE 5: Operator Endpoints - Comprehensive Test Suite', () => {
                 status: 200,
             } as any)
 
-            const response = await fetch(`${BASE_URL}/api/events?severity=critical`, {
+            const response = await fetch(`${BASE_URL}/operator/api/v1/events?severity=critical`, {
                 headers: { 'x-vx11-token': TOKEN },
             })
 
@@ -114,7 +114,7 @@ describe('PHASE 5: Operator Endpoints - Comprehensive Test Suite', () => {
                 status: 200,
             } as any)
 
-            const response = await fetch(`${BASE_URL}/api/events?module=manifestator`, {
+            const response = await fetch(`${BASE_URL}/operator/api/v1/events?module=manifestator`, {
                 headers: { 'x-vx11-token': TOKEN },
             })
 
@@ -129,7 +129,7 @@ describe('PHASE 5: Operator Endpoints - Comprehensive Test Suite', () => {
                 json: async () => ({ error: 'auth_required' }),
             } as any)
 
-            const response = await fetch(`${BASE_URL}/api/events`)
+            const response = await fetch(`${BASE_URL}/operator/api/v1/events`)
             expect(response.status).toBe(401)
         })
 
@@ -147,7 +147,7 @@ describe('PHASE 5: Operator Endpoints - Comprehensive Test Suite', () => {
                 status: 200,
             } as any)
 
-            const response = await fetch(`${BASE_URL}/api/events`, {
+            const response = await fetch(`${BASE_URL}/operator/api/v1/events`, {
                 headers: { 'x-vx11-token': TOKEN },
             })
 
@@ -158,10 +158,10 @@ describe('PHASE 5: Operator Endpoints - Comprehensive Test Suite', () => {
     })
 
     // ========================================================================
-    // TEST GROUP 2: /api/metrics - Metrics Timeseries
+    // TEST GROUP 2: /operator/api/v1/metrics - Metrics Timeseries
     // ========================================================================
 
-    describe('GET /api/metrics - Metrics Timeseries', () => {
+    describe('GET /operator/api/v1/metrics - Metrics Timeseries', () => {
         it('should fetch metrics with time window', async () => {
             const mockMetrics = {
                 metrics: [
@@ -184,7 +184,7 @@ describe('PHASE 5: Operator Endpoints - Comprehensive Test Suite', () => {
                 status: 200,
             } as any)
 
-            const response = await fetch(`${BASE_URL}/api/metrics?window_seconds=3600`, {
+            const response = await fetch(`${BASE_URL}/operator/api/v1/metrics?window_seconds=3600`, {
                 headers: { 'x-vx11-token': TOKEN },
             })
 
@@ -215,7 +215,7 @@ describe('PHASE 5: Operator Endpoints - Comprehensive Test Suite', () => {
                 status: 200,
             } as any)
 
-            const response = await fetch(`${BASE_URL}/api/metrics?module=redis`, {
+            const response = await fetch(`${BASE_URL}/operator/api/v1/metrics?module=redis`, {
                 headers: { 'x-vx11-token': TOKEN },
             })
 
@@ -225,10 +225,10 @@ describe('PHASE 5: Operator Endpoints - Comprehensive Test Suite', () => {
     })
 
     // ========================================================================
-    // TEST GROUP 3: /api/rails - Manifestator Rails + Lanes
+    // TEST GROUP 3: /operator/api/v1/rails - Manifestator Rails + Lanes
     // ========================================================================
 
-    describe('GET /api/rails/lanes - Manifestator Lanes', () => {
+    describe('GET /operator/api/v1/rails/lanes - Manifestator Lanes', () => {
         it('should fetch all drift detection lanes', async () => {
             const mockLanes = {
                 lanes: [
@@ -260,7 +260,7 @@ describe('PHASE 5: Operator Endpoints - Comprehensive Test Suite', () => {
                 status: 200,
             } as any)
 
-            const response = await fetch(`${BASE_URL}/api/rails/lanes`, {
+            const response = await fetch(`${BASE_URL}/operator/api/v1/rails/lanes`, {
                 headers: { 'x-vx11-token': TOKEN },
             })
 
@@ -271,7 +271,7 @@ describe('PHASE 5: Operator Endpoints - Comprehensive Test Suite', () => {
         })
     })
 
-    describe('GET /api/rails - Rails Constraints', () => {
+    describe('GET /operator/api/v1/rails - Rails Constraints', () => {
         it('should fetch all active rails (constraints)', async () => {
             const mockRails = {
                 rails: [
@@ -303,7 +303,7 @@ describe('PHASE 5: Operator Endpoints - Comprehensive Test Suite', () => {
                 status: 200,
             } as any)
 
-            const response = await fetch(`${BASE_URL}/api/rails`, {
+            const response = await fetch(`${BASE_URL}/operator/api/v1/rails`, {
                 headers: { 'x-vx11-token': TOKEN },
             })
 
@@ -313,7 +313,7 @@ describe('PHASE 5: Operator Endpoints - Comprehensive Test Suite', () => {
         })
     })
 
-    describe('GET /api/rails/{lane_id}/status - Lane Detail', () => {
+    describe('GET /operator/api/v1/rails/{lane_id}/status - Lane Detail', () => {
         it('should fetch detailed lane status with audit findings', async () => {
             const mockLaneStatus = {
                 lane_id: 'lane_001_detect',
@@ -334,7 +334,7 @@ describe('PHASE 5: Operator Endpoints - Comprehensive Test Suite', () => {
                 status: 200,
             } as any)
 
-            const response = await fetch(`${BASE_URL}/api/rails/lane_001_detect/status`, {
+            const response = await fetch(`${BASE_URL}/operator/api/v1/rails/lane_001_detect/status`, {
                 headers: { 'x-vx11-token': TOKEN },
             })
 
@@ -356,7 +356,7 @@ describe('PHASE 5: Operator Endpoints - Comprehensive Test Suite', () => {
                 status: 200,
             } as any)
 
-            const response = await fetch(`${BASE_URL}/api/rails/lane_nonexistent/status`, {
+            const response = await fetch(`${BASE_URL}/operator/api/v1/rails/lane_nonexistent/status`, {
                 headers: { 'x-vx11-token': TOKEN },
             })
 
@@ -390,7 +390,7 @@ describe('PHASE 5: Operator Endpoints - Comprehensive Test Suite', () => {
                 status: 200,
             } as any)
 
-            const response = await fetch(`${BASE_URL}/api/window/status`, {
+            const response = await fetch(`${BASE_URL}/operator/api/v1/chat/window/status`, {
                 headers: { 'x-vx11-token': TOKEN },
             })
 
@@ -427,7 +427,7 @@ describe('PHASE 5: Operator Endpoints - Comprehensive Test Suite', () => {
                 status: 200,
             } as any)
 
-            const response = await fetch(`${BASE_URL}/api/events`, {
+            const response = await fetch(`${BASE_URL}/operator/api/v1/events`, {
                 headers: { 'x-vx11-token': TOKEN },
             })
 
@@ -469,7 +469,7 @@ describe('PHASE 5: Operator Endpoints - Comprehensive Test Suite', () => {
                 status: 200,
             } as any)
 
-            const response = await fetch(`${BASE_URL}/api/events?correlation_id=corr_chain_test`, {
+            const response = await fetch(`${BASE_URL}/operator/api/v1/events?correlation_id=corr_chain_test`, {
                 headers: { 'x-vx11-token': TOKEN },
             })
 
@@ -497,7 +497,7 @@ describe('PHASE 5: Operator Endpoints - Comprehensive Test Suite', () => {
                 status: 200,
             } as any)
 
-            const response = await fetch(`${BASE_URL}/api/events`, {
+            const response = await fetch(`${BASE_URL}/operator/api/v1/events`, {
                 headers: { 'x-vx11-token': TOKEN },
             })
 
@@ -510,7 +510,7 @@ describe('PHASE 5: Operator Endpoints - Comprehensive Test Suite', () => {
             vi.mocked(fetch).mockRejectedValueOnce(new Error('Network timeout'))
 
             try {
-                await fetch(`${BASE_URL}/api/events`, {
+                await fetch(`${BASE_URL}/operator/api/v1/events`, {
                     headers: { 'x-vx11-token': TOKEN },
                 })
             } catch (err) {

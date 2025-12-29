@@ -3,11 +3,12 @@ import json
 import os
 import time
 import uuid
+from collections import deque
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 
 import httpx
-from fastapi import Depends, FastAPI, Header, HTTPException, Request
+from fastapi import Depends, FastAPI, Header, HTTPException, Request, Response
 from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
@@ -76,23 +77,74 @@ token_guard = TokenGuard()
 app = FastAPI(title="VX11 Operator Backend", version=APP_VERSION)
 
 
+@app.middleware("http")
+async def correlation_middleware(request: Request, call_next):
+    correlation_id = request.headers.get("X-Correlation-Id") or str(uuid.uuid4())
+    request.state.correlation_id = correlation_id
+    response = await call_next(request)
+    response.headers["X-Correlation-Id"] = correlation_id
+
+    content_type = response.headers.get("content-type", "")
+    if "application/json" in content_type and not isinstance(response, StreamingResponse):
+        try:
+            body = response.body
+            if body:
+                payload = json.loads(body)
+                if isinstance(payload, dict) and "correlation_id" not in payload:
+                    payload["correlation_id"] = correlation_id
+                    headers = dict(response.headers)
+                    headers.pop("content-length", None)
+                    return JSONResponse(
+                        status_code=response.status_code,
+                        content=payload,
+                        headers=headers,
+                    )
+        except Exception:
+            return response
+    return response
+
+
 def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
-def _correlation_id(x_correlation_id: Optional[str]) -> str:
-    return x_correlation_id or str(uuid.uuid4())
+def _correlation_id(request: Request, x_correlation_id: Optional[str]) -> str:
+    return getattr(request.state, "correlation_id", None) or x_correlation_id or str(
+        uuid.uuid4()
+    )
 
 
-def _off_by_policy(correlation_id: str) -> JSONResponse:
+def _off_by_policy(
+    correlation_id: str, service: str = "operator_backend"
+) -> JSONResponse:
     payload = {
         "status": "OFF_BY_POLICY",
-        "service": "operator_backend",
+        "service": service,
         "message": "Disabled by SOLO_MADRE policy",
         "correlation_id": correlation_id,
         "recommended_action": "Ask Madre to open operator window",
     }
     return JSONResponse(status_code=403, content=payload)
+
+
+def _off_by_policy_with_runbook(
+    correlation_id: str, service: str, runbook: str
+) -> JSONResponse:
+    payload = {
+        "status": "OFF_BY_POLICY",
+        "service": service,
+        "message": "Disabled by SOLO_MADRE policy",
+        "correlation_id": correlation_id,
+        "recommended_action": "Ask Madre to open operator window",
+        "runbook": runbook,
+    }
+    return JSONResponse(status_code=403, content=payload)
+
+
+async def get_correlation_id(
+    request: Request, x_correlation_id: Optional[str] = Header(None)
+) -> str:
+    return _correlation_id(request, x_correlation_id)
 
 
 def _rate_limit_key(request: Request) -> str:
@@ -130,6 +182,40 @@ def _load_json(path: str) -> Optional[Dict[str, Any]]:
     except Exception as exc:
         write_log("operator_backend", f"json_read_error:{path}:{exc}", level="WARNING")
     return None
+
+
+def _tail_lines(path: str, limit: int = 200) -> list[str]:
+    if limit <= 0:
+        return []
+    if not os.path.exists(path):
+        return []
+    try:
+        with open(path, "r", encoding="utf-8") as handle:
+            return list(deque(handle, maxlen=limit))
+    except Exception as exc:
+        write_log("operator_backend", f"log_tail_error:{path}:{exc}", level="WARNING")
+        return []
+
+
+def _intent_response(
+    action: str, correlation_id: str, payload: Optional[Dict[str, Any]] = None
+) -> Dict[str, Any]:
+    intent_id = f"{action}_{uuid.uuid4()}"
+    _write_audit(
+        {
+            "event": action,
+            "correlation_id": correlation_id,
+            "timestamp": _now_iso(),
+            "payload": payload or {},
+            "intent_id": intent_id,
+        }
+    )
+    return {
+        "status": "INTENT_QUEUED",
+        "intent_id": intent_id,
+        "action": action,
+        "message": "Intent queued for Madre review",
+    }
 
 
 OPERATOR_SETTINGS: Dict[str, Any] = {
@@ -187,23 +273,20 @@ async def _get_core_health(correlation_id: str) -> Dict[str, Any]:
 
 
 @app.get("/operator/api/health")
-async def health(x_correlation_id: Optional[str] = Header(None)):
-    correlation_id = _correlation_id(x_correlation_id)
+async def health(correlation_id: str = Depends(get_correlation_id)):
     return {
         "status": "ok",
         "service": "operator_backend",
         "version": APP_VERSION,
-        "correlation_id": correlation_id,
         "timestamp": _now_iso(),
     }
 
 
 @app.get("/operator/api/env")
 async def env_status(
-    x_correlation_id: Optional[str] = Header(None),
+    correlation_id: str = Depends(get_correlation_id),
     _: bool = Depends(token_guard),
 ):
-    correlation_id = _correlation_id(x_correlation_id)
     window = await _get_window_status(correlation_id)
     return {
         "service": "operator_backend",
@@ -211,16 +294,14 @@ async def env_status(
         "policy": window.get("mode", "solo_madre"),
         "window": window,
         "timestamp": _now_iso(),
-        "correlation_id": correlation_id,
     }
 
 
 @app.get("/operator/api/status")
 async def operator_status(
-    x_correlation_id: Optional[str] = Header(None),
+    correlation_id: str = Depends(get_correlation_id),
     _: bool = Depends(token_guard),
 ):
-    correlation_id = _correlation_id(x_correlation_id)
     core = await _get_core_health(correlation_id)
     window = await _get_window_status(correlation_id)
     degraded = core.get("status") != "ok"
@@ -230,16 +311,14 @@ async def operator_status(
         "core_services": core.get("services", {}),
         "degraded": degraded,
         "window": window,
-        "correlation_id": correlation_id,
     }
 
 
 @app.get("/operator/api/modules")
 async def modules(
-    x_correlation_id: Optional[str] = Header(None),
+    correlation_id: str = Depends(get_correlation_id),
     _: bool = Depends(token_guard),
 ):
-    correlation_id = _correlation_id(x_correlation_id)
     core = await _get_core_health(correlation_id)
     window = await _get_window_status(correlation_id)
     allowed = set(window.get("services", []))
@@ -266,15 +345,14 @@ async def modules(
         "category": "operator",
     }
 
-    return {"modules": modules, "correlation_id": correlation_id}
+    return {"modules": modules}
 
 
 @app.get("/operator/api/topology")
 async def topology(
-    x_correlation_id: Optional[str] = Header(None),
+    correlation_id: str = Depends(get_correlation_id),
     _: bool = Depends(token_guard),
 ):
-    correlation_id = _correlation_id(x_correlation_id)
     core = await _get_core_health(correlation_id)
     window = await _get_window_status(correlation_id)
     allowed = set(window.get("services", []))
@@ -299,18 +377,15 @@ async def topology(
         "status": "ok",
         "services": services,
         "policy": window.get("mode", "solo_madre"),
-        "correlation_id": correlation_id,
     }
 
 
 @app.get("/operator/api/windows")
 async def windows(
-    x_correlation_id: Optional[str] = Header(None),
+    correlation_id: str = Depends(get_correlation_id),
     _: bool = Depends(token_guard),
 ):
-    correlation_id = _correlation_id(x_correlation_id)
     status = await _get_window_status(correlation_id)
-    status["correlation_id"] = correlation_id
     return status
 
 
@@ -318,10 +393,9 @@ async def windows(
 async def open_window(
     req: PowerWindowRequest,
     request: Request,
-    x_correlation_id: Optional[str] = Header(None),
+    correlation_id: str = Depends(get_correlation_id),
     _: bool = Depends(token_guard),
 ):
-    correlation_id = _correlation_id(x_correlation_id)
     if not _rate_limit_ok(_rate_limit_key(request)):
         raise HTTPException(status_code=429, detail="rate_limited")
     response = await _call_tentaculo(
@@ -341,10 +415,9 @@ async def open_window(
 @app.post("/operator/api/chat/window/close")
 async def close_window(
     request: Request,
-    x_correlation_id: Optional[str] = Header(None),
+    correlation_id: str = Depends(get_correlation_id),
     _: bool = Depends(token_guard),
 ):
-    correlation_id = _correlation_id(x_correlation_id)
     if not _rate_limit_ok(_rate_limit_key(request)):
         raise HTTPException(status_code=429, detail="rate_limited")
     response = await _call_tentaculo("POST", "/api/window/close", correlation_id)
@@ -360,12 +433,10 @@ async def close_window(
 
 @app.get("/operator/api/chat/window/status")
 async def window_status(
-    x_correlation_id: Optional[str] = Header(None),
+    correlation_id: str = Depends(get_correlation_id),
     _: bool = Depends(token_guard),
 ):
-    correlation_id = _correlation_id(x_correlation_id)
     status = await _get_window_status(correlation_id)
-    status["correlation_id"] = correlation_id
     return status
 
 
@@ -373,10 +444,9 @@ async def window_status(
 async def chat(
     req: OperatorChatRequest,
     request: Request,
-    x_correlation_id: Optional[str] = Header(None),
+    correlation_id: str = Depends(get_correlation_id),
     _: bool = Depends(token_guard),
 ):
-    correlation_id = _correlation_id(x_correlation_id)
     if not _rate_limit_ok(_rate_limit_key(request)):
         raise HTTPException(status_code=429, detail="rate_limited")
 
@@ -397,17 +467,15 @@ async def chat(
         }
     )
     data = response.json()
-    data.setdefault("correlation_id", correlation_id)
     return JSONResponse(status_code=response.status_code, content=data)
 
 
 @app.get("/operator/api/events")
 async def events(
     limit: int = 10,
-    x_correlation_id: Optional[str] = Header(None),
+    correlation_id: str = Depends(get_correlation_id),
     _: bool = Depends(token_guard),
 ):
-    correlation_id = _correlation_id(x_correlation_id)
     response = await _call_tentaculo(
         "GET", "/api/events", correlation_id, params={"limit": limit}
     )
@@ -416,10 +484,9 @@ async def events(
 
 @app.get("/operator/api/events/stream")
 async def events_stream(
-    x_correlation_id: Optional[str] = Header(None),
+    correlation_id: str = Depends(get_correlation_id),
     _: bool = Depends(token_guard),
 ):
-    correlation_id = _correlation_id(x_correlation_id)
     heartbeat_sec = int(os.environ.get("VX11_OPERATOR_SSE_HEARTBEAT", "15"))
     poll_interval_sec = int(os.environ.get("VX11_OPERATOR_SSE_POLL", "60"))
 
@@ -445,12 +512,14 @@ async def events_stream(
                         "window": window,
                         "events": events_resp.json().get("events", []),
                         "timestamp": _now_iso(),
+                        "correlation_id": correlation_id,
                     }
                     yield f"event: snapshot\n"
                     yield f"data: {json.dumps(payload)}\n\n"
                 heartbeat = {
                     "type": "heartbeat",
                     "timestamp": _now_iso(),
+                    "correlation_id": correlation_id,
                 }
                 yield f"event: heartbeat\n"
                 yield f"data: {json.dumps(heartbeat)}\n\n"
@@ -462,6 +531,7 @@ async def events_stream(
                     "type": "error",
                     "message": str(exc),
                     "timestamp": _now_iso(),
+                    "correlation_id": correlation_id,
                 }
                 yield f"event: error\n"
                 yield f"data: {json.dumps(error_payload)}\n\n"
@@ -470,14 +540,27 @@ async def events_stream(
     return StreamingResponse(stream(), media_type="text/event-stream")
 
 
+@app.get("/operator/api/logs/tail")
+async def logs_tail(
+    limit: int = 200,
+    correlation_id: str = Depends(get_correlation_id),
+    _: bool = Depends(token_guard),
+):
+    lines = [line.rstrip("\n") for line in _tail_lines(AUDIT_LOG_PATH, limit=limit)]
+    return {
+        "status": "ok",
+        "source": AUDIT_LOG_PATH,
+        "lines": lines,
+    }
+
+
 @app.get("/operator/api/audit/runs")
 async def audit_runs(
     limit: int = 20,
     offset: int = 0,
-    x_correlation_id: Optional[str] = Header(None),
+    correlation_id: str = Depends(get_correlation_id),
     _: bool = Depends(token_guard),
 ):
-    correlation_id = _correlation_id(x_correlation_id)
     response = await _call_tentaculo(
         "GET",
         "/api/audit/runs",
@@ -490,10 +573,9 @@ async def audit_runs(
 @app.get("/operator/api/audit/runs/{run_id}")
 async def audit_run_detail(
     run_id: str,
-    x_correlation_id: Optional[str] = Header(None),
+    correlation_id: str = Depends(get_correlation_id),
     _: bool = Depends(token_guard),
 ):
-    correlation_id = _correlation_id(x_correlation_id)
     response = await _call_tentaculo(
         "GET", f"/api/audit/{run_id}", correlation_id
     )
@@ -502,10 +584,9 @@ async def audit_run_detail(
 
 @app.get("/operator/api/explorer/presets")
 async def explorer_presets(
-    x_correlation_id: Optional[str] = Header(None),
+    correlation_id: str = Depends(get_correlation_id),
     _: bool = Depends(token_guard),
 ):
-    correlation_id = _correlation_id(x_correlation_id)
     presets = [
         {
             "id": "events_recent",
@@ -520,17 +601,16 @@ async def explorer_presets(
             "params": {"limit": 20},
         },
     ]
-    return {"presets": presets, "correlation_id": correlation_id}
+    return {"presets": presets}
 
 
 @app.post("/operator/api/explorer/query")
 async def explorer_query(
     req: ExplorerQueryRequest,
     request: Request,
-    x_correlation_id: Optional[str] = Header(None),
+    correlation_id: str = Depends(get_correlation_id),
     _: bool = Depends(token_guard),
 ):
-    correlation_id = _correlation_id(x_correlation_id)
     if not _rate_limit_ok(_rate_limit_key(request)):
         raise HTTPException(status_code=429, detail="rate_limited")
 
@@ -554,15 +634,93 @@ async def explorer_query(
     raise HTTPException(status_code=400, detail="invalid_preset")
 
 
-@app.get("/operator/api/hormiguero/status")
-async def hormiguero_status(
-    x_correlation_id: Optional[str] = Header(None),
+@app.post("/operator/api/madre/plan")
+async def madre_plan(
+    payload: Dict[str, Any],
+    request: Request,
+    correlation_id: str = Depends(get_correlation_id),
     _: bool = Depends(token_guard),
 ):
-    correlation_id = _correlation_id(x_correlation_id)
+    window = await _get_window_status(correlation_id)
+    if window.get("mode") != "window_active":
+        return _off_by_policy(correlation_id, service="madre")
+    if not _rate_limit_ok(_rate_limit_key(request)):
+        raise HTTPException(status_code=429, detail="rate_limited")
+    intent = _intent_response("madre_plan", correlation_id, payload)
+    return {
+        "status": intent["status"],
+        "intent_id": intent["intent_id"],
+        "action": intent["action"],
+        "message": "Madre plan request queued",
+    }
+
+
+@app.post("/operator/api/madre/execute")
+async def madre_execute(
+    payload: Dict[str, Any],
+    request: Request,
+    correlation_id: str = Depends(get_correlation_id),
+    _: bool = Depends(token_guard),
+):
+    window = await _get_window_status(correlation_id)
+    if window.get("mode") != "window_active":
+        return _off_by_policy(correlation_id, service="madre")
+    if not _rate_limit_ok(_rate_limit_key(request)):
+        raise HTTPException(status_code=429, detail="rate_limited")
+    intent = _intent_response("madre_execute", correlation_id, payload)
+    return {
+        "status": intent["status"],
+        "intent_id": intent["intent_id"],
+        "action": intent["action"],
+        "message": "Madre execute request queued",
+    }
+
+
+@app.post("/operator/api/madre/cancel")
+async def madre_cancel(
+    payload: Dict[str, Any],
+    request: Request,
+    correlation_id: str = Depends(get_correlation_id),
+    _: bool = Depends(token_guard),
+):
+    window = await _get_window_status(correlation_id)
+    if window.get("mode") != "window_active":
+        return _off_by_policy(correlation_id, service="madre")
+    if not _rate_limit_ok(_rate_limit_key(request)):
+        raise HTTPException(status_code=429, detail="rate_limited")
+    intent = _intent_response("madre_cancel", correlation_id, payload)
+    return {
+        "status": intent["status"],
+        "intent_id": intent["intent_id"],
+        "action": intent["action"],
+        "message": "Madre cancel request queued",
+    }
+
+
+@app.get("/operator/api/madre/status/{intent_id}")
+async def madre_status(
+    intent_id: str,
+    correlation_id: str = Depends(get_correlation_id),
+    _: bool = Depends(token_guard),
+):
+    window = await _get_window_status(correlation_id)
+    if window.get("mode") != "window_active":
+        return _off_by_policy(correlation_id, service="madre")
+    return {
+        "status": "unknown",
+        "intent_id": intent_id,
+        "message": "Intent tracking not configured; consult Madre logs",
+    }
+
+
+@app.get("/operator/api/hormiguero/status")
+async def hormiguero_status(
+    correlation_id: str = Depends(get_correlation_id),
+    _: bool = Depends(token_guard),
+):
     window = await _get_window_status(correlation_id)
     if "hormiguero" not in window.get("services", []):
-        return _off_by_policy(correlation_id)
+        return _off_by_policy(correlation_id, service="hormiguero")
     response = await _call_tentaculo(
         "GET", "/hormiguero/queen/status", correlation_id, timeout=5.0
     )
@@ -572,13 +730,12 @@ async def hormiguero_status(
 @app.post("/operator/api/hormiguero/scan/once")
 async def hormiguero_scan_once(
     request: Request,
-    x_correlation_id: Optional[str] = Header(None),
+    correlation_id: str = Depends(get_correlation_id),
     _: bool = Depends(token_guard),
 ):
-    correlation_id = _correlation_id(x_correlation_id)
     window = await _get_window_status(correlation_id)
     if "hormiguero" not in window.get("services", []):
-        return _off_by_policy(correlation_id)
+        return _off_by_policy(correlation_id, service="hormiguero")
     if not _rate_limit_ok(_rate_limit_key(request)):
         raise HTTPException(status_code=429, detail="rate_limited")
     response = await _call_tentaculo(
@@ -594,15 +751,29 @@ async def hormiguero_scan_once(
     return JSONResponse(status_code=response.status_code, content=response.json())
 
 
+async def _manifestator_plan(correlation_id: str) -> Dict[str, Any]:
+    lanes_resp = await _call_tentaculo(
+        "GET", "/api/rails/lanes", correlation_id, timeout=5.0
+    )
+    rails_resp = await _call_tentaculo(
+        "GET", "/api/rails", correlation_id, timeout=5.0
+    )
+    return {
+        "summary": "Manifestator compare plan generated",
+        "lanes": lanes_resp.json().get("lanes", []),
+        "rails": rails_resp.json().get("rails", []),
+        "apply": "prohibited",
+    }
+
+
 @app.get("/operator/api/manifestator/status")
 async def manifestator_status(
-    x_correlation_id: Optional[str] = Header(None),
+    correlation_id: str = Depends(get_correlation_id),
     _: bool = Depends(token_guard),
 ):
-    correlation_id = _correlation_id(x_correlation_id)
     window = await _get_window_status(correlation_id)
     if "manifestator" not in window.get("services", []):
-        return _off_by_policy(correlation_id)
+        return _off_by_policy(correlation_id, service="manifestator")
 
     response = await _call_tentaculo(
         "GET", "/api/rails/lanes", correlation_id, timeout=5.0
@@ -610,37 +781,45 @@ async def manifestator_status(
     payload = {
         "status": "ok",
         "lanes": response.json().get("lanes", []),
-        "correlation_id": correlation_id,
     }
     return payload
+
+
+@app.post("/operator/api/manifestator/patchplan")
+async def manifestator_patchplan(
+    request: Request,
+    correlation_id: str = Depends(get_correlation_id),
+    _: bool = Depends(token_guard),
+):
+    window = await _get_window_status(correlation_id)
+    if "manifestator" not in window.get("services", []):
+        return _off_by_policy(correlation_id, service="manifestator")
+    if not _rate_limit_ok(_rate_limit_key(request)):
+        raise HTTPException(status_code=429, detail="rate_limited")
+    plan = await _manifestator_plan(correlation_id)
+    _write_audit(
+        {
+            "event": "manifestator_patchplan",
+            "correlation_id": correlation_id,
+            "timestamp": _now_iso(),
+        }
+    )
+    return {"status": "ok", "plan": plan}
 
 
 @app.post("/operator/api/manifestator/compare")
 async def manifestator_compare(
     request: Request,
-    x_correlation_id: Optional[str] = Header(None),
+    correlation_id: str = Depends(get_correlation_id),
     _: bool = Depends(token_guard),
 ):
-    correlation_id = _correlation_id(x_correlation_id)
     window = await _get_window_status(correlation_id)
     if "manifestator" not in window.get("services", []):
-        return _off_by_policy(correlation_id)
+        return _off_by_policy(correlation_id, service="manifestator")
     if not _rate_limit_ok(_rate_limit_key(request)):
         raise HTTPException(status_code=429, detail="rate_limited")
 
-    lanes_resp = await _call_tentaculo(
-        "GET", "/api/rails/lanes", correlation_id, timeout=5.0
-    )
-    rails_resp = await _call_tentaculo(
-        "GET", "/api/rails", correlation_id, timeout=5.0
-    )
-
-    plan = {
-        "summary": "Manifestator compare plan generated",
-        "lanes": lanes_resp.json().get("lanes", []),
-        "rails": rails_resp.json().get("rails", []),
-        "apply": "prohibited",
-    }
+    plan = await _manifestator_plan(correlation_id)
 
     _write_audit(
         {
@@ -650,16 +829,100 @@ async def manifestator_compare(
         }
     )
 
-    return {"status": "ok", "plan": plan, "correlation_id": correlation_id}
+    return {"status": "ok", "plan": plan}
+
+
+@app.post("/operator/api/manifestator/apply")
+async def manifestator_apply(
+    payload: Dict[str, Any],
+    request: Request,
+    correlation_id: str = Depends(get_correlation_id),
+    _: bool = Depends(token_guard),
+):
+    window = await _get_window_status(correlation_id)
+    if "manifestator" not in window.get("services", []):
+        return _off_by_policy(correlation_id, service="manifestator")
+    if not _rate_limit_ok(_rate_limit_key(request)):
+        raise HTTPException(status_code=429, detail="rate_limited")
+    intent = _intent_response("manifestator_apply", correlation_id, payload)
+    return {
+        "status": intent["status"],
+        "intent_id": intent["intent_id"],
+        "action": intent["action"],
+        "message": "Manifestator apply request queued; requires Madre approval",
+    }
+
+
+@app.get("/operator/api/shub/status")
+async def shub_status(
+    correlation_id: str = Depends(get_correlation_id),
+    _: bool = Depends(token_guard),
+):
+    return _off_by_policy_with_runbook(
+        correlation_id,
+        service="shub",
+        runbook="Enable shub via Madre power window and configure SHUB_URL in operator_backend.",
+    )
+
+
+@app.get("/operator/api/shub/jobs")
+async def shub_jobs(
+    correlation_id: str = Depends(get_correlation_id),
+    _: bool = Depends(token_guard),
+):
+    return _off_by_policy_with_runbook(
+        correlation_id,
+        service="shub",
+        runbook="Enable shub via Madre power window and configure SHUB_URL in operator_backend.",
+    )
+
+
+@app.post("/operator/api/shub/jobs/submit")
+async def shub_jobs_submit(
+    payload: Dict[str, Any],
+    correlation_id: str = Depends(get_correlation_id),
+    _: bool = Depends(token_guard),
+):
+    _ = payload
+    return _off_by_policy_with_runbook(
+        correlation_id,
+        service="shub",
+        runbook="Enable shub via Madre power window and configure SHUB_URL in operator_backend.",
+    )
+
+
+@app.post("/operator/api/assist/deepseek_r1")
+async def assist_deepseek(
+    payload: Dict[str, Any],
+    correlation_id: str = Depends(get_correlation_id),
+    _: bool = Depends(token_guard),
+):
+    _ = payload
+    return _off_by_policy_with_runbook(
+        correlation_id,
+        service="assist",
+        runbook="CoDev assist disabled; enable deepseek_r1 in switch and open an operator window.",
+    )
+
+
+@app.get("/operator/api/assist/deepseek_r1/status")
+async def assist_deepseek_status(
+    correlation_id: str = Depends(get_correlation_id),
+    _: bool = Depends(token_guard),
+):
+    return _off_by_policy_with_runbook(
+        correlation_id,
+        service="assist",
+        runbook="CoDev assist disabled; enable deepseek_r1 in switch and open an operator window.",
+    )
 
 
 @app.get("/operator/api/metrics")
 async def metrics(
     window_seconds: int = 3600,
-    x_correlation_id: Optional[str] = Header(None),
+    correlation_id: str = Depends(get_correlation_id),
     _: bool = Depends(token_guard),
 ):
-    correlation_id = _correlation_id(x_correlation_id)
     response = await _call_tentaculo(
         "GET",
         "/api/metrics",
@@ -671,10 +934,9 @@ async def metrics(
 
 @app.get("/operator/api/scorecard")
 async def scorecard(
-    x_correlation_id: Optional[str] = Header(None),
+    correlation_id: str = Depends(get_correlation_id),
     _: bool = Depends(token_guard),
 ):
-    correlation_id = _correlation_id(x_correlation_id)
     scorecard_data = _load_json(SCORECARD_PATH)
     percentages_data = _load_json(PERCENTAGES_PATH)
     payload = {
@@ -684,17 +946,15 @@ async def scorecard(
             "scorecard": scorecard_data is not None,
             "percentages": percentages_data is not None,
         },
-        "correlation_id": correlation_id,
     }
     return payload
 
 
 @app.get("/operator/api/audit")
 async def audit_summary(
-    x_correlation_id: Optional[str] = Header(None),
+    correlation_id: str = Depends(get_correlation_id),
     _: bool = Depends(token_guard),
 ):
-    correlation_id = _correlation_id(x_correlation_id)
     response = await _call_tentaculo(
         "GET", "/api/audit/runs", correlation_id, params={"limit": 20}
     )
@@ -703,21 +963,19 @@ async def audit_summary(
 
 @app.get("/operator/api/settings")
 async def get_settings(
-    x_correlation_id: Optional[str] = Header(None),
+    correlation_id: str = Depends(get_correlation_id),
     _: bool = Depends(token_guard),
 ):
-    correlation_id = _correlation_id(x_correlation_id)
-    return {**OPERATOR_SETTINGS, "correlation_id": correlation_id}
+    return {**OPERATOR_SETTINGS}
 
 
 @app.post("/operator/api/settings")
 async def update_settings(
     payload: Dict[str, Any],
     request: Request,
-    x_correlation_id: Optional[str] = Header(None),
+    correlation_id: str = Depends(get_correlation_id),
     _: bool = Depends(token_guard),
 ):
-    correlation_id = _correlation_id(x_correlation_id)
     if not _rate_limit_ok(_rate_limit_key(request)):
         raise HTTPException(status_code=429, detail="rate_limited")
     OPERATOR_SETTINGS.update(payload)
@@ -733,26 +991,23 @@ async def update_settings(
         "status": "ok",
         "message": "Settings updated",
         "settings": OPERATOR_SETTINGS,
-        "correlation_id": correlation_id,
     }
 
 
 @app.get("/operator/api/rails/lanes")
 async def rails_lanes(
-    x_correlation_id: Optional[str] = Header(None),
+    correlation_id: str = Depends(get_correlation_id),
     _: bool = Depends(token_guard),
 ):
-    correlation_id = _correlation_id(x_correlation_id)
     response = await _call_tentaculo("GET", "/api/rails/lanes", correlation_id)
     return JSONResponse(status_code=response.status_code, content=response.json())
 
 
 @app.get("/operator/api/rails")
 async def rails(
-    x_correlation_id: Optional[str] = Header(None),
+    correlation_id: str = Depends(get_correlation_id),
     _: bool = Depends(token_guard),
 ):
-    correlation_id = _correlation_id(x_correlation_id)
     response = await _call_tentaculo("GET", "/api/rails", correlation_id)
     return JSONResponse(status_code=response.status_code, content=response.json())
 
@@ -760,3 +1015,60 @@ async def rails(
 @app.get("/operator/api/healthz")
 async def healthz():
     return {"status": "ok"}
+
+
+ALIAS_ROUTES = [
+    ("/health", ["GET"], health),
+    ("/env", ["GET"], env_status),
+    ("/status", ["GET"], operator_status),
+    ("/modules", ["GET"], modules),
+    ("/topology", ["GET"], topology),
+    ("/windows", ["GET"], windows),
+    ("/chat/window/open", ["POST"], open_window),
+    ("/chat/window/close", ["POST"], close_window),
+    ("/chat/window/status", ["GET"], window_status),
+    ("/chat", ["POST"], chat),
+    ("/events", ["GET"], events),
+    ("/events/stream", ["GET"], events_stream),
+    ("/logs/tail", ["GET"], logs_tail),
+    ("/audit/runs", ["GET"], audit_runs),
+    ("/audit/runs/{run_id}", ["GET"], audit_run_detail),
+    ("/audit", ["GET"], audit_summary),
+    ("/explorer/presets", ["GET"], explorer_presets),
+    ("/explorer/query", ["POST"], explorer_query),
+    ("/madre/plan", ["POST"], madre_plan),
+    ("/madre/execute", ["POST"], madre_execute),
+    ("/madre/cancel", ["POST"], madre_cancel),
+    ("/madre/status/{intent_id}", ["GET"], madre_status),
+    ("/manifestator/status", ["GET"], manifestator_status),
+    ("/manifestator/patchplan", ["POST"], manifestator_patchplan),
+    ("/manifestator/compare", ["POST"], manifestator_compare),
+    ("/manifestator/apply", ["POST"], manifestator_apply),
+    ("/hormiguero/status", ["GET"], hormiguero_status),
+    ("/hormiguero/scan_once", ["POST"], hormiguero_scan_once),
+    ("/metrics", ["GET"], metrics),
+    ("/scorecard", ["GET"], scorecard),
+    ("/settings", ["GET"], get_settings),
+    ("/settings", ["POST"], update_settings),
+    ("/rails/lanes", ["GET"], rails_lanes),
+    ("/rails", ["GET"], rails),
+    ("/shub/status", ["GET"], shub_status),
+    ("/shub/jobs", ["GET"], shub_jobs),
+    ("/shub/jobs/submit", ["POST"], shub_jobs_submit),
+    ("/assist/deepseek_r1", ["POST"], assist_deepseek),
+    ("/assist/deepseek_r1/status", ["GET"], assist_deepseek_status),
+]
+
+
+def _register_aliases(prefix: str, include_in_schema: bool) -> None:
+    for path, methods, handler in ALIAS_ROUTES:
+        app.add_api_route(
+            f"{prefix}{path}",
+            handler,
+            methods=methods,
+            include_in_schema=include_in_schema,
+        )
+
+
+_register_aliases("/api/v1", include_in_schema=True)
+_register_aliases("/api", include_in_schema=False)
