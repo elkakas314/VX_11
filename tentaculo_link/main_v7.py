@@ -181,8 +181,14 @@ app.add_middleware(
 )
 
 # Mount Operator UI static files
-operator_ui_path = Path(__file__).parent.parent / "operator" / "frontend" / "dist"
-if operator_ui_path.exists():
+operator_ui_candidates = [
+    Path(__file__).parent.parent / "operator_ui" / "frontend" / "dist",
+    Path(__file__).parent.parent / "operator" / "frontend" / "dist",
+]
+operator_ui_path = next(
+    (candidate for candidate in operator_ui_candidates if candidate.exists()), None
+)
+if operator_ui_path:
     app.mount(
         "/operator/ui",
         StaticFiles(directory=str(operator_ui_path), html=True),
@@ -192,7 +198,7 @@ if operator_ui_path.exists():
 else:
     write_log(
         "tentaculo_link",
-        f"WARNING: operator_ui not found:{operator_ui_path}",
+        f"WARNING: operator_ui not found: {operator_ui_candidates}",
         level="WARNING",
     )
 

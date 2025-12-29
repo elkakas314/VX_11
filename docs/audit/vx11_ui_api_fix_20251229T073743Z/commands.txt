@@ -1,0 +1,146 @@
+git status -sb
+## work
+ M config/settings.py
+ M operator_ui/frontend/src/services/api.ts
+ M tentaculo_link/main_v7.py
+rg -n "allowed_origins" config/settings.py
+91:    allowed_origins: list[str] = [
+sed -n '170,220p' tentaculo_link/main_v7.py
+    version="7.0",
+    lifespan=lifespan,
+)
+
+# Add CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.allowed_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Mount Operator UI static files
+operator_ui_candidates = [
+    Path(__file__).parent.parent / "operator_ui" / "frontend" / "dist",
+    Path(__file__).parent.parent / "operator" / "frontend" / "dist",
+]
+operator_ui_path = next(
+    (candidate for candidate in operator_ui_candidates if candidate.exists()), None
+)
+if operator_ui_path:
+    app.mount(
+        "/operator/ui",
+        StaticFiles(directory=str(operator_ui_path), html=True),
+        name="operator_ui",
+    )
+    write_log("tentaculo_link", f"mounted_operator_ui:{operator_ui_path}")
+else:
+    write_log(
+        "tentaculo_link",
+        f"WARNING: operator_ui not found: {operator_ui_candidates}",
+        level="WARNING",
+    )
+
+# Include new operator API routes with /operator prefix
+try:
+    app.include_router(
+        api_routes.events.router, prefix="/operator", tags=["operator-api"]
+    )
+    app.include_router(
+        api_routes.settings.router, prefix="/operator", tags=["operator-api"]
+    )
+    app.include_router(
+        api_routes.audit.router, prefix="/operator", tags=["operator-api"]
+    )
+    app.include_router(
+        api_routes.metrics.router, prefix="/operator", tags=["operator-api"]
+    )
+    app.include_router(
+        api_routes.rails.router, prefix="/operator", tags=["operator-api"]
+sed -n '1,80p' operator_ui/frontend/src/services/api.ts
+/**
+ * API Client for VX11 Operator
+ * Consumes: tentaculo_link:8000 only (via relative URL)
+ * No direct calls to backend services
+ * 
+ * RELATIVE BASE_URL: Works across any host/IP/port
+ * - Dev (Vite :5173): proxy /operator/api → tentaculo_link:8000
+ * - Prod: Operator UI mounted at /operator/ui in tentaculo_link
+ */
+
+const TOKEN =
+    import.meta.env.VITE_VX11_TOKEN ||
+    import.meta.env.VITE_VX11_TENTACULO_TOKEN ||
+    'test-token-vx11' // In production: from auth service
+const BASE_URL = import.meta.env.VITE_VX11_API_BASE_URL ?? '' // Empty = relative (same origin)
+
+interface ApiResponse<T> {
+    ok: boolean
+    data?: T
+    error?: string
+    status: number
+}
+
+class ApiClient {
+    private backoffMs = 1000
+    private maxBackoffMs = 30000
+
+    async request<T>(
+        method: string,
+        path: string,
+        body?: any,
+        options?: { noRetry?: boolean; timeout?: number }
+    ): Promise<ApiResponse<T>> {
+        const url = `${BASE_URL}${path}`
+        const timeout = options?.timeout || 5000
+
+        try {
+            const controller = new AbortController()
+            const timeoutId = setTimeout(() => controller.abort(), timeout)
+
+            const response = await fetch(url, {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-vx11-token': TOKEN,
+                },
+                body: body ? JSON.stringify(body) : undefined,
+                signal: controller.signal,
+            })
+
+            clearTimeout(timeoutId)
+
+            if (!response.ok) {
+                return {
+                    ok: false,
+                    error: `HTTP ${response.status}`,
+                    status: response.status,
+                }
+            }
+
+            const data = await response.json()
+            return {
+                ok: true,
+                data,
+                status: response.status,
+            }
+        } catch (err: any) {
+            console.error(`API request failed: ${method} ${path}`, err)
+            return {
+                ok: false,
+                error: err.message || 'Unknown error',
+                status: 0,
+            }
+        }
+    }
+
+    // Chat endpoint (P0: via /operator/api/chat)
+    async chat(message: string, sessionId?: string): Promise<ApiResponse<any>> {
+        return this.request('POST', '/operator/api/chat', {
+            message,
+git status -sb
+## work
+ M config/settings.py
+ M operator_ui/frontend/src/services/api.ts
+ M tentaculo_link/main_v7.py
+git add -f config/settings.py tentaculo_link/main_v7.py operator_ui/frontend/src/services/api.ts docs/audit/vx11_ui_api_fix_20251229T073743Z

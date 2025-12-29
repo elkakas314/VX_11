@@ -93,6 +93,10 @@ class VX11Settings(BaseSettings):
         "http://localhost:8020",
         "http://127.0.0.1:8011",
         "http://127.0.0.1:8020",
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:5174",
+        "http://127.0.0.1:5174",
     ]
     testing_mode: bool = False  # Si True, puede desactivar auth en tests
 

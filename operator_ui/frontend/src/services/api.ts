@@ -8,7 +8,10 @@
  * - Prod: Operator UI mounted at /operator/ui in tentaculo_link
  */
 
-const TOKEN = 'vx11-local-token' // In production: from auth service
+const TOKEN =
+    import.meta.env.VITE_VX11_TOKEN ||
+    import.meta.env.VITE_VX11_TENTACULO_TOKEN ||
+    'test-token-vx11' // In production: from auth service
 const BASE_URL = import.meta.env.VITE_VX11_API_BASE_URL ?? '' // Empty = relative (same origin)
 
 interface ApiResponse<T> {

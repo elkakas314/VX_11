@@ -1,0 +1,52 @@
+sed -n '170,220p' tentaculo_link/main_v7.py
+    version="7.0",
+    lifespan=lifespan,
+)
+
+# Add CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.allowed_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Mount Operator UI static files
+operator_ui_candidates = [
+    Path(__file__).parent.parent / "operator_ui" / "frontend" / "dist",
+    Path(__file__).parent.parent / "operator" / "frontend" / "dist",
+]
+operator_ui_path = next(
+    (candidate for candidate in operator_ui_candidates if candidate.exists()), None
+)
+if operator_ui_path:
+    app.mount(
+        "/operator/ui",
+        StaticFiles(directory=str(operator_ui_path), html=True),
+        name="operator_ui",
+    )
+    write_log("tentaculo_link", f"mounted_operator_ui:{operator_ui_path}")
+else:
+    write_log(
+        "tentaculo_link",
+        f"WARNING: operator_ui not found: {operator_ui_candidates}",
+        level="WARNING",
+    )
+
+# Include new operator API routes with /operator prefix
+try:
+    app.include_router(
+        api_routes.events.router, prefix="/operator", tags=["operator-api"]
+    )
+    app.include_router(
+        api_routes.settings.router, prefix="/operator", tags=["operator-api"]
+    )
+    app.include_router(
+        api_routes.audit.router, prefix="/operator", tags=["operator-api"]
+    )
+    app.include_router(
+        api_routes.metrics.router, prefix="/operator", tags=["operator-api"]
+    )
+    app.include_router(
+        api_routes.rails.router, prefix="/operator", tags=["operator-api"]

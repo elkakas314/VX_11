@@ -1,0 +1,5 @@
+git status -sb
+## work
+ M config/settings.py
+ M operator_ui/frontend/src/services/api.ts
+ M tentaculo_link/main_v7.py

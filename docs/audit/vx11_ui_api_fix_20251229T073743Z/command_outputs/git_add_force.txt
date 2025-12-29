@@ -1,0 +1,1 @@
+git add -f config/settings.py tentaculo_link/main_v7.py operator_ui/frontend/src/services/api.ts docs/audit/vx11_ui_api_fix_20251229T073743Z

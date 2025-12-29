@@ -1,0 +1,2 @@
+rg -n "allowed_origins" config/settings.py
+91:    allowed_origins: list[str] = [
