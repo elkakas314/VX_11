@@ -550,9 +550,10 @@ async def maintenance_post_task(
         counts_res = _run(
             ["python3", "scripts/audit_counts.py", db_path], timeout=60, cwd=REPO_ROOT
         )
-        if counts_res.get("stdout"):
+        stdout_text = counts_res.get("stdout") or ""
+        if stdout_text:
             with open(counts_path, "w", encoding="utf-8") as fh:
-                fh.write(counts_res.get("stdout"))
+                fh.write(stdout_text)
         counts_result = counts_res
     except Exception as exc:
         counts_result = {"status": "error", "error": str(exc)}

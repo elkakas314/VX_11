@@ -3,7 +3,7 @@ import httpx
 import asyncio
 import os
 import logging
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 from datetime import datetime
 
 log = logging.getLogger("vx11.operator.e2e")
@@ -38,7 +38,7 @@ class TestOperatorChatE2E:
         log.info(f"Madre URL: {cls.MADRE_URL}")
         log.info(f"Switch URL: {cls.SWITCH_URL}")
 
-    def _get_headers(self, token: str = None) -> Dict[str, str]:
+    def _get_headers(self, token: Optional[str] = None) -> Dict[str, str]:
         """Get request headers with token."""
         t = token or self.TOKEN
         return {
