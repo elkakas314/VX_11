@@ -3,16 +3,28 @@
  * Consumes: tentaculo_link:8000 only (via relative URL)
  * No direct calls to backend services
  * 
- * RELATIVE BASE_URL: Works across any host/IP/port
- * - Dev (Vite :5173): proxy /operator/api → tentaculo_link:8000
- * - Prod: Operator UI mounted at /operator/ui in tentaculo_link
+ * API base is configurable (VITE_VX11_API_BASE). Defaults:
+ * - Dev: http://localhost:8000
+ * - Prod: window.location.origin
  */
 
 const TOKEN =
     import.meta.env.VITE_VX11_TOKEN ||
     import.meta.env.VITE_VX11_TENTACULO_TOKEN ||
     'vx11-local-token' // In production: from auth service or config
-const BASE_URL = import.meta.env.VITE_VX11_API_BASE_URL ?? '' // Empty = relative (same origin)
+const RAW_BASE =
+    import.meta.env.VITE_VX11_API_BASE ||
+    import.meta.env.VITE_VX11_API_BASE_URL ||
+    ''
+const DEFAULT_BASE = import.meta.env.DEV
+    ? 'http://localhost:8000'
+    : typeof window !== 'undefined'
+      ? window.location.origin
+      : 'http://localhost:8000'
+
+export const API_BASE = (RAW_BASE as string).trim() || DEFAULT_BASE
+
+export const buildApiUrl = (path: string) => new URL(path, API_BASE).toString()
 
 interface ApiResponse<T> {
     ok: boolean
@@ -31,7 +43,7 @@ class ApiClient {
         body?: any,
         options?: { noRetry?: boolean; timeout?: number }
     ): Promise<ApiResponse<T>> {
-        const url = `${BASE_URL}${path}`
+        const url = buildApiUrl(path)
         const timeout = options?.timeout || 5000
 
         try {
@@ -51,6 +63,14 @@ class ApiClient {
             clearTimeout(timeoutId)
 
             if (!response.ok) {
+                if (
+                    response.status === 404 &&
+                    !options?.noRetry &&
+                    path.startsWith('/operator/api/v1')
+                ) {
+                    const legacyPath = path.replace('/operator/api/v1', '/operator/api')
+                    return this.request(method, legacyPath, body, { ...options, noRetry: true })
+                }
                 let errorDetail = `HTTP ${response.status}`
                 try {
                     const errorJson = await response.json()
@@ -91,7 +111,7 @@ class ApiClient {
 
     // Chat endpoint (P0: via /operator/api/chat)
     async chat(message: string, sessionId?: string): Promise<ApiResponse<any>> {
-        return this.request('POST', '/operator/api/chat', {
+        return this.request('POST', '/operator/api/v1/chat', {
             message,
             session_id: sessionId,
         })
@@ -99,67 +119,67 @@ class ApiClient {
 
     // Status endpoint (P0: via /operator/api/status)
     async status(): Promise<ApiResponse<any>> {
-        return this.request('GET', '/operator/api/status')
+        return this.request('GET', '/operator/api/v1/status')
     }
 
     // Modules endpoint (P0: via /operator/api/modules)
     async modules(): Promise<ApiResponse<any>> {
-        return this.request('GET', '/operator/api/modules')
+        return this.request('GET', '/operator/api/v1/modules')
     }
 
     // Module detail endpoint
     async moduleDetail(name: string): Promise<ApiResponse<any>> {
-        return this.request('GET', `/operator/api/modules/${name}`)
+        return this.request('GET', `/operator/api/v1/modules/${name}`)
     }
 
     // Events endpoint (P0: via /operator/api/events)
     async events(): Promise<ApiResponse<any>> {
-        return this.request('GET', '/operator/api/events')
+        return this.request('GET', '/operator/api/v1/events')
     }
 
     // Scorecard endpoint (P0: via /operator/api/scorecard)
     async scorecard(): Promise<ApiResponse<any>> {
-        return this.request('GET', '/operator/api/scorecard')
+        return this.request('GET', '/operator/api/v1/scorecard')
     }
 
     // Audit endpoint (P0: via /operator/api/audit)
     async audit(): Promise<ApiResponse<any>> {
-        return this.request('GET', '/operator/api/audit')
+        return this.request('GET', '/operator/api/v1/audit')
     }
 
     // Audit detail endpoint
     async auditDetail(id: string): Promise<ApiResponse<any>> {
-        return this.request('GET', `/operator/api/audit/${id}`)
+        return this.request('GET', `/operator/api/v1/audit/${id}`)
     }
 
     // Download audit endpoint
     async downloadAudit(id: string): Promise<ApiResponse<any>> {
-        return this.request('GET', `/operator/api/audit/${id}/download`)
+        return this.request('GET', `/operator/api/v1/audit/${id}/download`)
     }
 
     // Settings endpoint (P0: via /operator/api/settings)
     async settings(): Promise<ApiResponse<any>> {
-        return this.request('GET', '/operator/api/settings')
+        return this.request('GET', '/operator/api/v1/settings')
     }
 
     // Update settings endpoint
     async updateSettings(settings: any): Promise<ApiResponse<any>> {
-        return this.request('POST', '/operator/api/settings', settings)
+        return this.request('POST', '/operator/api/v1/settings', settings)
     }
 
     // Topology endpoint (P0: via /operator/api/topology)
     async topology(): Promise<ApiResponse<any>> {
-        return this.request('GET', '/operator/api/topology')
+        return this.request('GET', '/operator/api/v1/topology')
     }
 
     // Power state endpoint (legacy, still available)
     async windows(): Promise<ApiResponse<any>> {
-        return this.request('GET', '/operator/api/windows')
+        return this.request('GET', '/operator/api/v1/windows')
     }
 
     // Hormiguero status (optional, may be unavailable)
     async hormigueroStatus(): Promise<ApiResponse<any>> {
-        return this.request('GET', '/operator/api/hormiguero/status', undefined, { timeout: 3000 })
+        return this.request('GET', '/operator/api/v1/hormiguero/status', undefined, { timeout: 3000 })
     }
 
     // Hormiguero incidents (optional, for debug mode)
