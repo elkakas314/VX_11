@@ -24,10 +24,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl && \
 # Copy only Python packages from builder
 COPY --from=builder /root/.local /root/.local
 
-# Copy only necessary files (using .dockerignore)
-COPY config /app/config/
-COPY tentaculo_link /app/tentaculo_link/
-COPY sitecustomize.py /app/
+# Copy entire codebase (minimal set per .dockerignore)
+COPY --chown=nobody:nogroup . /app/
 
 # Create directories
 RUN mkdir -p /app/logs /app/data /app/models /app/sandbox

@@ -1,0 +1,17 @@
+=== PHASE 1: FIX P0 TENTACULO_LINK ===
+1. Rebuild docker image...
+✓ Build done
+ Container vx11-tentaculo-link  Stopping
+ Container vx11-tentaculo-link  Stopped
+ Container vx11-redis  Recreate
+ Container vx11-redis  Recreated
+ Container vx11-tentaculo-link  Recreate
+ Container vx11-tentaculo-link  Recreated
+ Container vx11-redis  Starting
+ Container vx11-redis  Started
+ Container vx11-redis  Waiting
+ Container vx11-redis  Healthy
+ Container vx11-tentaculo-link  Starting
+ Container vx11-tentaculo-link  Started
+✓ Container restarted
+✓ Health check done
