@@ -1,6 +1,6 @@
 # VX11 Database Map (generated)
 
-Generated at: 2025-12-29T04:48:34.398752Z
+Generated at: 2025-12-29T06:19:42.621221Z
 
 Database file: data/runtime/vx11.db
 
@@ -144,7 +144,7 @@ Database file: data/runtime/vx11.db
 ### cli_usage_stats — ACTIVE
 
 - Module: hermes
-- Rows: 123
+- Rows: 111
 - Columns:
   - id (INTEGER) PK NOT NULL
   - provider_id (VARCHAR(128)) NOT NULL
@@ -456,10 +456,10 @@ Database file: data/runtime/vx11.db
   - last_error (TEXT)
   - stats_json (TEXT)
 
-### ia_decisions — ACTIVE
+### ia_decisions — EMPTY (READY)
 
 - Module: switch
-- Rows: 1
+- Rows: 0
 - Columns:
   - id (INTEGER) PK NOT NULL
   - prompt_hash (VARCHAR(64)) NOT NULL
@@ -593,7 +593,7 @@ Database file: data/runtime/vx11.db
 ### intents_log — ACTIVE
 
 - Module: madre
-- Rows: 53
+- Rows: 32
 - Columns:
   - id (INTEGER) PK NOT NULL
   - source (VARCHAR(64)) NOT NULL
@@ -1070,7 +1070,7 @@ Database file: data/runtime/vx11.db
 ### routing_events — ACTIVE
 
 - Module: switch
-- Rows: 23
+- Rows: 21
 - Columns:
   - id (INTEGER) PK NOT NULL
   - timestamp (DATETIME)

@@ -476,7 +476,13 @@ async def power_token(request: Request) -> Dict[str, Any]:
 
 
 @router.post("/madre/power/maintenance/post_task")
-async def maintenance_post_task(req: PostTaskRequest) -> Dict[str, Any]:
+async def maintenance_post_task(
+    req: Optional[PostTaskRequest] = None,
+) -> Dict[str, Any]:
+    # Handle optional body
+    if req is None:
+        req = PostTaskRequest()
+
     out_dir = _make_out_dir("maintenance_post_task", "post_task")
     db_path = None
     if power_saver_module and hasattr(power_saver_module, "_resolve_db_path"):
