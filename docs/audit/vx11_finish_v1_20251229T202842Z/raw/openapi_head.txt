@@ -1,0 +1,1 @@
+curl -sf http://localhost:8000/openapi.json | head -c 2000 || true

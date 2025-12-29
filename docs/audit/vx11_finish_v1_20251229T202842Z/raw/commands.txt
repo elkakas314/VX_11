@@ -1,0 +1,16 @@
+git remote -v
+git branch -vv
+git status -sb
+git log --oneline -20
+find . -maxdepth 3 -type d -name "operator" -o -name "operator_ui" -o -name "operator_backend" -o -name "operator-frontend" -o -name "operator_frontend" -o -name "operator_backend" | sed -n '1,200p'
+rg -n "operator/api" tentaculo_link -S
+rg -n "CORSMiddleware|allow_origins|X-Correlation-Id|correlation" tentaculo_link -S
+rg -n "FastAPI|APIRouter|/api|/operator" operator -S
+curl -sf http://localhost:8000/openapi.json | head -c 2000 || true
+npm --prefix operator/frontend ci
+npm --prefix operator/frontend install
+npm --prefix operator/frontend run build
+pytest -q
+curl -i http://localhost:8000/operator/api/v1/status
+curl -sf -X POST http://localhost:8000/operator/api/v1/chat -H 'Content-Type: application/json' -d '{"message":"hola"}'
+timeout 5s curl -N http://localhost:8000/operator/api/v1/events/stream | head -n 10

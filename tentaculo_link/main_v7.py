@@ -195,7 +195,12 @@ async def operator_api_proxy(request: Request, call_next):
                 return JSONResponse(status_code=403, content={"detail": "forbidden"})
 
         operator_url = settings.operator_url.rstrip("/")
-        target_url = f"{operator_url}{request.url.path}"
+        request_path = request.url.path
+        if request_path.startswith("/operator/api/v1"):
+            upstream_path = request_path.replace("/operator/api/v1", "/api/v1", 1)
+        else:
+            upstream_path = request_path.replace("/operator/api", "/api/v1", 1)
+        target_url = f"{operator_url}{upstream_path}"
         headers = dict(request.headers)
         headers["X-Correlation-Id"] = correlation_id
         headers[settings.token_header] = headers.get(settings.token_header, VX11_TOKEN)
@@ -213,7 +218,9 @@ async def operator_api_proxy(request: Request, call_next):
                     ) as resp:
                         if resp.status_code >= 400:
                             return JSONResponse(
-                                status_code=resp.status_code, content=resp.json()
+                                status_code=resp.status_code,
+                                content=resp.json(),
+                                headers={"X-Correlation-Id": correlation_id},
                             )
                         return StreamingResponse(
                             resp.aiter_raw(),
@@ -221,6 +228,7 @@ async def operator_api_proxy(request: Request, call_next):
                             media_type=resp.headers.get(
                                 "content-type", "text/event-stream"
                             ),
+                            headers={"X-Correlation-Id": correlation_id},
                         )
 
                 body = await request.body()
@@ -241,12 +249,28 @@ async def operator_api_proxy(request: Request, call_next):
                     "correlation_id": correlation_id,
                     "recommended_action": "Ask Madre to open operator window",
                 },
+                headers={"X-Correlation-Id": correlation_id},
             )
+
+        content_type = resp.headers.get("content-type", "")
+        if "application/json" in content_type:
+            try:
+                data = resp.json()
+                if isinstance(data, dict) and "correlation_id" not in data:
+                    data["correlation_id"] = correlation_id
+                return JSONResponse(
+                    status_code=resp.status_code,
+                    content=data,
+                    headers={"X-Correlation-Id": correlation_id},
+                )
+            except Exception:
+                pass
 
         return Response(
             content=resp.content,
             status_code=resp.status_code,
             media_type=resp.headers.get("content-type", "application/json"),
+            headers={"X-Correlation-Id": correlation_id},
         )
 
     return await call_next(request)

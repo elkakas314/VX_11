@@ -7,7 +7,7 @@ import { LeftRail } from './components/LeftRail'
 import { RightDrawer } from './components/RightDrawer'
 import { DegradedModeBanner } from './components/DegradedModeBanner'
 import { DebugDrawer } from './components/DebugDrawer'
-import { apiClient } from './services/api'
+import { apiClient, API_BASE, buildApiUrl } from './services/api'
 import { useEventsStore, useWindowStatusStore } from './stores'
 import './App.css'
 
@@ -16,11 +16,12 @@ type TabName = 'overview' | 'chat' | 'topology' | 'hormiguero' | 'jobs' | 'audit
 export default function App() {
     const [activeTab, setActiveTab] = useState<TabName>('overview')
     const [degraded, setDegraded] = useState(false)
+    const [eventsConnected, setEventsConnected] = useState(true)
     const { setEvents } = useEventsStore()
     const { setWindowStatus } = useWindowStatusStore()
     const [debugData] = useState({
         environment: process.env.NODE_ENV,
-        apiBase: import.meta.env.VITE_VX11_API_BASE_URL || '(relative)',
+        apiBase: API_BASE || '(relative)',
         version: '7.0',
     })
 
@@ -35,7 +36,13 @@ export default function App() {
         let retryTimeout: number | undefined
 
         const connect = () => {
-            eventSource = new EventSource('/operator/api/events/stream')
+            const eventsUrl = buildApiUrl('/operator/api/v1/events/stream')
+            eventSource = new EventSource(eventsUrl)
+
+            eventSource.onopen = () => {
+                setEventsConnected(true)
+                retryMs = 1000
+            }
 
             eventSource.addEventListener('snapshot', (event) => {
                 try {
@@ -52,6 +59,7 @@ export default function App() {
             })
 
             eventSource.onerror = () => {
+                setEventsConnected(false)
                 eventSource?.close()
                 eventSource = null
                 retryTimeout = window.setTimeout(connect, retryMs)
@@ -81,6 +89,10 @@ export default function App() {
     return (
         <div className="app">
             <DegradedModeBanner show={degraded} />
+            <DegradedModeBanner
+                show={!eventsConnected}
+                message="Disconnected from events stream. Reconnecting…"
+            />
 
             <header className="app-header">
                 <div className="header-title">
