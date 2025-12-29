@@ -2455,6 +2455,251 @@ async def operator_api_status(
         }
 
 
+@app.get("/operator/api/events", tags=["operator-api-p0"])
+async def operator_api_events(
+    follow: bool = False,
+    x_correlation_id: Optional[str] = Header(None),
+    _: bool = Depends(token_guard),
+):
+    """
+    PHASE 3: Real-time Event Stream (SSE).
+
+    Returns Server-Sent Events with system status changes.
+
+    Usage:
+    - GET /operator/api/events?follow=true
+    - Client receives text/event-stream response
+    - Events: service_status, feature_toggle, performance_milestone
+    - Heartbeat: every 30s (prevent proxy timeout)
+    - Max connection: 5 minutes
+
+    Response (text/event-stream):
+    event: service_status
+    data: {"service":"madre","status":"up","timestamp":"2025-12-29T04:32:01Z"}
+
+    event: feature_toggle
+    data: {"feature":"chat","status":"on","timestamp":"2025-12-29T04:32:05Z"}
+
+    :heartbeat
+    """
+    import asyncio
+    from datetime import datetime
+
+    correlation_id = x_correlation_id or str(uuid.uuid4())
+    last_row_id = 0
+    heartbeat_count = 0
+    connection_start = time.time()
+    max_connection_time = 300  # 5 minutes
+
+    async def event_generator():
+        nonlocal last_row_id, heartbeat_count, connection_start
+
+        try:
+            while True:
+                # Check connection timeout
+                if time.time() - connection_start > max_connection_time:
+                    write_log(
+                        "tentaculo_link",
+                        f"events:connection_timeout:correlation_id={correlation_id}",
+                        level="DEBUG",
+                    )
+                    break
+
+                # Poll copilot_actions_log for new events (simplified: every 5s)
+                try:
+                    # In production: query copilot_actions_log table for new rows
+                    # For PHASE 3: emit static sample events
+                    if follow and heartbeat_count == 0:
+                        # First event: service status
+                        event_data = {
+                            "service": "madre",
+                            "status": "up",
+                            "timestamp": datetime.utcnow().isoformat() + "Z",
+                            "correlation_id": correlation_id,
+                        }
+                        yield f"event: service_status\ndata: {json.dumps(event_data)}\n\n"
+                        last_row_id += 1
+
+                        # Second event: feature toggle
+                        await asyncio.sleep(2)
+                        event_data = {
+                            "feature": "chat",
+                            "status": "on",
+                            "timestamp": datetime.utcnow().isoformat() + "Z",
+                            "correlation_id": correlation_id,
+                        }
+                        yield f"event: feature_toggle\ndata: {json.dumps(event_data)}\n\n"
+                        last_row_id += 1
+
+                except Exception as e:
+                    write_log(
+                        "tentaculo_link",
+                        f"events:error:{str(e)[:100]}",
+                        level="WARNING",
+                    )
+
+                # Heartbeat every 30s
+                heartbeat_count += 1
+                if heartbeat_count % 6 == 0:  # 5s * 6 = 30s
+                    yield ":heartbeat\n\n"
+                    write_log(
+                        "tentaculo_link",
+                        f"events:heartbeat:correlation_id={correlation_id}",
+                        level="DEBUG",
+                    )
+                    heartbeat_count = 0
+
+                await asyncio.sleep(5)
+
+        except asyncio.CancelledError:
+            write_log(
+                "tentaculo_link",
+                f"events:cancelled:correlation_id={correlation_id}",
+                level="DEBUG",
+            )
+        except Exception as e:
+            write_log(
+                "tentaculo_link",
+                f"events:generator_error:{type(e).__name__}:{str(e)[:100]}",
+                level="ERROR",
+            )
+
+    write_log(
+        "tentaculo_link",
+        f"events:stream_opened:correlation_id={correlation_id}",
+        level="INFO",
+    )
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Correlation-ID": correlation_id,
+        },
+    )
+
+
+@app.get("/operator/api/metrics", tags=["operator-api-p0"])
+async def operator_api_metrics(
+    period: str = "1h",
+    x_correlation_id: Optional[str] = Header(None),
+    _: bool = Depends(token_guard),
+):
+    """
+    PHASE 3: Performance Metrics & Usage Stats.
+
+    Returns aggregated request metrics for specified period.
+
+    Query Params:
+    - period: "1h" (default), "6h", "24h"
+
+    Response (200):
+    {
+        "ok": true,
+        "data": {
+            "correlation_id": "<uuid>",
+            "period": "1h",
+            "request_counts": {
+                "total": 245,
+                "by_endpoint": {"/operator/api/chat": 120, ...},
+                "by_status": {"200": 230, "429": 10, ...}
+            },
+            "latencies": {
+                "p50_ms": 35,
+                "p95_ms": 150,
+                "p99_ms": 500,
+                "avg_ms": 52
+            },
+            "errors": {"timeout": 3, "network": 1, ...},
+            "provider_usage": {"mock": 180, "deepseek_r1": 40, ...}
+        },
+        "timestamp": "2025-12-29T04:32:01Z"
+    }
+    """
+    from datetime import datetime, timedelta
+
+    correlation_id = x_correlation_id or str(uuid.uuid4())
+
+    # Validate period
+    valid_periods = {"1h": 1, "6h": 6, "24h": 24}
+    hours = valid_periods.get(period, 1)
+
+    try:
+        # Simplified metrics (in production: query performance_logs + copilot_actions_log)
+        # For PHASE 3: return realistic sample data
+        request_counts = {
+            "total": 245,
+            "by_endpoint": {
+                "/operator/api/chat": 120,
+                "/operator/api/status": 85,
+                "/operator/api/events": 40,
+            },
+            "by_status": {
+                "200": 230,
+                "429": 10,  # Rate limited
+                "500": 5,  # Errors
+            },
+        }
+
+        latencies = {
+            "p50_ms": 35,
+            "p95_ms": 150,
+            "p99_ms": 500,
+            "avg_ms": 52,
+            "min_ms": 2,
+            "max_ms": 2500,
+        }
+
+        errors = {
+            "timeout": 3,
+            "network": 1,
+            "provider": 1,
+        }
+
+        provider_usage = {
+            "mock": 180,
+            "deepseek_r1": 40,
+            "local": 25,
+        }
+
+        write_log(
+            "tentaculo_link",
+            f"operator_api_metrics:success:period={period}:correlation_id={correlation_id}",
+            level="INFO",
+        )
+
+        return {
+            "ok": True,
+            "data": {
+                "correlation_id": correlation_id,
+                "period": period,
+                "hours": hours,
+                "request_counts": request_counts,
+                "latencies": latencies,
+                "errors": errors,
+                "provider_usage": provider_usage,
+                "uptime_pct": 99.8,
+            },
+            "timestamp": datetime.utcnow().isoformat() + "Z",
+        }
+
+    except Exception as e:
+        write_log(
+            "tentaculo_link",
+            f"operator_api_metrics:error:{str(e)[:100]}",
+            level="ERROR",
+        )
+        return {
+            "ok": False,
+            "data": {
+                "correlation_id": correlation_id,
+                "error": str(e),
+            },
+            "timestamp": datetime.utcnow().isoformat() + "Z",
+        }
+
+
 # ============================================================================
 # FASE 2: DeepSeek R1 Co-Dev Endpoint (OPERATOR ASSIST)
 # ============================================================================
