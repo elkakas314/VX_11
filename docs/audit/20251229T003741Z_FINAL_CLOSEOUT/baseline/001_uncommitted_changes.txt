@@ -1,0 +1,22 @@
+=== MODIFIED FILES (git diff --name-only) ===
+docs/audit/DB_MAP_v7_FINAL.md
+docs/audit/DB_SCHEMA_v7_FINAL.json
+docs/audit/SCORECARD.json
+operator/frontend/src/views/CoDevView.tsx
+tentaculo_link/Dockerfile
+
+=== DOCKER STATUS ===
+NAME                  IMAGE                      COMMAND                  SERVICE          CREATED          STATUS                          PORTS
+vx11-madre            vx11-madre:v6.7            "sh -c 'apt-get upda…"   madre            2 hours ago      Up About an hour (healthy)      0.0.0.0:8001->8001/tcp, :::8001->8001/tcp
+vx11-redis            redis:7-alpine             "docker-entrypoint.s…"   redis            21 minutes ago   Up 21 minutes (healthy)         0.0.0.0:6379->6379/tcp, :::6379->6379/tcp
+vx11-switch           vx11-switch:v6.7           "python -m uvicorn s…"   switch           21 minutes ago   Restarting (1) 33 seconds ago   
+vx11-tentaculo-link   vx11-tentaculo-link:v6.7   "python -m uvicorn t…"   tentaculo_link   21 minutes ago   Restarting (1) 35 seconds ago   
+
+=== TENTACULO HEALTH ===
+❌ tentaculo:8000 NOT RESPONDING
+
+=== MADRE STATUS ===
+"ok"
+
+=== DB CHECKS ===
+ok

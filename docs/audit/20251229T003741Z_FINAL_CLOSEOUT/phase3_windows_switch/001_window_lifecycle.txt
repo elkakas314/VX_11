@@ -1,0 +1,47 @@
+=== FASE 3: WINDOWS LIFECYCLE ===
+PRE-WINDOW STATE:
+{
+  "name": null,
+  "status": null
+}
+{
+  "name": null,
+  "status": null
+}
+{
+  "name": null,
+  "status": null
+}
+{
+  "name": null,
+  "status": null
+}
+
+=== WINDOW OPEN (TTL 60s) ===
+{
+  "detail": "auth_required: X-VX11-Token header missing"
+}
+Window ID: null
+
+=== CHAT DURING WINDOW (should route to switch OR degrade) ===
+{
+  "degraded": null,
+  "route_taken": null,
+  "fallback_source": null
+}
+
+=== WINDOW STATUS ===
+{
+  "detail": "Not Found"
+}
+
+=== WINDOW CLOSE ===
+{
+  "detail": "auth_required: X-VX11-Token header missing"
+}
+
+=== POST-CLOSE CHAT (should degrade to solo_madre) ===
+{
+  "degraded": null,
+  "fallback_source": null
+}

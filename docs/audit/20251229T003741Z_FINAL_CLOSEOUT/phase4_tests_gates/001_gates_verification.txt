@@ -1,0 +1,11 @@
+=== FASE 4: TESTS + GATES ===
+=== DB CHECKS ===
+ok
+ok
+
+=== SERVICE HEALTH ===
+Madre:
+"ok"
+Tentaculo:
+"ok"
+Redis:

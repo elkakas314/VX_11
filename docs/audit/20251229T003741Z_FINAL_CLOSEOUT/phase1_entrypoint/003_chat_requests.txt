@@ -1,0 +1,64 @@
+=== 10x CHAT REQUESTS ===
+Request 1:
+{
+  "http_code": null,
+  "degraded": true,
+  "fallback": "local_llm_degraded"
+}
+Request 2:
+{
+  "http_code": null,
+  "degraded": true,
+  "fallback": "local_llm_degraded"
+}
+Request 3:
+{
+  "http_code": null,
+  "degraded": true,
+  "fallback": "local_llm_degraded"
+}
+Request 4:
+{
+  "http_code": null,
+  "degraded": true,
+  "fallback": "local_llm_degraded"
+}
+Request 5:
+{
+  "http_code": null,
+  "degraded": true,
+  "fallback": "local_llm_degraded"
+}
+Request 6:
+{
+  "http_code": null,
+  "degraded": true,
+  "fallback": "local_llm_degraded"
+}
+Request 7:
+{
+  "http_code": null,
+  "degraded": true,
+  "fallback": "local_llm_degraded"
+}
+Request 8:
+{
+  "http_code": null,
+  "degraded": true,
+  "fallback": "local_llm_degraded"
+}
+Request 9:
+{
+  "http_code": null,
+  "degraded": true,
+  "fallback": "local_llm_degraded"
+}
+Request 10:
+{
+  "http_code": null,
+  "degraded": true,
+  "fallback": "local_llm_degraded"
+}
+
+=== SUMMARY ===
+10

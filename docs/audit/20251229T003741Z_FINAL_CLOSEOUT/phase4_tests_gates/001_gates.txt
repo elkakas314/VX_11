@@ -1,0 +1,17 @@
+=== FASE 4: GATES VERIFICATION ===
+[1/5] DB CHECKS
+ok
+ok
+
+[2/5] SERVICE HEALTH
+"ok"
+"ok"
+
+[3/5] SECRET SCAN
+madre/main.py:1
+madre/llm/deepseek_client.py:8
+
+[4/5] FRONTEND BUILD
+200K	operator/frontend/dist
+
+[5/5] POST-TASK

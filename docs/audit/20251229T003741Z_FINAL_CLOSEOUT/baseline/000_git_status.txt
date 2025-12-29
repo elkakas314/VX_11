@@ -1,0 +1,37 @@
+=== GIT STATE ===
+On branch main
+Your branch is up to date with 'vx_11_remote/main'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   docs/audit/DB_MAP_v7_FINAL.md
+	modified:   docs/audit/DB_SCHEMA_v7_FINAL.json
+	modified:   docs/audit/SCORECARD.json
+	modified:   operator/frontend/src/views/CoDevView.tsx
+	modified:   tentaculo_link/Dockerfile
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	docs/COPILOT_BOOTSTRAP_CHECKLIST.txt
+	"docs/Informe de Auditor\303\255a Remoto (A).pdf"
+	docs/PROMPT_9R_TEMPLATE.md
+	docs/inbox/
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+=== GIT LOG (Last 10) ===
+bf1b2f0 vx11: add PRODUCTION_CLOSURE_FINAL_SUMMARY — sign-off document confirming all phases complete, gates pass, ready deployment
+7261f7b vx11: production closure COMPLETE — PHASE0-5 + all 6 entregables A-F + gates 8/8 PASS + PERCENTAGES v9.4 + DB integrity verified + ready deployment
+e490729 audit: PHASE 2 operator ui e2e (10/10 HTTP 200, degraded fallback verified)
+de652f7 fix: tentaculo_link Dockerfile (copy entire codebase + PYTHONPATH) — resolves ModuleNotFoundError
+de5d5db audit: PHASE 0 baseline + ingesta (tentaculo_link bloqueado en import error)
+8d4ff61 audit: update PERCENTAGES.json v9.3 (production_closure, 99% global ponderado)
+eec57e9 audit: phase 4 final gates PASS (integrity/health/secrets/post-task verified) + FINAL_SIGNOFF
+49f40ee audit: phase 3 windows operational verification (open/close/ttl confirmed)
+414622f audit: phase 2 chat runtime verification (10x HTTP 200, degraded fallback confirmed)
+4fad62f operator: fix ui debug hardcode (apiBase relative only)
+
+=== GIT REMOTE ===
+vx_11_remote	https://github.com/elkakas314/VX_11.git (fetch)
+vx_11_remote	https://github.com/elkakas314/VX_11.git (push)

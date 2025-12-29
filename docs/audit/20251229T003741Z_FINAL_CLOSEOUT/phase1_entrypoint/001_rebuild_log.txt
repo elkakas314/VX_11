@@ -1,0 +1,77 @@
+#0 building with "default" instance using docker driver
+
+#1 [tentaculo_link internal] load build definition from Dockerfile
+#1 transferring dockerfile: 1.44kB done
+#1 WARN: UndefinedVar: Usage of undefined variable '$PYTHONPATH' (line 42)
+#1 DONE 0.0s
+
+#2 [tentaculo_link internal] load metadata for docker.io/library/python:3.10-slim
+#2 DONE 0.0s
+
+#3 [tentaculo_link internal] load .dockerignore
+#3 transferring context: 1.36kB done
+#3 DONE 0.0s
+
+#4 [tentaculo_link builder 1/5] FROM docker.io/library/python:3.10-slim
+#4 DONE 0.0s
+
+#5 [tentaculo_link internal] load build context
+#5 transferring context: 17.67kB 0.0s done
+#5 DONE 0.0s
+
+#6 [tentaculo_link stage-1  6/13] COPY tentaculo_link/ /app/tentaculo_link/
+#6 CACHED
+
+#7 [tentaculo_link stage-1 10/13] COPY spawner/ /app/spawner/
+#7 CACHED
+
+#8 [tentaculo_link stage-1  8/13] COPY switch/ /app/switch/
+#8 CACHED
+
+#9 [tentaculo_link stage-1  2/13] WORKDIR /app
+#9 CACHED
+
+#10 [tentaculo_link builder 3/5] RUN apt-get update && apt-get install -y --no-install-recommends     build-essential     && rm -rf /var/lib/apt/lists/*
+#10 CACHED
+
+#11 [tentaculo_link stage-1  3/13] RUN apt-get update && apt-get install -y --no-install-recommends curl &&     rm -rf /var/lib/apt/lists/* &&     find /usr/local -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
+#11 CACHED
+
+#12 [tentaculo_link stage-1  4/13] COPY --from=builder /root/.local /root/.local
+#12 CACHED
+
+#13 [tentaculo_link builder 5/5] RUN pip install --user --no-cache-dir -r requirements_tentaculo.txt
+#13 CACHED
+
+#14 [tentaculo_link stage-1  9/13] COPY madre/ /app/madre/
+#14 CACHED
+
+#15 [tentaculo_link stage-1  5/13] COPY config/ /app/config/
+#15 CACHED
+
+#16 [tentaculo_link stage-1 12/13] COPY py.typed /app/
+#16 CACHED
+
+#17 [tentaculo_link stage-1  7/13] COPY vx11/ /app/vx11/
+#17 CACHED
+
+#18 [tentaculo_link builder 2/5] WORKDIR /build
+#18 CACHED
+
+#19 [tentaculo_link stage-1 11/13] COPY sitecustomize.py /app/
+#19 CACHED
+
+#20 [tentaculo_link builder 4/5] COPY requirements_tentaculo.txt .
+#20 CACHED
+
+#21 [tentaculo_link stage-1 13/13] RUN mkdir -p /app/logs /app/data /app/models /app/sandbox
+#21 CACHED
+
+#22 [tentaculo_link] exporting to image
+#22 exporting layers done
+#22 writing image sha256:5ac7de056d3f07aff92590c1dffe4379906c77438ab258cb74c15d1585069566 done
+#22 naming to docker.io/library/vx11-tentaculo-link:v6.7 done
+#22 DONE 0.0s
+
+#23 [tentaculo_link] resolving provenance for metadata file
+#23 DONE 0.0s

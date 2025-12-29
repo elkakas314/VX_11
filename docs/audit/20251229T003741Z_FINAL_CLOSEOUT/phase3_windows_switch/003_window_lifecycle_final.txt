@@ -1,0 +1,40 @@
+=== FASE 3: WINDOWS (CORRECT SCHEMA) ===
+=== WINDOW OPEN (services array) ===
+{
+  "window_id": "c4a98467-8be7-4135-99e9-47ea0cb0338a",
+  "created_at": "2025-12-29T00:44:36.826218Z",
+  "deadline": "2025-12-29T00:45:36.826218Z",
+  "services_started": [
+    "switch"
+  ],
+  "state": "open",
+  "ttl_remaining_sec": 52
+}
+✅ Window opened: c4a98467-8be7-4135-99e9-47ea0cb0338a
+
+=== DOCKER COMPOSE PS (verify switch started) ===
+NAME                  IMAGE                      COMMAND                  SERVICE          CREATED          STATUS                                  PORTS
+vx11-madre            vx11-madre:v6.7            "sh -c 'apt-get upda…"   madre            2 hours ago      Up 2 hours (healthy)                    0.0.0.0:8001->8001/tcp, :::8001->8001/tcp
+vx11-redis            redis:7-alpine             "docker-entrypoint.s…"   redis            13 seconds ago   Up 11 seconds (healthy)                 0.0.0.0:6379->6379/tcp, :::6379->6379/tcp
+vx11-switch           vx11-switch:v6.7           "python -m uvicorn s…"   switch           12 seconds ago   Restarting (1) Less than a second ago   
+vx11-tentaculo-link   vx11-tentaculo-link:v6.7   "python -m uvicorn t…"   tentaculo_link   13 seconds ago   Restarting (1) Less than a second ago   
+
+=== CHAT DURING WINDOW ===
+
+=== WINDOW CLOSE ===
+{
+  "window_id": "c4a98467-8be7-4135-99e9-47ea0cb0338a",
+  "closed_at": "2025-12-29T00:44:50.561061Z",
+  "services_stopped": [
+    "switch"
+  ],
+  "state": "closed"
+}
+
+=== POST-CLOSE STATE ===
+NAME                  IMAGE                      COMMAND                  SERVICE          CREATED          STATUS                                  PORTS
+vx11-madre            vx11-madre:v6.7            "sh -c 'apt-get upda…"   madre            2 hours ago      Up 2 hours (healthy)                    0.0.0.0:8001->8001/tcp, :::8001->8001/tcp
+vx11-redis            redis:7-alpine             "docker-entrypoint.s…"   redis            16 seconds ago   Up 15 seconds (healthy)                 0.0.0.0:6379->6379/tcp, :::6379->6379/tcp
+vx11-tentaculo-link   vx11-tentaculo-link:v6.7   "python -m uvicorn t…"   tentaculo_link   16 seconds ago   Restarting (1) Less than a second ago   
+
+=== POST-CLOSE CHAT (should be degraded) ===

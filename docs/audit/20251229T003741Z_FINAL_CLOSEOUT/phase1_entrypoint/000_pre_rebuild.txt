@@ -1,0 +1,16 @@
+=== PRE-FIX STATE ===
+NAME                  IMAGE                      COMMAND                  SERVICE          CREATED          STATUS                          PORTS
+vx11-madre            vx11-madre:v6.7            "sh -c 'apt-get upda…"   madre            2 hours ago      Up About an hour (healthy)      0.0.0.0:8001->8001/tcp, :::8001->8001/tcp
+vx11-redis            redis:7-alpine             "docker-entrypoint.s…"   redis            23 minutes ago   Up 23 minutes (healthy)         0.0.0.0:6379->6379/tcp, :::6379->6379/tcp
+vx11-switch           vx11-switch:v6.7           "python -m uvicorn s…"   switch           23 minutes ago   Restarting (1) 55 seconds ago   
+vx11-tentaculo-link   vx11-tentaculo-link:v6.7   "python -m uvicorn t…"   tentaculo_link   23 minutes ago   Restarting (1) 56 seconds ago   
+vx11-tentaculo-link  |   File "/usr/local/lib/python3.10/importlib/__init__.py", line 126, in import_module
+vx11-tentaculo-link  |     return _bootstrap._gcd_import(name[level:], package, level)
+vx11-tentaculo-link  |   File "<frozen importlib._bootstrap>", line 1050, in _gcd_import
+vx11-tentaculo-link  |   File "<frozen importlib._bootstrap>", line 1027, in _find_and_load
+vx11-tentaculo-link  |   File "<frozen importlib._bootstrap>", line 992, in _find_and_load_unlocked
+vx11-tentaculo-link  |   File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+vx11-tentaculo-link  |   File "<frozen importlib._bootstrap>", line 1050, in _gcd_import
+vx11-tentaculo-link  |   File "<frozen importlib._bootstrap>", line 1027, in _find_and_load
+vx11-tentaculo-link  |   File "<frozen importlib._bootstrap>", line 1004, in _find_and_load_unlocked
+vx11-tentaculo-link  | ModuleNotFoundError: No module named 'tentaculo_link'
