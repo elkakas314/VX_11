@@ -1,0 +1,47 @@
+# Production overlay: enforce Single Entrypoint invariant
+# Use with: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+# This file removes published host ports for all services except tentaculo_link
+# to ensure only the gateway is externally reachable (P0 security fix).
+
+services:
+  # Production overlay: enforce Single Entrypoint invariant
+  # Use with: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+  # This file removes published host ports for all services except tentaculo_link
+  # to ensure only the gateway is externally reachable (P0 security fix).
+
+  services:
+    madre:
+      ports: []
+
+    switch:
+      ports: []
+
+    hermes:
+      ports: []
+
+    hormiguero:
+      ports: []
+
+    manifestator:
+      ports: []
+
+    mcp:
+      ports: []
+
+    shubniggurath:
+      # internal only; ensure no host port is published in prod
+      ports: []
+
+    spawner:
+      ports: []
+
+    operator-backend:
+      ports: []
+
+    redis:
+      ports: []
+
+  # Note: tentaculo_link keeps its port mapping in the base compose file
+  # to remain the single external entrypoint (8000). For production, run
+  # with this overlay and verify with `docker compose ps` that only
+  # tentaculo_link shows a published port.
