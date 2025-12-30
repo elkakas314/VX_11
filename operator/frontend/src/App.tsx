@@ -3,6 +3,7 @@ import { OverviewView } from './views/OverviewView'
 import { ChatView } from './views/ChatView'
 import { AuditView } from './views/AuditView'
 import { SettingsView } from './views/SettingsView'
+import { SpawnerView } from './views/SpawnerView'
 import { LeftRail } from './components/LeftRail'
 import { RightDrawer } from './components/RightDrawer'
 import { DegradedModeBanner } from './components/DegradedModeBanner'
@@ -11,7 +12,16 @@ import { apiClient, API_BASE, buildApiUrl } from './services/api'
 import { useEventsStore, useWindowStatusStore } from './stores'
 import './App.css'
 
-type TabName = 'overview' | 'chat' | 'topology' | 'hormiguero' | 'jobs' | 'audit' | 'explorer' | 'settings'
+type TabName =
+    | 'overview'
+    | 'chat'
+    | 'topology'
+    | 'hormiguero'
+    | 'jobs'
+    | 'spawner'
+    | 'audit'
+    | 'explorer'
+    | 'settings'
 
 export default function App() {
     const [activeTab, setActiveTab] = useState<TabName>('overview')
@@ -131,6 +141,12 @@ export default function App() {
                         ⚙️ Jobs
                     </button>
                     <button
+                        className={`tab ${activeTab === 'spawner' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('spawner')}
+                    >
+                        🧬 Spawner
+                    </button>
+                    <button
                         className={`tab ${activeTab === 'audit' ? 'active' : ''}`}
                         onClick={() => setActiveTab('audit')}
                     >
@@ -175,6 +191,7 @@ export default function App() {
                             <p>Background jobs and task board — coming soon</p>
                         </div>
                     )}
+                    {activeTab === 'spawner' && <SpawnerView />}
                     {activeTab === 'audit' && <AuditView />}
                     {activeTab === 'explorer' && (
                         <div className="view-stub">

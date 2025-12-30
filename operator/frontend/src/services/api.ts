@@ -187,6 +187,21 @@ class ApiClient {
         return this.request('GET', '/hormiguero/incidents?limit=10', undefined, { timeout: 3000 })
     }
 
+    // Spawner status (read-only)
+    async spawnerStatus(): Promise<ApiResponse<any>> {
+        return this.request('GET', '/operator/api/v1/spawner/status', undefined, { timeout: 5000 })
+    }
+
+    // Spawner runs (read-only)
+    async spawnerRuns(): Promise<ApiResponse<any>> {
+        return this.request('GET', '/operator/api/v1/spawner/runs', undefined, { timeout: 8000 })
+    }
+
+    // Spawner submit (action, Madre-gated)
+    async spawnerSubmit(payload: any): Promise<ApiResponse<any>> {
+        return this.request('POST', '/operator/api/v1/spawner/submit', payload, { timeout: 12000 })
+    }
+
     // P0 UI checks - verify all endpoints are reachable
     async runP0Checks(): Promise<{
         chat_ask: boolean

@@ -21,6 +21,7 @@ from config.db_schema import (
     Spawn,
     get_session,
 )
+from tentaculo_link.db.events_metrics import log_event
 
 app = FastAPI(title="VX11 Spawner - Advanced")
 
@@ -127,6 +128,27 @@ class SpawnResponse(BaseModel):
 
 def _now() -> datetime:
     return datetime.utcnow()
+
+
+def _events_enabled() -> bool:
+    return os.environ.get("VX11_EVENTS_ENABLED", "false").lower() in (
+        "true",
+        "1",
+        "yes",
+        "on",
+    )
+
+
+def _log_spawn_event(summary: str, payload: Dict[str, Any]) -> None:
+    if not _events_enabled():
+        return
+    log_event(
+        event_type="spawn",
+        summary=summary,
+        module="spawner",
+        severity="info",
+        payload=payload,
+    )
 
 
 def _madre_url() -> str:
@@ -456,6 +478,18 @@ async def _run_spawn_lifecycle(
         finally:
             session.close()
 
+        _log_spawn_event(
+            "spawn_running",
+            {
+                "spawn_uuid": spawn_uuid,
+                "task_id": task_id,
+                "daughter_id": daughter_id,
+                "attempt_id": attempt_id,
+                "attempt_number": attempt_number,
+                "cmd": cmd,
+            },
+        )
+
         exit_code, stdout, stderr, status = await asyncio.to_thread(
             _execute_command, cmd, ttl_seconds
         )
@@ -496,6 +530,17 @@ async def _run_spawn_lifecycle(
                     },
                 )
                 session.commit()
+                _log_spawn_event(
+                    "spawn_done",
+                    {
+                        "spawn_uuid": spawn_uuid,
+                        "task_id": task_id,
+                        "daughter_id": daughter_id,
+                        "attempt_id": attempt_id,
+                        "exit_code": exit_code,
+                        "status": "completed",
+                    },
+                )
                 _notify_madre(
                     daughter_id,
                     "completed",
@@ -517,6 +562,17 @@ async def _run_spawn_lifecycle(
                     },
                 )
                 session.commit()
+                _log_spawn_event(
+                    "spawn_error",
+                    {
+                        "spawn_uuid": spawn_uuid,
+                        "task_id": task_id,
+                        "daughter_id": daughter_id,
+                        "attempt_id": attempt_id,
+                        "exit_code": exit_code,
+                        "status": final_state,
+                    },
+                )
                 _notify_madre(
                     daughter_id,
                     final_state,
@@ -743,6 +799,18 @@ async def spawn(req: SpawnRequest, background_tasks: BackgroundTasks):
             req.auto_retry,
             req.mutation_level,
         )
+
+    _log_spawn_event(
+        "spawn_created",
+        {
+            "spawn_uuid": spawn_uuid,
+            "daughter_id": daughter_id,
+            "task_id": task_id,
+            "attempt_id": attempt_id,
+            "cmd": req.cmd,
+            "ttl_seconds": req.ttl_seconds,
+        },
+    )
 
     return SpawnResponse(
         status="accepted",

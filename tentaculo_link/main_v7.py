@@ -326,6 +326,9 @@ try:
     app.include_router(
         api_routes.window.router, prefix="/operator", tags=["operator-api"]
     )
+    app.include_router(
+        api_routes.spawner.router, prefix="/operator", tags=["operator-api"]
+    )
     write_log("tentaculo_link", "included_operator_api_routers:success")
 except Exception as e:
     write_log(

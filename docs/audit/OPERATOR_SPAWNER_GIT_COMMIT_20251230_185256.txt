@@ -1,0 +1,12 @@
+git commit --amend --no-edit executed for "Add operator spawner support".
+Summary (from amend output):
+- 15 files changed, 1026 insertions(+), 3 deletions(-)
+- created files:
+  - docs/audit/OPERATOR_SPAWNER_CLOSURE_20251230_185256.md
+  - docs/audit/OPERATOR_SPAWNER_DEVSERVER_20251230_185256.txt
+  - docs/audit/OPERATOR_SPAWNER_GIT_ADD_WARN_20251230_185256.txt
+  - docs/audit/OPERATOR_SPAWNER_GIT_COMMIT_20251230_185256.txt
+  - docs/audit/OPERATOR_SPAWNER_GIT_STATUS_20251230_185256.txt
+  - docs/audit/OPERATOR_SPAWNER_PHASE0_COMMANDS_20251230_185256.txt
+  - operator/frontend/src/views/SpawnerView.tsx
+  - tentaculo_link/routes/spawner.py

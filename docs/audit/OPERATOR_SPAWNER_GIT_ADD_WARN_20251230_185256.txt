@@ -1,0 +1,8 @@
+The following paths are ignored by one of your .gitignore files:
+docs/audit/OPERATOR_SPAWNER_CLOSURE_20251230_185256.md
+docs/audit/OPERATOR_SPAWNER_DEVSERVER_20251230_185256.txt
+docs/audit/OPERATOR_SPAWNER_GIT_STATUS_20251230_185256.txt
+docs/audit/OPERATOR_SPAWNER_PHASE0_COMMANDS_20251230_185256.txt
+hint: Use -f if you really want to add them.
+hint: Turn this message off by running
+hint: "git config advice.addIgnoredFile false"

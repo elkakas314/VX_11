@@ -1,0 +1,59 @@
+# Phase 0 evidence: spawner API + current invocations
+
+## spawner/main.py endpoints
+563:@app.get("/health")
+569:@app.get("/process/{daughter_id}")
+612:@app.get("/process/uuid/{spawn_uuid}")
+652:@app.delete("/kill/{daughter_id}")
+702:@app.post("/spawn", response_model=SpawnResponse)
+761:@app.post("/spawner/create", response_model=SpawnResponse)
+766:@app.post("/spawner/spawn", response_model=SpawnResponse)
+
+## madre spawner usage
+/workspace/VX_11/madre/main.py:60:        "spawner": True,
+/workspace/VX_11/madre/main.py:857:        "spawner": {"state": "standby"},
+/workspace/VX_11/madre/main.py:945:                # Notify spawner via httpx (tests will patch madre.main.httpx.AsyncClient)
+/workspace/VX_11/madre/main.py:949:                            f"{settings.spawner_url.rstrip('/')}/spawn",
+/workspace/VX_11/madre/main_legacy.py:3:- Ephemeral children (procesos cortos vía spawner)
+/workspace/VX_11/madre/main_legacy.py:80:        "spawner",
+/workspace/VX_11/madre/main_legacy.py:193:    module: str  # spawner, switch, hermes, hormiguero
+/workspace/VX_11/madre/main_legacy.py:378:            "spawner",
+/workspace/VX_11/madre/main_legacy.py:402:            for mod in ["hermes", "shub", "spawner"]:
+/workspace/VX_11/madre/main_legacy.py:450:    spawner_url = settings.spawner_url or f"http://spawner:{settings.spawner_port}"
+/workspace/VX_11/madre/main_legacy.py:453:            f"{spawner_url}/spawn", json=payload, headers=AUTH_HEADERS
+/workspace/VX_11/madre/main_legacy.py:545:    Crear hijo efímero (proceso corto) vía spawner.
+/workspace/VX_11/madre/main_legacy.py:550:    spawner_url = settings.spawner_url or f"http://spawner:{settings.spawner_port}"
+/workspace/VX_11/madre/main_legacy.py:554:                f"{spawner_url}/spawn",
+/workspace/VX_11/madre/main_legacy.py:753:        spawner_result = await _delegate_spawner(task_id, payload)
+/workspace/VX_11/madre/main_legacy.py:770:            "spawner_response": spawner_result,
+/workspace/VX_11/madre/main_legacy.py:790:        spawner_result = await _delegate_spawner(task_id, payload)
+/workspace/VX_11/madre/main_legacy.py:810:        spawner_result = await _delegate_spawner(task_id, payload)
+/workspace/VX_11/madre/main_legacy.py:845:    Best-effort delegation to Spawner when target == 'spawner'.
+/workspace/VX_11/madre/main_legacy.py:850:    if req.target == "spawner" and req.action == "spawn":
+/workspace/VX_11/madre/main_legacy.py:852:            spawner_port = settings.PORTS.get("spawner", 8008)
+/workspace/VX_11/madre/main_legacy.py:855:                    f"http://127.0.0.1:{spawner_port}/spawn",
+/workspace/VX_11/madre/main_legacy.py:1175:        "spawner_pid": 12345,
+/workspace/VX_11/madre/main_legacy.py:1198:            "spawner_pid": daughter.spawner_pid,
+/workspace/VX_11/madre/main_legacy.py:1460:    if action == "spawn" and req.target == "spawner":
+/workspace/VX_11/madre/main_legacy.py:1462:        spawn_res = await _delegate_spawner(
+/workspace/VX_11/madre/main_legacy.py:1510:async def _delegate_spawner(session_id: str, payload: Dict[str, Any]):
+/workspace/VX_11/madre/main_legacy.py:1511:    """Delegate to spawner service con TTL/agresividad y registro BD."""
+/workspace/VX_11/madre/main_legacy.py:1512:    spawner_port = settings.PORTS.get("spawner", 8008)
+/workspace/VX_11/madre/main_legacy.py:1520:                f"{settings.spawner_url or f'http://spawner:{spawner_port}'}/spawn",
+/workspace/VX_11/madre/main_legacy.py:1686:        ("spawner", settings.spawner_url or f"http://spawner:{settings.spawner_port}"),
+/workspace/VX_11/madre/main_legacy.py:1712:    Callback de hijas/spawner para registrar resultados.
+/workspace/VX_11/madre/main_legacy.py:2369:                # NUEVO: Invocar /spawner/spawn para crear hija real
+/workspace/VX_11/madre/main_legacy.py:2385:                        spawner_resp = await client.post(
+/workspace/VX_11/madre/main_legacy.py:2386:                            f"{settings.spawner_url}/spawner/spawn",
+/workspace/VX_11/madre/main_legacy.py:2390:                    if spawner_resp.status_code == 200:
+/workspace/VX_11/madre/main_legacy.py:2396:                        hija.error_last = f"spawner_status_{spawner_resp.status_code}"
+/workspace/VX_11/madre/main_legacy.py:2402:                    hija.error_last = "spawner_timeout"
+
+## tentaculo_link spawner routing
+/workspace/VX_11/tentaculo_link/clients.py:209:            "spawner": settings.spawner_url
+/workspace/VX_11/tentaculo_link/clients.py:210:            or f"http://spawner:{settings.spawner_port}",
+/workspace/VX_11/tentaculo_link/clients.py:342:    async def route_to_spawner(
+/workspace/VX_11/tentaculo_link/clients.py:346:        client = self.get_client("spawner")
+/workspace/VX_11/tentaculo_link/clients.py:348:            return {"error": "spawner_unavailable"}
+/workspace/VX_11/tentaculo_link/clients.py:349:        write_log("tentaculo_link", f"route_spawner:{endpoint}")
+/workspace/VX_11/tentaculo_link/routes.py:94:        module="spawner",

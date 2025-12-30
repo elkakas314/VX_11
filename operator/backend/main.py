@@ -751,6 +751,57 @@ async def hormiguero_scan_once(
     return JSONResponse(status_code=response.status_code, content=response.json())
 
 
+@app.get("/operator/api/spawner/status")
+async def spawner_status(
+    correlation_id: str = Depends(get_correlation_id),
+    _: bool = Depends(token_guard),
+):
+    response = await _call_tentaculo(
+        "GET", "/api/spawner/status", correlation_id, timeout=5.0
+    )
+    return JSONResponse(status_code=response.status_code, content=response.json())
+
+
+@app.get("/operator/api/spawner/runs")
+async def spawner_runs(
+    limit: int = 20,
+    offset: int = 0,
+    correlation_id: str = Depends(get_correlation_id),
+    _: bool = Depends(token_guard),
+):
+    response = await _call_tentaculo(
+        "GET",
+        "/api/spawner/runs",
+        correlation_id,
+        params={"limit": limit, "offset": offset},
+        timeout=8.0,
+    )
+    return JSONResponse(status_code=response.status_code, content=response.json())
+
+
+@app.post("/operator/api/spawner/submit")
+async def spawner_submit(
+    payload: Dict[str, Any],
+    request: Request,
+    correlation_id: str = Depends(get_correlation_id),
+    _: bool = Depends(token_guard),
+):
+    if not _rate_limit_ok(_rate_limit_key(request)):
+        raise HTTPException(status_code=429, detail="rate_limited")
+    response = await _call_tentaculo(
+        "POST", "/api/spawner/submit", correlation_id, payload=payload, timeout=12.0
+    )
+    _write_audit(
+        {
+            "event": "spawner_submit",
+            "correlation_id": correlation_id,
+            "timestamp": _now_iso(),
+            "payload": payload,
+        }
+    )
+    return JSONResponse(status_code=response.status_code, content=response.json())
+
+
 async def _manifestator_plan(correlation_id: str) -> Dict[str, Any]:
     lanes_resp = await _call_tentaculo(
         "GET", "/api/rails/lanes", correlation_id, timeout=5.0
@@ -1046,6 +1097,9 @@ ALIAS_ROUTES = [
     ("/manifestator/apply", ["POST"], manifestator_apply),
     ("/hormiguero/status", ["GET"], hormiguero_status),
     ("/hormiguero/scan_once", ["POST"], hormiguero_scan_once),
+    ("/spawner/status", ["GET"], spawner_status),
+    ("/spawner/runs", ["GET"], spawner_runs),
+    ("/spawner/submit", ["POST"], spawner_submit),
     ("/metrics", ["GET"], metrics),
     ("/scorecard", ["GET"], scorecard),
     ("/settings", ["GET"], get_settings),
