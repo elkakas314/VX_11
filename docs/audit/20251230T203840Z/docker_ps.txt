@@ -1,0 +1,8 @@
+NAME                          IMAGE                         COMMAND                  SERVICE             CREATED             STATUS                         PORTS
+vx11-madre-test               vx11-madre:test               "python -m uvicorn m…"   madre               About an hour ago   Up About an hour (healthy)     
+vx11-operator-backend-test    vx11-operator-backend:test    "python /app/operato…"   operator-backend    About an hour ago   Up About an hour (healthy)     
+vx11-operator-frontend-test   vx11-operator-frontend:test   "sh -c 'mkdir -p /sh…"   operator-frontend   About an hour ago   Up About an hour (healthy)     
+vx11-redis                    redis:7-alpine                "docker-entrypoint.s…"   redis               2 hours ago         Up 2 hours (healthy)           0.0.0.0:6379->6379/tcp, :::6379->6379/tcp
+vx11-redis-test               redis:7-alpine                "docker-entrypoint.s…"   redis-test          About an hour ago   Up About an hour (healthy)     6379/tcp
+vx11-switch-test              vx11-switch:test              "python3 -m uvicorn …"   switch              About an hour ago   Up About an hour (unhealthy)   
+vx11-tentaculo-link-test      vx11-tentaculo-link:test      "uvicorn tentaculo_l…"   tentaculo_link      About an hour ago   Up About an hour (healthy)     0.0.0.0:8000->8000/tcp, :::8000->8000/tcp

@@ -1,0 +1,1960 @@
+vx11-redis-test  | 1:C 30 Dec 2025 19:17:36.317 # WARNING Memory overcommit must be enabled! Without it, a background save or replication may fail under low memory condition. Being disabled, it can also cause failures without low memory condition, see https://github.com/jemalloc/jemalloc/issues/1328. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.
+vx11-redis-test  | 1:C 30 Dec 2025 19:17:36.317 * oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+vx11-redis-test  | 1:C 30 Dec 2025 19:17:36.317 * Redis version=7.4.7, bits=64, commit=00000000, modified=0, pid=1, just started
+vx11-redis-test  | 1:C 30 Dec 2025 19:17:36.317 # Warning: no config file specified, using the default config. In order to specify a config file use redis-server /path/to/redis.conf
+vx11-redis-test  | 1:M 30 Dec 2025 19:17:36.317 * monotonic clock: POSIX clock_gettime
+vx11-redis-test  | 1:M 30 Dec 2025 19:17:36.318 * Running mode=standalone, port=6379.
+vx11-redis-test  | 1:M 30 Dec 2025 19:17:36.319 * Server initialized
+vx11-redis-test  | 1:M 30 Dec 2025 19:17:36.319 * Loading RDB produced by version 7.4.7
+vx11-redis-test  | 1:M 30 Dec 2025 19:17:36.319 * RDB age 3 seconds
+vx11-redis-test  | 1:M 30 Dec 2025 19:17:36.319 * RDB memory usage when created 0.93 Mb
+vx11-redis-test  | 1:M 30 Dec 2025 19:17:36.319 * Done loading RDB, keys loaded: 0, keys expired: 0.
+vx11-redis-test  | 1:M 30 Dec 2025 19:17:36.319 * DB loaded from disk: 0.000 seconds
+vx11-redis-test  | 1:M 30 Dec 2025 19:17:36.319 * Ready to accept connections tcp
+vx11-operator-backend-test  | INFO:     Started server process [1]
+vx11-operator-backend-test  | INFO:     Waiting for application startup.
+vx11-operator-backend-test  | INFO:     Application startup complete.
+vx11-operator-backend-test  | INFO:     Uvicorn running on http://0.0.0.0:8011 (Press CTRL+C to quit)
+vx11-operator-backend-test  | INFO:     127.0.0.1:45306 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:42048 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:42922 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:56084 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:52588 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:47608 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:50174 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:48504 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:43676 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:54066 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:53404 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:36992 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:49608 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:58610 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:36260 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:52322 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:38694 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:33708 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:35580 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:37076 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:46394 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:50620 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:34274 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:52244 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:39444 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:49508 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:34158 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:37018 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:60356 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:42860 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:42172 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:55430 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:52572 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:47542 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:43356 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:45954 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:45510 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:36914 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:55918 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:44024 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:43066 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:49700 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:37920 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:39134 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:41926 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:39798 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:56812 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:36506 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:40490 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:38080 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:56930 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:43116 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:47926 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:44160 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:40718 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:58228 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:48226 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:54578 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:51502 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:35874 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:38526 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:49932 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:51464 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:43328 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:36964 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:40292 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:38842 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:32946 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:60594 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:45550 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:39860 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:40216 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:34188 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:53224 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:43500 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:59622 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:53290 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:48438 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:36484 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:55248 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:60098 - "GET /api/health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     Started server process [1]
+vx11-tentaculo-link-test    | INFO:     Waiting for application startup.
+vx11-tentaculo-link-test    | ✗ Redis cache init failed: Error 111 connecting to localhost:6379. 111.
+vx11-tentaculo-link-test    | INFO:     Application startup complete.
+vx11-tentaculo-link-test    | INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:37470 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:44044 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:39482 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:53522 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:58412 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:57750 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:35050 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:47532 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:60614 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:51708 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:35982 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:51800 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:60342 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:50858 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:54688 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:43646 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:39642 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:59088 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:53296 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:59876 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:41660 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:40798 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:47016 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:56020 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:36410 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:53746 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:53002 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:51188 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:52862 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:57206 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:35948 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:45464 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:51798 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:47590 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:33330 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:50252 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:50144 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:60474 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:57898 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:43752 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:45564 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:52400 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:51300 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:46332 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:36028 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:43868 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:41002 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:38318 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:53222 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:55740 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:46868 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:53948 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:45938 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:53312 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:41742 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:38852 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:53514 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:41366 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:59090 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:43516 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:50716 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:39896 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:34304 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:59234 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:55332 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:49042 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:47824 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:38264 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:56338 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:46760 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:40356 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:48838 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:36476 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:40732 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:38136 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:59684 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:41466 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:34006 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:32878 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:53762 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:47218 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:48864 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:48874 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:59794 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:50118 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:54060 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:44132 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:37916 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:46828 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:34712 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:38876 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:38810 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:42292 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:45584 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:60072 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:32806 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:33204 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:37136 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:42864 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:35114 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:57416 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:52146 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:40098 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:52428 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:49844 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:35526 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:46878 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:39272 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:34138 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:54728 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:38124 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:35568 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:55082 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:54422 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:45114 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:36364 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:38258 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:52192 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:48812 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:41254 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:51660 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:35796 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:47602 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:41018 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:43546 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:33592 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:46688 - "GET /health HTTP/1.1" 200 OK
+vx11-switch-test            | INFO:     Started server process [1]
+vx11-switch-test            | INFO:     Waiting for application startup.
+vx11-switch-test            |   ✗ local_gguf_small error: All connection attempts failed
+vx11-switch-test            |   ✗ ollama_local error: All connection attempts failed
+vx11-switch-test            |   ✗ deepseek_r1 error: All connection attempts failed
+vx11-switch-test            |   ✗ cli_registry error: All connection attempts failed
+vx11-switch-test            | INFO:     Application startup complete.
+vx11-switch-test            | INFO:     Uvicorn running on http://0.0.0.0:8002 (Press CTRL+C to quit)
+vx11-switch-test            | INFO:     127.0.0.1:60494 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:41090 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:53924 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:36040 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:48400 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:50566 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:34038 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:43824 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:41512 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:57932 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:54372 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:58686 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:57292 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:45502 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:60014 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:35770 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:44316 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:40098 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:52030 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:33294 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:55882 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:36852 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:42086 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:53014 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:35230 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:51390 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:43154 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:60392 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:38630 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:37934 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:35128 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:54120 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:50966 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:36944 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:44786 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:41376 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:50884 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:56084 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:48020 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:52846 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:57120 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:42908 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:46294 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:39406 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:53330 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:44810 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:50272 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:54440 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:56420 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:58904 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:53768 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:44560 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:50818 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:60924 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:47022 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:40486 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:59426 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:53216 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:40440 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:54934 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:43208 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:37872 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:58844 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:35270 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:47236 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:38074 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:59704 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:46312 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:56556 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:41886 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:56904 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:49082 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:48728 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:47442 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:39452 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:44610 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:46024 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:53274 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:50034 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:55300 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:47850 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:40214 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:55016 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:57584 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:55612 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:42744 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:55524 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:41228 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:53712 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:50318 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:33424 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:42152 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:36774 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:55962 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:40580 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:56768 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:50444 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:49714 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:53706 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:51776 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:56224 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:39944 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:34284 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:54102 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:57572 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:39164 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:52980 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:36306 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:39912 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:51024 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:41808 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:45334 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:40666 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:39138 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:46292 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:47704 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:59254 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:52328 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:56186 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:55648 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:37830 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:55630 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:59072 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:33348 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:34210 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:36588 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:45400 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:48054 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:60742 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:46192 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:45360 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:47494 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:43606 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:45558 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:48218 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:60784 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:50960 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:58622 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:34080 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:50244 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:58862 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:33778 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:57980 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:59796 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:42714 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:57694 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:54030 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:40952 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:44508 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:60416 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:39452 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:48518 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:45096 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:58530 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:49528 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:38752 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:49248 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:50110 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:43492 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:46800 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:39190 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:39934 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:57304 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:42562 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:60106 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:43628 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:55458 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:36026 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:58992 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:59630 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:36390 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:56658 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:33990 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:47836 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:42748 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:34166 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:40720 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:60254 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:59520 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:50884 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:58610 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:49950 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:56572 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:56690 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:56294 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:45810 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:60076 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:32982 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:39886 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:40872 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:57506 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:41830 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:33782 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:44068 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:58230 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:60898 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:43388 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:50240 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:49762 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:50512 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:59216 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:50464 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:38188 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:53634 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:45792 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:38786 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:55270 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:44952 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:33372 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:59278 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:49738 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:58670 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:51326 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:55944 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:51792 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:42074 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:42064 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:57288 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:39388 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:44518 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:40572 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:50238 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:51504 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:57822 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:34216 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:34838 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:57078 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:33412 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:59596 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:42190 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:54644 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:57592 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:34348 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:51564 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:42962 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:36532 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:52462 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:39482 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:46576 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:43434 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:35706 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:55438 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:41194 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:35302 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:36912 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:56596 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:44248 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:58420 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:41788 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:37176 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:49264 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:55284 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:34098 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:47382 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:51790 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:39550 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:40066 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:49012 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:48742 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:50380 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:39040 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:53060 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:44914 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:47142 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:54496 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:56164 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:57964 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:36322 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:36902 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:47608 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:36270 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:50976 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:47746 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:44044 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:35478 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:52944 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:51014 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:56240 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:49362 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:49462 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:54010 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:56626 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:53842 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:33028 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:39386 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:39734 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:48418 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:56266 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:50978 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:59728 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:37126 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:46514 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:44156 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:37048 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:58932 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:49146 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:34136 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:51754 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:44812 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:38750 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:41008 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:56500 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:55540 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:34418 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:52108 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:60062 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:52410 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:39610 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:53474 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:56422 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:54458 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:58604 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:39690 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:40622 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:55660 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:44572 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:49330 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:52040 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:59634 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:60976 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:57654 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:53930 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:38124 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:34826 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:49078 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:52738 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:55928 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:37808 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:40970 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:45554 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:48862 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:34778 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:54296 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:50300 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:43512 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:50810 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:47710 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:52508 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:43378 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:38978 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:43554 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:43640 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:43106 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:52866 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:58284 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:60108 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:55302 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:39566 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:47518 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:35218 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:59706 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:33902 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:48620 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:47166 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:41574 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:45380 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:37416 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:41782 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:36192 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:40240 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:37300 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:33500 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:34724 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:36696 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:58254 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:53054 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:39622 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:60242 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:33068 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:52774 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:60092 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:43022 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:44644 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:45216 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:39794 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:40834 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:57426 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:33258 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:44568 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:33006 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:53174 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:44790 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:46668 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:33140 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:43906 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:54916 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:42886 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:50478 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:49248 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:46244 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:44684 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:56880 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:41046 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:41142 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:39440 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:34350 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:35996 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:54774 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:33984 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:47456 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:52298 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:40910 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:54116 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:45938 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:37742 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:39764 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:42854 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:44430 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:37938 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:33284 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:38956 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:46580 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:37082 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:55500 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:59688 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:46882 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:46748 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:46490 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:42022 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:56148 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:49862 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:52984 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:43380 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:39954 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:54132 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:46834 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:45448 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:58506 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:59694 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:59722 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:37178 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:45370 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:58202 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:43294 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:39842 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:50738 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:54328 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:37620 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:44490 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:45058 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:56032 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:35848 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:39978 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:42068 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:40638 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:33530 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:59284 - "GET /health HTTP/1.1" 200 OK
+vx11-switch-test            | INFO:     127.0.0.1:34948 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:47102 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:46626 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:57200 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:59830 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:34908 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:33570 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:60910 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:38404 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:39486 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:36488 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:54760 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:50976 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:42458 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:35630 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:57160 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:49020 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:52460 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:52958 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:34254 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:47998 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:56480 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:42694 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:45012 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:34842 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:58850 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:45970 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:54692 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:55076 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:50432 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:40454 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:36832 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:50514 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:56768 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:35350 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:42864 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:54786 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:57448 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:42016 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:54234 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:49298 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:39914 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:55256 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:36366 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:36676 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:54374 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:60674 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:36110 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:41980 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:42876 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:43100 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:50310 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:41476 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:37254 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:59208 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:45548 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:46004 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:58126 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:60168 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:45082 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:43722 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:43158 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:47266 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:43378 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:51584 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:40648 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:34094 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:34158 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:35704 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:49300 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:43768 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:58094 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:32902 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:32778 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:37896 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:45346 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:54972 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:49592 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:33276 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:53248 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:46044 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:36818 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:46426 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:50624 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:34966 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:60322 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:58666 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:47760 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:55478 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            |   ✗ local_gguf_small error: All connection attempts failed
+vx11-switch-test            |   ✗ ollama_local error: All connection attempts failed
+vx11-switch-test            |   ✗ deepseek_r1 error: All connection attempts failed
+vx11-switch-test            |   ✗ cli_registry error: All connection attempts failed
+vx11-switch-test            | INFO:     127.0.0.1:33966 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:35220 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:47824 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:58550 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:33660 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:55760 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:54848 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:49178 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:38370 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:56948 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:54862 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:52992 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:50812 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:41974 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:35506 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:46540 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:34798 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:48246 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:42936 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:52920 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:35880 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:36126 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:41448 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:48342 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:37478 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:38180 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:55464 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:43928 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:42582 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:57220 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:47574 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:43856 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:43530 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:39380 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:58014 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:60838 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:46454 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:59356 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:36936 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:51628 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:60492 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:48998 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:59900 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:39900 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:58730 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:32802 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-operator-backend-test  | INFO:     127.0.0.1:48080 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:50252 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:44646 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:38462 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:36760 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:59370 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:58448 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:44022 - "GET /api/health HTTP/1.1" 200 OK
+vx11-switch-test            | INFO:     127.0.0.1:41882 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:51368 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:39732 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:38404 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:33924 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:48692 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:59368 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:43246 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:59474 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:38536 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:60192 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:50522 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:53784 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:43070 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:39080 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:33932 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:57372 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:42500 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:60248 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:51938 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:46728 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:35030 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:48844 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:42076 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:37094 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:55392 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:44544 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:45008 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:36080 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:41158 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:59346 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:42486 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:49420 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:43242 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:57956 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:38862 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:54680 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:58024 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:33058 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:35948 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:50038 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:60460 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:43998 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:40876 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:41228 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:46742 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:51826 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:60974 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:39164 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:38382 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:46904 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:41350 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:35592 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:49680 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:51966 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:39400 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:33094 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:56376 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:57386 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:47300 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:55994 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:55556 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:47296 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:48512 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:48050 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:34650 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:47734 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:46058 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:60026 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:35470 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:40908 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:33248 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:51326 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:42632 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:47086 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:35660 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-switch-test            | INFO:     127.0.0.1:49682 - "GET /switch/health HTTP/1.1" 404 Not Found
+vx11-operator-backend-test  | INFO:     127.0.0.1:44406 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:39538 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:46198 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:39728 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:44104 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:57872 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:43094 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:59978 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:58788 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:42594 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:59316 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:36518 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:36308 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:59350 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:56034 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:50012 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:49842 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:33176 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:57032 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:45526 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:40066 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:35396 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:35316 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:34464 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:42224 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:52356 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:34146 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:60374 - "GET /api/health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:58476 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:42794 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:53434 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:54750 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:33504 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:57954 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:57192 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:50784 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:57864 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:45984 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:34640 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:35744 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:43038 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:60852 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:36208 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:50670 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:38526 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     Started server process [1]
+vx11-madre-test             | INFO:     Waiting for application startup.
+vx11-madre-test             | INFO:     Application startup complete.
+vx11-madre-test             | INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
+vx11-madre-test             | INFO:     127.0.0.1:50942 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:35974 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:43998 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:33922 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:42526 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:57836 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:57754 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:60320 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:38506 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:38788 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:60392 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:40148 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:51554 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:40480 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:41286 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:46422 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:52140 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:60306 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:48510 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:49780 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:55440 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:59980 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:57440 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:59984 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:50144 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:54198 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:34144 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:51734 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:56234 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:35690 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:33078 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:55312 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:36582 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:37228 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:49088 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:35040 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:59978 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:33302 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:51584 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:38420 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:58836 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:36490 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:55898 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:47736 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:45894 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:41170 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:45644 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:43684 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:33058 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:56314 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:38414 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:34990 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:49352 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:43528 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:43522 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:48538 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:59512 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:42716 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:58356 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:57908 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:53866 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:40110 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:43466 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:33710 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:56344 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:32968 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:37372 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:55950 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:39902 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:58402 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:37566 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:35892 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:36504 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:42000 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:47416 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:44626 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:60018 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:56808 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:53892 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:56268 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:34744 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:48330 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:50756 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:57858 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:38220 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:54376 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:59008 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:56050 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:38566 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:50024 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:56898 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:40616 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:54472 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:40304 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:32874 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:57740 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:50840 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:48190 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:54900 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:44044 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:43144 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:53850 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:36252 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:41814 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:52150 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:38376 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:33058 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:58922 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:60924 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:34658 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:55140 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:33512 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:45964 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:37210 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:38884 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:45874 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:58380 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:41936 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:44462 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:56694 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:41152 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:58772 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:56526 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:49262 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:54958 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:36986 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:57984 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:59912 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:59024 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:50444 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:52800 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:37300 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:45614 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:44282 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:35898 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:57870 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:56924 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:33268 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:33352 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:58996 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:57772 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:57186 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:38262 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:53054 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:51166 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:58380 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:45460 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:56780 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:33222 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:38264 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:38010 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:40806 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:49856 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:47006 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:50988 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:48666 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:38460 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:41416 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:56340 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:49872 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:54058 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:43312 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:36450 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:34272 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:50782 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:43224 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:54730 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:50318 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:58012 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:33432 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:50350 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:58884 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:50898 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:58260 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:33988 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:56958 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:55268 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:42700 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:48942 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:33146 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:41084 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:42862 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:47056 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:55222 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:36510 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:57742 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:53722 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:35846 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:57006 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:56142 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:46390 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:48786 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:37362 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:38962 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:59266 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:40718 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:54802 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:52220 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:51144 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:36350 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:42172 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:39410 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:42306 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:40370 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:55512 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:58048 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:43868 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:60848 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:46850 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:49128 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:57342 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:55354 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:54308 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:37008 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:59154 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:37818 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:59062 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:55450 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:45464 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:50824 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:42394 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:45694 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:50282 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:34020 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:48054 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:55490 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:60782 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:44366 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:42764 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:50924 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:41736 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:54630 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:57146 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:55564 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:43668 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:58038 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:56968 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:54674 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:44294 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:51606 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:55868 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:58212 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:43086 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:37126 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:41986 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:44560 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:39148 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:41918 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:56728 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:35774 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:56722 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:51408 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:52810 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:42802 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:50022 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:40916 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:60986 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:32870 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:46944 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:52536 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:33548 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:35454 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:55476 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:36030 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:52080 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:40762 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:38396 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:49554 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:43756 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:33068 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:60990 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:47916 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:37254 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:51056 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:43714 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:38202 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:58006 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:37734 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:36832 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:45108 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:42918 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:60390 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:56840 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:43748 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:50052 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:48988 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:36710 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:42790 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:43760 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:35756 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:46028 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:53278 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:53750 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:59466 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:49170 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:59842 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:35718 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:55310 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test    | INFO:     127.0.0.1:33478 - "GET /health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:41204 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:37452 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:54106 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:47204 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:54324 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:51358 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:49060 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:56514 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:44918 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:36812 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:53250 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:58692 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:49492 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:57740 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:57470 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:40446 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:54572 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:41266 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:53184 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:42192 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:57722 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:44410 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:41994 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:41672 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:57326 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:36196 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:51742 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:47358 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:38208 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:35254 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:56438 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:58534 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:55848 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:36128 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:49384 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:33260 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:51434 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:43562 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:34844 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:55354 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:54360 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:37914 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:41592 - "GET /api/health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:34944 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:47330 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:33504 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:35204 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:33662 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:43092 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:39108 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:48736 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:36204 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:43456 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:45518 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:59658 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:49332 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:54678 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:59660 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:46026 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:42706 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:34392 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:55696 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:39026 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:39272 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:52070 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:34792 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:57142 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:39318 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:38630 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:39554 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:52868 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:43598 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:33436 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:45078 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:45920 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:50698 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:57080 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:36492 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:38134 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:57808 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:32840 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:43312 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:57330 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:34166 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:59252 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:57946 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:54068 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:59674 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:41828 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:50224 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:58014 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:53182 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:60560 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:55900 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:58162 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:57016 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:43844 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:55104 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:47810 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:53914 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:45810 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:36182 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:57112 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:39244 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:50650 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:40240 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:36764 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:40720 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:39960 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:51154 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:48846 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:59880 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:49134 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:51314 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:34938 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:43386 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:35908 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:55832 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:35388 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:56934 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:47440 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:60944 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:48360 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:33898 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:41018 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:45828 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:33214 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:52502 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:47990 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:52344 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:55678 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:53214 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:46088 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:49760 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:33732 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:40906 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:44022 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:59998 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:59154 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:41642 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:49506 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:49644 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:59978 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:57676 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:54314 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:48384 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:55244 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:51820 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:41656 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:57654 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:54528 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:52004 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:53456 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:49172 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:49742 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:57234 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:34280 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:51380 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:53120 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:58666 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:50510 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:55094 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:34130 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:36396 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:45478 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:47742 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:58952 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:41080 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:47446 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:43224 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:44560 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:52418 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:46854 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:33500 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:59280 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:51802 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:35172 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:58748 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:52168 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:52336 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:54170 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:59828 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:50698 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:60780 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:48156 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:35200 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:39164 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:47546 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:56254 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:36048 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:45482 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:37516 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:45034 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:43932 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:38962 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:32822 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:35286 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:42166 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:48182 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:34734 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:47424 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:38162 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:32990 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:55728 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:53292 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:37786 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:33012 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:33840 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:59446 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:51824 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:40894 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:48296 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:38332 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:52878 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:49690 - "GET /health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:50924 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:41812 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:57180 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:35756 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:32870 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:37294 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:34802 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:40858 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:33282 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:39676 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:58588 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:58346 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:48578 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:37506 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:47238 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:55132 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:48414 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:44164 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:55282 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:43532 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:42838 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:59146 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:47024 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:47502 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:53160 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:38720 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:52208 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:44970 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:40260 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:36216 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:47120 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:55898 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:42314 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:33964 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:51546 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:60518 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:35622 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:32916 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:41456 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:57172 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:52920 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:40438 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:38432 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:47460 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:60642 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:49598 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:53552 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:53860 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:39212 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:34290 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:41828 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:55702 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:48634 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:35910 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:35554 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:48462 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:53656 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:34728 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:40936 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:44536 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:53190 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:42076 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:36992 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:39482 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:46738 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:46364 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:53078 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:57174 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:43834 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:33180 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:51634 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:53094 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:52826 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:53582 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:37042 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:33108 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:50972 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:51072 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:37090 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:36616 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:44136 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:45656 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:35686 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:52978 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:56028 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:39072 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:56278 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:46386 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:56258 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:54296 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:46220 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:35076 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:48340 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:49928 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:53660 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:60154 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:52100 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:56326 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:43876 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:39196 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:36258 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:41530 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:39128 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:45978 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:60358 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:56450 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:54158 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:56914 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:46484 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:57452 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:43998 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:59390 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:47238 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:35814 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:45718 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:45312 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:40506 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:34112 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:44710 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:53530 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:37228 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:42000 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:60524 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:46806 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:59364 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:60366 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:38590 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:38048 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:47130 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:49508 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:38120 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:33964 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:60698 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:53854 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:46446 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:48660 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:49196 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:53708 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:46290 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:35420 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:53174 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:47484 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:53156 - "GET /api/health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:38628 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:54790 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:45970 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:33000 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:39946 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:46586 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:58740 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:53430 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:33910 - "GET /health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:47980 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:48234 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:42884 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:42548 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:40980 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:42442 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:46736 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:60572 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:47816 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:33238 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:43798 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:48304 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:56702 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:44352 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:58538 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:44148 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:45404 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:39762 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:34122 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:43546 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:38878 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:56904 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:40768 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:45608 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:42918 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:45196 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:43640 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:54814 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:52068 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:55102 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:55960 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:38708 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:54718 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:42860 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:35038 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:60436 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:36000 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:58330 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:43350 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:59068 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:51624 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:36796 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:54200 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:41010 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:36754 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:39282 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:37250 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:45840 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:44762 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:59362 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:34438 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:55732 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:44912 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:40524 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:59480 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:45232 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:46490 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:50926 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:39456 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:53564 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:52440 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:40522 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:45302 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:48220 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:36550 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:36650 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:47746 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:42654 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:42928 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:52142 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:35958 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:53336 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:46008 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:44758 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:39460 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:43296 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:54574 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:43124 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:51178 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:35202 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:46888 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:47354 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:33858 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:38796 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:39482 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:41198 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:59632 - "GET /api/health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:58240 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:56450 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:52228 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:49120 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:57074 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:39284 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:38068 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:41354 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:44262 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:58822 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:35228 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:40112 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:57990 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:36902 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:54560 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:42904 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:55740 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:34812 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:40234 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:40668 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:45510 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:45188 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:36638 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:34226 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:46462 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:58514 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:48660 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:42218 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:36588 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:34920 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:37980 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:34182 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:49386 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:41054 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:32826 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:56694 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:35808 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:46368 - "GET /health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:37052 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:58698 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:57796 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:53900 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:42274 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:42930 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:48696 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:32948 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:50350 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:58148 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:37782 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:50242 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:40650 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:46862 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:56862 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:44626 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:41286 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:60216 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:58408 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:52446 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:48372 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:56898 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:50832 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:48046 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:33726 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:48088 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:35216 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:50696 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:46252 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:55966 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:51828 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:39518 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:48066 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:38926 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:58856 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:46968 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:35108 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:53296 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:34522 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:35498 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:33990 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:60040 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:33394 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:32770 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:42658 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:44236 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:60694 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:37628 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:35968 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:45030 - "GET /api/health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:53234 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:41824 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:57272 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:42270 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:37310 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:40640 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:49332 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:45086 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:44138 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:60530 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:43768 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:38096 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:32914 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:51360 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:34854 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:38414 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:58816 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:53666 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:53522 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:48272 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:52408 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:38810 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:35368 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:49424 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:49864 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:47518 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:52608 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:45624 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:33378 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:55730 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:36246 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:60138 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:47956 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:44414 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:57066 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:51514 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:42414 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:42846 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:35660 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:39516 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:55184 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:56104 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:39242 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:40896 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:55294 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:53998 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:48664 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:43802 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:44680 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:35090 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:52052 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:41604 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:57196 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:34360 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:32884 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:40210 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:36390 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:51722 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:53470 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:36680 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:37138 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:55912 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:58852 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:45912 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:53032 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:55436 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:51764 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:43716 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:39040 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:58986 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:36172 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:56860 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:38100 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:42826 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:33314 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:57764 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:48582 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:37102 - "GET /health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:39690 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:37416 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:53092 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:38630 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:35800 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:32932 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:37958 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:37104 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:39882 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:42920 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:46750 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:40652 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:43434 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:39252 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:45944 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:34332 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:47078 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:54544 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:53436 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:59530 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:58082 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:40230 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:39640 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:51030 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:60476 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:57712 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:52710 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:44930 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:36348 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:44500 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:36838 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:35896 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:49374 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:60004 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:52296 - "GET /api/health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:38740 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:35480 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:37712 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:37138 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:34064 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:50064 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:49788 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:48678 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:38142 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:39042 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:57326 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:38808 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:48178 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:59102 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:45814 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:57000 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:52076 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:57042 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:52374 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:33802 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:48826 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:49406 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:51408 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:56400 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:36034 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:46988 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:39950 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:36202 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:48936 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:45322 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:44852 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:50034 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:39476 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:58658 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:42874 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:57780 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:44050 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:45276 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:32984 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:37294 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:54470 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test             | INFO:     127.0.0.1:34666 - "GET /health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:55324 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:51762 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:43648 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:49696 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:50340 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:33246 - "GET /api/health HTTP/1.1" 200 OK

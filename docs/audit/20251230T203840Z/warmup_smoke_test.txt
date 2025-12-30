@@ -1,0 +1,10 @@
+======================================================================
+VX11 Warmup + Rotation Smoke Test
+======================================================================
+
+Test 1: Models registered
+Registered models: 0
+❌ FAIL: Need at least 2 models, found 0
+❌ FAIL
+
+❌ Cannot run remaining tests: no models registered

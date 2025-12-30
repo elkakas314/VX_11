@@ -1,0 +1,5 @@
+1 .M N... 100644 100644 100644 c09255f1f563414d1e5bc06a9dd87db90bc11a5b c09255f1f563414d1e5bc06a9dd87db90bc11a5b docker-compose.full-test.yml
+1 .M N... 100644 100644 100644 0fb4041c894060c1ea77905ea00e266e687b6e4b 0fb4041c894060c1ea77905ea00e266e687b6e4b operator/backend/Dockerfile
+1 .M N... 100644 100644 100644 fa0c565e9b275f9348091624bb06479fcf1c26c4 fa0c565e9b275f9348091624bb06479fcf1c26c4 operator/frontend/src/App.tsx
+? operator/__init__.py
+? operator/backend/uvicorn_entry.py
