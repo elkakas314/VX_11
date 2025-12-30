@@ -203,6 +203,62 @@ curl -X POST http://localhost:8001/madre/power/mode \
 
 ---
 
+## DEEPSEEK R1 REASONING ORACLE (COPILOT-INTERNAL)
+
+**Location**: `.github/deepseek_r1_reasoning.py`  
+**Purpose**: Structured planning for complex VX11 tasks  
+**Access**: Copilot ONLY (not for direct human invocation)  
+**Audit**: `docs/audit/r1/` (auto-logged, gitignored)
+
+### When to invoke DeepSeek R1 (MANDATORY)
+- ✅ Branch merges / consolidation decisions
+- ✅ Architecture or contract changes (Switch routing, Operator wiring, tentaculo_link constraints)
+- ✅ Failing tests requiring diagnosis
+- ✅ Changes to `.github/*`, security workflows, or canonical docs
+- ✅ Complex refactors or multi-step system redesigns
+
+### Copilot invocation (automatic)
+```python
+# Pseudo-code (executed internally when MANDATORY trigger detected)
+plan = execute_deepseek_reasoning(
+    objective="<task_name>",
+    context="VX11 invariants + constraints",
+    task="<specific_task_description>"
+)
+# Returns: {"tasks": [...], "risks": [...], "tests_to_run": [...], "rollback_plan": [...], ...}
+```
+
+### Rails (Safety guardrails enforced automatically)
+- **Invariants**: solo_madre runtime, tentaculo_link entrypoint, SQLite BD, forense immutable
+- **Protected paths**: Never touch `docs/audit/**`, `forensic/**`, `docs/canon/**`, `tokens.env*`
+- **Atomicity**: Each task single-purpose, clear commit message
+- **Rollback**: Every plan includes emergency recovery
+- **Testing**: All plans specify tests before production
+- **Audit**: All reasoning logged with timestamp + violations tracked
+
+### Output contract (JSON format)
+```json
+{
+  "tasks": [{"id": "T1", "description": "...", "commands": [...], "done_when": "..."}],
+  "risks": [{"risk": "...", "severity": "low|med|high", "mitigation": "..."}],
+  "tests_to_run": ["..."],
+  "rollback_plan": ["..."],
+  "protected_resources_checked": true,
+  "invariants_preserved": true,
+  "definition_of_done": ["..."],
+  "reasoning": "explanation of decisions"
+}
+```
+
+### Safety verification (automatic)
+- Verify no protected paths touched
+- Verify invariants preserved
+- Verify rollback plan exists
+- Verify tests specified
+- Track and report any violations
+
+---
+
 ## GIT DISCIPLINE (NON-NEGOTIABLE)
 
 - **Remote**: vx_11_remote ONLY (never 'origin' if not exists; always verify with `git remote -v`)

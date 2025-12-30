@@ -6,110 +6,114 @@
 - **API Key**: `.env.deepseek` (present, loaded from env)
 - **SDK**: `openai` (installed, v1.14+)
 - **Model**: `deepseek-reasoner` (available at api.deepseek.com)
+- **Reasoning Engine**: `.github/deepseek_r1_reasoning.py` (Copilot-only)
 - **Audit Trail**: `docs/audit/r1/` (auto-saving, gitignored)
+
+### Architecture
+```
+Copilot (detects MANDATORY R1 trigger)
+    ↓
+.github/deepseek_r1_reasoning.py (applies VX11 rails)
+    ↓
+DeepSeek API (deepseek-reasoner model)
+    ↓
+Structured JSON plan (tasks, risks, tests, rollback)
+    ↓
+Execution + Audit trail (docs/audit/r1/)
+```
 
 ### Test Results
 - ✅ API connection: successful
 - ✅ Model availability: deepseek-reasoner confirmed
 - ✅ JSON reasoning: working (complex plan generated)
+- ✅ Rails enforcement: protecting VX11 invariants
 - ✅ Audit logging: plans saved with timestamps
 
-### Available Tools
+### Access & Permissions
 
-#### 1. Direct Reasoning Call
-```bash
-python3 deepseek_wrapper.py "<objective>" "[context]" "[task]"
-```
+| User Type | Access | Method |
+|-----------|--------|--------|
+| **Copilot** | ✅ Full | Automatic (MANDATORY triggers) |
+| **Humans** | ⚠️ Limited | Manual: `@vx11 <task>` (not direct script) |
+| **CI/CD** | ⚠️ Controlled | Via Copilot workflow only |
 
-**Example**:
-```bash
-python3 deepseek_wrapper.py \
-  "Plan database migration" \
-  "VX11: single entrypoint, solo_madre default" \
-  "Migrate from SQLite to PostgreSQL"
-```
+**Why Copilot-only?**
+- Ensures safety rails are enforced
+- Prevents accidental invariant violations
+- Maintains audit trail consistency
+- Integrates seamlessly with preflight/gate checks
 
-#### 2. Integration with @vx11 Tasks
-Copilot will automatically:
-1. Detect MANDATORY R1 calls (merges, contracts, .github changes)
-2. Call `deepseek_wrapper.py` with task context
-3. Parse JSON output → tasks[]
-4. Execute tasks in order
-5. Verify against definition_of_done[]
+### Available Tools for Copilot
 
-#### 3. Environment Variables
-```bash
-# Already configured (read from .env.deepseek)
-export DEEPSEEK_API_KEY="sk-..."
-```
-
-### Integration with Copilot Workflow
-
-When Copilot receives a VX11 task:
-
+#### 1. Automatic (Internal to Copilot)
 ```python
-# Pseudo-code (actual in Copilot behavior)
-if task_is_mandatory_r1_call():
-    plan = run_deepseek_wrapper(objective, context, task)
-    tasks = plan["tasks"]
-    
-    for task in tasks:
-        execute_commands(task["commands"])
-        verify(task["done_when"])
-    
-    verify_definition_of_done(plan["definition_of_done"])
-    save_audit(f"docs/audit/vx11_task_{timestamp}/")
+# Triggered automatically when condition matches
+if task_requires_deepseek_reasoning():
+    plan = deepseek_r1_reasoning(objective, context, task)
+    for task in plan["tasks"]:
+        execute_task(task)
+    verify(plan["definition_of_done"])
 ```
 
-### Output Format (Standard JSON)
+#### 2. Safety Rails (Enforced)
+```
+✓ Preserves solo_madre runtime
+✓ Protects tentaculo_link entrypoint
+✓ Never touches forense/audit trails
+✓ Maintains canonical specs
+✓ Includes rollback procedures
+✓ Specifies verification tests
+```
 
-Every DeepSeek R1 call produces:
-
+#### 3. Output Format (Standard JSON)
 ```json
 {
   "tasks": [
-    {
-      "id": "T1",
-      "description": "...",
-      "files": ["..."],
-      "commands": ["..."],
-      "done_when": "..."
-    }
+    {"id": "T1", "description": "...", "commands": [...], "done_when": "..."}
   ],
   "risks": [
-    {
-      "risk": "...",
-      "severity": "low|med|high",
-      "mitigation": "..."
-    }
+    {"risk": "...", "severity": "low|med|high", "mitigation": "..."}
   ],
   "tests_to_run": ["..."],
   "rollback_plan": ["..."],
   "definition_of_done": ["..."],
-  "reasoning": "explanation of decisions"
+  "reasoning": "explanation"
 }
 ```
 
-### Verification
-```bash
-# Check if DeepSeek is ready
-python3 deepseek_wrapper.py "test" "VX11" "test reasoning"
+### Integration with Copilot Workflow
 
-# Should output JSON with reasoning and plans
-```
+**Preflight** (every @vx11 task):
+1. ✅ `@vx11 status`
+2. ✅ Check if MANDATORY R1 trigger
+3. ✅ If YES → invoke `.github/deepseek_r1_reasoning.py`
+
+**Execution**:
+1. ✅ Parse JSON plan
+2. ✅ Execute tasks in order
+3. ✅ Verify each done_when
+4. ✅ Run tests
+5. ✅ Verify definition_of_done
+
+**Gate Final** (self-review):
+1. ✅ Check no violations
+2. ✅ Verify rollback readiness
+3. ✅ Save audit trail
+4. ✅ Commit + push
+
+### Files Modified/Created
+- `.github/deepseek_r1_reasoning.py` — Main reasoning engine (Copilot-only)
+- `test_deepseek_r1.py` — Test harness (for validation)
+- `.github/copilot-instructions.md` — Updated with R1 section
+- `docs/audit/r1/` — Auto-generated plans (gitignored)
 
 ### Security Notes
 - ✅ API key only read from `.env.deepseek` (never printed)
+- ✅ Rails prevent invariant violations
 - ✅ All plans audit-logged in `docs/audit/r1/`
 - ✅ No secrets in commit history
-- ✅ Environment variables never exposed in code
-
-### Files Modified/Created
-- `test_deepseek_r1.py` — Verificación inicial (committed)
-- `deepseek_wrapper.py` — Wrapper principal (committed)
-- `docs/audit/r1/` — Auto-generated plans (gitignored, audit trail)
-- `docs/audit/deepseek_config/test_result_*.txt` — Test logs (gitignored)
+- ✅ Copilot-gated to prevent misuse
 
 ---
 
-**Ready for VX11 tasks with DeepSeek R1 reasoning enabled.**
+**VX11 Ready for production with integrated DeepSeek R1 reasoning.**
