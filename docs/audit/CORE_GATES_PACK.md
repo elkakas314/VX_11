@@ -43,16 +43,26 @@ docker compose --profile core ps | tee "$OUT/core_ps.txt"
 
 ## 2. Modo PROD — Single-Entrypoint Only
 
-Levantar con overlay de producción (solo puerto 8000 publicado):
+Levantar con production compose (solo puerto 8000 publicado):
 
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
-docker compose -f docker-compose.yml -f docker-compose.prod.yml ps | tee "$OUT/prod_ps.txt"
+docker compose -f docker-compose.production.yml up -d --build
+docker compose -f docker-compose.production.yml ps | tee "$OUT/prod_ps.txt"
 
-# Verificar puertos
-docker ps --format 'table {{.Names}}\t{{.Ports}}' | tee "$OUT/prod_ports.txt"
+# Verificar puertos (MUST FAIL si hay puertos extra)
+docker ps --format 'table {{.Names}}\t{{.Ports}}' | tee "$OUT/prod_ports_table.txt"
 
-# Validación: prod_ports.txt DEBE mostrar puerto publicado SOLO para vx11-tentaculo-link (8000)
+# GATE: Validación de single-entrypoint (fail-hard)
+echo "=== SINGLE-ENTRYPOINT GATE ===" | tee "$OUT/single_entrypoint_check.txt"
+EXTRA_PORTS=$(docker ps --format '{{.Names}}\t{{.Ports}}' | grep -E '\->' | grep -v 'vx11-tentaculo-link.*8000' | wc -l)
+if [[ $EXTRA_PORTS -gt 0 ]]; then
+  echo "FAIL: Found $EXTRA_PORTS containers with published ports outside vx11-tentaculo-link:8000" | tee -a "$OUT/single_entrypoint_check.txt"
+  echo "Violators:" | tee -a "$OUT/single_entrypoint_check.txt"
+  docker ps --format '{{.Names}}\t{{.Ports}}' | grep -E '\->' | grep -v 'vx11-tentaculo-link.*8000' | tee -a "$OUT/single_entrypoint_check.txt"
+  exit 1
+else
+  echo "PASS: Only vx11-tentaculo-link publishes ports (8000)" | tee -a "$OUT/single_entrypoint_check.txt"
+fi
 ```
 
 ---
