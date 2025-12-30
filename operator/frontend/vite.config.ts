@@ -22,6 +22,7 @@ export default defineConfig({
     },
     define: {
         // Allow runtime env vars for API base
+        'import.meta.env.VITE_API_BASE': JSON.stringify(process.env.VITE_API_BASE ?? ''),
         'import.meta.env.VITE_VX11_API_BASE': JSON.stringify(process.env.VITE_VX11_API_BASE ?? ''),
         'import.meta.env.VITE_VX11_API_BASE_URL': JSON.stringify(process.env.VITE_VX11_API_BASE_URL ?? ''),
     },

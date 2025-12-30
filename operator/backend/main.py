@@ -311,6 +311,7 @@ async def operator_status(
         "core_services": core.get("services", {}),
         "degraded": degraded,
         "window": window,
+        "timestamp": _now_iso(),
     }
 
 
@@ -966,7 +967,12 @@ async def get_settings(
     correlation_id: str = Depends(get_correlation_id),
     _: bool = Depends(token_guard),
 ):
-    return {**OPERATOR_SETTINGS}
+    window = await _get_window_status(correlation_id)
+    return {
+        "settings": {**OPERATOR_SETTINGS},
+        "policy": window.get("mode", "solo_madre"),
+        "read_only": window.get("mode") != "window_active",
+    }
 
 
 @app.post("/operator/api/settings")
@@ -976,6 +982,9 @@ async def update_settings(
     correlation_id: str = Depends(get_correlation_id),
     _: bool = Depends(token_guard),
 ):
+    window = await _get_window_status(correlation_id)
+    if window.get("mode") != "window_active":
+        return _off_by_policy(correlation_id, service="operator_settings")
     if not _rate_limit_ok(_rate_limit_key(request)):
         raise HTTPException(status_code=429, detail="rate_limited")
     OPERATOR_SETTINGS.update(payload)
@@ -1015,6 +1024,17 @@ async def rails(
 @app.get("/operator/api/healthz")
 async def healthz():
     return {"status": "ok"}
+
+
+@app.get("/health")
+async def health_root(correlation_id: str = Depends(get_correlation_id)):
+    return {
+        "status": "ok",
+        "service": "operator_backend",
+        "version": APP_VERSION,
+        "timestamp": _now_iso(),
+        "correlation_id": correlation_id,
+    }
 
 
 ALIAS_ROUTES = [

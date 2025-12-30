@@ -3,11 +3,10 @@ import { apiClient } from '../services/api'
 
 interface AuditRun {
     id: string
-    timestamp: number
-    status: 'ok' | 'warning' | 'error'
-    checks_passed: number
-    checks_total: number
-    duration_ms: number
+    timestamp: string
+    status: string
+    summary: string
+    correlationId?: string | null
     details?: string
 }
 
@@ -27,21 +26,26 @@ export function AuditView() {
 
         try {
             // Try to fetch audit list from API
-            const resp = await apiClient.audit?.() || Promise.resolve({ ok: false })
+            const resp = (await apiClient.audit?.()) || Promise.resolve({ ok: false })
 
             if (resp.ok && resp.data) {
                 const auditList = Array.isArray(resp.data) ? resp.data : resp.data.runs || []
-                setRuns(auditList)
+                const mapped = auditList.map((run: any) => ({
+                    id: run.audit_id || run.run_id || run.id,
+                    timestamp: run.run_ts || run.timestamp || new Date().toISOString(),
+                    status: run.status || 'unknown',
+                    summary: run.summary || 'Audit run',
+                    correlationId: run.correlation_id ?? null,
+                }))
+                setRuns(mapped)
             } else {
                 // Fallback: show placeholder
                 setRuns([
                     {
                         id: 'placeholder_1',
-                        timestamp: Date.now(),
-                        status: 'ok',
-                        checks_passed: 8,
-                        checks_total: 8,
-                        duration_ms: 1250,
+                        timestamp: new Date().toISOString(),
+                        status: 'unavailable',
+                        summary: 'Audit service unavailable',
                     },
                 ])
             }
@@ -96,8 +100,7 @@ export function AuditView() {
                                         </span>
                                     </div>
                                     <div className="run-summary">
-                                        {run.checks_passed}/{run.checks_total} checks passed •{' '}
-                                        {run.duration_ms}ms
+                                        {run.summary}
                                     </div>
                                 </div>
                             ))}
@@ -122,16 +125,17 @@ export function AuditView() {
                                     </span>
                                 </dd>
 
-                                <dt>Checks Passed</dt>
-                                <dd>
-                                    {selected.checks_passed}/{selected.checks_total}
-                                </dd>
-
-                                <dt>Duration</dt>
-                                <dd>{selected.duration_ms}ms</dd>
+                                <dt>Summary</dt>
+                                <dd>{selected.summary}</dd>
 
                                 <dt>Timestamp</dt>
                                 <dd>{new Date(selected.timestamp).toISOString()}</dd>
+                                {selected.correlationId && (
+                                    <>
+                                        <dt>Correlation</dt>
+                                        <dd className="code">{selected.correlationId}</dd>
+                                    </>
+                                )}
                             </dl>
 
                             {selected.details && (

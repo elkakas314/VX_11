@@ -8,6 +8,9 @@ from datetime import datetime
 
 log = logging.getLogger("vx11.operator.e2e")
 
+if not os.getenv("VX11_E2E"):
+    pytest.skip("VX11_E2E not set; skipping live integration tests", allow_module_level=True)
+
 
 class TestOperatorChatE2E:
     """
@@ -42,7 +45,7 @@ class TestOperatorChatE2E:
         """Get request headers with token."""
         t = token or self.TOKEN
         return {
-            "x-vx11-token": t,
+            "X-VX11-Token": t,
             "Content-Type": "application/json",
         }
 

@@ -3,6 +3,8 @@ import { OverviewView } from './views/OverviewView'
 import { ChatView } from './views/ChatView'
 import { AuditView } from './views/AuditView'
 import { SettingsView } from './views/SettingsView'
+import { ModulesView } from './views/ModulesView'
+import { HormigueroView } from './views/HormigueroView'
 import { LeftRail } from './components/LeftRail'
 import { RightDrawer } from './components/RightDrawer'
 import { DegradedModeBanner } from './components/DegradedModeBanner'
@@ -11,7 +13,7 @@ import { apiClient, API_BASE, buildApiUrl } from './services/api'
 import { useEventsStore, useWindowStatusStore } from './stores'
 import './App.css'
 
-type TabName = 'overview' | 'chat' | 'topology' | 'hormiguero' | 'jobs' | 'audit' | 'explorer' | 'settings'
+type TabName = 'overview' | 'chat' | 'modules' | 'hormiguero' | 'audit' | 'settings'
 
 export default function App() {
     const [activeTab, setActiveTab] = useState<TabName>('overview')
@@ -113,10 +115,10 @@ export default function App() {
                         💬 Chat
                     </button>
                     <button
-                        className={`tab ${activeTab === 'topology' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('topology')}
+                        className={`tab ${activeTab === 'modules' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('modules')}
                     >
-                        🔗 Topology
+                        🧭 Modules
                     </button>
                     <button
                         className={`tab ${activeTab === 'hormiguero' ? 'active' : ''}`}
@@ -125,22 +127,10 @@ export default function App() {
                         🐜 Hormiguero
                     </button>
                     <button
-                        className={`tab ${activeTab === 'jobs' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('jobs')}
-                    >
-                        ⚙️ Jobs
-                    </button>
-                    <button
                         className={`tab ${activeTab === 'audit' ? 'active' : ''}`}
                         onClick={() => setActiveTab('audit')}
                     >
                         ✓ Audit Runs
-                    </button>
-                    <button
-                        className={`tab ${activeTab === 'explorer' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('explorer')}
-                    >
-                        🔍 Explorer
                     </button>
                     <button
                         className={`tab ${activeTab === 'settings' ? 'active' : ''}`}
@@ -157,31 +147,9 @@ export default function App() {
                 <main className="app-main">
                     {activeTab === 'overview' && <OverviewView />}
                     {activeTab === 'chat' && <ChatView />}
-                    {activeTab === 'topology' && (
-                        <div className="view-stub">
-                            <h2>Topology (P1)</h2>
-                            <p>React Flow topology visualization — coming soon</p>
-                        </div>
-                    )}
-                    {activeTab === 'hormiguero' && (
-                        <div className="view-stub">
-                            <h2>Hormiguero (P1)</h2>
-                            <p>Incident visualization and management — coming soon</p>
-                        </div>
-                    )}
-                    {activeTab === 'jobs' && (
-                        <div className="view-stub">
-                            <h2>Jobs (P1)</h2>
-                            <p>Background jobs and task board — coming soon</p>
-                        </div>
-                    )}
+                    {activeTab === 'modules' && <ModulesView />}
+                    {activeTab === 'hormiguero' && <HormigueroView />}
                     {activeTab === 'audit' && <AuditView />}
-                    {activeTab === 'explorer' && (
-                        <div className="view-stub">
-                            <h2>Explorer (P1)</h2>
-                            <p>File and data explorer — coming soon</p>
-                        </div>
-                    )}
                     {activeTab === 'settings' && <SettingsView />}
                 </main>
 

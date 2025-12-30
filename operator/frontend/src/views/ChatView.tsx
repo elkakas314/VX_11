@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { apiClient } from '../services/api'
+import { apiClient, buildApiUrl, buildAuthHeaders } from '../services/api'
 import { useWindowStatusStore } from '../stores'
 import { CoDevView } from './CoDevView'
 
@@ -135,35 +135,124 @@ export function ChatView() {
         setError(null)
 
         try {
-            const resp = await apiClient.chat(input, session.id)
+            const url = buildApiUrl('/operator/api/v1/chat')
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    ...buildAuthHeaders(),
+                    Accept: 'text/event-stream',
+                },
+                body: JSON.stringify({
+                    message: input,
+                    session_id: session.id,
+                }),
+            })
 
-            if (resp.ok && resp.data) {
-                const assistantMsg: ChatMessage = {
-                    id: `msg_${Date.now()}`,
-                    role: 'assistant',
-                    content: resp.data.response || resp.data.message || 'No response',
-                    timestamp: Date.now(),
-                    meta: {
-                        correlation_id: resp.data.correlation_id,
-                        source: resp.data.fallback_source || resp.data.provider_used,
-                    },
+            if (!response.ok) {
+                let detail = `HTTP ${response.status}`
+                try {
+                    const errorBody = await response.json()
+                    detail = errorBody?.message || errorBody?.detail || detail
+                } catch {
+                    // ignore
                 }
+                throw new Error(detail)
+            }
 
+            const contentType = response.headers.get('content-type') || ''
+            if (contentType.includes('text/event-stream') && response.body) {
+                const assistantId = `msg_${Date.now()}`
                 setSession((prev) => ({
                     ...prev,
-                    messages: [...prev.messages, assistantMsg],
-                    degraded: resp.data.degraded || false,
+                    messages: [
+                        ...prev.messages,
+                        {
+                            id: assistantId,
+                            role: 'assistant',
+                            content: '',
+                            timestamp: Date.now(),
+                        },
+                    ],
                 }))
+
+                const reader = response.body.getReader()
+                const decoder = new TextDecoder()
+                let buffer = ''
+
+                while (true) {
+                    const { done, value } = await reader.read()
+                    if (done) break
+                    buffer += decoder.decode(value, { stream: true })
+                    const chunks = buffer.split('\n\n')
+                    buffer = chunks.pop() || ''
+
+                    chunks.forEach((chunk) => {
+                        const line = chunk
+                            .split('\n')
+                            .find((l) => l.startsWith('data:'))
+                        if (!line) return
+                        try {
+                            const payload = JSON.parse(line.replace('data:', '').trim())
+                            const delta = payload.delta || payload.content || ''
+                            const finalText = payload.response
+                            setSession((prev) => ({
+                                ...prev,
+                                messages: prev.messages.map((msg) =>
+                                    msg.id === assistantId
+                                        ? {
+                                              ...msg,
+                                              content: finalText || msg.content + delta,
+                                              meta: {
+                                                  correlation_id: payload.correlation_id,
+                                                  source:
+                                                      payload.fallback_source ||
+                                                      payload.provider_used,
+                                              },
+                                          }
+                                        : msg
+                                ),
+                                degraded: payload.degraded || prev.degraded,
+                            }))
+                        } catch {
+                            // ignore malformed chunks
+                        }
+                    })
+                }
             } else {
-                throw new Error(resp.error || 'Chat request failed')
+                const resp = await apiClient.chat(input, session.id)
+
+                if (resp.ok && resp.data) {
+                    const assistantMsg: ChatMessage = {
+                        id: `msg_${Date.now()}`,
+                        role: 'assistant',
+                        content: resp.data.response || resp.data.message || 'No response',
+                        timestamp: Date.now(),
+                        meta: {
+                            correlation_id: resp.data.correlation_id,
+                            source: resp.data.fallback_source || resp.data.provider_used,
+                        },
+                    }
+
+                    setSession((prev) => ({
+                        ...prev,
+                        messages: [...prev.messages, assistantMsg],
+                        degraded: resp.data.degraded || false,
+                    }))
+                } else {
+                    throw new Error(resp.error || 'Chat request failed')
+                }
             }
         } catch (err: any) {
-            setError(err.message || 'Failed to send message')
+            const retryHint =
+                err?.retryAfterMs || err?.retry_after_ms
+                    ? ` Retry in ${Math.round((err.retryAfterMs || err.retry_after_ms) / 1000)}s.`
+                    : ''
+            setError(`${err.message || 'Failed to send message'}${retryHint}`)
 
             const errorMsg: ChatMessage = {
                 id: `msg_${Date.now()}`,
                 role: 'system',
-                content: `Error: ${err.message}`,
+                content: `Error: ${err.message || 'Failed to send message'}`,
                 timestamp: Date.now(),
             }
 

@@ -40,18 +40,14 @@ cd operator/frontend && npm install && npm run build && cd ../..
 # 5. Levantar sistema
 docker-compose up -d
 
-# 6. Health check
-for port in {8000..8008,8011}; do
-  curl http://localhost:$port/health
-done
+# 6. Health check (single entrypoint)
+curl http://localhost:8000/health | jq .
+curl http://localhost:8000/operator/api/health | jq .
 
-# 7. Verificar Operator v7
-curl http://localhost:8011/operator/chat | jq .
-
-# 8. Frontend
-curl http://localhost:5173  # dev
-# or
-docker run -p 8020:80 -v $(pwd)/operator/frontend/dist:/usr/share/nginx/html nginx  # prod
+# 7. Operator UI (served via Tentáculo Link)
+open http://localhost:8000/operator/ui/
+# API example
+curl http://localhost:8000/operator/api/status | jq .
 ```
 
 ## 📋 Arquitectura
@@ -391,4 +387,3 @@ docker-compose up -d
 pytest tests/ --co -q
 # Result: 465 tests collected in 10.55s
 ```
-

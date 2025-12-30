@@ -9,7 +9,7 @@ import os
 
 def test_no_hardcoded_ports():
     """Grep frontend source for hardcoded internal ports in fetch/http calls (NOT comments/data)"""
-    frontend_dir = "operator_backend/frontend/src"
+    frontend_dir = "operator/frontend/src"
     internal_ports = ["8001", "8002", "8003", "8011"]
 
     found_violations = []
@@ -24,14 +24,10 @@ def test_no_hardcoded_ports():
                 filepath = os.path.join(root, file)
                 with open(filepath, "r") as f:
                     content = f.read()
-                    # Look for fetch/http patterns with internal ports
-                    # Patterns: fetch("http://localhost:PORT"), fetch(`...${PORT}...`), url: "...PORT"
                     for port in internal_ports:
-                        # Match fetch calls with explicit localhost/127.0.0.1:PORT
                         pattern_fetch = (
                             rf"fetch\s*\(\s*['\"`].*(?:localhost|127\.0\.0\.1):{port}\b"
                         )
-                        # Match axios/http calls
                         pattern_http = rf"(?:http|axios)\s*\.(?:get|post|put|delete)\s*\(\s*['\"`].*:{port}\b"
 
                         if re.search(pattern_fetch, content) or re.search(
@@ -47,25 +43,20 @@ def test_no_hardcoded_ports():
     print(f"✅ No hardcoded internal ports in fetch/http calls in {frontend_dir}")
 
 
-def test_config_uses_entrypoint():
-    """Verify config.ts uses OPERATOR_BASE_URL = http://127.0.0.1:8000"""
-    config_file = "operator_backend/frontend/src/config.ts"
+def test_api_base_is_env_driven():
+    """Verify api.ts uses VITE_API_BASE or relative base (no localhost hardcode)."""
+    config_file = "operator/frontend/src/services/api.ts"
 
     with open(config_file, "r") as f:
         content = f.read()
 
-    # Check for OPERATOR_BASE_URL definition
-    assert "OPERATOR_BASE_URL" in content, "config.ts must define OPERATOR_BASE_URL"
-    assert (
-        "127.0.0.1:8000" in content
-        or "http://localhost:8000" in content
-        or "tentaculo_link:8000" in content
-    ), "OPERATOR_BASE_URL must default to entrypoint (8000)"
+    assert "VITE_API_BASE" in content, "api.ts must reference VITE_API_BASE"
+    assert "localhost:8000" not in content, "api.ts must not hardcode localhost:8000"
 
-    print(f"✅ {config_file} correctly uses entrypoint")
+    print(f"✅ {config_file} uses env-driven API base")
 
 
 if __name__ == "__main__":
     test_no_hardcoded_ports()
-    test_config_uses_entrypoint()
+    test_api_base_is_env_driven()
     print("✅ All P0 no-bypass tests PASSED")

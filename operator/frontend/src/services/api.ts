@@ -1,36 +1,43 @@
 /**
  * API Client for VX11 Operator
- * Consumes: tentaculo_link:8000 only (via relative URL)
+ * Consumes: tentaculo_link only (via relative URL)
  * No direct calls to backend services
- * 
- * API base is configurable (VITE_VX11_API_BASE). Defaults:
- * - Dev: http://localhost:8000
- * - Prod: window.location.origin
+ *
+ * API base is configurable (VITE_API_BASE). Defaults:
+ * - Dev/Prod: relative to current origin
  */
 
 const TOKEN =
     import.meta.env.VITE_VX11_TOKEN ||
     import.meta.env.VITE_VX11_TENTACULO_TOKEN ||
     'vx11-local-token' // In production: from auth service or config
+const TOKEN_HEADER = 'X-VX11-Token'
 const RAW_BASE =
+    import.meta.env.VITE_API_BASE ||
     import.meta.env.VITE_VX11_API_BASE ||
     import.meta.env.VITE_VX11_API_BASE_URL ||
     ''
-const DEFAULT_BASE = import.meta.env.DEV
-    ? 'http://localhost:8000'
-    : typeof window !== 'undefined'
-      ? window.location.origin
-      : 'http://localhost:8000'
 
-export const API_BASE = (RAW_BASE as string).trim() || DEFAULT_BASE
+export const API_BASE = (RAW_BASE as string).trim()
 
-export const buildApiUrl = (path: string) => new URL(path, API_BASE).toString()
+export const buildApiUrl = (path: string) => {
+    const base = API_BASE || ''
+    if (base.startsWith('http://') || base.startsWith('https://')) {
+        return new URL(path, base).toString()
+    }
+    if (typeof window !== 'undefined') {
+        const origin = window.location.origin
+        return new URL(path, `${origin}${base}`).toString()
+    }
+    return path
+}
 
 interface ApiResponse<T> {
     ok: boolean
     data?: T
     error?: string
     status: number
+    retryAfterMs?: number
 }
 
 class ApiClient {
@@ -54,7 +61,7 @@ class ApiClient {
                 method,
                 headers: {
                     'Content-Type': 'application/json',
-                    'x-vx11-token': TOKEN,
+                    [TOKEN_HEADER]: TOKEN,
                 },
                 body: body ? JSON.stringify(body) : undefined,
                 signal: controller.signal,
@@ -94,6 +101,7 @@ class ApiClient {
             }
 
             const data = await response.json()
+            this.backoffMs = 1000
             return {
                 ok: true,
                 data,
@@ -101,10 +109,17 @@ class ApiClient {
             }
         } catch (err: any) {
             console.error(`API request failed: ${method} ${path}`, err)
+            const retryAfterMs = options?.noRetry
+                ? undefined
+                : Math.min(this.backoffMs, this.maxBackoffMs)
+            if (!options?.noRetry) {
+                this.backoffMs = Math.min(this.backoffMs * 2, this.maxBackoffMs)
+            }
             return {
                 ok: false,
                 error: err.message || 'Unknown error',
                 status: 0,
+                retryAfterMs,
             }
         }
     }
@@ -222,5 +237,10 @@ class ApiClient {
         }
     }
 }
+
+export const buildAuthHeaders = () => ({
+    'Content-Type': 'application/json',
+    [TOKEN_HEADER]: TOKEN,
+})
 
 export const apiClient = new ApiClient()

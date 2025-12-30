@@ -2,8 +2,6 @@
 # Purpose: Test E2E flows with single entrypoint (8000)
 # Usage: docker compose -f docker-compose.full-test.yml up -d
 
-version: "3.9"
-
 networks:
   vx11-test:
     driver: bridge
@@ -12,6 +10,8 @@ volumes:
   vx11-db-test:
     driver: local
   redis-data-test:
+    driver: local
+  operator-ui-dist:
     driver: local
 
 services:
@@ -22,8 +22,6 @@ services:
     container_name: vx11-redis-test
     networks:
       - vx11-test
-    ports:
-      - "6379:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -47,8 +45,6 @@ services:
         condition: service_healthy
     networks:
       - vx11-test
-    ports:
-      - "8001:8001"
     environment:
       - VX11_MODE=test
       - VX11_SOLO_MADRE=0
@@ -97,6 +93,8 @@ services:
     volumes:
       - ./data:/app/data
       - ./tentaculo_link:/app/tentaculo_link
+      - ./operator:/app/operator:ro
+      - operator-ui-dist:/app/operator/frontend/dist
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 10s
@@ -119,8 +117,6 @@ services:
         condition: service_healthy
     networks:
       - vx11-test
-    ports:
-      - "8002:8002"
     environment:
       - VX11_MODE=test
       - VX11_TENTACULO_LINK_TOKEN=vx11-test-token
@@ -153,8 +149,6 @@ services:
         condition: service_healthy
     networks:
       - vx11-test
-    ports:
-      - "8011:8011"
     environment:
       - VX11_MODE=test
       - OPERATOR_ADMIN_PASSWORD=admin
@@ -178,11 +172,11 @@ services:
 
   operator-frontend:
     build:
-      context: .
-      dockerfile: operator/frontend/Dockerfile
+      context: operator/frontend
+      dockerfile: Dockerfile
       args:
         - VX11_PROFILE=test
-        - VITE_API_BASE=http://localhost:8000/operator
+        - VITE_API_BASE=/operator
     image: vx11-operator-frontend:test
     container_name: vx11-operator-frontend-test
     depends_on:
@@ -190,18 +184,16 @@ services:
         condition: service_healthy
     networks:
       - vx11-test
-    ports:
-      - "5173:5173"
     environment:
-      - VITE_API_BASE=http://localhost:8000/operator
+      - VITE_API_BASE=/operator
       - VITE_VX11_TOKEN=vx11-test-token
     volumes:
-      - ./operator/frontend:/app/operator/frontend
+      - operator-ui-dist:/shared/dist
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5173/"]
-      interval: 10s
+      test: ["CMD", "test", "-f", "/shared/dist/index.html"]
+      interval: 15s
       timeout: 5s
-      retries: 3
+      retries: 5
     restart: on-failure
 # --- STARTUP PROFILE ---
 # To start: docker compose -f docker-compose.full-test.yml up -d

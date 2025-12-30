@@ -41,7 +41,7 @@ def test_no_bypass_frontend_src():
                 "-r",
                 "-E",
                 pattern,
-                "operator_backend/frontend/src",
+                "operator/frontend/src",
                 "--exclude=*.ts.bak",  # Exclude backups
             ],
             capture_output=True,
@@ -85,7 +85,7 @@ def test_no_bypass_backend_hardcoded():
                 "-r",
                 "-E",
                 pattern,
-                "operator_backend/backend",
+                "operator/backend",
             ],
             capture_output=True,
             text=True,

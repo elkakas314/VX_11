@@ -30,6 +30,8 @@ export function SettingsView() {
     const [loading, setLoading] = useState(true)
     const [saved, setSaved] = useState(false)
     const [error, setError] = useState<string | null>(null)
+    const [readOnly, setReadOnly] = useState(true)
+    const [policy, setPolicy] = useState<string>('solo_madre')
 
     useEffect(() => {
         loadSettings()
@@ -43,7 +45,16 @@ export function SettingsView() {
             if (apiClient.settings) {
                 const resp = await apiClient.settings()
                 if (resp.ok && resp.data) {
-                    setSettings(resp.data)
+                    const data = resp.data
+                    if (data.settings) {
+                        setSettings(data.settings)
+                    } else {
+                        setSettings(data)
+                    }
+                    setReadOnly(Boolean(data.read_only))
+                    setPolicy(data.policy || 'solo_madre')
+                } else if (resp.error) {
+                    setError(resp.error)
                 }
             }
         } catch (err: any) {
@@ -62,6 +73,9 @@ export function SettingsView() {
                 if (resp.ok) {
                     setSaved(true)
                     setTimeout(() => setSaved(false), 2000)
+                } else if (resp.data?.status === 'OFF_BY_POLICY') {
+                    setReadOnly(true)
+                    setPolicy(resp.data?.recommended_action || 'solo_madre')
                 } else {
                     throw new Error(resp.error || 'Save failed')
                 }
@@ -90,6 +104,11 @@ export function SettingsView() {
             <h2>Settings</h2>
 
             {error && <div className="error-banner">{error}</div>}
+            {readOnly && (
+                <div className="info-banner">
+                    Read-only in <strong>{policy}</strong> mode. Ask Madre to open an operator window.
+                </div>
+            )}
             {saved && <div className="success-banner">✓ Settings saved</div>}
 
             <div className="settings-panel">
@@ -101,6 +120,7 @@ export function SettingsView() {
                         <select
                             value={settings.appearance?.theme || 'dark'}
                             onChange={(e) => handleChange('appearance', 'theme', e.target.value)}
+                            disabled={readOnly}
                         >
                             <option value="dark">Dark</option>
                             <option value="light">Light</option>
@@ -113,6 +133,7 @@ export function SettingsView() {
                         <select
                             value={settings.appearance?.language || 'en'}
                             onChange={(e) => handleChange('appearance', 'language', e.target.value)}
+                            disabled={readOnly}
                         >
                             <option value="en">English</option>
                             <option value="es">Español</option>
@@ -128,6 +149,7 @@ export function SettingsView() {
                         <select
                             value={settings.chat?.model || 'deepseek-r1'}
                             onChange={(e) => handleChange('chat', 'model', e.target.value)}
+                            disabled={readOnly}
                         >
                             <option value="deepseek-r1">DeepSeek R1</option>
                             <option value="openai-gpt4">OpenAI GPT-4</option>
@@ -146,6 +168,7 @@ export function SettingsView() {
                             onChange={(e) =>
                                 handleChange('chat', 'temperature', parseFloat(e.target.value))
                             }
+                            disabled={readOnly}
                         />
                     </label>
                 </div>
@@ -160,6 +183,7 @@ export function SettingsView() {
                             onChange={(e) =>
                                 handleChange('security', 'enable_api_logs', e.target.checked)
                             }
+                            disabled={readOnly}
                         />
                         <span className="label-text">Enable API Logs</span>
                     </label>
@@ -171,6 +195,7 @@ export function SettingsView() {
                             onChange={(e) =>
                                 handleChange('security', 'enable_debug_mode', e.target.checked)
                             }
+                            disabled={readOnly}
                         />
                         <span className="label-text">Enable Debug Mode</span>
                     </label>
@@ -186,6 +211,7 @@ export function SettingsView() {
                             onChange={(e) =>
                                 handleChange('notifications', 'enable_events', e.target.checked)
                             }
+                            disabled={readOnly}
                         />
                         <span className="label-text">Enable Event Notifications</span>
                     </label>
@@ -197,6 +223,7 @@ export function SettingsView() {
                             onChange={(e) =>
                                 handleChange('notifications', 'events_level', e.target.value)
                             }
+                            disabled={readOnly}
                         >
                             <option value="debug">Debug</option>
                             <option value="info">Info</option>
@@ -208,7 +235,7 @@ export function SettingsView() {
             </div>
 
             <div className="settings-actions">
-                <button onClick={handleSave} className="btn-primary">
+                <button onClick={handleSave} className="btn-primary" disabled={readOnly}>
                     💾 Save Settings
                 </button>
             </div>

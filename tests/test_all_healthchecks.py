@@ -1,8 +1,12 @@
+import os
 import requests
 import pytest
 
 
 pytestmark = pytest.mark.integration
+
+if not os.getenv("VX11_E2E"):
+    pytest.skip("VX11_E2E not set; skipping integration health checks", allow_module_level=True)
 
 MODULES = {
     "tentaculo_link": 8000,
