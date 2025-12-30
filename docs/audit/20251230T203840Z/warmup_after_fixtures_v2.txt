@@ -1,0 +1,46 @@
+======================================================================
+VX11 Warmup + Rotation Smoke Test
+======================================================================
+
+Test 1: Models registered
+Registered models: 2
+  ✓ fixture-model-1 (14.3MB)
+  ✓ fixture-model-2 (11.4MB)
+✅ PASS
+
+Test 2: Warmup models
+
+🔥 Warming up fixture-model-1...
+✓ Warmup OK: 8ms
+
+🔥 Warming up fixture-model-2...
+✓ Warmup OK: 1ms
+✅ PASS
+
+Test 3: Rotation eligibility
+
+📊 Rotation Eligibility:
+----------------------------------------------------------------------
+  fixture-model-1                | usage= 1 | age=    0s | IN_USE
+  fixture-model-2                | usage= 1 | age=    0s | IN_USE
+✅ PASS
+
+Test 4: IA decisions logged
+
+📝 Recent IA Decisions (last 1 min): 2
+  2025-12-30T20:44:43.056519 | local_model     | latency=0ms
+  2025-12-30T20:44:43.064830 | local_model     | latency=0ms
+✅ PASS
+
+Test 5: Usage stats tracking
+
+📈 Model Usage Stats: 10220 recorded
+  fixture-model-1                | calls= 1 | tokens=  50 | success=1/1 | avg_latency=0ms
+  fixture-model-2                | calls= 1 | tokens=  50 | success=1/1 | avg_latency=0ms
+  gpt4                           | calls=10217 | tokens=   0 | success=10216/10217 | avg_latency=31ms
+  madre                          | calls= 1 | tokens=   0 | success=1/1 | avg_latency=397ms
+✅ PASS
+
+======================================================================
+Results: 5/5 tests passed
+✅ All warmup tests passed

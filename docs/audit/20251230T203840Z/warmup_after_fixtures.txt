@@ -1,0 +1,31 @@
+======================================================================
+VX11 Warmup + Rotation Smoke Test
+======================================================================
+
+Test 1: Models registered
+Registered models: 2
+  ✓ fixture-model-1 (14.3MB)
+  ✓ fixture-model-2 (11.4MB)
+✅ PASS
+
+Test 2: Warmup models
+
+🔥 Warming up fixture-model-1...
+❌ Warmup failed: unsupported operand type(s) for +=: 'NoneType' and 'int'
+
+🔥 Warming up fixture-model-2...
+❌ Warmup failed: unsupported operand type(s) for +=: 'NoneType' and 'int'
+❌ FAIL
+
+Test 3: Rotation eligibility
+
+📊 Rotation Eligibility:
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/elkakas314/vx11/scripts/warmup_smoke_test.py", line 344, in <module>
+    success = main()
+  File "/home/elkakas314/vx11/scripts/warmup_smoke_test.py", line 304, in main
+    if test_rotation_eligibility():
+  File "/home/elkakas314/vx11/scripts/warmup_smoke_test.py", line 149, in test_rotation_eligibility
+    f"  {model.name:30} | usage={model.usage_count:2d} | age={age_seconds:5.0f}s | {status}"
+TypeError: unsupported format string passed to NoneType.__format__
