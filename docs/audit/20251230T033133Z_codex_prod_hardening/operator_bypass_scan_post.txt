@@ -1,0 +1,7 @@
+operator/frontend/vite.config.ts:13:                target: 'http://localhost:8000',
+operator/frontend/README.md:56:- `VITE_API_BASE_URL`: Backend URL (default: `http://localhost:8000`)
+operator/frontend/README.md:103:- Hormiguero service (port 8004) not running
+operator/frontend/README.md:130:Then navigate to `http://localhost:8080`
+operator/frontend/src/components/HormigueroPanel.tsx:44:                    <span>ℹ</span> NO_VERIFICADO - Endpoint not available. Check if hormiguero:8004 is running.
+operator/backend/Dockerfile:38:    CMD curl -fsS http://localhost:8011/operator/api/health || exit 1
+operator/frontend/__tests__/operator-endpoints.test.ts:12:const BASE_URL = 'http://localhost:8000'

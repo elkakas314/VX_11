@@ -41,7 +41,7 @@ export function HormigueroPanel() {
                     <h2>Hormigas (Ants)</h2>
                 </div>
                 <div className="info-box">
-                    <span>ℹ</span> NO_VERIFICADO - Endpoint not available. Check if hormiguero:8004 is running.
+                    <span>ℹ</span> NO_VERIFICADO - Endpoint not available. Confirm the hormiguero window is open.
                 </div>
             </div>
         )

@@ -8,25 +8,83 @@ Endpoints:
 - GET /api/rails/{lane_id}/status: Detailed lane status + audit findings
 """
 
-from typing import Optional
+from typing import Optional, TYPE_CHECKING, Union
 from fastapi import APIRouter, Depends, Header, HTTPException, Path as PathParam
+from fastapi.responses import JSONResponse
 import os
 import json
 import sqlite3
 from pathlib import Path
+import httpx
 
-from hormiguero.manifestator.controller import RailsController
+if TYPE_CHECKING:
+    from hormiguero.manifestator.controller import RailsController
 
 router = APIRouter(prefix="/api", tags=["rails"])
 controller = None
 
 
-def get_controller() -> RailsController:
+def _resolve_controller_class():
+    try:
+        from hormiguero.manifestator.controller import RailsController
+
+        return RailsController
+    except ImportError:
+        return None
+
+
+async def _get_power_policy() -> str:
+    token = (
+        os.environ.get("VX11_TENTACULO_LINK_TOKEN")
+        or os.environ.get("VX11_GATEWAY_TOKEN")
+        or os.environ.get("VX11_TOKEN")
+        or ""
+    )
+    headers = {"X-VX11-Token": token} if token else {}
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            response = await client.get(
+                "http://madre:8001/madre/power/state", headers=headers
+            )
+        if response.status_code == 200:
+            payload = response.json()
+            return payload.get("policy", "solo_madre")
+    except Exception:
+        pass
+    return "solo_madre"
+
+
+async def _dependency_unavailable_response() -> JSONResponse:
+    policy = await _get_power_policy()
+    if policy != "windowed":
+        return JSONResponse(
+            status_code=403,
+            content={
+                "status": "OFF_BY_POLICY",
+                "service": "manifestator",
+                "message": "Disabled by SOLO_MADRE policy",
+                "recommended_action": "Ask Madre to open manifestator window",
+            },
+        )
+    return JSONResponse(
+        status_code=503,
+        content={
+            "status": "DEPENDENCY_UNAVAILABLE",
+            "dependency": "hormiguero.manifestator",
+            "message": "Manifestator dependency not available in this image.",
+        },
+    )
+
+
+async def get_controller() -> Union["RailsController", JSONResponse]:
     """Get or initialize RailsController"""
     global controller
+    controller_class = _resolve_controller_class()
+    if controller_class is None:
+        return await _dependency_unavailable_response()
     if controller is None:
         repo_root = os.environ.get("VX11_REPO_ROOT", "/home/elkakas314/vx11")
-        controller = RailsController(repo_root)
+        controller = controller_class(repo_root)
     return controller
 
 
@@ -85,7 +143,9 @@ async def get_rails_lanes(auth: bool = Depends(check_auth)):
         }
 
     try:
-        ctrl = get_controller()
+        ctrl = await get_controller()
+        if isinstance(ctrl, JSONResponse):
+            return ctrl
         lanes = ctrl.get_all_lanes()
         return {
             "lanes": lanes,
@@ -132,7 +192,9 @@ async def get_rails(auth: bool = Depends(check_auth)):
         }
 
     try:
-        ctrl = get_controller()
+        ctrl = await get_controller()
+        if isinstance(ctrl, JSONResponse):
+            return ctrl
         rails = ctrl.get_all_rails()
         return {
             "rails": rails,
@@ -188,7 +250,9 @@ async def get_lane_status(
         }
 
     try:
-        ctrl = get_controller()
+        ctrl = await get_controller()
+        if isinstance(ctrl, JSONResponse):
+            return ctrl
         result = ctrl.get_lane_status(lane_id)
         return result
     except Exception as e:

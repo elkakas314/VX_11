@@ -1,0 +1,4 @@
+.env: token_pattern_found=True
+.env.deepseek: token_pattern_found=True
+.env.example: token_pattern_found=False
+.env.phase5: token_pattern_found=False

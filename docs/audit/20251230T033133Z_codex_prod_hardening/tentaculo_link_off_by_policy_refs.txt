@@ -1,0 +1,14 @@
+tentaculo_link/main_v7.py:246:                    "status": "OFF_BY_POLICY",
+tentaculo_link/main_v7.py:2020:    Returns current policy + core service health + OFF_BY_POLICY state.
+tentaculo_link/main_v7.py:2035:            "switch": {"status": "OFF_BY_POLICY", "reason": "solo_madre policy"},
+tentaculo_link/main_v7.py:2036:            "hermes": {"status": "OFF_BY_POLICY", "reason": "solo_madre policy"},
+tentaculo_link/main_v7.py:2037:            "hormiguero": {"status": "OFF_BY_POLICY", "reason": "solo_madre policy"},
+tentaculo_link/main_v7.py:2038:            "spawner": {"status": "OFF_BY_POLICY", "reason": "solo_madre policy"},
+tentaculo_link/main_v7.py:2055:    OFF_BY_POLICY modules shown as inactive (not error).
+tentaculo_link/main_v7.py:2074:    # Optional (OFF_BY_POLICY in solo_madre)
+tentaculo_link/main_v7.py:2077:            "status": "OFF_BY_POLICY",
+tentaculo_link/main_v7.py:3522:                    "status": "OFF_BY_POLICY",
+tentaculo_link/main_v7.py:3529:                    "status": "OFF_BY_POLICY",
+tentaculo_link/main_v7.py:3536:                    "status": "OFF_BY_POLICY",
+tentaculo_link/main_v7.py:3543:                    "status": "OFF_BY_POLICY",
+tentaculo_link/main_v7.py:3554:        "policy_note": "solo_madre: Only core services up. Optional services OFF_BY_POLICY (not an error).",

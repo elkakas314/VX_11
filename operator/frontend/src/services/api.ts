@@ -4,8 +4,7 @@
  * No direct calls to backend services
  * 
  * API base is configurable (VITE_VX11_API_BASE). Defaults:
- * - Dev: http://localhost:8000
- * - Prod: window.location.origin
+ * - Dev/Prod: relative paths (same origin)
  */
 
 const TOKEN =
@@ -16,15 +15,10 @@ const RAW_BASE =
     import.meta.env.VITE_VX11_API_BASE ||
     import.meta.env.VITE_VX11_API_BASE_URL ||
     ''
-const DEFAULT_BASE = import.meta.env.DEV
-    ? 'http://localhost:8000'
-    : typeof window !== 'undefined'
-      ? window.location.origin
-      : 'http://localhost:8000'
+export const API_BASE = (RAW_BASE as string).trim()
 
-export const API_BASE = (RAW_BASE as string).trim() || DEFAULT_BASE
-
-export const buildApiUrl = (path: string) => new URL(path, API_BASE).toString()
+export const buildApiUrl = (path: string) =>
+    API_BASE ? new URL(path, API_BASE).toString() : path
 
 interface ApiResponse<T> {
     ok: boolean

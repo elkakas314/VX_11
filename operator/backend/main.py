@@ -235,14 +235,40 @@ async def _call_tentaculo(
     timeout: float = 8.0,
 ) -> httpx.Response:
     headers = {TOKEN_HEADER: VX11_TOKEN, "X-Correlation-Id": correlation_id}
-    async with httpx.AsyncClient(timeout=timeout) as client:
-        return await client.request(
-            method,
-            f"{TENTACULO_BASE}{path}",
-            headers=headers,
-            json=payload,
-            params=params,
+    try:
+        async with httpx.AsyncClient(timeout=timeout) as client:
+            return await client.request(
+                method,
+                f"{TENTACULO_BASE}{path}",
+                headers=headers,
+                json=payload,
+                params=params,
+            )
+    except httpx.RequestError as exc:
+        write_log(
+            "operator_backend",
+            f"tentaculo_unreachable:{correlation_id}:{exc}",
+            level="WARNING",
         )
+        return httpx.Response(
+            status_code=503,
+            json={
+                "status": "DEPENDENCY_UNAVAILABLE",
+                "service": "tentaculo_link",
+                "message": "Tentaculo link is unreachable.",
+                "correlation_id": correlation_id,
+            },
+        )
+
+
+def _safe_response_json(response: httpx.Response, correlation_id: str) -> Dict[str, Any]:
+    try:
+        payload = response.json()
+    except ValueError:
+        payload = {"status": "upstream_error", "body": response.text}
+    if isinstance(payload, dict) and "correlation_id" not in payload:
+        payload["correlation_id"] = correlation_id
+    return payload
 
 
 async def _get_window_status(correlation_id: str) -> Dict[str, Any]:
@@ -256,7 +282,7 @@ async def _get_window_status(correlation_id: str) -> Dict[str, Any]:
             "degraded": True,
             "reason": "window_status_unavailable",
         }
-    payload = response.json()
+    payload = _safe_response_json(response, correlation_id)
     services = set(payload.get("services", []))
     services.update({"tentaculo_link"})
     payload["services"] = list(services)
@@ -269,7 +295,7 @@ async def _get_core_health(correlation_id: str) -> Dict[str, Any]:
     )
     if response.status_code >= 400:
         return {"status": "degraded", "services": {}}
-    return response.json()
+    return _safe_response_json(response, correlation_id)
 
 
 @app.get("/operator/api/health")
@@ -409,7 +435,10 @@ async def open_window(
             "payload": req.dict(),
         }
     )
-    return JSONResponse(status_code=response.status_code, content=response.json())
+    return JSONResponse(
+        status_code=response.status_code,
+        content=_safe_response_json(response, correlation_id),
+    )
 
 
 @app.post("/operator/api/chat/window/close")
@@ -428,7 +457,10 @@ async def close_window(
             "timestamp": _now_iso(),
         }
     )
-    return JSONResponse(status_code=response.status_code, content=response.json())
+    return JSONResponse(
+        status_code=response.status_code,
+        content=_safe_response_json(response, correlation_id),
+    )
 
 
 @app.get("/operator/api/chat/window/status")
@@ -466,7 +498,7 @@ async def chat(
             "payload": {"session_id": req.session_id, "message": req.message},
         }
     )
-    data = response.json()
+    data = _safe_response_json(response, correlation_id)
     return JSONResponse(status_code=response.status_code, content=data)
 
 
@@ -479,7 +511,10 @@ async def events(
     response = await _call_tentaculo(
         "GET", "/api/events", correlation_id, params={"limit": limit}
     )
-    return JSONResponse(status_code=response.status_code, content=response.json())
+    return JSONResponse(
+        status_code=response.status_code,
+        content=_safe_response_json(response, correlation_id),
+    )
 
 
 @app.get("/operator/api/events/stream")
@@ -510,7 +545,9 @@ async def events_stream(
                     payload = {
                         "type": "snapshot",
                         "window": window,
-                        "events": events_resp.json().get("events", []),
+                        "events": _safe_response_json(
+                            events_resp, correlation_id
+                        ).get("events", []),
                         "timestamp": _now_iso(),
                         "correlation_id": correlation_id,
                     }
@@ -567,7 +604,10 @@ async def audit_runs(
         correlation_id,
         params={"limit": limit, "offset": offset},
     )
-    return JSONResponse(status_code=response.status_code, content=response.json())
+    return JSONResponse(
+        status_code=response.status_code,
+        content=_safe_response_json(response, correlation_id),
+    )
 
 
 @app.get("/operator/api/audit/runs/{run_id}")
@@ -579,7 +619,10 @@ async def audit_run_detail(
     response = await _call_tentaculo(
         "GET", f"/api/audit/{run_id}", correlation_id
     )
-    return JSONResponse(status_code=response.status_code, content=response.json())
+    return JSONResponse(
+        status_code=response.status_code,
+        content=_safe_response_json(response, correlation_id),
+    )
 
 
 @app.get("/operator/api/explorer/presets")
@@ -622,14 +665,20 @@ async def explorer_query(
         response = await _call_tentaculo(
             "GET", "/api/events", correlation_id, params=params
         )
-        return JSONResponse(status_code=response.status_code, content=response.json())
+        return JSONResponse(
+            status_code=response.status_code,
+            content=_safe_response_json(response, correlation_id),
+        )
 
     if req.preset_id == "audit_runs":
         params = {"limit": req.params.get("limit", 20)}
         response = await _call_tentaculo(
             "GET", "/api/audit/runs", correlation_id, params=params
         )
-        return JSONResponse(status_code=response.status_code, content=response.json())
+        return JSONResponse(
+            status_code=response.status_code,
+            content=_safe_response_json(response, correlation_id),
+        )
 
     raise HTTPException(status_code=400, detail="invalid_preset")
 
@@ -724,7 +773,10 @@ async def hormiguero_status(
     response = await _call_tentaculo(
         "GET", "/hormiguero/queen/status", correlation_id, timeout=5.0
     )
-    return JSONResponse(status_code=response.status_code, content=response.json())
+    return JSONResponse(
+        status_code=response.status_code,
+        content=_safe_response_json(response, correlation_id),
+    )
 
 
 @app.post("/operator/api/hormiguero/scan/once")
@@ -748,7 +800,10 @@ async def hormiguero_scan_once(
             "timestamp": _now_iso(),
         }
     )
-    return JSONResponse(status_code=response.status_code, content=response.json())
+    return JSONResponse(
+        status_code=response.status_code,
+        content=_safe_response_json(response, correlation_id),
+    )
 
 
 async def _manifestator_plan(correlation_id: str) -> Dict[str, Any]:
@@ -760,8 +815,8 @@ async def _manifestator_plan(correlation_id: str) -> Dict[str, Any]:
     )
     return {
         "summary": "Manifestator compare plan generated",
-        "lanes": lanes_resp.json().get("lanes", []),
-        "rails": rails_resp.json().get("rails", []),
+        "lanes": _safe_response_json(lanes_resp, correlation_id).get("lanes", []),
+        "rails": _safe_response_json(rails_resp, correlation_id).get("rails", []),
         "apply": "prohibited",
     }
 
@@ -780,7 +835,7 @@ async def manifestator_status(
     )
     payload = {
         "status": "ok",
-        "lanes": response.json().get("lanes", []),
+        "lanes": _safe_response_json(response, correlation_id).get("lanes", []),
     }
     return payload
 
@@ -929,7 +984,10 @@ async def metrics(
         correlation_id,
         params={"window_seconds": window_seconds},
     )
-    return JSONResponse(status_code=response.status_code, content=response.json())
+    return JSONResponse(
+        status_code=response.status_code,
+        content=_safe_response_json(response, correlation_id),
+    )
 
 
 @app.get("/operator/api/scorecard")
@@ -958,7 +1016,10 @@ async def audit_summary(
     response = await _call_tentaculo(
         "GET", "/api/audit/runs", correlation_id, params={"limit": 20}
     )
-    return JSONResponse(status_code=response.status_code, content=response.json())
+    return JSONResponse(
+        status_code=response.status_code,
+        content=_safe_response_json(response, correlation_id),
+    )
 
 
 @app.get("/operator/api/settings")
@@ -1000,7 +1061,10 @@ async def rails_lanes(
     _: bool = Depends(token_guard),
 ):
     response = await _call_tentaculo("GET", "/api/rails/lanes", correlation_id)
-    return JSONResponse(status_code=response.status_code, content=response.json())
+    return JSONResponse(
+        status_code=response.status_code,
+        content=_safe_response_json(response, correlation_id),
+    )
 
 
 @app.get("/operator/api/rails")
@@ -1009,7 +1073,10 @@ async def rails(
     _: bool = Depends(token_guard),
 ):
     response = await _call_tentaculo("GET", "/api/rails", correlation_id)
-    return JSONResponse(status_code=response.status_code, content=response.json())
+    return JSONResponse(
+        status_code=response.status_code,
+        content=_safe_response_json(response, correlation_id),
+    )
 
 
 @app.get("/operator/api/healthz")

@@ -53,6 +53,7 @@ docker compose -f docker-compose.production.yml ps | tee "$OUT/prod_ps.txt"
 docker ps --format 'table {{.Names}}\t{{.Ports}}' | tee "$OUT/prod_ports_table.txt"
 
 # GATE: Validación de single-entrypoint (fail-hard)
+# FAIL si existe cualquier `->` publicado que no sea `vx11-tentaculo-link:8000`.
 echo "=== SINGLE-ENTRYPOINT GATE ===" | tee "$OUT/single_entrypoint_check.txt"
 EXTRA_PORTS=$(docker ps --format '{{.Names}}\t{{.Ports}}' | grep -E '\->' | grep -v 'vx11-tentaculo-link.*8000' | wc -l)
 if [[ $EXTRA_PORTS -gt 0 ]]; then

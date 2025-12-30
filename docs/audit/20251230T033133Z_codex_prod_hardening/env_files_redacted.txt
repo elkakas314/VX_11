@@ -1,0 +1,99 @@
+# .env
+# VX11 Environment - Loaded by docker-compose.yml
+# P0: DeepSeek API Token for Operator Chat Fallback
+DEEPSEEK_API_KEY=REDACTED
+DEEPSEEK_BASE_URL=https://api.deepseek.com/v1
+
+# .env.deepseek
+DEEPSEEK_API_KEY=REDACTED
+
+# .env.example
+# VX11 Environment Variables - Example
+
+# ========== CORE TOKENS & AUTH ==========
+VX11_TENTACULO_LINK_TOKEN=REDACTED
+VX11_GATEWAY_TOKEN=REDACTED
+X_VX11_TOKEN=REDACTED
+
+# ========== DEEPSEEK API (P0: Chat fallback in solo_madre) ==========
+# Required for /operator/api/chat fallback when switch is down
+# ⚠️  SECURITY: Get your key from https://platform.deepseek.com/api_keys
+# ⚠️  NEVER hardcode this value in docker-compose.yml (use .env instead)
+# ⚠️  NEVER commit this file to git (it's in .gitignore)
+DEEPSEEK_API_KEY=REDACTED
+DEEPSEEK_BASE_URL=https://api.deepseek.com/v1
+
+# ========== DATABASE ==========
+DATABASE_URL=sqlite:////app/data/runtime/vx11.db
+
+# ========== REDIS ==========
+REDIS_URL=redis://redis:6379
+
+# ========== PORTS ==========
+TENTACULO_LINK_PORT=8000
+MADRE_PORT=8001
+SWITCH_PORT=8002
+HERMES_PORT=8003
+HORMIGUERO_PORT=8004
+MANIFESTATOR_PORT=8005
+MCP_PORT=8006
+SHUB_PORT=8007
+SPAWNER_PORT=8008
+OPERATOR_PORT=8011
+
+# ========== ENVIRONMENT ==========
+ENVIRONMENT=production
+ENABLE_AUTH=true
+
+# ========== MODELS (Legacy; P0 uses DeepSeek) ==========
+DEFAULT_MODEL=auto
+LOCAL_MODELS_PATH=/app/models
+OLLAMA_ENDPOINT=http://localhost:11434
+
+# ========== LOGGING ==========
+LOG_LEVEL=INFO
+ENABLE_FORENSICS=true
+
+# .env.phase5
+# VX11 Feature Flags Configuration
+# Place this in .env or docker-compose.override.yml
+
+# ============= PHASE 2: Power Windows =============
+VX11_POWER_WINDOWS_ENABLED=1
+VX11_POWER_WINDOWS_CORE_MODE=0
+VX11_POWER_WINDOWS_TIMEOUT_SEC=30
+VX11_POWER_WINDOWS_TTL_CHECK_INTERVAL=1
+
+# ============= PHASE 3: E2E Conductor =============
+VX11_E2E_CONDUCTOR_ENABLED=1
+VX11_E2E_CONDUCTOR_CPU_THROTTLE_THRESHOLD=75
+VX11_E2E_CONDUCTOR_MEMORY_THROTTLE_THRESHOLD=80
+
+# ============= PHASE 4: Autofix Conductor =============
+VX11_AUTOFIX_ENABLED=1
+VX11_AUTOFIX_MAX_CYCLES=3
+VX11_DEEPSEEK_API_TOKEN=REDACTED
+
+# ============= PHASE 5: INEE + Manifestator =============
+# **ALL OFF by default**
+
+# Hormiguero INEE
+VX11_INEE_ENABLED=0
+VX11_INEE_FORWARD_ENABLED=0
+VX11_INEE_CPU_QUOTA_ENABLED=0
+VX11_INEE_AUTONOMOUS_SCALING_ENABLED=0
+VX11_INEE_NAMESPACE_PREFIX=hormiguero_inee
+
+# Manifestator
+VX11_MANIFESTATOR_EMIT_INTENT_ENABLED=0
+VX11_MANIFESTATOR_BUILD_DIRECT_DISABLED=1  # ALWAYS enforced
+
+# ============= Logging & Audit =============
+VX11_LOG_LEVEL=INFO
+VX11_AUDIT_ENABLED=1
+VX11_FORENSIC_ENABLED=1
+
+# ============= Authentication =============
+VX11_TOKEN=REDACTED
+VX11_TENTACULO_LINK_TOKEN=REDACTED
+
