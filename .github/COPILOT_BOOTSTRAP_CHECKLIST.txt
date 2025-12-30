@@ -1,0 +1,10 @@
+VX11 COPILOT BOOTSTRAP CHECKLIST
+
+- [ ] docker-compose.full-test.yml funcional
+- [ ] Healthcheck de todos los servicios OK
+- [ ] Solo madre expuesto por defecto
+- [ ] .github/vx11_bootstrap.md presente
+- [ ] agents/vx11.agent.md actualizado
+- [ ] copilot-instructions.md actualizado
+- [ ] workflows/p11-secret-scan.yml presente
+- [ ] Auditoría en docs/audit/

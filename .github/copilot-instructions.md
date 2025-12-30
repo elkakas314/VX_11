@@ -1,6 +1,7 @@
 # Copilot Instructions for VX11
 
 ## CONTEXT BOOTSTRAP (MANDATORY ON EVERY @vx11 TRIGGER)
+- Validar docker-compose.full-test.yml y health de todos los servicios
 
 Before executing ANY @vx11 command, read in order:
 1. docs/audit/CLEANUP_EXCLUDES_CORE.txt (CORE protection list)
@@ -28,7 +29,7 @@ Every `@vx11 status` invocation MUST return:
 ---
 
 Instrucciones globales:
-- El proyecto es VX11.
+- El proyecto es VX11 (profile full-test: madre, tentaculo_link, switch, operator-backend, operator-frontend, spawner).
 - No preguntar por contexto; esta en los ficheros.
 - Lee estas fuentes de contexto sin pedirlas:
   - VX11_CONTEXT.md
