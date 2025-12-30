@@ -1,0 +1,210 @@
+# VX11 Full Test Profile — madre + tentaculo_link + switch + operator
+# Purpose: Test E2E flows with single entrypoint (8000)
+# Usage: docker compose -f docker-compose.full-test.yml up -d
+
+version: "3.9"
+
+networks:
+  vx11-test:
+    driver: bridge
+
+volumes:
+  vx11-db-test:
+    driver: local
+  redis-data-test:
+    driver: local
+
+services:
+  # --- CORE INFRASTRUCTURE ---
+
+  redis-test:
+    image: redis:7-alpine
+    container_name: vx11-redis-test
+    networks:
+      - vx11-test
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    volumes:
+      - redis-data-test:/data
+
+  # --- CORE SERVICES ---
+
+  madre:
+    build:
+      context: .
+      dockerfile: madre/Dockerfile
+      args:
+        - VX11_PROFILE=test
+    image: vx11-madre:test
+    container_name: vx11-madre-test
+    depends_on:
+      redis-test:
+        condition: service_healthy
+    networks:
+      - vx11-test
+    ports:
+      - "8001:8001"
+    environment:
+      - VX11_MODE=test
+      - VX11_SOLO_MADRE=0
+      - REDIS_URL=redis://redis-test:6379
+      - DATABASE_URL=sqlite:///app/data/runtime/vx11_test.db
+      - PYTHONUNBUFFERED=1
+      - LOG_LEVEL=INFO
+    volumes:
+      - ./data:/app/data
+      - ./madre:/app/madre
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/madre/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: on-failure
+
+  # --- TENTACULO_LINK (SINGLE ENTRYPOINT) ---
+
+  tentaculo_link:
+    build:
+      context: .
+      dockerfile: tentaculo_link/Dockerfile
+      args:
+        - VX11_PROFILE=test
+    image: vx11-tentaculo-link:test
+    container_name: vx11-tentaculo-link-test
+    depends_on:
+      madre:
+        condition: service_healthy
+      redis-test:
+        condition: service_healthy
+    networks:
+      - vx11-test
+    ports:
+      # SINGLE ENTRYPOINT TO HOST
+      - "8000:8000"
+    environment:
+      - VX11_MODE=test
+      - VX11_TENTACULO_LINK_TOKEN=vx11-test-token
+      - VX11_GATEWAY_TOKEN=vx11-test-token
+      - MADRE_URL=http://madre:8001
+      - REDIS_URL=redis://redis-test:6379
+      - PYTHONUNBUFFERED=1
+      - LOG_LEVEL=INFO
+    volumes:
+      - ./data:/app/data
+      - ./tentaculo_link:/app/tentaculo_link
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: on-failure
+
+  # --- SWITCH (HERMES + ROUTES) ---
+
+  switch:
+    build:
+      context: .
+      dockerfile: switch/Dockerfile
+      args:
+        - VX11_PROFILE=test
+    image: vx11-switch:test
+    container_name: vx11-switch-test
+    depends_on:
+      tentaculo_link:
+        condition: service_healthy
+    networks:
+      - vx11-test
+    ports:
+      - "8002:8002"
+    environment:
+      - VX11_MODE=test
+      - VX11_TENTACULO_LINK_TOKEN=vx11-test-token
+      - VX11_GATEWAY_TOKEN=vx11-test-token
+      - TENTACULO_LINK_URL=http://tentaculo_link:8000
+      - MADRE_URL=http://madre:8001
+      - PYTHONUNBUFFERED=1
+      - LOG_LEVEL=INFO
+    volumes:
+      - ./switch:/app/switch
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/switch/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: on-failure
+
+  # --- OPERATOR (UI + Backend) ---
+
+  operator-backend:
+    build:
+      context: .
+      dockerfile: operator/backend/Dockerfile
+      args:
+        - VX11_PROFILE=test
+    image: vx11-operator-backend:test
+    container_name: vx11-operator-backend-test
+    depends_on:
+      madre:
+        condition: service_healthy
+    networks:
+      - vx11-test
+    ports:
+      - "8011:8011"
+    environment:
+      - VX11_MODE=test
+      - OPERATOR_ADMIN_PASSWORD=admin
+      - OPERATOR_TOKEN_SECRET=operator-secret-test
+      - VX11_OPERATOR_TOKEN=vx11-operator-test-token
+      - VX11_GATEWAY_TOKEN=vx11-test-token
+      - VX11_TENTACULO_LINK_TOKEN=vx11-test-token
+      - MADRE_URL=http://madre:8001
+      - TENTACULO_LINK_URL=http://tentaculo_link:8000
+      - PYTHONUNBUFFERED=1
+      - LOG_LEVEL=INFO
+    volumes:
+      - ./operator/backend:/app/operator/backend
+      - ./data:/app/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8011/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: on-failure
+
+  operator-frontend:
+    build:
+      context: .
+      dockerfile: operator/frontend/Dockerfile
+      args:
+        - VX11_PROFILE=test
+        - VITE_API_BASE=http://localhost:8000/operator
+    image: vx11-operator-frontend:test
+    container_name: vx11-operator-frontend-test
+    depends_on:
+      operator-backend:
+        condition: service_healthy
+    networks:
+      - vx11-test
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_BASE=http://localhost:8000/operator
+      - VITE_VX11_TOKEN=vx11-test-token
+    volumes:
+      - ./operator/frontend:/app/operator/frontend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5173/"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: on-failure
+# --- STARTUP PROFILE ---
+# To start: docker compose -f docker-compose.full-test.yml up -d
+# To check: docker compose -f docker-compose.full-test.yml ps
+# To logs: docker compose -f docker-compose.full-test.yml logs -f tentaculo_link
+# To stop: docker compose -f docker-compose.full-test.yml down
