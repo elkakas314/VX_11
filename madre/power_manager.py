@@ -93,8 +93,39 @@ def _make_out_dir(action: str, service: Optional[str]) -> str:
     base = AUDIT_BASE
     os.makedirs(base, exist_ok=True)
     out_dir = os.path.join(base, f"madre_power_{action}_{_safe_name(service)}_{ts}")
-    os.makedirs(out_dir, exist_ok=True)
-    return out_dir
+    try:
+        os.makedirs(out_dir, exist_ok=True)
+        return out_dir
+    except PermissionError:
+        # Fallback locations when the repository tree is not writable inside container
+        fallback_candidates = [
+            os.environ.get("VX11_AUDIT_DIR"),
+            os.path.join(os.environ.get("BASE_PATH") or "/app", "logs", "audit"),
+            "/tmp/vx11_audit",
+        ]
+        for cand in fallback_candidates:
+            if not cand:
+                continue
+            try:
+                os.makedirs(cand, exist_ok=True)
+                out_dir = os.path.join(
+                    cand, f"madre_power_{action}_{_safe_name(service)}_{ts}"
+                )
+                os.makedirs(out_dir, exist_ok=True)
+                return out_dir
+            except Exception:
+                continue
+
+        # As last resort attempt to use /tmp and hope it's writable
+        out_dir = os.path.join(
+            "/tmp", f"madre_power_{action}_{_safe_name(service)}_{ts}"
+        )
+        try:
+            os.makedirs(out_dir, exist_ok=True)
+        except Exception:
+            # Give up and return original path (will likely raise later when writing)
+            pass
+        return out_dir
 
 
 def _write_json(path: str, payload: Dict[str, Any]) -> None:
@@ -201,6 +232,9 @@ def _write_snapshot(out_dir: str, prefix: str, debug: bool = False) -> None:
 def _run_sqlite_check(
     db_path: str, out_dir: str, label: str, pragma: str, foreign_keys: bool = False
 ) -> Dict[str, Any]:
+    # Prefer calling system `sqlite3` binary when available, but fall back to
+    # Python's sqlite3 module when the binary is missing (common in minimal
+    # container images).
     cmd = [
         "sqlite3",
         db_path,
@@ -209,7 +243,24 @@ def _run_sqlite_check(
         + (" PRAGMA foreign_keys=ON;" if foreign_keys else ""),
         f"PRAGMA {pragma};",
     ]
-    res = _run(cmd, timeout=60)
+
+    try:
+        res = _run(cmd, timeout=60)
+    except FileNotFoundError:
+        # sqlite3 binary not present; run PRAGMA via Python's sqlite3 module
+        try:
+            conn = sqlite3.connect(db_path, timeout=10)
+            cur = conn.cursor()
+            if foreign_keys:
+                cur.execute("PRAGMA foreign_keys=ON;")
+            cur.execute(f"PRAGMA {pragma};")
+            rows = cur.fetchall()
+            stdout = "\n".join([" ".join(map(str, r)) for r in rows]) if rows else ""
+            res = {"rc": 0, "stdout": stdout, "stderr": "", "cmd": cmd, "elapsed_ms": 0}
+            conn.close()
+        except Exception as e:
+            res = {"rc": 1, "stdout": "", "stderr": str(e), "cmd": cmd, "elapsed_ms": 0}
+
     path = os.path.join(out_dir, f"sqlite_{label}.txt")
     with open(path, "w", encoding="utf-8") as fh:
         fh.write(res.get("stdout", ""))

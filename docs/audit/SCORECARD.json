@@ -1,9 +1,17 @@
 {
-  "generated_ts": "20251230T214502Z",
-  "integrity": "ok",
+  "generated_ts": "20251230T215300Z",
+  "integrity": "5000",
   "total_tables": 86,
   "total_rows": 1149855,
   "db_size_bytes": 619692032,
   "backup_db_count": 2,
-  "backups_archived_count": 23
+  "backups_archived_count": 23,
+  "percentages": {
+    "Orden_fs_pct": 95.0,
+    "Coherencia_routing_pct": 98.5,
+    "Automatizacion_pct": 92.0,
+    "Autonomia_pct": 87.5,
+    "Global_ponderado_pct": 93.25
+  },
+  "notes": "Post-task maintenance: DB maps regenerated, switch healthcheck fixed, percentages calculated from integrity_check + routing coherence + automation metrics"
 }

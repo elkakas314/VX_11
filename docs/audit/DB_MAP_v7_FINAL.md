@@ -1,6 +1,6 @@
 # VX11 Database Map (generated)
 
-Generated at: 2025-12-30T02:30:57.795837Z
+Generated at: 2025-12-30T22:03:44.374110Z
 
 Database file: data/runtime/vx11.db
 
@@ -456,10 +456,10 @@ Database file: data/runtime/vx11.db
   - last_error (TEXT)
   - stats_json (TEXT)
 
-### ia_decisions — EMPTY (READY)
+### ia_decisions — ACTIVE
 
 - Module: switch
-- Rows: 0
+- Rows: 4
 - Columns:
   - id (INTEGER) PK NOT NULL
   - prompt_hash (VARCHAR(64)) NOT NULL
@@ -603,10 +603,10 @@ Database file: data/runtime/vx11.db
   - result_status (VARCHAR(32))
   - notes (TEXT)
 
-### local_models_v2 — EMPTY (READY)
+### local_models_v2 — ACTIVE
 
 - Module: hermes
-- Rows: 0
+- Rows: 2
 - Columns:
   - id (INTEGER) PK NOT NULL
   - name (VARCHAR(255)) NOT NULL
@@ -706,7 +706,7 @@ Database file: data/runtime/vx11.db
 ### model_usage_stats — ACTIVE
 
 - Module: hermes
-- Rows: 10218
+- Rows: 10222
 - Columns:
   - id (INTEGER) PK NOT NULL
   - model_or_cli_name (VARCHAR(255)) NOT NULL
