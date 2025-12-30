@@ -15,16 +15,19 @@ import json
 import sqlite3
 from pathlib import Path
 
-from hormiguero.manifestator.controller import RailsController
+try:
+    from hormiguero.manifestator.controller import RailsController
+except ImportError:
+    RailsController = None
 
 router = APIRouter(prefix="/api", tags=["rails"])
 controller = None
 
 
-def get_controller() -> RailsController:
-    """Get or initialize RailsController"""
+def get_controller() -> Optional[RailsController]:
+    """Get or initialize RailsController if available"""
     global controller
-    if controller is None:
+    if controller is None and RailsController is not None:
         repo_root = os.environ.get("VX11_REPO_ROOT", "/home/elkakas314/vx11")
         controller = RailsController(repo_root)
     return controller
@@ -83,6 +86,11 @@ async def get_rails_lanes(auth: bool = Depends(check_auth)):
             "flag": "VX11_MANIFESTATOR_ENABLED",
             "lanes": [],
         }
+
+    if RailsController is None:
+        raise HTTPException(
+            status_code=501, detail="Hormiguero module not available in this deployment"
+        )
 
     try:
         ctrl = get_controller()
