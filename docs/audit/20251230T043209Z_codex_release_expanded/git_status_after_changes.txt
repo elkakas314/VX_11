@@ -1,0 +1,7 @@
+## work
+D  .env
+D  .env.deepseek
+D  .env.example
+D  .env.phase5
+ M tentaculo_link/main_v7.py
+ M tentaculo_link/routes/rails.py

@@ -1,0 +1,4 @@
+tentaculo_link/main_v7.py:51:from switch.providers import get_provider  # PHASE 3: Provider registry
+tentaculo_link/main_v7.py:2224:            # If we got a valid response from switch
+tentaculo_link/routes/__init__.py:15:from . import hormiguero
+tentaculo_link/routes/rails.py:19:    from hormiguero.manifestator.controller import RailsController

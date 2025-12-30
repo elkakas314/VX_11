@@ -1,0 +1,2 @@
+docker compose unavailable in environment
+curl to 127.0.0.1:8000 failed (service not running)
