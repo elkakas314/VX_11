@@ -62,7 +62,7 @@ export function ChatView() {
         setError(null)
 
         try {
-            const resp = await apiClient.request('POST', '/operator/api/v1/chat/window/open', {
+            const resp = await apiClient.request('POST', '/operator/api/chat/window/open', {
                 services: ['switch'],
                 ttl_sec: 600,
                 mode: 'ttl',
@@ -90,7 +90,7 @@ export function ChatView() {
         setError(null)
 
         try {
-            const resp = await apiClient.request('POST', '/operator/api/v1/chat/window/close', {})
+            const resp = await apiClient.request('POST', '/operator/api/chat/window/close', {})
 
             if (resp.ok) {
                 const statusResp = await apiClient.windows()

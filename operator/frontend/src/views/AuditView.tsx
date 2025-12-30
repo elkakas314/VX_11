@@ -1,19 +1,28 @@
 import { useEffect, useState } from 'react'
-import { apiClient } from '../services/api'
+import { apiClient, buildApiUrl } from '../services/api'
 
 interface AuditRun {
-    id: string
-    timestamp: number
-    status: 'ok' | 'warning' | 'error'
-    checks_passed: number
-    checks_total: number
-    duration_ms: number
-    details?: string
+    run_id: string
+    run_ts?: string | null
+    status?: string
+    files_count?: number
+    size_bytes?: number
+    source?: string
+}
+
+interface AuditDetail {
+    run_id: string
+    run_ts?: string | null
+    status?: string
+    files?: { path: string; size_bytes: number }[]
+    findings?: { severity: string; title?: string; detail?: string }[]
+    artifacts?: string[]
 }
 
 export function AuditView() {
     const [runs, setRuns] = useState<AuditRun[]>([])
     const [selected, setSelected] = useState<AuditRun | null>(null)
+    const [detail, setDetail] = useState<AuditDetail | null>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
 
@@ -26,24 +35,12 @@ export function AuditView() {
         setError(null)
 
         try {
-            // Try to fetch audit list from API
-            const resp = await apiClient.audit?.() || Promise.resolve({ ok: false })
-
-            if (resp.ok && resp.data) {
-                const auditList = Array.isArray(resp.data) ? resp.data : resp.data.runs || []
-                setRuns(auditList)
+            const resp = await apiClient.auditRuns()
+            if (resp.ok && resp.data?.runs) {
+                setRuns(resp.data.runs as AuditRun[])
             } else {
-                // Fallback: show placeholder
-                setRuns([
-                    {
-                        id: 'placeholder_1',
-                        timestamp: Date.now(),
-                        status: 'ok',
-                        checks_passed: 8,
-                        checks_total: 8,
-                        duration_ms: 1250,
-                    },
-                ])
+                setRuns([])
+                setError(resp.error || 'No audit runs available')
             }
         } catch (err: any) {
             setError(err.message || 'Failed to load audits')
@@ -52,18 +49,25 @@ export function AuditView() {
         }
     }
 
-    async function downloadAudit(id: string) {
+    async function loadDetail(run: AuditRun) {
+        setSelected(run)
+        setDetail(null)
+        setError(null)
+
         try {
-            if (apiClient.downloadAudit) {
-                const resp = await apiClient.downloadAudit(id)
-                if (resp.ok) {
-                    // Handle file download
-                    console.log('Download:', resp.data)
-                }
+            const resp = await apiClient.auditDetail(run.run_id)
+            if (resp.ok && resp.data) {
+                setDetail(resp.data as AuditDetail)
+            } else {
+                setError(resp.error || 'Failed to load audit detail')
             }
         } catch (err: any) {
-            setError(err.message || 'Download failed')
+            setError(err.message || 'Failed to load audit detail')
         }
+    }
+
+    function downloadAudit(runId: string) {
+        window.open(buildApiUrl(`/operator/api/audit/${runId}/download`), '_blank')
     }
 
     if (loading) {
@@ -83,21 +87,22 @@ export function AuditView() {
                         <div className="run-items">
                             {runs.map((run) => (
                                 <div
-                                    key={run.id}
-                                    className={`run-item ${selected?.id === run.id ? 'selected' : ''}`}
-                                    onClick={() => setSelected(run)}
+                                    key={run.run_id}
+                                    className={`run-item ${selected?.run_id === run.run_id ? 'selected' : ''}`}
+                                    onClick={() => loadDetail(run)}
                                 >
                                     <div className="run-header">
-                                        <span className={`status-badge status-${run.status}`}>
-                                            {run.status.toUpperCase()}
+                                        <span className={`status-badge status-${run.status || 'ok'}`}>
+                                            {(run.status || 'available').toUpperCase()}
                                         </span>
                                         <span className="run-time">
-                                            {new Date(run.timestamp).toLocaleString()}
+                                            {run.run_ts
+                                                ? new Date(run.run_ts).toLocaleString()
+                                                : run.run_id}
                                         </span>
                                     </div>
                                     <div className="run-summary">
-                                        {run.checks_passed}/{run.checks_total} checks passed •{' '}
-                                        {run.duration_ms}ms
+                                        {run.files_count ?? 0} files • {Math.round((run.size_bytes || 0) / 1024)} KB
                                     </div>
                                 </div>
                             ))}
@@ -108,44 +113,41 @@ export function AuditView() {
                 </div>
 
                 <div className="audit-detail">
-                    {selected ? (
+                    {detail ? (
                         <>
                             <h3>Run Details</h3>
                             <dl className="detail-list">
                                 <dt>ID</dt>
-                                <dd className="code">{selected.id}</dd>
+                                <dd className="code">{detail.run_id}</dd>
 
                                 <dt>Status</dt>
                                 <dd>
-                                    <span className={`status-badge status-${selected.status}`}>
-                                        {selected.status}
+                                    <span className={`status-badge status-${detail.status || 'ok'}`}>
+                                        {detail.status || 'available'}
                                     </span>
                                 </dd>
 
-                                <dt>Checks Passed</dt>
-                                <dd>
-                                    {selected.checks_passed}/{selected.checks_total}
-                                </dd>
-
-                                <dt>Duration</dt>
-                                <dd>{selected.duration_ms}ms</dd>
-
                                 <dt>Timestamp</dt>
-                                <dd>{new Date(selected.timestamp).toISOString()}</dd>
+                                <dd>{detail.run_ts ? new Date(detail.run_ts).toISOString() : '—'}</dd>
+
+                                <dt>Files</dt>
+                                <dd>{detail.files?.length ?? detail.artifacts?.length ?? 0}</dd>
                             </dl>
 
-                            {selected.details && (
+                            {detail.files && detail.files.length > 0 && (
                                 <>
-                                    <h4>Details</h4>
-                                    <pre className="detail-output">{selected.details}</pre>
+                                    <h4>Artifacts</h4>
+                                    <pre className="detail-output">
+                                        {detail.files
+                                            .slice(0, 20)
+                                            .map((file) => `${file.path} (${file.size_bytes} bytes)`)
+                                            .join('\n')}
+                                    </pre>
                                 </>
                             )}
 
                             <div className="detail-actions">
-                                <button
-                                    onClick={() => downloadAudit(selected.id)}
-                                    className="btn-secondary"
-                                >
+                                <button onClick={() => downloadAudit(detail.run_id)} className="btn-secondary">
                                     ⬇ Download
                                 </button>
                             </div>

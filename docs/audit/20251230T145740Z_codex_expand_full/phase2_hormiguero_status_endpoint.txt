@@ -1,0 +1,54 @@
+    if inee_extended_router:
+        init_inee_extended_services()
+        app.include_router(inee_extended_router)
+
+
+@app.get("/health")
+async def health():
+    return {
+        "status": "ok",
+        "service": "hormiguero",
+        "version": "v7",
+    }
+
+
+@app.get("/hormiguero/status")
+async def hormiguero_status():
+    return {
+        "actions_enabled": settings.actions_enabled,
+        "last_scan": queen.last_scan,
+    }
+
+
+@app.post("/hormiguero/scan/once", response_model=ScanResponse)
+async def scan_once():
+    correlation_id = str(uuid.uuid4())
+    result = queen.scan_once(all_checks=True)
+    return {"status": "ok", "correlation_id": correlation_id, "results": result}
+
+
+@app.get("/hormiguero/incidents")
+async def list_incidents(status: Optional[str] = None, limit: int = 100):
+    return repo.list_incidents(status=status, limit=limit)
+
+
+@app.get("/hormiguero/pheromones")
+async def list_pheromones(limit: int = 100):
+    return repo.list_pheromones(limit=limit)
+
+
+@app.post("/hormiguero/actions/preview")
+async def preview_actions(req: ActionsRequest):
+    preview = executor.preview_actions([item.model_dump() for item in req.actions])
+    return {"status": "ok", "preview": preview}
+
+
+@app.post("/hormiguero/actions/apply")
+async def apply_actions(req: ActionsRequest):
+    result = executor.apply_actions(
+        [item.model_dump() for item in req.actions],
+        correlation_id=req.correlation_id or req.approval_id,
+    )
+    if result.get("status") == "denied":
+        raise HTTPException(status_code=403, detail=result)
+    return result

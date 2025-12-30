@@ -1,0 +1,367 @@
+tentaculo_link/context7_middleware.py:3:Lightweight session context tracking for operator conversations
+tentaculo_link/context7_middleware.py:91:                "operator",
+tentaculo_link/deepseek_client.py:154:    Save chat message to operator_session + operator_message tables.
+tentaculo_link/deepseek_client.py:182:                    INSERT OR IGNORE INTO operator_session
+tentaculo_link/deepseek_client.py:192:                    INSERT INTO operator_message
+tentaculo_link/deepseek_client.py:202:                    INSERT INTO operator_message
+operator/backend/main.py:34:    "/app/logs/operator_backend_audit.jsonl",
+operator/backend/main.py:62:    reason: str = "operator_manual"
+operator/backend/main.py:118:    correlation_id: str, service: str = "operator_backend"
+operator/backend/main.py:125:        "recommended_action": "Ask Madre to open operator window",
+operator/backend/main.py:138:        "recommended_action": "Ask Madre to open operator window",
+operator/backend/main.py:174:        write_log("operator_backend", f"audit_log_error:{exc}", level="WARNING")
+operator/backend/main.py:183:        write_log("operator_backend", f"json_read_error:{path}:{exc}", level="WARNING")
+operator/backend/main.py:196:        write_log("operator_backend", f"log_tail_error:{path}:{exc}", level="WARNING")
+operator/backend/main.py:275:@app.get("/operator/api/health")
+operator/backend/main.py:279:        "service": "operator_backend",
+operator/backend/main.py:285:@app.get("/operator/api/env")
+operator/backend/main.py:292:        "service": "operator_backend",
+operator/backend/main.py:300:@app.get("/operator/api/status")
+operator/backend/main.py:301:async def operator_status(
+operator/backend/main.py:317:@app.get("/operator/api/modules")
+operator/backend/main.py:342:    modules["operator_backend"] = {
+operator/backend/main.py:344:        "reason": "operator_profile",
+operator/backend/main.py:345:        "category": "operator",
+operator/backend/main.py:351:@app.get("/operator/api/topology")
+operator/backend/main.py:383:@app.get("/operator/api/windows")
+operator/backend/main.py:392:@app.post("/operator/api/chat/window/open")
+operator/backend/main.py:415:@app.post("/operator/api/chat/window/close")
+operator/backend/main.py:434:@app.get("/operator/api/chat/window/status")
+operator/backend/main.py:443:@app.post("/operator/api/chat")
+operator/backend/main.py:459:        "POST", "/operator/chat/ask", correlation_id, payload=payload, timeout=10.0
+operator/backend/main.py:473:@app.get("/operator/api/events")
+operator/backend/main.py:485:@app.get("/operator/api/events/stream")
+operator/backend/main.py:543:@app.get("/operator/api/logs/tail")
+operator/backend/main.py:557:@app.get("/operator/api/audit/runs")
+operator/backend/main.py:573:@app.get("/operator/api/audit/runs/{run_id}")
+operator/backend/main.py:585:@app.get("/operator/api/explorer/presets")
+operator/backend/main.py:607:@app.post("/operator/api/explorer/query")
+operator/backend/main.py:637:@app.post("/operator/api/madre/plan")
+operator/backend/main.py:658:@app.post("/operator/api/madre/execute")
+operator/backend/main.py:679:@app.post("/operator/api/madre/cancel")
+operator/backend/main.py:700:@app.get("/operator/api/madre/status/{intent_id}")
+operator/backend/main.py:716:@app.get("/operator/api/hormiguero/status")
+operator/backend/main.py:730:@app.post("/operator/api/hormiguero/scan/once")
+operator/backend/main.py:769:@app.get("/operator/api/manifestator/status")
+operator/backend/main.py:788:@app.post("/operator/api/manifestator/patchplan")
+operator/backend/main.py:810:@app.post("/operator/api/manifestator/compare")
+operator/backend/main.py:835:@app.post("/operator/api/manifestator/apply")
+operator/backend/main.py:856:@app.get("/operator/api/shub/status")
+operator/backend/main.py:864:        runbook="Enable shub via Madre power window and configure SHUB_URL in operator_backend.",
+operator/backend/main.py:868:@app.get("/operator/api/shub/jobs")
+operator/backend/main.py:876:        runbook="Enable shub via Madre power window and configure SHUB_URL in operator_backend.",
+operator/backend/main.py:880:@app.post("/operator/api/shub/jobs/submit")
+operator/backend/main.py:890:        runbook="Enable shub via Madre power window and configure SHUB_URL in operator_backend.",
+operator/backend/main.py:894:@app.post("/operator/api/assist/deepseek_r1")
+operator/backend/main.py:904:        runbook="CoDev assist disabled; enable deepseek_r1 in switch and open an operator window.",
+operator/backend/main.py:908:@app.get("/operator/api/assist/deepseek_r1/status")
+operator/backend/main.py:916:        runbook="CoDev assist disabled; enable deepseek_r1 in switch and open an operator window.",
+operator/backend/main.py:920:@app.get("/operator/api/metrics")
+operator/backend/main.py:935:@app.get("/operator/api/scorecard")
+operator/backend/main.py:953:@app.get("/operator/api/audit")
+operator/backend/main.py:964:@app.get("/operator/api/settings")
+operator/backend/main.py:972:@app.post("/operator/api/settings")
+operator/backend/main.py:997:@app.get("/operator/api/rails/lanes")
+operator/backend/main.py:1006:@app.get("/operator/api/rails")
+operator/backend/main.py:1015:@app.get("/operator/api/healthz")
+operator/backend/main.py:1023:    ("/status", ["GET"], operator_status),
+operator/backend/Dockerfile:28:COPY operator /app/operator/
+operator/backend/Dockerfile:35:CMD ["python", "-m", "uvicorn", "operator.backend.main:app", "--host", "0.0.0.0", "--port", "8011"]
+operator/backend/Dockerfile:38:    CMD curl -fsS http://localhost:8011/operator/api/health || exit 1
+tentaculo_link/main_v7.py:114:    reason: str = "operator_manual"
+tentaculo_link/main_v7.py:185:async def operator_api_proxy(request: Request, call_next):
+tentaculo_link/main_v7.py:188:    if request.url.path.startswith("/operator/api"):
+tentaculo_link/main_v7.py:197:        operator_url = settings.operator_url.rstrip("/")
+tentaculo_link/main_v7.py:199:        if request_path.startswith("/operator/api/v1"):
+tentaculo_link/main_v7.py:200:            upstream_path = request_path.replace("/operator/api/v1", "/api/v1", 1)
+tentaculo_link/main_v7.py:202:            upstream_path = request_path.replace("/operator/api", "/api/v1", 1)
+tentaculo_link/main_v7.py:203:        target_url = f"{operator_url}{upstream_path}"
+tentaculo_link/main_v7.py:247:                    "service": "operator_backend",
+tentaculo_link/main_v7.py:250:                    "recommended_action": "Ask Madre to open operator window",
+tentaculo_link/main_v7.py:279:operator_ui_candidates = [
+tentaculo_link/main_v7.py:280:    Path(__file__).parent.parent / "operator_ui" / "frontend" / "dist",
+tentaculo_link/main_v7.py:281:    Path(__file__).parent.parent / "operator" / "frontend" / "dist",
+tentaculo_link/main_v7.py:283:operator_ui_path = next(
+tentaculo_link/main_v7.py:284:    (candidate for candidate in operator_ui_candidates if candidate.exists()), None
+tentaculo_link/main_v7.py:286:if operator_ui_path:
+tentaculo_link/main_v7.py:288:        "/operator/ui",
+tentaculo_link/main_v7.py:289:        StaticFiles(directory=str(operator_ui_path), html=True),
+tentaculo_link/main_v7.py:290:        name="operator_ui",
+tentaculo_link/main_v7.py:292:    write_log("tentaculo_link", f"mounted_operator_ui:{operator_ui_path}")
+tentaculo_link/main_v7.py:296:        f"WARNING: operator_ui not found: {operator_ui_candidates}",
+tentaculo_link/main_v7.py:300:    @app.get("/operator/ui")
+tentaculo_link/main_v7.py:301:    @app.get("/operator/ui/{path:path}")
+tentaculo_link/main_v7.py:302:    async def operator_ui_missing(path: str = ""):
+tentaculo_link/main_v7.py:309:# Include new operator API routes with /operator prefix
+tentaculo_link/main_v7.py:312:        api_routes.events.router, prefix="/operator", tags=["operator-api"]
+tentaculo_link/main_v7.py:315:        api_routes.settings.router, prefix="/operator", tags=["operator-api"]
+tentaculo_link/main_v7.py:318:        api_routes.audit.router, prefix="/operator", tags=["operator-api"]
+tentaculo_link/main_v7.py:321:        api_routes.metrics.router, prefix="/operator", tags=["operator-api"]
+tentaculo_link/main_v7.py:324:        api_routes.rails.router, prefix="/operator", tags=["operator-api"]
+tentaculo_link/main_v7.py:327:        api_routes.window.router, prefix="/operator", tags=["operator-api"]
+tentaculo_link/main_v7.py:329:    write_log("tentaculo_link", "included_operator_api_routers:success")
+tentaculo_link/main_v7.py:333:        f"WARNING: failed to include operator routers: {e}",
+tentaculo_link/main_v7.py:350:@app.get("/operator")
+tentaculo_link/main_v7.py:351:async def operator_redirect():
+tentaculo_link/main_v7.py:352:    """Redirect /operator to /operator/ui/."""
+tentaculo_link/main_v7.py:353:    return RedirectResponse(url="/operator/ui/", status_code=302)
+tentaculo_link/main_v7.py:392:            "operator": 8011,
+tentaculo_link/main_v7.py:521:@app.post("/operator/chat")
+tentaculo_link/main_v7.py:522:async def operator_chat(
+tentaculo_link/main_v7.py:550:    write_log("tentaculo_link", f"operator_chat:result_after_switch={result}")
+tentaculo_link/main_v7.py:552:        write_log("tentaculo_link", "operator_chat:triggering_fallback_to_madre")
+tentaculo_link/main_v7.py:563:    write_log("tentaculo_link", f"operator_chat:{session_id}")
+tentaculo_link/main_v7.py:567:@app.post("/operator/task")
+tentaculo_link/main_v7.py:568:async def operator_task(
+tentaculo_link/main_v7.py:590:        source="operator",
+tentaculo_link/main_v7.py:593:    write_log("tentaculo_link", f"operator_task:{req.task_type}:{session_id}")
+tentaculo_link/main_v7.py:597:# ============ NEW: /operator/chat/ask (SIMPLIFIED CHAT) ============
+tentaculo_link/main_v7.py:600:@app.post("/operator/chat/ask")
+tentaculo_link/main_v7.py:601:async def operator_chat_ask(
+tentaculo_link/main_v7.py:606:    Simplified chat endpoint (alternative to /operator/chat).
+tentaculo_link/main_v7.py:610:    return await operator_chat(req, _)
+tentaculo_link/main_v7.py:613:# ============ NEW: /operator/status (AGGREGATED HEALTH) ============
+tentaculo_link/main_v7.py:616:@app.get("/operator/status")
+tentaculo_link/main_v7.py:617:async def operator_status(_: bool = Depends(token_guard)):
+tentaculo_link/main_v7.py:702:    write_log("tentaculo_link", f"operator_status:overall={status_data['status']}")
+tentaculo_link/main_v7.py:706:# ============ NEW: /operator/power/state (CURRENT POWER WINDOW STATE) ============
+tentaculo_link/main_v7.py:709:@app.get("/operator/power/state")
+tentaculo_link/main_v7.py:710:async def operator_power_state(_: bool = Depends(token_guard)):
+tentaculo_link/main_v7.py:723:        write_log("tentaculo_link", "operator_power_state:retrieved")
+tentaculo_link/main_v7.py:727:            "tentaculo_link", f"operator_power_state:error={str(e)[:50]}", level="WARN"
+tentaculo_link/main_v7.py:734:@app.get("/operator/power/status")
+tentaculo_link/main_v7.py:735:async def operator_power_status(_: bool = Depends(token_guard)):
+tentaculo_link/main_v7.py:742:    write_log("tentaculo_link", "operator_power_status")
+tentaculo_link/main_v7.py:746:@app.get("/operator/power/policy/solo_madre/status")
+tentaculo_link/main_v7.py:747:async def operator_solo_madre_status(_: bool = Depends(token_guard)):
+tentaculo_link/main_v7.py:754:    write_log("tentaculo_link", "operator_solo_madre_status")
+tentaculo_link/main_v7.py:758:@app.post("/operator/power/policy/solo_madre/apply")
+tentaculo_link/main_v7.py:759:async def operator_solo_madre_apply(_: bool = Depends(token_guard)):
+tentaculo_link/main_v7.py:766:    write_log("tentaculo_link", "operator_solo_madre_apply")
+tentaculo_link/main_v7.py:770:@app.post("/operator/power/service/{name}/start")
+tentaculo_link/main_v7.py:771:async def operator_power_start(name: str, _: bool = Depends(token_guard)):
+tentaculo_link/main_v7.py:778:    write_log("tentaculo_link", f"operator_power_start:{name}")
+tentaculo_link/main_v7.py:782:@app.post("/operator/power/service/{name}/stop")
+tentaculo_link/main_v7.py:783:async def operator_power_stop(name: str, _: bool = Depends(token_guard)):
+tentaculo_link/main_v7.py:790:    write_log("tentaculo_link", f"operator_power_stop:{name}")
+tentaculo_link/main_v7.py:794:@app.post("/operator/power/service/{name}/restart")
+tentaculo_link/main_v7.py:795:async def operator_power_restart(name: str, _: bool = Depends(token_guard)):
+tentaculo_link/main_v7.py:802:    write_log("tentaculo_link", f"operator_power_restart:{name}")
+tentaculo_link/main_v7.py:827:@app.post("/operator/inee/builder/patchset", tags=["proxy-inee"])
+tentaculo_link/main_v7.py:828:async def operator_inee_builder_patchset(
+tentaculo_link/main_v7.py:849:@app.post("/operator/inee/colony/register", tags=["proxy-inee"])
+tentaculo_link/main_v7.py:850:async def operator_inee_colony_register(
+tentaculo_link/main_v7.py:868:@app.post("/operator/inee/colony/envelope", tags=["proxy-inee"])
+tentaculo_link/main_v7.py:869:async def operator_inee_colony_envelope(
+tentaculo_link/main_v7.py:887:@app.get("/operator/inee/status", tags=["proxy-inee"])
+tentaculo_link/main_v7.py:888:async def operator_inee_status(
+tentaculo_link/main_v7.py:902:@app.get("/operator/session/{session_id}")
+tentaculo_link/main_v7.py:903:async def operator_session(
+tentaculo_link/main_v7.py:912:    write_log("tentaculo_link", f"operator_session_retrieved:{session_id}")
+tentaculo_link/main_v7.py:1084:@app.get("/operator/snapshot")
+tentaculo_link/main_v7.py:1085:async def operator_snapshot(t: int = 0, _: bool = Depends(token_guard)):
+tentaculo_link/main_v7.py:1089:    write_log("tentaculo_link", f"operator_snapshot:request:t={t}")
+tentaculo_link/main_v7.py:1869:@app.get("/operator/observe")
+tentaculo_link/main_v7.py:1870:async def operator_observe():
+tentaculo_link/main_v7.py:1905:    write_log("tentaculo_link", "operator_observe:aggregated")
+tentaculo_link/main_v7.py:1954:        write_log("tentaculo_link", f"operator_observe:trace_read_failed:{trace_exc}")
+tentaculo_link/main_v7.py:1961:        "route_taken": "GET /operator/observe",
+tentaculo_link/main_v7.py:1990:    operator = clients.get_client("operator-backend")
+tentaculo_link/main_v7.py:1991:    if not operator:
+tentaculo_link/main_v7.py:1992:        raise HTTPException(status_code=503, detail="operator_backend_unavailable")
+tentaculo_link/main_v7.py:1994:    result = await operator.post("/auth/login", payload=request)
+tentaculo_link/main_v7.py:2003:    operator = clients.get_client("operator-backend")
+tentaculo_link/main_v7.py:2004:    if not operator:
+tentaculo_link/main_v7.py:2005:        raise HTTPException(status_code=503, detail="operator_backend_unavailable")
+tentaculo_link/main_v7.py:2007:    result = await operator.post("/auth/logout", payload={})
+tentaculo_link/main_v7.py:2012:# ============ OPERATOR API — P0 NATIVE ENDPOINTS (NO operator_backend dependency) ============
+tentaculo_link/main_v7.py:2015:@app.get("/operator/api/status", tags=["operator-api-p0"])
+tentaculo_link/main_v7.py:2016:async def operator_api_status(_: bool = Depends(token_guard)):
+tentaculo_link/main_v7.py:2019:    Does NOT call operator_backend (archived).
+tentaculo_link/main_v7.py:2039:            "operator_backend": {
+tentaculo_link/main_v7.py:2051:@app.get("/operator/api/modules", tags=["operator-api-p0"])
+tentaculo_link/main_v7.py:2052:async def operator_api_modules(_: bool = Depends(token_guard)):
+tentaculo_link/main_v7.py:2089:    modules["operator_backend"] = {
+tentaculo_link/main_v7.py:2092:        "reason": "Operator API migrated to tentaculo_link:/operator/*",
+tentaculo_link/main_v7.py:2099:@app.post("/operator/api/chat", tags=["operator-api-p0"])
+tentaculo_link/main_v7.py:2100:async def operator_api_chat(
+tentaculo_link/main_v7.py:2144:    limiter_key = f"operator_chat:{session_id}"
+tentaculo_link/main_v7.py:2189:    cache_key = f"operator_chat_cache:{session_id}:{message_hash}"
+tentaculo_link/main_v7.py:2396:@app.get("/operator/api/status", tags=["operator-api-p0"])
+tentaculo_link/main_v7.py:2397:async def operator_api_status(
+tentaculo_link/main_v7.py:2501:                "name": "operator-backend",
+tentaculo_link/main_v7.py:2509:                "name": "operator-frontend",
+tentaculo_link/main_v7.py:2536:            f"operator_api_status:success:correlation_id={correlation_id}",
+tentaculo_link/main_v7.py:2566:            f"operator_api_status:error:{str(e)[:100]}",
+tentaculo_link/main_v7.py:2579:@app.get("/operator/api/events", tags=["operator-api-p0"])
+tentaculo_link/main_v7.py:2580:async def operator_api_events(
+tentaculo_link/main_v7.py:2591:    - GET /operator/api/events?follow=true
+tentaculo_link/main_v7.py:2704:@app.get("/operator/api/metrics", tags=["operator-api-p0"])
+tentaculo_link/main_v7.py:2705:async def operator_api_metrics(
+tentaculo_link/main_v7.py:2726:                "by_endpoint": {"/operator/api/chat": 120, ...},
+tentaculo_link/main_v7.py:2755:                "/operator/api/chat": 120,
+tentaculo_link/main_v7.py:2756:                "/operator/api/status": 85,
+tentaculo_link/main_v7.py:2757:                "/operator/api/events": 40,
+tentaculo_link/main_v7.py:2789:            f"operator_api_metrics:success:period={period}:correlation_id={correlation_id}",
+tentaculo_link/main_v7.py:2811:            f"operator_api_metrics:error:{str(e)[:100]}",
+tentaculo_link/main_v7.py:2824:@app.get("/operator/capabilities", tags=["operator-api-p0"])
+tentaculo_link/main_v7.py:2825:async def operator_capabilities(
+tentaculo_link/main_v7.py:2938:            f"operator_capabilities:success:mode={operational_mode}:correlation_id={correlation_id}",
+tentaculo_link/main_v7.py:2956:            f"operator_capabilities:error:{str(e)[:100]}",
+tentaculo_link/main_v7.py:2984:@app.post("/operator/api/assist/deepseek_r1", tags=["operator-api-codev"])
+tentaculo_link/main_v7.py:2985:async def operator_api_assist_deepseek_r1(
+tentaculo_link/main_v7.py:3112:@app.get("/operator/api/assist/deepseek_r1/status", tags=["operator-api-codev"])
+tentaculo_link/main_v7.py:3113:async def operator_api_assist_deepseek_r1_status(_: bool = Depends(token_guard)):
+tentaculo_link/main_v7.py:3165:@app.post("/operator/api/chat/window/open", tags=["operator-api-powerwindows"])
+tentaculo_link/main_v7.py:3166:async def operator_api_chat_window_open(
+tentaculo_link/main_v7.py:3175:    POST /operator/api/chat/window/open
+tentaculo_link/main_v7.py:3180:        "reason": "operator_10min_chat"
+tentaculo_link/main_v7.py:3282:@app.post("/operator/api/chat/window/close", tags=["operator-api-powerwindows"])
+tentaculo_link/main_v7.py:3283:async def operator_api_chat_window_close(_: bool = Depends(token_guard)):
+tentaculo_link/main_v7.py:3354:@app.get("/operator/api/chat/window/status", tags=["operator-api-powerwindows"])
+tentaculo_link/main_v7.py:3355:async def operator_api_chat_window_status(_: bool = Depends(token_guard)):
+tentaculo_link/main_v7.py:3411:@app.get("/operator/api/events", tags=["operator-api-p0"])
+tentaculo_link/main_v7.py:3412:async def operator_api_events(limit: int = 10, _: bool = Depends(token_guard)):
+tentaculo_link/main_v7.py:3427:@app.get("/operator/api/scorecard", tags=["operator-api-p0"])
+tentaculo_link/main_v7.py:3428:async def operator_api_scorecard(_: bool = Depends(token_guard)):
+tentaculo_link/main_v7.py:3461:@app.get("/operator/api/health", tags=["operator-api-p0"])
+tentaculo_link/main_v7.py:3462:async def operator_api_health(_: bool = Depends(token_guard)):
+tentaculo_link/main_v7.py:3488:@app.get("/operator/api/topology", tags=["operator-api-p0"])
+tentaculo_link/main_v7.py:3489:async def operator_api_topology(_: bool = Depends(token_guard)):
+tentaculo_link/main_v7.py:3558:@app.get("/operator/api/audit", tags=["operator-api-p0"])
+tentaculo_link/main_v7.py:3559:async def operator_api_audit(_: bool = Depends(token_guard)):
+tentaculo_link/main_v7.py:3571:@app.get("/operator/api/audit/{run_id}", tags=["operator-api-p0"])
+tentaculo_link/main_v7.py:3572:async def operator_api_audit_detail(run_id: str, _: bool = Depends(token_guard)):
+tentaculo_link/main_v7.py:3583:@app.get("/operator/api/audit/{run_id}/download", tags=["operator-api-p0"])
+tentaculo_link/main_v7.py:3584:async def operator_api_audit_download(run_id: str, _: bool = Depends(token_guard)):
+tentaculo_link/main_v7.py:3595:@app.get("/operator/api/settings", tags=["operator-api-p0"])
+tentaculo_link/main_v7.py:3596:async def operator_api_settings(_: bool = Depends(token_guard)):
+tentaculo_link/main_v7.py:3598:    P0: Get current operator settings (UI preferences).
+tentaculo_link/main_v7.py:3609:@app.post("/operator/api/settings", tags=["operator-api-p0"])
+tentaculo_link/main_v7.py:3610:async def operator_api_settings_update(settings: dict, _: bool = Depends(token_guard)):
+tentaculo_link/main_v7.py:3612:    P0: Update operator settings (UI preferences).
+tentaculo_link/main_v7.py:3623:    "/operator/api/{path:path}",
+tentaculo_link/main_v7.py:3625:    tags=["operator-api-fallback"],
+tentaculo_link/main_v7.py:3627:async def operator_api_fallback(path: str, _: bool = Depends(token_guard)):
+tentaculo_link/main_v7.py:3629:    Fallback for unmatched /operator/api/* paths.
+tentaculo_link/main_v7.py:3636:            "path": f"/operator/api/{path}",
+tentaculo_link/main_v7.py:3638:                "GET  /operator/api/status",
+tentaculo_link/main_v7.py:3639:                "GET  /operator/api/modules",
+tentaculo_link/main_v7.py:3640:                "POST /operator/api/chat",
+tentaculo_link/main_v7.py:3641:                "GET  /operator/api/events",
+tentaculo_link/main_v7.py:3642:                "GET  /operator/api/scorecard",
+tentaculo_link/main_v7.py:3643:                "GET  /operator/api/topology",
+operator/frontend/__tests__/operator-endpoints.test.ts:3: * operator/frontend/__tests__/operator-endpoints.test.ts
+operator/frontend/__tests__/operator-endpoints.test.ts:25:    // TEST GROUP 1: /operator/api/v1/events - Event Stream
+operator/frontend/__tests__/operator-endpoints.test.ts:28:    describe('GET /operator/api/v1/events - Event Stream', () => {
+operator/frontend/__tests__/operator-endpoints.test.ts:53:            const response = await fetch(`${BASE_URL}/operator/api/v1/events`, {
+operator/frontend/__tests__/operator-endpoints.test.ts:86:            const response = await fetch(`${BASE_URL}/operator/api/v1/events?severity=critical`, {
+operator/frontend/__tests__/operator-endpoints.test.ts:117:            const response = await fetch(`${BASE_URL}/operator/api/v1/events?module=manifestator`, {
+operator/frontend/__tests__/operator-endpoints.test.ts:132:            const response = await fetch(`${BASE_URL}/operator/api/v1/events`)
+operator/frontend/__tests__/operator-endpoints.test.ts:150:            const response = await fetch(`${BASE_URL}/operator/api/v1/events`, {
+operator/frontend/__tests__/operator-endpoints.test.ts:161:    // TEST GROUP 2: /operator/api/v1/metrics - Metrics Timeseries
+operator/frontend/__tests__/operator-endpoints.test.ts:164:    describe('GET /operator/api/v1/metrics - Metrics Timeseries', () => {
+operator/frontend/__tests__/operator-endpoints.test.ts:187:            const response = await fetch(`${BASE_URL}/operator/api/v1/metrics?window_seconds=3600`, {
+operator/frontend/__tests__/operator-endpoints.test.ts:218:            const response = await fetch(`${BASE_URL}/operator/api/v1/metrics?module=redis`, {
+operator/frontend/__tests__/operator-endpoints.test.ts:228:    // TEST GROUP 3: /operator/api/v1/rails - Manifestator Rails + Lanes
+operator/frontend/__tests__/operator-endpoints.test.ts:231:    describe('GET /operator/api/v1/rails/lanes - Manifestator Lanes', () => {
+operator/frontend/__tests__/operator-endpoints.test.ts:263:            const response = await fetch(`${BASE_URL}/operator/api/v1/rails/lanes`, {
+operator/frontend/__tests__/operator-endpoints.test.ts:274:    describe('GET /operator/api/v1/rails - Rails Constraints', () => {
+operator/frontend/__tests__/operator-endpoints.test.ts:306:            const response = await fetch(`${BASE_URL}/operator/api/v1/rails`, {
+operator/frontend/__tests__/operator-endpoints.test.ts:316:    describe('GET /operator/api/v1/rails/{lane_id}/status - Lane Detail', () => {
+operator/frontend/__tests__/operator-endpoints.test.ts:337:            const response = await fetch(`${BASE_URL}/operator/api/v1/rails/lane_001_detect/status`, {
+operator/frontend/__tests__/operator-endpoints.test.ts:359:            const response = await fetch(`${BASE_URL}/operator/api/v1/rails/lane_nonexistent/status`, {
+operator/frontend/__tests__/operator-endpoints.test.ts:373:        it('should show degraded status when operator backend is OFF', async () => {
+operator/frontend/__tests__/operator-endpoints.test.ts:393:            const response = await fetch(`${BASE_URL}/operator/api/v1/chat/window/status`, {
+operator/frontend/__tests__/operator-endpoints.test.ts:430:            const response = await fetch(`${BASE_URL}/operator/api/v1/events`, {
+operator/frontend/__tests__/operator-endpoints.test.ts:472:            const response = await fetch(`${BASE_URL}/operator/api/v1/events?correlation_id=corr_chain_test`, {
+operator/frontend/__tests__/operator-endpoints.test.ts:500:            const response = await fetch(`${BASE_URL}/operator/api/v1/events`, {
+operator/frontend/__tests__/operator-endpoints.test.ts:513:                await fetch(`${BASE_URL}/operator/api/v1/events`, {
+operator/frontend/vite.config.ts:6:    base: '/operator/ui/',
+operator/frontend/vite.config.ts:11:            // Dev proxy: /operator/api/* routes to tentaculo_link:8000
+operator/frontend/vite.config.ts:12:            '^/operator/api': {
+operator/frontend/vite.config.ts:15:                rewrite: (path) => path, // Keep /operator/api intact; tentaculo_link handles it
+operator/frontend/README.md:62:- ✅ `/operator/chat/ask` (required)
+operator/frontend/README.md:63:- ✅ `/operator/status` (required)
+operator/frontend/README.md:64:- ✅ `/operator/power/state` (required)
+operator/frontend/README.md:116:- Check `/operator/chat/ask` endpoint (run P0 Checks)
+operator/frontend/package.json:2:    "name": "@vx11/operator-frontend",
+tentaculo_link/clients.py:213:            "operator-backend": settings.operator_url
+tentaculo_link/clients.py:214:            or f"http://operator-backend:{settings.operator_port}",
+tentaculo_link/clients.py:275:        source: str = "operator",
+tentaculo_link/clients.py:312:    async def route_to_operator(
+tentaculo_link/clients.py:316:        client = self.get_client("operator-backend")
+tentaculo_link/clients.py:318:            return {"error": "operator_backend_unavailable"}
+tentaculo_link/clients.py:319:        write_log("tentaculo_link", f"route_operator:{endpoint}")
+tentaculo_link/_legacy/inbox/MOVE_PLAN_20251216.md:54:│   ├── operator.py                 # /operator/chat, /operator/session
+tentaculo_link/_legacy/inbox/MOVE_PLAN_20251216.md:148:- [x] **Endpoints:** All working (/health, /vx11/status, /ws, /events/ingest, /operator/*)
+tentaculo_link/tests/test_p0_offline.py:42:        source: str = "operator",
+tentaculo_link/tests/test_p0_offline.py:85:        r = client.post("/operator/chat", json={"message": "hi"})
+tentaculo_link/tests/test_p0_offline.py:95:        r = client.post("/operator/task", json={})
+tentaculo_link/tests/test_p0_offline.py:105:        r = client.post("/operator/chat", json={"message": "hello"}, headers=headers)
+tentaculo_link/tests/test_p0_offline.py:116:        r = client.post("/operator/chat", json={"message": "hello"}, headers=headers)
+tentaculo_link/tests/test_p0_offline.py:132:        r = client.post("/operator/chat", json={"message": "hello"}, headers=headers)
+tentaculo_link/tests/test_p0_offline.py:164:            "/operator/chat",
+operator/frontend/src/App.tsx:39:            const eventsUrl = buildApiUrl('/operator/api/v1/events/stream')
+operator/frontend/src/views/CoDevView.tsx:39:            const resp = await apiClient.request('POST', '/operator/api/v1/assist/deepseek_r1', {
+operator/frontend/src/views/ChatView.tsx:65:            const resp = await apiClient.request('POST', '/operator/api/v1/chat/window/open', {
+operator/frontend/src/views/ChatView.tsx:69:                reason: 'operator_manual_10min',
+operator/frontend/src/views/ChatView.tsx:93:            const resp = await apiClient.request('POST', '/operator/api/v1/chat/window/close', {})
+tentaculo_link/db/events_metrics.py:43:    Log un evento a operator_events table.
+tentaculo_link/db/events_metrics.py:66:            INSERT INTO operator_events (event_id, ts, event_type, severity, module, correlation_id, summary, payload_json)
+tentaculo_link/db/events_metrics.py:97:    Log una métrica numérica a operator_metrics.
+tentaculo_link/db/events_metrics.py:118:            INSERT INTO operator_metrics (metric_id, ts, metric_name, value, module, dimensions_json)
+tentaculo_link/db/events_metrics.py:184:        count_sql = f"SELECT COUNT(*) as cnt FROM operator_events WHERE {where_clause}"
+tentaculo_link/db/events_metrics.py:191:            FROM operator_events
+tentaculo_link/db/events_metrics.py:271:            FROM operator_metrics
+tentaculo_link/db/events_metrics.py:318:            FROM operator_events
+tentaculo_link/db/events_metrics.py:366:            "DELETE FROM operator_events WHERE ts < datetime(?)",
+tentaculo_link/db/events_metrics.py:373:            "DELETE FROM operator_metrics WHERE ts < datetime(?)",
+tentaculo_link/tools/autosync.sh:15:BRANCH="${1:-feature/ui/operator-advanced}"
+tentaculo_link/systemd/vx11-autosync.service:11:ExecStart=/bin/bash -c '[ -f .autosync.lock ] && sleep 2 || /home/elkakas314/vx11/tentaculo_link/tools/autosync.sh feature/ui/operator-advanced'
+operator/frontend/src/services/api.ts:69:                    path.startsWith('/operator/api/v1')
+operator/frontend/src/services/api.ts:71:                    const legacyPath = path.replace('/operator/api/v1', '/operator/api')
+operator/frontend/src/services/api.ts:112:    // Chat endpoint (P0: via /operator/api/chat)
+operator/frontend/src/services/api.ts:114:        return this.request('POST', '/operator/api/v1/chat', {
+operator/frontend/src/services/api.ts:120:    // Status endpoint (P0: via /operator/api/status)
+operator/frontend/src/services/api.ts:122:        return this.request('GET', '/operator/api/v1/status')
+operator/frontend/src/services/api.ts:125:    // Modules endpoint (P0: via /operator/api/modules)
+operator/frontend/src/services/api.ts:127:        return this.request('GET', '/operator/api/v1/modules')
+operator/frontend/src/services/api.ts:132:        return this.request('GET', `/operator/api/v1/modules/${name}`)
+operator/frontend/src/services/api.ts:135:    // Events endpoint (P0: via /operator/api/events)
+operator/frontend/src/services/api.ts:137:        return this.request('GET', '/operator/api/v1/events')
+operator/frontend/src/services/api.ts:140:    // Scorecard endpoint (P0: via /operator/api/scorecard)
+operator/frontend/src/services/api.ts:142:        return this.request('GET', '/operator/api/v1/scorecard')
+operator/frontend/src/services/api.ts:145:    // Audit endpoint (P0: via /operator/api/audit)
+operator/frontend/src/services/api.ts:147:        return this.request('GET', '/operator/api/v1/audit')
+operator/frontend/src/services/api.ts:152:        return this.request('GET', `/operator/api/v1/audit/${id}`)
+operator/frontend/src/services/api.ts:157:        return this.request('GET', `/operator/api/v1/audit/${id}/download`)
+operator/frontend/src/services/api.ts:160:    // Settings endpoint (P0: via /operator/api/settings)
+operator/frontend/src/services/api.ts:162:        return this.request('GET', '/operator/api/v1/settings')
+operator/frontend/src/services/api.ts:167:        return this.request('POST', '/operator/api/v1/settings', settings)
+operator/frontend/src/services/api.ts:170:    // Topology endpoint (P0: via /operator/api/topology)
+operator/frontend/src/services/api.ts:172:        return this.request('GET', '/operator/api/v1/topology')
+operator/frontend/src/services/api.ts:177:        return this.request('GET', '/operator/api/v1/windows')
+operator/frontend/src/services/api.ts:182:        return this.request('GET', '/operator/api/v1/hormiguero/status', undefined, { timeout: 3000 })
+operator/frontend/src/components/WindowStatusBar.tsx:3: * operator/frontend/src/components/WindowStatusBar.tsx
+operator/frontend/src/components/OverviewPanel.tsx:3: * operator/frontend/src/components/OverviewPanel.tsx
+operator/frontend/src/components/OverviewPanel.tsx:32:                }>('GET', '/operator/api/v1/events?limit=1')
+operator/frontend/src/components/OverviewPanel.tsx:43:                    '/operator/api/v1/rails/lanes'
+operator/frontend/src/components/OverviewPanel.tsx:56:                        operator: true,
+operator/frontend/src/components/OverviewPanel.tsx:71:        { name: 'Operator', status: activeModules.operator, color: 'bg-purple-900' },
+operator/frontend/src/components/MetricsPanel.tsx:3: * operator/frontend/src/components/MetricsPanel.tsx
+operator/frontend/src/components/MetricsPanel.tsx:32:                    `/operator/api/v1/metrics?window_seconds=${windowSeconds}`
+operator/frontend/src/components/P0ChecksPanel.tsx:54:                            <span>/operator/api/v1/chat</span>
+operator/frontend/src/components/P0ChecksPanel.tsx:61:                            <span>/operator/api/v1/status</span>
+operator/frontend/src/components/P0ChecksPanel.tsx:68:                            <span>/operator/api/v1/windows</span>
+tentaculo_link/routes/settings.py:48:    GET /api/settings - Get all operator settings
+tentaculo_link/routes/settings.py:70:        cursor.execute("SELECT key, value_json FROM operator_settings")
+tentaculo_link/routes/settings.py:95:    POST /api/settings - Update operator settings
+tentaculo_link/routes/settings.py:127:                INSERT OR REPLACE INTO operator_settings (key, value_json, updated_at)
+tentaculo_link/routes/internal.py:1:"""Internal operator support routes for Tentáculo Link."""
+operator/frontend/src/components/RailsPanel.tsx:3: * operator/frontend/src/components/RailsPanel.tsx
+operator/frontend/src/components/RailsPanel.tsx:25:                    '/operator/api/v1/rails/lanes'
+operator/frontend/src/components/RailsPanel.tsx:33:                    '/operator/api/v1/rails'
+operator/frontend/src/components/EventsPanel.tsx:3: * operator/frontend/src/components/EventsPanel.tsx
+operator/frontend/src/components/EventsPanel.tsx:39:                `/operator/api/v1/events?${params}`
+operator/frontend/src/stores/index.ts:3: * operator/frontend/src/stores/index.ts

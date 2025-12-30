@@ -82,6 +82,9 @@ class VX11Settings(BaseSettings):
     operator_url: str = Field(
         default_factory=lambda: _resolve_docker_url("operator-backend", 8011)
     )
+    operator_api_proxy_enabled: bool = Field(
+        default=False, validation_alias="VX11_OPERATOR_API_PROXY_ENABLED"
+    )
 
     # ========== SEGURIDAD ==========
     api_token: str = Field(default="vx11-token-production")

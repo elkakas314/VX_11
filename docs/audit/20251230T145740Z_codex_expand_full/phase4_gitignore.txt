@@ -1,0 +1,86 @@
+node_modules
+node_modules
+operator/**/node_modules
+operator/**/dist
+__pycache__/
+*.pyc
+
+# Python envs / caches
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+
+# Local logs / artifacts
+*.log
+*.zip
+*.tar.gz
+.autosync.log
+
+# Secrets (never commit)
+tokens.env*
+.env
+.env.local
+.env.*.local
+.env.dev.local
+.env.production.local
+.env.deepseek
+.env.*
+secrets/*.env
+
+# VS Code / GitHub local-only backups (do not modify those dirs; just ignore noise)
+.vscode/*.bak
+.vscode/*.backup
+.github/*.zip
+.github/*.backup
+.github/*.bak
+.github/agents/_backup/
+.devcontainer/
+
+# Runtime DB + backups (SQLite)
+data/
+
+# Build and runtime artifacts
+build/
+models/
+forensic/
+
+# Audit runs (keep canonical schema/map + evidence trails)
+docs/audit/**
+!docs/audit/DB_MAP_v7_FINAL.md
+!docs/audit/DB_SCHEMA_v7_FINAL.json
+!docs/audit/DB_MAP_v7_META.txt
+!docs/audit/CLEANUP_EXCLUDES_CORE.txt
+!docs/audit/PERCENTAGES.json
+!docs/audit/SCORECARD.json
+!docs/audit/FASE6_EVIDENCE_INDEX.md
+!docs/audit/FASE7_CONCLUSIÓN_FINAL.md
+!docs/audit/DIAGNOSTIC_ASSESSMENT_20251222.md
+!docs/audit/OPERATOR_UI_COMPLETE_20251228/
+!docs/audit/OPERATOR_UI_COMPLETE_20251228/*.md
+!docs/audit/20251228_OPERATOR_UI_FINAL/
+!docs/audit/20251228_OPERATOR_UI_FINAL/*.md
+!docs/audit/20251228_SWITCH_HERMES_FIX/
+!docs/audit/20251228_SWITCH_HERMES_FIX/*.md
+!docs/audit/20251228_SWITCH_HERMES_FIX/*.sh
+
+# Public audit artifacts allowed for remote sync
+!docs/audit/_public/**
+
+# VX11 audit artifacts (must not live in repo root)
+*_openapi.json
+functional_flow_results.json
+
+# Local tooling backups
+.backups/
+.copilot-audit/
+.tmp/
+
+# VSCode workspace noise (repo policy: do not modify these dirs)
+.vscode/
+
+# Node lockfile (repo does not track it)
+package-lock.json
+
+# Local docker ignore (keep out of git status)
+.dockerignore

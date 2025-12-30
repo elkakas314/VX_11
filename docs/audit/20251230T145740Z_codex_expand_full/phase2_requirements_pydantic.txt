@@ -1,0 +1,4 @@
+requirements.txt:4:pydantic==2.4.2
+requirements.txt:5:pydantic-settings==2.0.3
+requirements_minimal.txt:4:pydantic==2.4.2
+requirements_minimal.txt:5:pydantic-settings==2.0.3

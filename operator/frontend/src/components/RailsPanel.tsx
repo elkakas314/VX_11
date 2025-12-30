@@ -22,7 +22,7 @@ export const RailsPanel: React.FC = () => {
                 // Fetch lanes
                 const lanesResp = await apiClient.request<{ lanes?: RailsLane[] }>(
                     'GET',
-                    '/operator/api/v1/rails/lanes'
+                    '/operator/api/rails/lanes'
                 )
                 if (!lanesResp.ok || !lanesResp.data) throw new Error(lanesResp.error || 'Failed to fetch lanes')
                 setLanes(lanesResp.data.lanes || [])
@@ -30,7 +30,7 @@ export const RailsPanel: React.FC = () => {
                 // Fetch rails
                 const railsResp = await apiClient.request<{ rails?: Rail[] }>(
                     'GET',
-                    '/operator/api/v1/rails'
+                    '/operator/api/rails'
                 )
                 if (!railsResp.ok || !railsResp.data) throw new Error(railsResp.error || 'Failed to fetch rails')
                 setRails(railsResp.data.rails || [])

@@ -1,0 +1,19 @@
+operator/backend/main.py:34:    "/app/logs/operator_backend_audit.jsonl",
+operator/backend/main.py:118:    correlation_id: str, service: str = "operator_backend"
+operator/backend/main.py:174:        write_log("operator_backend", f"audit_log_error:{exc}", level="WARNING")
+operator/backend/main.py:183:        write_log("operator_backend", f"json_read_error:{path}:{exc}", level="WARNING")
+operator/backend/main.py:196:        write_log("operator_backend", f"log_tail_error:{path}:{exc}", level="WARNING")
+operator/backend/main.py:279:        "service": "operator_backend",
+operator/backend/main.py:292:        "service": "operator_backend",
+operator/backend/main.py:342:    modules["operator_backend"] = {
+operator/backend/main.py:864:        runbook="Enable shub via Madre power window and configure SHUB_URL in operator_backend.",
+operator/backend/main.py:876:        runbook="Enable shub via Madre power window and configure SHUB_URL in operator_backend.",
+operator/backend/main.py:890:        runbook="Enable shub via Madre power window and configure SHUB_URL in operator_backend.",
+tentaculo_link/main_v7.py:247:                    "service": "operator_backend",
+tentaculo_link/main_v7.py:1992:        raise HTTPException(status_code=503, detail="operator_backend_unavailable")
+tentaculo_link/main_v7.py:2005:        raise HTTPException(status_code=503, detail="operator_backend_unavailable")
+tentaculo_link/main_v7.py:2012:# ============ OPERATOR API — P0 NATIVE ENDPOINTS (NO operator_backend dependency) ============
+tentaculo_link/main_v7.py:2019:    Does NOT call operator_backend (archived).
+tentaculo_link/main_v7.py:2039:            "operator_backend": {
+tentaculo_link/main_v7.py:2089:    modules["operator_backend"] = {
+tentaculo_link/clients.py:318:            return {"error": "operator_backend_unavailable"}

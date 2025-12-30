@@ -1,0 +1,106 @@
+        "status": "ARCHIVED",
+        "port": 8011,
+        "reason": "Operator API migrated to tentaculo_link:/operator/*",
+        "category": "archived",
+    }
+
+    return {"modules": modules}
+
+
+@app.post("/operator/api/chat", tags=["operator-api-p0"])
+async def operator_api_chat(
+    req: OperatorChatRequest,
+    x_correlation_id: Optional[str] = Header(None),
+    _: bool = Depends(token_guard),
+):
+    """
+    P12: Chat endpoint — SWITCH-ONLY (no DeepSeek by default).
+
+    Guardrails:
+    - Rate limit: 10 requests/min per session_id
+    - Message cap: 4000 characters max
+    - Cache: 60s TTL by (session_id + message_hash)
+    - Timeout: 6s for switch, 2s for local LLM fallback
+    - Correlation_id: optional header, echoed in response (PHASE 3)
+
+    Flow (P12):
+    1. Check rate limit (return 429 if exceeded).
+    2. Validate message length (return 413 if > 4000 chars).
+    3. Check cache (return cached if hit).
+    4. Try Switch (timeout 6s) → if success, return with fallback_source="switch_cli_copilot"
+    5. If Switch fails:
+       a. If VX11_CHAT_ALLOW_DEEPSEEK=1 (laboratory only): try DeepSeek (15s timeout)
+       b. Otherwise: use Local LLM degraded (2s timeout, no DeepSeek)
+    6. If all fail: return degraded response with fallback_source="local_llm_degraded"
+
+    Metadata:
+    - fallback_source: "switch_cli_copilot" | "local_llm_degraded" | "deepseek_api" (lab only)
+    - model: name of model/provider used
+    - degraded: boolean flag
+    - correlation_id: echoed back for traceability
+    """
+    import os
+
+    # Generate or use provided correlation_id
+    correlation_id = x_correlation_id or str(uuid.uuid4())
+
+    session_id = req.session_id or f"session_{int(time.time())}"
+    message_id = f"msg_{uuid.uuid4().hex[:8]}"
+
+    # P12 flag: Allow DeepSeek only in laboratory (explicit opt-in)
+    allow_deepseek = os.environ.get("VX11_CHAT_ALLOW_DEEPSEEK", "0") == "1"
+
+    # Rate Limiting (10 req/min per session_id)
+    rate_limiter = get_rate_limiter()
+    limiter_key = f"operator_chat:{session_id}"
+
+    if rate_limiter:
+        try:
+            is_allowed = await rate_limiter.is_allowed(
+                limiter_key, max_requests=10, window_seconds=60
+            )
+            if not is_allowed:
+                write_log(
+                    "tentaculo_link",
+                    f"chat_rate_limit_exceeded:session={session_id}",
+                    level="WARNING",
+                )
+                return JSONResponse(
+                    status_code=429,
+                    content={
+                        "error": "Rate limit exceeded (10 requests/minute)",
+                        "retry_after": 60,
+                        "session_id": session_id,
+                    },
+                )
+        except Exception as e:
+            write_log(
+                "tentaculo_link", f"chat_rate_limiter_error:{str(e)}", level="WARNING"
+            )
+
+    # Message Size Cap (4000 chars max)
+    if len(req.message) > 4000:
+        write_log(
+            "tentaculo_link",
+            f"chat_message_too_long:len={len(req.message)}:session={session_id}",
+            level="WARNING",
+        )
+        return JSONResponse(
+            status_code=413,
+            content={
+                "error": "Message too long (max 4000 characters)",
+                "message_length": len(req.message),
+                "session_id": session_id,
+            },
+        )
+
+    # Check Cache (60s TTL)
+    cache = get_cache()
+    message_hash = hash(req.message) & 0xFFFFFFFF
+    cache_key = f"operator_chat_cache:{session_id}:{message_hash}"
+
+    if cache:
+        try:
+            cached_response = await cache.get(cache_key)
+            if cached_response:
+                write_log(

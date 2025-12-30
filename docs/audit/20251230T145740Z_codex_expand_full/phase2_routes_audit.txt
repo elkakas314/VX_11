@@ -1,0 +1,220 @@
+"""
+VX11 Operator Routes: Audit Runs
+tentaculo_link/routes/audit.py
+
+Endpoints: GET /api/audit/runs, GET /api/audit/{id}, GET /api/audit/{id}/download
+"""
+
+from typing import Optional
+from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi.responses import FileResponse, StreamingResponse
+import os
+import json
+import sqlite3
+from pathlib import Path
+import zipfile
+import io
+
+router = APIRouter(prefix="/api", tags=["audit"])
+
+
+def check_auth(x_vx11_token: Optional[str] = Header(None)) -> bool:
+    if not os.environ.get("ENABLE_AUTH", "true").lower() in ("true", "1"):
+        return True
+    required_token = os.environ.get("VX11_TENTACULO_LINK_TOKEN", "")
+    if not x_vx11_token:
+        raise HTTPException(status_code=401, detail="auth_required")
+    if x_vx11_token != required_token:
+        raise HTTPException(status_code=403, detail="forbidden")
+    return True
+
+
+def get_db() -> sqlite3.Connection:
+    repo_root = Path(os.environ.get("VX11_REPO_ROOT", "/home/elkakas314/vx11"))
+    db_path = repo_root / "data" / "runtime" / "vx11.db"
+    conn = sqlite3.connect(str(db_path), timeout=5.0)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+
+@router.get("/audit/runs")
+async def get_audit_runs(
+    limit: int = 20,
+    offset: int = 0,
+    status: Optional[str] = None,
+    auth: bool = Depends(check_auth),
+):
+    """
+    GET /api/audit/runs - List audit runs
+
+    Query Parameters:
+    - limit: Max results (default 20)
+    - offset: Pagination offset
+    - status: Filter by status (draft|approved|applied|rolled_back)
+
+    Response:
+    {
+      "runs": [
+        {
+          "audit_id": "string",
+          "run_ts": "2025-12-29T...",
+          "status": "draft|approved|applied|rolled_back",
+          "correlation_id": "string|null",
+          "summary": "Brief description",
+          "p0_count": 0
+        }
+      ],
+      "total": 42,
+      "has_more": true
+    }
+    """
+
+    if not os.environ.get("VX11_AUDIT_ENABLED", "false").lower() in ("true", "1"):
+        return {
+            "error": "feature_disabled",
+            "flag": "VX11_AUDIT_ENABLED",
+            "runs": [],
+            "total": 0,
+            "has_more": False,
+        }
+
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+
+        where_clause = ""
+        params = []
+        if status:
+            where_clause = "WHERE status = ?"
+            params = [status]
+
+        # Count total
+        cursor.execute(
+            f"SELECT COUNT(*) as cnt FROM manifestator_audit {where_clause}", params
+        )
+        total = cursor.fetchone()["cnt"]
+
+        # Fetch with pagination
+        cursor.execute(
+            f"""
+            SELECT audit_id, run_ts, status, correlation_id, 
+                   COALESCE(patch_plan_json, '{{}}') as patch_plan, evidence_paths_json
+            FROM manifestator_audit
+            {where_clause}
+            ORDER BY run_ts DESC
+            LIMIT ? OFFSET ?
+            """,
+            params + [limit, offset],
+        )
+        rows = cursor.fetchall()
+        conn.close()
+
+        runs = []
+        for row in rows:
+            try:
+                patch = json.loads(row["patch_plan"] or "{}")
+                summary = patch.get("summary", "Audit run")
+            except:
+                summary = "Audit run"
+
+            runs.append(
+                {
+                    "audit_id": row["audit_id"],
+                    "run_ts": row["run_ts"],
+                    "status": row["status"],
+                    "correlation_id": row["correlation_id"],
+                    "summary": summary,
+                    "p0_count": 0,  # Placeholder; calcular si es necesario
+                }
+            )
+
+        return {
+            "runs": runs,
+            "total": total,
+            "has_more": (offset + limit) < total,
+        }
+    except Exception as e:
+        return {
+            "error": str(e),
+            "runs": [],
+            "total": 0,
+            "has_more": False,
+        }
+
+
+@router.get("/audit/{audit_id}")
+async def get_audit_detail(
+    audit_id: str,
+    auth: bool = Depends(check_auth),
+):
+    """
+    GET /api/audit/{audit_id} - Get audit run details
+
+    Response:
+    {
+      "audit_id": "string",
+      "run_ts": "2025-12-29T...",
+      "status": "string",
+      "findings": [
+        {
+          "severity": "P0|P1|P2",
+          "title": "string",
+          "detail": "string",
+          "evidence_paths": ["string"]
+        }
+      ],
+      "artifacts": ["path/to/file1", "path/to/file2"]
+    }
+    """
+
+    if not os.environ.get("VX11_AUDIT_ENABLED", "false").lower() in ("true", "1"):
+        raise HTTPException(status_code=503, detail="feature_disabled")
+
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            SELECT audit_id, run_ts, status, patch_plan_json, evidence_paths_json
+            FROM manifestator_audit
+            WHERE audit_id = ?
+            """,
+            (audit_id,),
+        )
+        row = cursor.fetchone()
+        conn.close()
+
+        if not row:
+            raise HTTPException(status_code=404, detail="audit_not_found")
+
+        try:
+            patch_plan = json.loads(row["patch_plan_json"] or "{}")
+            findings = patch_plan.get("findings", [])
+        except:
+            findings = []
+
+        try:
+            evidence_paths = json.loads(row["evidence_paths_json"] or "[]")
+        except:
+            evidence_paths = []
+
+        return {
+            "audit_id": row["audit_id"],
+            "run_ts": row["run_ts"],
+            "status": row["status"],
+            "findings": findings,
+            "artifacts": evidence_paths,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/audit/{audit_id}/download")
+async def download_audit(
+    audit_id: str,
+    auth: bool = Depends(check_auth),
+):
+    """
+    GET /api/audit/{audit_id}/download - Download audit artifacts as ZIP

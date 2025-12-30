@@ -1,0 +1,3 @@
+42:    operator_port: int = 8011
+82:    operator_url: str = Field(
+83:        default_factory=lambda: _resolve_docker_url("operator-backend", 8011)

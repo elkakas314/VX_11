@@ -36,7 +36,7 @@ export function CoDevView() {
         setResponse(null)
 
         try {
-            const resp = await apiClient.request('POST', '/operator/api/v1/assist/deepseek_r1', {
+            const resp = await apiClient.request('POST', '/operator/api/assist/deepseek_r1', {
                 purpose,
                 prompt,
                 temperature: 1.0,

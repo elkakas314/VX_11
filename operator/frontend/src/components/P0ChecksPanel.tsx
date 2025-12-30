@@ -51,21 +51,21 @@ export function P0ChecksPanel() {
                             <span className={results.chat_ask ? 'check-pass' : 'check-fail'}>
                                 {results.chat_ask ? '✓' : '✗'}
                             </span>
-                            <span>/operator/api/v1/chat</span>
+                            <span>/operator/api/chat</span>
                         </div>
 
                         <div className="check-result">
                             <span className={results.status ? 'check-pass' : 'check-fail'}>
                                 {results.status ? '✓' : '✗'}
                             </span>
-                            <span>/operator/api/v1/status</span>
+                            <span>/operator/api/status</span>
                         </div>
 
                         <div className="check-result">
                             <span className={results.windows ? 'check-pass' : 'check-fail'}>
                                 {results.windows ? '✓' : '✗'}
                             </span>
-                            <span>/operator/api/v1/windows</span>
+                            <span>/operator/api/window/status</span>
                         </div>
 
                         <div className="check-result">

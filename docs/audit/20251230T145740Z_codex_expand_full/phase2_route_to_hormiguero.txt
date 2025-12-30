@@ -1,0 +1,56 @@
+        return await client.post(endpoint, payload)
+
+    async def route_to_shub(
+        self, endpoint: str, payload: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Route to Shubniggurath."""
+        client = self.get_client("shub")
+        if not client:
+            return {"error": "shub_unavailable"}
+        write_log("tentaculo_link", f"route_shub:{endpoint}")
+        return await client.post(endpoint, payload)
+
+    async def route_to_madre(
+        self, endpoint: str, payload: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Route to Madre."""
+        client = self.get_client("madre")
+        if not client:
+            return {"error": "madre_unavailable"}
+        write_log("tentaculo_link", f"route_madre:{endpoint}")
+        return await client.post(endpoint, payload)
+
+    async def route_to_spawner(
+        self, endpoint: str, payload: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Route to Spawner."""
+        client = self.get_client("spawner")
+        if not client:
+            return {"error": "spawner_unavailable"}
+        write_log("tentaculo_link", f"route_spawner:{endpoint}")
+        return await client.post(endpoint, payload)
+
+    async def route_to_hormiguero(
+        self, endpoint: str, payload: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """Route to Hormiguero."""
+        client = self.get_client("hormiguero")
+        if not client:
+            return {"error": "hormiguero_unavailable"}
+        write_log("tentaculo_link", f"route_hormiguero:{endpoint}")
+        if payload:
+            return await client.post(endpoint, payload)
+        else:
+            return await client.get(endpoint)
+
+
+# Global singleton
+_clients: Optional[VX11Clients] = None
+
+
+def get_clients() -> VX11Clients:
+    """Get or create global clients instance."""
+    global _clients
+    if _clients is None:
+        _clients = VX11Clients()
+    return _clients

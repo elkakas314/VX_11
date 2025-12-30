@@ -13,6 +13,7 @@ from . import rails
 from . import window
 from . import internal
 from . import hormiguero
+from . import switch
 
 __all__ = [
     "events",
@@ -23,4 +24,5 @@ __all__ = [
     "window",
     "internal",
     "hormiguero",
+    "switch",
 ]

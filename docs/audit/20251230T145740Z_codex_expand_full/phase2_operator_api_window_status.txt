@@ -1,0 +1,56 @@
+    except Exception as e:
+        write_log(
+            "tentaculo_link",
+            f"powerwindow_close_exception:{type(e).__name__}:{str(e)[:100]}",
+            level="ERROR",
+        )
+        return JSONResponse(
+            status_code=500,
+            content={
+                "status": "error",
+                "error_code": "internal_error",
+                "error_msg": "Internal server error",
+            },
+        )
+
+
+@app.get("/operator/api/chat/window/status", tags=["operator-api-powerwindows"])
+async def operator_api_chat_window_status(_: bool = Depends(token_guard)):
+    """
+    FASE 3: Get active Power Window status.
+
+    Returns current window state if any, or status=none.
+
+    Returns:
+    {
+        "status": "open" | "none" | "error",
+        "window_id": uuid (if open),
+        "created_at": ISO8601,
+        "deadline": ISO8601,
+        "ttl_remaining_sec": int,
+        "active_services": [...],
+    }
+    """
+    try:
+        clients = get_clients()
+        madre_client = clients.get_client("madre")
+
+        if not madre_client:
+            return JSONResponse(
+                status_code=503,
+                content={
+                    "status": "error",
+                    "error_code": "madre_unavailable",
+                },
+            )
+
+        result = await madre_client.get(
+            "/power/state",
+            timeout=5.0,
+        )
+
+        if result:
+            return result
+        else:
+            # No active window
+            return {
