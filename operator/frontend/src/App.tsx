@@ -5,6 +5,7 @@ import { AuditView } from './views/AuditView'
 import { SettingsView } from './views/SettingsView'
 import { ModulesView } from './views/ModulesView'
 import { HormigueroView } from './views/HormigueroView'
+import { SpawnerView } from './views/SpawnerView'
 import { LeftRail } from './components/LeftRail'
 import { RightDrawer } from './components/RightDrawer'
 import { DegradedModeBanner } from './components/DegradedModeBanner'
@@ -13,7 +14,16 @@ import { apiClient, API_BASE, buildApiUrl } from './services/api'
 import { useEventsStore, useWindowStatusStore } from './stores'
 import './App.css'
 
-type TabName = 'overview' | 'chat' | 'modules' | 'hormiguero' | 'audit' | 'settings'
+type TabName =
+    | 'overview'
+    | 'chat'
+    | 'modules'
+    | 'topology'
+    | 'hormiguero'
+    | 'jobs'
+    | 'spawner'
+    | 'audit'
+    | 'settings'
 
 export default function App() {
     const [activeTab, setActiveTab] = useState<TabName>('overview')
@@ -121,12 +131,29 @@ export default function App() {
                         🧭 Modules
                     </button>
                     <button
+                        className={`tab ${activeTab === 'topology' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('topology')}
+                    >
+                        🗺️ Topology
+                    </button>
+                    <button
                         className={`tab ${activeTab === 'hormiguero' ? 'active' : ''}`}
                         onClick={() => setActiveTab('hormiguero')}
                     >
                         🐜 Hormiguero
                     </button>
                     <button
+                        className={`tab ${activeTab === 'jobs' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('jobs')}
+                    >
+                        ⚙️ Jobs
+                    </button>
+                    <button
+                        className={`tab ${activeTab === 'spawner' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('spawner')}
+                    >
+                        🧬 Spawner
+                    </button>
                         className={`tab ${activeTab === 'audit' ? 'active' : ''}`}
                         onClick={() => setActiveTab('audit')}
                     >
@@ -148,19 +175,32 @@ export default function App() {
                     {activeTab === 'overview' && <OverviewView />}
                     {activeTab === 'chat' && <ChatView />}
                     {activeTab === 'modules' && <ModulesView />}
+                    {activeTab === 'topology' && (
+                        <div className="view-stub">
+                            <h2>Topology (P1)</h2>
+                            <p>React Flow topology visualization — coming soon</p>
+                        </div>
+                    )}
                     {activeTab === 'hormiguero' && <HormigueroView />}
-                    {activeTab === 'audit' && <AuditView />}
-                    {activeTab === 'settings' && <SettingsView />}
-                </main>
+                    {activeTab === 'jobs' && (
+                        <div className="view-stub">
+                            <h2>Jobs (P1)</h2>
+                            <p>Background jobs and task board — coming soon</p>
+                        </div>
+                    )}
+                    {activeTab === 'spawner' && <SpawnerView />}
+    { activeTab === 'audit' && <AuditView /> }
+    { activeTab === 'settings' && <SettingsView /> }
+                </main >
 
-                <RightDrawer activeTab={String(activeTab)} open={true} />
-            </div>
+        <RightDrawer activeTab={String(activeTab)} open={true} />
+            </div >
 
             <footer className="app-footer">
                 <small>Operator UI • Read-only • Consumes tentaculo_link:8000 only • P0 Complete</small>
             </footer>
 
             <DebugDrawer data={debugData} title="Environment" />
-        </div>
+        </div >
     )
 }

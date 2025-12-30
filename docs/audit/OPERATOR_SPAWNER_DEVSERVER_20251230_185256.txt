@@ -1,0 +1,9 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> @vx11/operator-frontend@7.0.0 dev
+> vite --host 0.0.0.0 --port 4173
+
+VITE v5.4.21  ready in 409 ms
+
+Local:   http://localhost:4173/operator/ui/
+Network: http://172.31.0.226:4173/operator/ui/

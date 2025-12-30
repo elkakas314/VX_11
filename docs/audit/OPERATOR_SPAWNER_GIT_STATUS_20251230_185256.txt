@@ -1,0 +1,15 @@
+## work
+A  docs/audit/OPERATOR_SPAWNER_CLOSURE_20251230_185256.md
+A  docs/audit/OPERATOR_SPAWNER_DEVSERVER_20251230_185256.txt
+A  docs/audit/OPERATOR_SPAWNER_GIT_ADD_WARN_20251230_185256.txt
+AM docs/audit/OPERATOR_SPAWNER_GIT_STATUS_20251230_185256.txt
+A  docs/audit/OPERATOR_SPAWNER_PHASE0_COMMANDS_20251230_185256.txt
+M  operator/backend/main.py
+M  operator/frontend/src/App.css
+M  operator/frontend/src/App.tsx
+M  operator/frontend/src/services/api.ts
+A  operator/frontend/src/views/SpawnerView.tsx
+M  spawner/main.py
+M  tentaculo_link/main_v7.py
+M  tentaculo_link/routes/__init__.py
+A  tentaculo_link/routes/spawner.py
