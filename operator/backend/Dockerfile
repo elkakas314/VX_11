@@ -32,7 +32,7 @@ RUN mkdir -p /app/logs /app/data/runtime
 
 ENV PATH=/root/.local/bin:$PATH
 
-CMD ["python", "-m", "uvicorn", "operator.backend.main:app", "--host", "0.0.0.0", "--port", "8011"]
+CMD ["python", "/app/operator/backend/uvicorn_entry.py"]
 
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
-    CMD curl -fsS http://localhost:8011/operator/api/health || exit 1
+    CMD curl -fsS http://localhost:8011/health || exit 1
