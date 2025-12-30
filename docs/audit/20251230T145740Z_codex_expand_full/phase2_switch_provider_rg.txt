@@ -1,0 +1,462 @@
+switch/cli_concentrator/__init__.py:3:Manages CLI providers, prioritization, scoring, and execution.
+switch/cli_concentrator/scoring.py:2:Scoring engine for CLI providers.
+switch/cli_concentrator/scoring.py:16:    """Scores CLI providers based on multiple factors."""
+switch/cli_concentrator/scoring.py:24:    def score_provider(
+switch/cli_concentrator/scoring.py:26:        provider: ProviderConfig,
+switch/cli_concentrator/scoring.py:31:        Score a provider (0-100, higher = better).
+switch/cli_concentrator/scoring.py:37:            "provider_id": provider.provider_id,
+switch/cli_concentrator/scoring.py:42:        priority_score = max(0, 100 - provider.priority)
+switch/cli_concentrator/scoring.py:46:        if not self.breaker.is_available(provider.provider_id):
+switch/cli_concentrator/scoring.py:52:        auth_score = 100.0 if provider.auth_state == "ok" else 0.0
+switch/cli_concentrator/scoring.py:59:        if provider.quota_daily > 0 and provider.quota_daily < 100:
+switch/cli_concentrator/scoring.py:60:            quota_score = (provider.quota_daily / 100.0) * 100
+switch/cli_concentrator/scoring.py:66:            fluzo_score = self._apply_fluzo_multiplier(fluzo_data, provider, request)
+switch/cli_concentrator/scoring.py:90:        self, fluzo_data: Dict, provider: ProviderConfig, request: CLIRequest
+switch/cli_concentrator/scoring.py:97:            cost_penalty = 0.7 if provider.kind != "copilot_cli" else 0.9
+switch/cli_concentrator/scoring.py:107:    def select_best_provider(
+switch/cli_concentrator/scoring.py:113:        Select best provider for request.
+switch/cli_concentrator/scoring.py:116:            (provider, scoring_debug)
+switch/cli_concentrator/scoring.py:120:            "selected_provider": None,
+switch/cli_concentrator/scoring.py:124:        candidates = self.registry.list_providers()
+switch/cli_concentrator/scoring.py:130:        for provider in candidates:
+switch/cli_concentrator/scoring.py:131:            score, score_debug = self.score_provider(provider, request, fluzo_data)
+switch/cli_concentrator/scoring.py:132:            scores.append((provider, score, score_debug))
+switch/cli_concentrator/scoring.py:135:                    "provider_id": provider.provider_id,
+switch/cli_concentrator/scoring.py:144:        # If provider_preference specified, try that first
+switch/cli_concentrator/scoring.py:145:        if request.provider_preference:
+switch/cli_concentrator/scoring.py:146:            for provider, score, _ in scores:
+switch/cli_concentrator/scoring.py:147:                if provider.provider_id == request.provider_preference:
+switch/cli_concentrator/scoring.py:148:                    debug["selected_provider"] = provider.provider_id
+switch/cli_concentrator/scoring.py:150:                    return provider, debug
+switch/cli_concentrator/scoring.py:154:            best_provider = scores[0][0]
+switch/cli_concentrator/scoring.py:155:            debug["selected_provider"] = best_provider.provider_id
+switch/cli_concentrator/scoring.py:157:            return best_provider, debug
+switch/cli_concentrator/registry.py:2:Registry of available CLI providers.
+switch/cli_concentrator/registry.py:17:    """Manages available CLI providers."""
+switch/cli_concentrator/registry.py:22:        self.providers: Dict[str, ProviderConfig] = {}
+switch/cli_concentrator/registry.py:23:        self._load_providers()
+switch/cli_concentrator/registry.py:25:    def _load_providers(self):
+switch/cli_concentrator/registry.py:26:        """Load providers from environment and (optionally) DB."""
+switch/cli_concentrator/registry.py:27:        # Default builtin providers
+switch/cli_concentrator/registry.py:34:                provider_id="copilot_cli",
+switch/cli_concentrator/registry.py:44:                provider_id="generic_shell",
+switch/cli_concentrator/registry.py:58:                db_providers = self.db_session.query(CLIProviderModel).filter_by(enabled=True).all()
+switch/cli_concentrator/registry.py:59:                for db_p in db_providers:
+switch/cli_concentrator/registry.py:62:                            provider_id=db_p.name,
+switch/cli_concentrator/registry.py:73:        self.providers = builtin
+switch/cli_concentrator/registry.py:142:    def get_provider(self, provider_id: str) -> Optional[ProviderConfig]:
+switch/cli_concentrator/registry.py:143:        """Get a single provider by ID."""
+switch/cli_concentrator/registry.py:144:        return self.providers.get(provider_id)
+switch/cli_concentrator/registry.py:146:    def list_providers(self, filter_tags: List[str] = None) -> List[ProviderConfig]:
+switch/cli_concentrator/registry.py:147:        """List providers, optionally filtered by tags."""
+switch/cli_concentrator/registry.py:148:        providers = list(self.providers.values())
+switch/cli_concentrator/registry.py:150:            providers = [p for p in providers if any(tag in p.tags for tag in filter_tags)]
+switch/cli_concentrator/registry.py:151:        return sorted(providers, key=lambda p: p.priority)
+switch/cli_concentrator/registry.py:154:        """Get all enabled providers sorted by priority (ascending)."""
+switch/cli_concentrator/registry.py:156:            [p for p in self.providers.values() if p.enabled],
+switch/cli_concentrator/README.md:5:The CLI Concentrator is the brain of provider selection in Switch. It:
+switch/cli_concentrator/README.md:6:- Manages available CLI providers (Copilot CLI, shell, APIs, etc.)
+switch/cli_concentrator/README.md:13:- **registry.py**: Loads providers from environment and database
+switch/cli_concentrator/README.md:14:- **scoring.py**: Scores providers using weighted factors
+switch/cli_concentrator/README.md:18:- **providers/**: Individual provider implementations (Copilot CLI, generic shell)
+switch/cli_concentrator/README.md:29:VX11_MOCK_PROVIDERS=1               # Force provider mocks (tests/manual)
+switch/cli_concentrator/README.md:30:VX11_TESTING_MODE=1                 # Treat provider exec as test-safe
+switch/cli_concentrator/README.md:61:# Select best provider
+switch/cli_concentrator/README.md:62:provider, scoring_debug = scorer.select_best_provider(request, fluzo_data)
+switch/cli_concentrator/README.md:64:if provider:
+switch/cli_concentrator/README.md:66:    result = executor.execute(provider, request.prompt)
+switch/cli_concentrator/README.md:67:    breaker.record_success(provider.provider_id) if result["success"] else breaker.record_failure(provider.provider_id)
+switch/cli_concentrator/README.md:81:- provider_preference: optional str
+switch/cli_concentrator/README.md:86:- provider_id: str
+switch/cli_concentrator/executor.py:2:Executor for CLI providers.
+switch/cli_concentrator/executor.py:24:        provider: ProviderConfig,
+switch/cli_concentrator/executor.py:44:            cmd = shlex.split(provider.command or "")
+switch/cli_concentrator/schemas.py:11:    """Configuration for a CLI provider."""
+switch/cli_concentrator/schemas.py:13:    provider_id: str
+switch/cli_concentrator/schemas.py:36:    provider_preference: Optional[str] = None  # Preferred provider (can be overridden)
+switch/cli_concentrator/schemas.py:46:    provider_id: str
+switch/cli_concentrator/schemas.py:60:    provider_id: str
+switch/cli_concentrator/schemas.py:75:    provider_id: str
+switch/cli_concentrator/providers/generic_shell_cli.py:2:Generic shell CLI provider wrapper (template).
+switch/cli_concentrator/providers/generic_shell_cli.py:10:    """Template for generic CLI provider."""
+switch/cli_concentrator/providers/generic_shell_cli.py:13:        """Initialize provider."""
+switch/cli_concentrator/providers/generic_shell_cli.py:17:        """Check if provider is available."""
+switch/cli_concentrator/providers/copilot_cli.py:2:Copilot CLI provider wrapper (real exec with test-safe mock).
+switch/cli_concentrator/providers/copilot_cli.py:18:    """Wrapper for Copilot CLI provider."""
+switch/cli_concentrator/providers/copilot_cli.py:21:        """Initialize provider."""
+switch/cli_concentrator/providers/copilot_cli.py:25:        """Check if provider is available."""
+switch/cli_concentrator/providers/copilot_cli.py:66:                "engine": self.config.provider_id,
+switch/cli_concentrator/providers/copilot_cli.py:82:                "engine": self.config.provider_id,
+switch/cli_concentrator/providers/copilot_cli.py:95:                "engine": self.config.provider_id,
+switch/cli_concentrator/providers/copilot_cli.py:119:                    "engine": self.config.provider_id,
+switch/cli_concentrator/providers/copilot_cli.py:129:                "engine": self.config.provider_id,
+switch/cli_concentrator/providers/copilot_cli.py:141:                "engine": self.config.provider_id,
+switch/cli_concentrator/providers/copilot_cli.py:153:                "engine": self.config.provider_id,
+switch/cli_concentrator/breaker.py:2:Circuit breaker for CLI providers.
+switch/cli_concentrator/breaker.py:20:    """Simple circuit breaker for CLI providers."""
+switch/cli_concentrator/breaker.py:28:    def _ensure_state(self, provider_id: str):
+switch/cli_concentrator/breaker.py:29:        """Ensure provider has a state entry."""
+switch/cli_concentrator/breaker.py:30:        if provider_id not in self.states:
+switch/cli_concentrator/breaker.py:31:            self.states[provider_id] = {
+switch/cli_concentrator/breaker.py:38:    def record_success(self, provider_id: str):
+switch/cli_concentrator/breaker.py:40:        self._ensure_state(provider_id)
+switch/cli_concentrator/breaker.py:41:        self.states[provider_id]["failure_count"] = 0
+switch/cli_concentrator/breaker.py:42:        self.states[provider_id]["state"] = CircuitBreakerState.CLOSED
+switch/cli_concentrator/breaker.py:44:    def record_failure(self, provider_id: str):
+switch/cli_concentrator/breaker.py:46:        self._ensure_state(provider_id)
+switch/cli_concentrator/breaker.py:47:        self.states[provider_id]["failure_count"] += 1
+switch/cli_concentrator/breaker.py:48:        self.states[provider_id]["last_failure_at"] = datetime.utcnow()
+switch/cli_concentrator/breaker.py:50:        if self.states[provider_id]["failure_count"] >= self.failure_threshold:
+switch/cli_concentrator/breaker.py:51:            self.states[provider_id]["state"] = CircuitBreakerState.OPEN
+switch/cli_concentrator/breaker.py:52:            self.states[provider_id]["opened_at"] = datetime.utcnow()
+switch/cli_concentrator/breaker.py:54:    def is_available(self, provider_id: str) -> bool:
+switch/cli_concentrator/breaker.py:55:        """Check if provider is available."""
+switch/cli_concentrator/breaker.py:56:        self._ensure_state(provider_id)
+switch/cli_concentrator/breaker.py:57:        state_info = self.states[provider_id]
+switch/cli_concentrator/breaker.py:78:    def get_state(self, provider_id: str) -> str:
+switch/cli_concentrator/breaker.py:80:        self._ensure_state(provider_id)
+switch/cli_concentrator/breaker.py:81:        return self.states[provider_id]["state"].value
+switch/main.py:52:from switch.cli_concentrator.providers import CopilotCLIProvider
+switch/main.py:95:        "preferred_providers": ["local"],
+switch/main.py:103:        "preferred_providers": ["local", "cli"],
+switch/main.py:111:        "preferred_providers": ["cli", "local"],
+switch/main.py:119:        "preferred_providers": ["cli"],
+switch/main.py:489:    def allow(self, provider: str) -> bool:
+switch/main.py:491:            provider, {"state": "CLOSED", "failures": 0, "opened_at": 0}
+switch/main.py:496:                self.state[provider] = info
+switch/main.py:501:    def record_success(self, provider: str):
+switch/main.py:503:            provider, {"state": "CLOSED", "failures": 0, "opened_at": 0}
+switch/main.py:508:        self.state[provider] = info
+switch/main.py:510:    def record_failure(self, provider: str):
+switch/main.py:512:            provider, {"state": "CLOSED", "failures": 0, "opened_at": 0}
+switch/main.py:518:        self.state[provider] = info
+switch/main.py:552:            CREATE TABLE IF NOT EXISTS chat_providers_stats (
+switch/main.py:553:                provider TEXT PRIMARY KEY,
+switch/main.py:568:def _update_chat_stats(provider: str, success: bool, latency_ms: float):
+switch/main.py:573:            "SELECT success_count, fail_count, avg_latency_ms FROM chat_providers_stats WHERE provider=?",
+switch/main.py:574:            (provider,),
+switch/main.py:585:            "INSERT OR REPLACE INTO chat_providers_stats (provider, success_count, fail_count, avg_latency_ms) VALUES (?, ?, ?, ?)",
+switch/main.py:586:            (provider, succ, fail, new_avg),
+switch/main.py:590:        write_log("switch", f"chat_stats_error:{provider}:{exc}", level="WARNING")
+switch/main.py:598:def _get_chat_stats(provider: str) -> Dict[str, Any]:
+switch/main.py:603:            "SELECT success_count, fail_count, avg_latency_ms FROM chat_providers_stats WHERE provider=?",
+switch/main.py:604:            (provider,),
+switch/main.py:799:@app.get("/switch/providers")
+switch/main.py:800:async def switch_providers_list():
+switch/main.py:801:    """Return list of providers: CLI + local + remote with key fields."""
+switch/main.py:824:    return {"status": "ok", "providers": cli_list + local_list}
+switch/main.py:876:@app.post("/switch/debug/select-provider")
+switch/main.py:877:async def debug_select_provider(req: RouteRequest):
+switch/main.py:880:        provider = await _pick_provider(req)
+switch/main.py:881:        score = _score_provider(provider) if provider else None
+switch/main.py:882:        return {"provider": provider, "score": score}
+switch/main.py:884:        write_log("switch", f"debug_select_provider_error:{e}", level="ERROR")
+switch/main.py:1098:def _throttle(provider: str) -> bool:
+switch/main.py:1100:    limit = throttle_limits.get(provider, 10)
+switch/main.py:1101:    window = throttle_state.setdefault(provider, [])
+switch/main.py:1104:    throttle_state[provider] = window
+switch/main.py:1108:    throttle_state[provider] = window
+switch/main.py:1112:def _peek_throttle_state(provider: str) -> float:
+switch/main.py:1117:    limit = throttle_limits.get(provider, 10)
+switch/main.py:1118:    window = throttle_state.get(provider, [])
+switch/main.py:1123:def _record_scoring(provider: str, latency_ms: float, status_ok: bool):
+switch/main.py:1125:        provider, {"latencies": [], "failures": 0, "success": 0}
+switch/main.py:1132:    scoring_state[provider] = state
+switch/main.py:1133:    _update_latency_stats(provider, latency_ms)
+switch/main.py:1136:def _update_latency_stats(provider: str, latency_ms: float):
+switch/main.py:1140:    prev = LATENCY_EMA.get(provider)
+switch/main.py:1143:        LATENCY_EMA[provider] = latency_ms
+switch/main.py:1145:        LATENCY_EMA[provider] = prev * (1 - factor) + latency_ms * factor
+switch/main.py:1148:def _score_provider(provider: str) -> float:
+switch/main.py:1152:    stats = scoring_state.get(provider, {})
+switch/main.py:1157:    latency = LATENCY_EMA.get(provider, 1000.0)
+switch/main.py:1159:    throttle_ok = _peek_throttle_state(provider)
+switch/main.py:1160:    breaker_ok = 0.0 if not breaker.allow(provider) else 1.0
+switch/main.py:1221:async def _pick_provider(req: RouteRequest) -> str:
+switch/main.py:1246:    provider = task.get("provider") or task.get("model")
+switch/main.py:1247:    if not _throttle(provider or "default"):
+switch/main.py:1248:        write_log("switch", f"throttle_drop:{provider}", level="WARNING")
+switch/main.py:1255:            "model": provider,
+switch/main.py:1257:            "provider": "shub" if provider == "shub-audio" else provider,
+switch/main.py:1263:            if provider == "shub-audio":
+switch/main.py:1279:                breaker.record_success(provider or "unknown")
+switch/main.py:1281:                breaker.record_failure(provider or "unknown")
+switch/main.py:1282:            _record_scoring(provider or "unknown", latency_ms, ok)
+switch/main.py:1285:        breaker.record_failure(provider or "unknown")
+switch/main.py:1286:        write_log("switch", f"consumer_error:{provider}:{exc}", level="ERROR")
+switch/main.py:1326:    model_name = await _pick_provider(req)
+switch/main.py:1327:    task_payload["provider"] = model_name
+switch/main.py:1334:        # Map selected model to a provider label expected by tests
+switch/main.py:1336:            provider_label = "shub"
+switch/main.py:1338:            provider_label = model_name
+switch/main.py:1342:            provider_label = "local"
+switch/main.py:1344:            provider_label = "local"
+switch/main.py:1348:            "engine": provider_label,
+switch/main.py:1427:    provider: Optional[str] = None
+switch/main.py:1428:    provider_hint: Optional[str] = None
+switch/main.py:1461:        provider_hint = (
+switch/main.py:1462:            req.provider_hint or req.provider or ""
+switch/main.py:1478:                    registry, provider_hint=provider_hint
+switch/main.py:1480:                for provider in candidates:
+switch/main.py:1481:                    resp = _execute_language_cli(provider, prompt_text)
+switch/main.py:1483:                        engine_used = resp.get("engine") or provider.provider_id
+switch/main.py:1491:                            "provider": engine_used,
+switch/main.py:1516:                "provider": engine_used,
+switch/main.py:1533:            provider_hint=provider_hint,
+switch/main.py:1546:            provider_hint_cli = provider_hint == "cli"
+switch/main.py:1548:            if force_cli_flag or provider_hint_cli:
+switch/main.py:1564:                        provider_preference=provider_hint if provider_hint else None,
+switch/main.py:1568:                    provider, debug = scorer.select_best_provider(
+switch/main.py:1571:                    if provider:
+switch/main.py:1572:                        # Set routing to CLI and use provider as primary engine (use module-level RoutingResult/RoutingDecision)
+switch/main.py:1575:                            primary_engine=provider.provider_id,
+switch/main.py:1576:                            reasoning=f"cli_concentrator:{provider.provider_id}",
+switch/main.py:1580:                            f"cli_concentrator_selected:{provider.provider_id}:{debug.get('reason','')}",
+switch/main.py:1663:                        provider_id=routing_decision.primary_engine,
+switch/main.py:1672:                        provider_id=routing_decision.primary_engine,
+switch/main.py:1715:            "provider": routing_decision.primary_engine,
+switch/main.py:1733:            "provider": "fallback",
+switch/main.py:2200:    provider_hint: Optional[str] = (
+switch/main.py:2282:            provider_hint_cli = (req.provider_hint or "").strip().lower() == "cli"
+switch/main.py:2285:            if force_cli_flag or provider_hint_cli or short_task:
+switch/main.py:2313:                        provider_preference=(
+switch/main.py:2314:                            req.provider_hint if req.provider_hint else None
+switch/main.py:2324:                    provider, debug = scorer.select_best_provider(
+switch/main.py:2327:                    if provider:
+switch/main.py:2328:                        # Override SIL decision to CLI with selected provider (use module-level RoutingResult/RoutingDecision)
+switch/main.py:2338:                            primary_engine=provider.provider_id,
+switch/main.py:2339:                            reasoning=f"cli_concentrator:{provider.provider_id}",
+switch/main.py:2348:                                provider_id=provider.provider_id,
+switch/main.py:2376:                                provider_id=provider.provider_id,
+switch/main.py:2397:                            f"task_cli_concentrator_selected:{provider.provider_id}:{queue_id}",
+switch/main.py:2417:    provider_used = None
+switch/main.py:2434:            provider_hint=req.provider if hasattr(req, "provider") else None,
+switch/main.py:2472:            provider_used = "madre"
+switch/main.py:2478:            provider_used = "manifestator"
+switch/main.py:2484:            provider_used = "shub"
+switch/main.py:2492:            provider_used = routing_result.primary_engine
+switch/main.py:2502:            engine_name=provider_used,
+switch/main.py:2514:                model_or_cli_name=provider_used,
+switch/main.py:2555:                provider=provider_used or "unknown",
+switch/main.py:2608:            "provider": provider_used,
+switch/main.py:2802:def _mock_providers_enabled() -> bool:
+switch/main.py:2810:def _provider_usable(provider) -> bool:
+switch/main.py:2811:    return bool(provider.enabled and provider.auth_state == "ok" and provider.command)
+switch/main.py:2814:def _select_language_cli_candidates(registry, provider_hint: Optional[str] = None):
+switch/main.py:2838:    providers = [p for p in registry.get_by_priority() if _provider_usable(p)]
+switch/main.py:2840:    # Validar que todos los providers son permitidos
+switch/main.py:2841:    for p in providers:
+switch/main.py:2842:        provider_name = p.provider_id or p.kind or "unknown"
+switch/main.py:2844:            getattr(p, "model", provider_name).lower()
+switch/main.py:2846:            else provider_name
+switch/main.py:2849:        # Solo validar si tiene nombre de modelo (CLI providers)
+switch/main.py:2851:            "copilot" not in provider_name.lower()
+switch/main.py:2856:                f"policy_violation:model_not_whitelisted:provider={provider_name}:model={model_name}",
+switch/main.py:2862:    if provider_hint:
+switch/main.py:2863:        for p in providers:
+switch/main.py:2864:            if p.provider_id == provider_hint or p.kind == provider_hint:
+switch/main.py:2865:                return [p] + [c for c in providers if c.provider_id != p.provider_id]
+switch/main.py:2868:        for p in providers
+switch/main.py:2869:        if p.kind == "copilot_cli" or p.provider_id == "copilot_cli"
+switch/main.py:2871:    others = [p for p in providers if p not in copilot]
+switch/main.py:2875:def _execute_language_cli(provider, prompt: str) -> Dict[str, Any]:
+switch/main.py:2876:    if provider.kind == "copilot_cli" or provider.provider_id == "copilot_cli":
+switch/main.py:2877:        return CopilotCLIProvider(provider).call(prompt)
+switch/main.py:2879:    if _mock_providers_enabled():
+switch/main.py:2883:            "engine": provider.provider_id,
+switch/main.py:2884:            "reply": f"[mock:{provider.provider_id}] {prompt[:50]}",
+switch/main.py:2892:    resp = executor.execute(provider, prompt)
+switch/main.py:2893:    resp["engine"] = provider.provider_id
+switch/main.py:2908:def _select_chat_backend(provider_hint: Optional[str]) -> str:
+switch/main.py:2912:    if provider_hint and breaker.allow(provider_hint):
+switch/main.py:2913:        return provider_hint
+switch/adapters.py:220:async def call_provider(name: str, payload: Any, context: Dict[str, Any] | None = None, **opts) -> Dict[str, Any]:
+switch/adapters.py:223:        write_log("switch.adapters", f"call_provider:unknown:{name}")
+switch/adapters.py:224:        return {"ok": False, "error": "provider_unknown", "engine": name}
+switch/adapters.py:226:        write_log("switch.adapters", f"call_provider:invoke:{name}")
+switch/adapters.py:229:        write_log("switch.adapters", f"call_provider:error:{name}:{str(e)}")
+switch/adapters.py:233:async def select_provider(prompt: str, providers: list | None = None, context: Dict[str, Any] | None = None) -> str:
+switch/adapters.py:235:    if providers:
+switch/adapters.py:236:        for p in providers:
+switch/adapters.py:240:    # Check Hermes for available CLIs and prefer CLI providers when prompt hints at them
+switch/adapters.py:263:            res = await asyncio.to_thread(deepseek.call_deepseek, f"Choose best provider for: {prompt}", {"purpose": "switch_select"}, 10.0)
+switch/adapters.py:269:                    return r.get("provider") or r.get("choice") or r.get("name") or "local"
+switch/adapters.py:271:            write_log("switch.adapters", f"select_provider:deepseek_err:{str(e)}")
+switch/adapters.py:337:    async def call_provider(name: str, payload: Any, context: Dict[str, Any] | None = None, **opts) -> Dict[str, Any]:
+switch/adapters.py:340:            write_log("switch.adapters", f"call_provider:unknown:{name}")
+switch/adapters.py:341:            return {"ok": False, "error": "provider_unknown", "engine": name}
+switch/adapters.py:343:            write_log("switch.adapters", f"call_provider:invoke:{name}")
+switch/adapters.py:346:            write_log("switch.adapters", f"call_provider:error:{name}:{str(e)}")
+switch/adapters.py:350:    async def select_provider(prompt: str, providers: list | None = None, context: Dict[str, Any] | None = None) -> str:
+switch/adapters.py:352:        if providers:
+switch/adapters.py:353:            # choose highest priority available (simple heuristic: first available in providers that exist in registry)
+switch/adapters.py:354:            for p in providers:
+switch/adapters.py:357:        # Check Hermes for available CLIs and prefer CLI providers when prompt hints at them
+switch/adapters.py:381:                res = await asyncio.to_thread(deepseek.call_deepseek, f"Choose best provider for: {prompt}", {"purpose": "switch_select"}, 10.0)
+switch/adapters.py:387:                        return r.get("provider") or r.get("choice") or r.get("name") or "local"
+switch/adapters.py:389:                write_log("switch.adapters", f"select_provider:deepseek_err:{str(e)}")
+switch/warm_up.py:46:        self.mock_providers = bool(
+switch/warm_up.py:145:            if self.mock_providers:
+switch/warm_up.py:164:            if self.mock_providers:
+switch/fluzo/README.md:46:In `/switch/cli_concentrator/scoring.py`, FLUZO mode influences provider scoring:
+switch/fluzo/README.md:49:def _apply_fluzo_multiplier(self, fluzo_data, provider, request):
+switch/fluzo/README.md:54:        return 85.0 * 0.7  # Penalize heavy providers
+switch/providers/__init__.py:4:Unified interface for LLM providers with mock support for tests.
+switch/providers/__init__.py:17:logger = logging.getLogger("vx11.providers")
+switch/providers/__init__.py:21:    """Standardized provider response format."""
+switch/providers/__init__.py:26:        provider: str,
+switch/providers/__init__.py:36:            provider=provider,
+switch/providers/__init__.py:47:    """Abstract base class for all providers."""
+switch/providers/__init__.py:56:        """Execute provider call.
+switch/providers/__init__.py:70:    """DeepSeek R1 reasoning model provider."""
+switch/providers/__init__.py:94:                provider="deepseek_r1",
+switch/providers/__init__.py:130:                    provider="deepseek_r1",
+switch/providers/__init__.py:143:                provider="deepseek_r1",
+switch/providers/__init__.py:155:                provider="deepseek_r1",
+switch/providers/__init__.py:164:            logger.error(f"DeepSeek provider error: {e}")
+switch/providers/__init__.py:167:                provider="deepseek_r1",
+switch/providers/__init__.py:177:    """Deterministic mock provider for tests (no network)."""
+switch/providers/__init__.py:197:            provider="mock",
+switch/providers/__init__.py:207:    """Local fallback provider (always works, no network)."""
+switch/providers/__init__.py:225:            provider="local",
+switch/providers/__init__.py:235:    """Registry for provider lookup and selection."""
+switch/providers/__init__.py:238:        self._providers: Dict[str, BaseProvider] = {
+switch/providers/__init__.py:243:        self._selected_provider = self._get_default_provider()
+switch/providers/__init__.py:245:    def _get_default_provider(self) -> str:
+switch/providers/__init__.py:246:        """Get default provider from env or config."""
+switch/providers/__init__.py:252:    def get_provider(self, name: Optional[str] = None) -> BaseProvider:
+switch/providers/__init__.py:253:        """Get provider by name or use selected default."""
+switch/providers/__init__.py:254:        provider_name = name or self._selected_provider
+switch/providers/__init__.py:255:        return self._providers.get(provider_name, self._providers["local"])
+switch/providers/__init__.py:257:    def select_provider(self, name: str) -> None:
+switch/providers/__init__.py:258:        """Change selected default provider."""
+switch/providers/__init__.py:259:        if name in self._providers:
+switch/providers/__init__.py:260:            self._selected_provider = name
+switch/providers/__init__.py:263:            logger.warning(f"Unknown provider: {name}, keeping default")
+switch/providers/__init__.py:265:    def register_provider(self, name: str, provider: BaseProvider) -> None:
+switch/providers/__init__.py:266:        """Register custom provider."""
+switch/providers/__init__.py:267:        self._providers[name] = provider
+switch/providers/__init__.py:275:def get_provider(name: Optional[str] = None) -> BaseProvider:
+switch/providers/__init__.py:276:    """Get provider from global registry."""
+switch/providers/__init__.py:277:    return _default_registry.get_provider(name)
+switch/providers/__init__.py:281:    """Get global provider registry."""
+switch/intelligence_layer.py:52:    provider_hint: Optional[str] = None
+switch/intelligence_layer.py:136:                or context.provider_hint == "madre"
+switch/intelligence_layer.py:146:                or context.provider_hint == "manifestator"
+switch/intelligence_layer.py:154:            if context.task_type == "audio" or context.provider_hint in (
+switch/hermes/main.py:367:                provider="hermes",
+switch/hermes/main.py:372:        ent.provider = "hermes"
+switch/hermes/main.py:751:    Registra un CLI provider mejorado (DeepSeek R1, OpenRouter, etc.).
+switch/hermes/main.py:771:        provider = session.query(CLIProvider).filter_by(name=name).first()
+switch/hermes/main.py:772:        if not provider:
+switch/hermes/main.py:773:            provider = CLIProvider(name=name)
+switch/hermes/main.py:775:        provider.base_url = body.get("base_url", "")
+switch/hermes/main.py:776:        provider.api_key_env = body.get("api_key_env", "")
+switch/hermes/main.py:777:        provider.task_types = body.get("task_types", "chat")
+switch/hermes/main.py:778:        provider.daily_limit_tokens = body.get("daily_limit_tokens", 100000)
+switch/hermes/main.py:779:        provider.monthly_limit_tokens = body.get("monthly_limit_tokens", 3000000)
+switch/hermes/main.py:780:        provider.reset_hour_utc = body.get("reset_hour_utc", 0)
+switch/hermes/main.py:781:        provider.enabled = body.get("enabled", True)
+switch/hermes/main.py:783:        session.add(provider)
+switch/hermes/main.py:790:            "provider": name,
+switch/hermes/main.py:1022:                            provider=m.get("provider", "catalog"),
+switch/hermes/main.py:1046:                                provider="huggingface",
+switch/hermes/main.py:1123:                for provider in session.query(CLIProvider).all():
+switch/hermes/main.py:1125:                        provider.reset_hour_utc == hour
+switch/hermes/main.py:1126:                        and (now - provider.last_reset_at).seconds > 3600
+switch/hermes/main.py:1128:                        provider.tokens_used_today = 0
+switch/hermes/main.py:1129:                        provider.last_reset_at = now
+switch/hermes/main.py:1130:                        session.add(provider)
+switch/hermes/model_scanner.py:109:            provider = "local"
+switch/hermes/model_scanner.py:111:                provider = "gguf"
+switch/hermes/model_scanner.py:113:                provider = "onnx"
+switch/hermes/model_scanner.py:118:                "provider": provider,
+switch/hermes/models_catalog.json:51:    "cli_providers": [
+switch/learner.json:1:{"prompt_hash": "ab66a21c", "provider": "local", "timestamp": 1764689635}
+switch/learner.json:2:{"prompt_hash": "b94d27b9", "provider": "local", "timestamp": 1764689642}
+switch/learner.json:3:{"prompt_hash": "b94d27b9", "provider": "local", "success": true, "timestamp": 1764689642}
+switch/learner.json:4:{"prompt_hash": "0b894166", "provider": "local", "timestamp": 1764689642}
+switch/learner.json:5:{"prompt_hash": "0b894166", "provider": "local", "success": true, "timestamp": 1764689642}
+switch/learner.json:6:{"prompt_hash": "aa0ec704", "provider": "local", "timestamp": 1764689642}
+switch/learner.json:7:{"prompt_hash": "aa0ec704", "provider": "local", "success": true, "timestamp": 1764689642}
+switch/learner.json:8:{"prompt_hash": "2cf24dba", "provider": "local", "timestamp": 1764689642}
+switch/learner.json:9:{"prompt_hash": "2cf24dba", "provider": "local", "success": true, "timestamp": 1764689642}
+switch/learner.json:10:{"prompt_hash": "2cf24dba", "provider": "local", "timestamp": 1764689642}
+switch/learner.json:11:{"prompt_hash": "2cf24dba", "provider": "local", "success": true, "timestamp": 1764689642}
+switch/learner.json:12:{"prompt_hash": "b23d1779", "provider": "local", "timestamp": 1764689642}
+switch/learner.json:13:{"prompt_hash": "b23d1779", "provider": "local", "success": true, "timestamp": 1764689642}
+switch/learner.json:14:{"prompt_hash": "2cf24dba", "provider": "local", "timestamp": 1764689642}
+switch/learner.json:15:{"prompt_hash": "a7937b64", "provider": "local", "timestamp": 1764689642}
+switch/learner.json:16:{"prompt_hash": "16367aac", "provider": "local", "timestamp": 1764689642}
+switch/learner.json:17:{"prompt_hash": "b94d27b9", "provider": "local", "timestamp": 1764766858}
+switch/learner.json:18:{"prompt_hash": "b94d27b9", "provider": "local", "success": true, "timestamp": 1764766858}
+switch/learner.json:19:{"prompt_hash": "0b894166", "provider": "local", "timestamp": 1764766858}
+switch/learner.json:20:{"prompt_hash": "0b894166", "provider": "local", "success": true, "timestamp": 1764766858}
+switch/learner.json:21:{"prompt_hash": "aa0ec704", "provider": "local", "timestamp": 1764766858}
+switch/learner.json:22:{"prompt_hash": "aa0ec704", "provider": "local", "success": true, "timestamp": 1764766858}
+switch/learner.json:23:{"prompt_hash": "2cf24dba", "provider": "local", "timestamp": 1764766858}
+switch/learner.json:24:{"prompt_hash": "2cf24dba", "provider": "local", "success": true, "timestamp": 1764766858}
+switch/learner.json:25:{"prompt_hash": "2cf24dba", "provider": "local", "timestamp": 1764766858}
+switch/learner.json:26:{"prompt_hash": "2cf24dba", "provider": "local", "success": true, "timestamp": 1764766858}
+switch/learner.json:27:{"prompt_hash": "b23d1779", "provider": "local", "timestamp": 1764766858}
+switch/learner.json:28:{"prompt_hash": "b23d1779", "provider": "local", "success": true, "timestamp": 1764766858}
+switch/learner.json:29:{"prompt_hash": "b94d27b9", "provider": "local", "timestamp": 1764767115}
+switch/learner.json:30:{"prompt_hash": "b94d27b9", "provider": "local", "success": true, "timestamp": 1764767115}
+switch/learner.json:31:{"prompt_hash": "0b894166", "provider": "local", "timestamp": 1764767115}
+switch/learner.json:32:{"prompt_hash": "0b894166", "provider": "local", "success": true, "timestamp": 1764767115}
+switch/learner.json:33:{"prompt_hash": "aa0ec704", "provider": "local", "timestamp": 1764767115}
+switch/learner.json:34:{"prompt_hash": "aa0ec704", "provider": "local", "success": true, "timestamp": 1764767115}
+switch/learner.json:35:{"prompt_hash": "2cf24dba", "provider": "local", "timestamp": 1764767115}
+switch/learner.json:36:{"prompt_hash": "2cf24dba", "provider": "local", "success": true, "timestamp": 1764767115}
+switch/learner.json:37:{"prompt_hash": "2cf24dba", "provider": "local", "timestamp": 1764767115}
+switch/learner.json:38:{"prompt_hash": "2cf24dba", "provider": "local", "success": true, "timestamp": 1764767115}
+switch/learner.json:39:{"prompt_hash": "b23d1779", "provider": "local", "timestamp": 1764767115}
+switch/learner.json:40:{"prompt_hash": "b23d1779", "provider": "local", "success": true, "timestamp": 1764767115}
+switch/learner.json:41:{"prompt_hash": "b94d27b9", "provider": "local", "timestamp": 1764767164}
+switch/learner.json:42:{"prompt_hash": "b94d27b9", "provider": "local", "success": true, "timestamp": 1764767164}
+switch/learner.json:43:{"prompt_hash": "0b894166", "provider": "local", "timestamp": 1764767165}
+switch/learner.json:44:{"prompt_hash": "0b894166", "provider": "local", "success": true, "timestamp": 1764767165}
+switch/learner.json:45:{"prompt_hash": "aa0ec704", "provider": "local", "timestamp": 1764767165}
+switch/learner.json:46:{"prompt_hash": "aa0ec704", "provider": "local", "success": true, "timestamp": 1764767165}
+switch/learner.json:47:{"prompt_hash": "2cf24dba", "provider": "local", "timestamp": 1764767165}
+switch/learner.json:48:{"prompt_hash": "2cf24dba", "provider": "local", "success": true, "timestamp": 1764767165}
+switch/learner.json:49:{"prompt_hash": "2cf24dba", "provider": "local", "timestamp": 1764767165}
+switch/learner.json:50:{"prompt_hash": "2cf24dba", "provider": "local", "success": true, "timestamp": 1764767165}
+switch/learner.json:51:{"prompt_hash": "b23d1779", "provider": "local", "timestamp": 1764767165}
+switch/learner.json:52:{"prompt_hash": "b23d1779", "provider": "local", "success": true, "timestamp": 1764767165}
+switch/learner.json:53:{"prompt_hash": "b94d27b9", "provider": "local", "timestamp": 1764772073}
+switch/learner.json:54:{"prompt_hash": "b94d27b9", "provider": "local", "success": true, "timestamp": 1764772073}
+switch/learner.json:55:{"prompt_hash": "0b894166", "provider": "local", "timestamp": 1764772073}
+switch/learner.json:56:{"prompt_hash": "0b894166", "provider": "local", "success": true, "timestamp": 1764772073}
+switch/learner.json:57:{"prompt_hash": "aa0ec704", "provider": "local", "timestamp": 1764772073}
+switch/learner.json:58:{"prompt_hash": "aa0ec704", "provider": "local", "success": true, "timestamp": 1764772073}
+switch/learner.json:59:{"prompt_hash": "2cf24dba", "provider": "local", "timestamp": 1764772073}
+switch/learner.json:60:{"prompt_hash": "2cf24dba", "provider": "local", "success": true, "timestamp": 1764772073}
+switch/learner.json:61:{"prompt_hash": "2cf24dba", "provider": "local", "timestamp": 1764772073}
+switch/learner.json:62:{"prompt_hash": "2cf24dba", "provider": "local", "success": true, "timestamp": 1764772073}
+switch/learner.json:63:{"prompt_hash": "b23d1779", "provider": "local", "timestamp": 1764772073}
+switch/learner.json:64:{"prompt_hash": "b23d1779", "provider": "local", "success": true, "timestamp": 1764772073}
+switch/learner.json:65:{"prompt_hash": "b94d27b9", "provider": "local", "timestamp": 1764772095}
+switch/learner.json:66:{"prompt_hash": "b94d27b9", "provider": "local", "success": true, "timestamp": 1764772095}
+switch/learner.json:67:{"prompt_hash": "0b894166", "provider": "local", "timestamp": 1764772095}
+switch/learner.json:68:{"prompt_hash": "0b894166", "provider": "local", "success": true, "timestamp": 1764772095}
+switch/learner.json:69:{"prompt_hash": "aa0ec704", "provider": "local", "timestamp": 1764772095}
+switch/learner.json:70:{"prompt_hash": "aa0ec704", "provider": "local", "success": true, "timestamp": 1764772095}
+switch/learner.json:71:{"prompt_hash": "2cf24dba", "provider": "local", "timestamp": 1764772095}
+switch/learner.json:72:{"prompt_hash": "2cf24dba", "provider": "local", "success": true, "timestamp": 1764772095}
+switch/learner.json:73:{"prompt_hash": "2cf24dba", "provider": "local", "timestamp": 1764772095}
+switch/learner.json:74:{"prompt_hash": "2cf24dba", "provider": "local", "success": true, "timestamp": 1764772095}
+switch/learner.json:75:{"prompt_hash": "b23d1779", "provider": "local", "timestamp": 1764772095}
+switch/learner.json:76:{"prompt_hash": "b23d1779", "provider": "local", "success": true, "timestamp": 1764772095}
+switch/learner.json:77:{"prompt_hash": "b94d27b9", "provider": "local", "timestamp": 1764775381}
+switch/learner.json:78:{"prompt_hash": "b94d27b9", "provider": "local", "success": true, "timestamp": 1764775381}
+switch/learner.json:79:{"prompt_hash": "0b894166", "provider": "local", "timestamp": 1764775381}
+switch/learner.json:80:{"prompt_hash": "0b894166", "provider": "local", "success": true, "timestamp": 1764775381}
+switch/learner.json:81:{"prompt_hash": "aa0ec704", "provider": "local", "timestamp": 1764775381}
+switch/learner.json:82:{"prompt_hash": "aa0ec704", "provider": "local", "success": true, "timestamp": 1764775381}
+switch/learner.json:83:{"prompt_hash": "2cf24dba", "provider": "local", "timestamp": 1764775381}
+switch/learner.json:84:{"prompt_hash": "2cf24dba", "provider": "local", "success": true, "timestamp": 1764775381}
+switch/learner.json:85:{"prompt_hash": "2cf24dba", "provider": "local", "timestamp": 1764775381}
+switch/learner.json:86:{"prompt_hash": "2cf24dba", "provider": "local", "success": true, "timestamp": 1764775381}
+switch/learner.json:87:{"prompt_hash": "b23d1779", "provider": "local", "timestamp": 1764775381}
+switch/learner.json:88:{"prompt_hash": "b23d1779", "provider": "local", "success": true, "timestamp": 1764775381}

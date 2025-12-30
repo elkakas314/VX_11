@@ -1,0 +1,2 @@
+./docs/audit/PERCENTAGES.json
+./docs/audit/SCORECARD.json

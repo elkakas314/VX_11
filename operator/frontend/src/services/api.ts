@@ -63,13 +63,18 @@ class ApiClient {
             clearTimeout(timeoutId)
 
             if (!response.ok) {
-                if (
-                    response.status === 404 &&
-                    !options?.noRetry &&
-                    path.startsWith('/operator/api/v1')
-                ) {
-                    const legacyPath = path.replace('/operator/api/v1', '/operator/api')
-                    return this.request(method, legacyPath, body, { ...options, noRetry: true })
+                if (response.status === 404 && !options?.noRetry) {
+                    if (path.startsWith('/operator/api/v1')) {
+                        const legacyPath = path.replace('/operator/api/v1', '/operator/api')
+                        return this.request(method, legacyPath, body, { ...options, noRetry: true })
+                    }
+                    if (path.startsWith('/operator/api')) {
+                        const versionedPath = path.replace('/operator/api', '/operator/api/v1')
+                        return this.request(method, versionedPath, body, {
+                            ...options,
+                            noRetry: true,
+                        })
+                    }
                 }
                 let errorDetail = `HTTP ${response.status}`
                 try {
@@ -82,6 +87,15 @@ class ApiClient {
                             error: errorDetail,
                             status: response.status,
                         }
+                    }
+                    if (errorJson?.message) {
+                        errorDetail = errorJson.message
+                    }
+                    return {
+                        ok: false,
+                        data: errorJson,
+                        error: errorDetail,
+                        status: response.status,
                     }
                 } catch {
                     // ignore JSON parse errors
@@ -111,7 +125,7 @@ class ApiClient {
 
     // Chat endpoint (P0: via /operator/api/chat)
     async chat(message: string, sessionId?: string): Promise<ApiResponse<any>> {
-        return this.request('POST', '/operator/api/v1/chat', {
+        return this.request('POST', '/operator/api/chat', {
             message,
             session_id: sessionId,
         })
@@ -119,67 +133,77 @@ class ApiClient {
 
     // Status endpoint (P0: via /operator/api/status)
     async status(): Promise<ApiResponse<any>> {
-        return this.request('GET', '/operator/api/v1/status')
+        return this.request('GET', '/operator/api/status')
     }
 
     // Modules endpoint (P0: via /operator/api/modules)
     async modules(): Promise<ApiResponse<any>> {
-        return this.request('GET', '/operator/api/v1/modules')
+        return this.request('GET', '/operator/api/modules')
     }
 
     // Module detail endpoint
     async moduleDetail(name: string): Promise<ApiResponse<any>> {
-        return this.request('GET', `/operator/api/v1/modules/${name}`)
+        return this.request('GET', `/operator/api/modules/${name}`)
     }
 
     // Events endpoint (P0: via /operator/api/events)
     async events(): Promise<ApiResponse<any>> {
-        return this.request('GET', '/operator/api/v1/events')
+        return this.request('GET', '/operator/api/events')
     }
 
     // Scorecard endpoint (P0: via /operator/api/scorecard)
     async scorecard(): Promise<ApiResponse<any>> {
-        return this.request('GET', '/operator/api/v1/scorecard')
+        return this.request('GET', '/operator/api/scorecard')
     }
 
     // Audit endpoint (P0: via /operator/api/audit)
-    async audit(): Promise<ApiResponse<any>> {
-        return this.request('GET', '/operator/api/v1/audit')
+    async auditRuns(): Promise<ApiResponse<any>> {
+        return this.request('GET', '/operator/api/audit/runs')
     }
 
     // Audit detail endpoint
     async auditDetail(id: string): Promise<ApiResponse<any>> {
-        return this.request('GET', `/operator/api/v1/audit/${id}`)
+        return this.request('GET', `/operator/api/audit/${id}`)
     }
 
     // Download audit endpoint
     async downloadAudit(id: string): Promise<ApiResponse<any>> {
-        return this.request('GET', `/operator/api/v1/audit/${id}/download`)
+        return this.request('GET', `/operator/api/audit/${id}/download`)
     }
 
     // Settings endpoint (P0: via /operator/api/settings)
     async settings(): Promise<ApiResponse<any>> {
-        return this.request('GET', '/operator/api/v1/settings')
+        return this.request('GET', '/operator/api/settings')
     }
 
     // Update settings endpoint
     async updateSettings(settings: any): Promise<ApiResponse<any>> {
-        return this.request('POST', '/operator/api/v1/settings', settings)
+        return this.request('POST', '/operator/api/settings', settings)
     }
 
     // Topology endpoint (P0: via /operator/api/topology)
     async topology(): Promise<ApiResponse<any>> {
-        return this.request('GET', '/operator/api/v1/topology')
+        return this.request('GET', '/operator/api/topology')
     }
 
     // Power state endpoint (legacy, still available)
     async windows(): Promise<ApiResponse<any>> {
-        return this.request('GET', '/operator/api/v1/windows')
+        return this.request('GET', '/operator/api/window/status')
     }
 
     // Hormiguero status (optional, may be unavailable)
     async hormigueroStatus(): Promise<ApiResponse<any>> {
-        return this.request('GET', '/operator/api/v1/hormiguero/status', undefined, { timeout: 3000 })
+        return this.request('GET', '/operator/api/hormiguero/status', undefined, {
+            timeout: 3000,
+        })
+    }
+
+    async hormigueroScanOnce(): Promise<ApiResponse<any>> {
+        return this.request('POST', '/operator/api/hormiguero/scan/once')
+    }
+
+    async switchProvider(): Promise<ApiResponse<any>> {
+        return this.request('GET', '/operator/api/switch/provider')
     }
 
     // Hormiguero incidents (optional, for debug mode)

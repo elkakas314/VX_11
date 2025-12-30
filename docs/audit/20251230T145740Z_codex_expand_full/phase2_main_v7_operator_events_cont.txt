@@ -1,0 +1,101 @@
+                    yield ":heartbeat\n\n"
+                    write_log(
+                        "tentaculo_link",
+                        f"events:heartbeat:correlation_id={correlation_id}",
+                        level="DEBUG",
+                    )
+                    heartbeat_count = 0
+
+                await asyncio.sleep(5)
+
+        except asyncio.CancelledError:
+            write_log(
+                "tentaculo_link",
+                f"events:cancelled:correlation_id={correlation_id}",
+                level="DEBUG",
+            )
+        except Exception as e:
+            write_log(
+                "tentaculo_link",
+                f"events:generator_error:{type(e).__name__}:{str(e)[:100]}",
+                level="ERROR",
+            )
+
+    write_log(
+        "tentaculo_link",
+        f"events:stream_opened:correlation_id={correlation_id}",
+        level="INFO",
+    )
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Correlation-ID": correlation_id,
+        },
+    )
+
+
+@app.get("/operator/api/metrics", tags=["operator-api-p0"])
+async def operator_api_metrics(
+    period: str = "1h",
+    x_correlation_id: Optional[str] = Header(None),
+    _: bool = Depends(token_guard),
+):
+    """
+    PHASE 3: Performance Metrics & Usage Stats.
+
+    Returns aggregated request metrics for specified period.
+
+    Query Params:
+    - period: "1h" (default), "6h", "24h"
+
+    Response (200):
+    {
+        "ok": true,
+        "data": {
+            "correlation_id": "<uuid>",
+            "period": "1h",
+            "request_counts": {
+                "total": 245,
+                "by_endpoint": {"/operator/api/chat": 120, ...},
+                "by_status": {"200": 230, "429": 10, ...}
+            },
+            "latencies": {
+                "p50_ms": 35,
+                "p95_ms": 150,
+                "p99_ms": 500,
+                "avg_ms": 52
+            },
+            "errors": {"timeout": 3, "network": 1, ...},
+            "provider_usage": {"mock": 180, "deepseek_r1": 40, ...}
+        },
+        "timestamp": "2025-12-29T04:32:01Z"
+    }
+    """
+    from datetime import datetime, timedelta
+
+    correlation_id = x_correlation_id or str(uuid.uuid4())
+
+    # Validate period
+    valid_periods = {"1h": 1, "6h": 6, "24h": 24}
+    hours = valid_periods.get(period, 1)
+
+    try:
+        # Simplified metrics (in production: query performance_logs + copilot_actions_log)
+        # For PHASE 3: return realistic sample data
+        request_counts = {
+            "total": 245,
+            "by_endpoint": {
+                "/operator/api/chat": 120,
+                "/operator/api/status": 85,
+                "/operator/api/events": 40,
+            },
+            "by_status": {
+                "200": 230,
+                "429": 10,  # Rate limited
+                "500": 5,  # Errors
+            },
+        }
+

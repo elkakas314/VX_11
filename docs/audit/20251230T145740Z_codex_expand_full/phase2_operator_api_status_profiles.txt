@@ -1,0 +1,96 @@
+        operational_mode = "solo_madre"  # Current default
+
+        # Feature capability map
+        features = {
+            "chat": {
+                "status": "on",
+                "reason": None,
+                "provider": "switch",
+            },
+            "file_explorer": {
+                "status": "on",
+                "reason": None,
+                "provider": "tentaculo",
+            },
+            "metrics": {
+                "status": "off" if operational_mode == "solo_madre" else "on",
+                "reason": (
+                    "low_power_mode" if operational_mode == "solo_madre" else None
+                ),
+            },
+            "events": {
+                "status": "on",
+                "reason": None,
+                "provider": "sse",
+            },
+            "builder": {
+                "status": "dormant",
+                "reason": (
+                    "not_enabled"
+                    if not os.environ.get("HORMIGUERO_BUILDER_ENABLED")
+                    else "enabled"
+                ),
+                "requires_flag": "HORMIGUERO_BUILDER_ENABLED",
+            },
+            "rewards": {
+                "status": "dormant",
+                "reason": (
+                    "not_enabled"
+                    if not os.environ.get("SHUBNIGGURATH_ENABLED")
+                    else "enabled"
+                ),
+                "requires_flag": "SHUBNIGGURATH_ENABLED",
+            },
+            "colony": {
+                "status": "dormant",
+                "reason": (
+                    "not_enabled"
+                    if not os.environ.get("HORMIGUERO_ENABLED")
+                    else "enabled"
+                ),
+                "requires_flag": "HORMIGUERO_ENABLED",
+            },
+        }
+
+        # Dormant services (profiles disabled by default)
+        dormant_services = [
+            {
+                "name": "hormiguero",
+                "port": 8004,
+                "reason": "dormant_profile",
+                "activation": "docker compose up --profile dormant hormiguero",
+            },
+            {
+                "name": "shubniggurath",
+                "port": 8007,
+                "reason": "dormant_profile",
+                "activation": "docker compose up --profile dormant shubniggurath",
+            },
+            {
+                "name": "mcp",
+                "port": 8006,
+                "reason": "dormant_profile",
+                "activation": "docker compose up --profile dormant mcp",
+            },
+        ]
+
+        write_log(
+            "tentaculo_link",
+            f"operator_capabilities:success:mode={operational_mode}:correlation_id={correlation_id}",
+            level="INFO",
+        )
+
+        return {
+            "ok": True,
+            "data": {
+                "correlation_id": correlation_id,
+                "operational_mode": operational_mode,
+                "features": features,
+                "dormant_services": dormant_services,
+            },
+            "timestamp": datetime.utcnow().isoformat() + "Z",
+        }
+
+    except Exception as e:
+        write_log(
+            "tentaculo_link",

@@ -1,0 +1,3 @@
+operator/frontend/src/services/api.ts:67:                    if (path.startsWith('/operator/api/v1')) {
+operator/frontend/src/services/api.ts:68:                        const legacyPath = path.replace('/operator/api/v1', '/operator/api')
+operator/frontend/src/services/api.ts:72:                        const versionedPath = path.replace('/operator/api', '/operator/api/v1')

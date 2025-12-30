@@ -1,0 +1,167 @@
+            "has_more": (offset + limit) < total,
+        }
+    except Exception as e:
+        import sys
+
+        print(f"ERROR querying events: {e}", file=sys.stderr)
+        return {"events": [], "total": 0, "has_more": False}
+
+
+def get_metrics(
+    metric_name: Optional[str] = None,
+    window_seconds: int = 3600,
+    module: Optional[str] = None,
+    limit: int = 1000,
+) -> Dict[str, Any]:
+    """
+    Consultar métricas numéricas.
+
+    Args:
+        metric_name: Filtrar por nombre (cpu_percent, ram_gib, etc.)
+        window_seconds: Incluir solo últimas N segundos
+        module: Filtrar por módulo
+        limit: Máximo de resultados
+
+    Returns:
+        {
+            "metrics": [{metric_id, ts, metric_name, value, module, dimensions}, ...],
+            "count": int
+        }
+    """
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        cutoff_time = datetime.utcnow() - timedelta(seconds=window_seconds)
+
+        where_parts = ["ts > datetime(?)"]
+        params = [cutoff_time.isoformat()]
+
+        if metric_name:
+            where_parts.append("metric_name = ?")
+            params.append(metric_name)
+
+        if module:
+            where_parts.append("module = ?")
+            params.append(module)
+
+        where_clause = " AND ".join(where_parts)
+
+        query_sql = f"""
+            SELECT metric_id, ts, metric_name, value, module, dimensions_json
+            FROM operator_metrics
+            WHERE {where_clause}
+            ORDER BY ts DESC
+            LIMIT ?
+        """
+        params.append(limit)
+        cursor.execute(query_sql, params)
+        rows = cursor.fetchall()
+
+        metrics = []
+        for row in rows:
+            metrics.append(
+                {
+                    "metric_id": row["metric_id"],
+                    "ts": row["ts"],
+                    "metric_name": row["metric_name"],
+                    "value": row["value"],
+                    "module": row["module"],
+                    "dimensions": json.loads(row["dimensions_json"] or "{}"),
+                }
+            )
+
+        conn.close()
+
+        return {
+            "metrics": metrics,
+            "count": len(metrics),
+        }
+    except Exception as e:
+        import sys
+
+        print(f"ERROR querying metrics: {e}", file=sys.stderr)
+        return {"metrics": [], "count": 0}
+
+
+def get_events_by_correlation_id(correlation_id: str) -> List[Dict[str, Any]]:
+    """
+    Obtener todos los eventos enlazados a un correlation_id.
+    Útil para tracing de intents/operaciones distribuidas.
+    """
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        cursor.execute(
+            """
+            SELECT event_id, ts, event_type, severity, module, summary, payload_json
+            FROM operator_events
+            WHERE correlation_id = ?
+            ORDER BY ts ASC
+            """,
+            (correlation_id,),
+        )
+        rows = cursor.fetchall()
+
+        events = []
+        for row in rows:
+            events.append(
+                {
+                    "id": row["event_id"],
+                    "ts": row["ts"],
+                    "type": row["event_type"],
+                    "severity": row["severity"],
+                    "module": row["module"],
+                    "summary": row["summary"],
+                    "payload": json.loads(row["payload_json"] or "{}"),
+                }
+            )
+
+        conn.close()
+        return events
+    except Exception as e:
+        import sys
+
+        print(f"ERROR getting correlation chain: {e}", file=sys.stderr)
+        return []
+
+
+# Archival function (para mantener DB limpia)
+def archive_old_events(hours_threshold: int = 720) -> int:
+    """
+    Archivar eventos + métricas más antiguos que hours_threshold.
+    Actual: solo DELETE (implementar archival a archivo si necesario).
+
+    Returns:
+        Número de filas eliminadas
+    """
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        cutoff_time = datetime.utcnow() - timedelta(hours=hours_threshold)
+
+        # Eliminar eventos antiguos
+        cursor.execute(
+            "DELETE FROM operator_events WHERE ts < datetime(?)",
+            (cutoff_time.isoformat(),),
+        )
+        events_deleted = cursor.rowcount
+
+        # Eliminar métricas antiguas
+        cursor.execute(
+            "DELETE FROM operator_metrics WHERE ts < datetime(?)",
+            (cutoff_time.isoformat(),),
+        )
+        metrics_deleted = cursor.rowcount
+
+        conn.commit()
+        conn.close()
+
+        return events_deleted + metrics_deleted
+    except Exception as e:
+        import sys
+
+        print(f"ERROR archiving old data: {e}", file=sys.stderr)
+        return 0

@@ -186,6 +186,12 @@ async def operator_api_proxy(request: Request, call_next):
     if request.method == "OPTIONS":
         return await call_next(request)
     if request.url.path.startswith("/operator/api"):
+        if not settings.operator_api_proxy_enabled:
+            if request.url.path.startswith("/operator/api/v1"):
+                rewritten_path = request.url.path.replace("/operator/api/v1", "/operator/api", 1)
+                request.scope["path"] = rewritten_path
+                request.scope["raw_path"] = rewritten_path.encode()
+            return await call_next(request)
         correlation_id = request.headers.get("X-Correlation-Id") or str(uuid.uuid4())
         if settings.enable_auth:
             token_header_value = request.headers.get(settings.token_header)
@@ -325,6 +331,12 @@ try:
     )
     app.include_router(
         api_routes.window.router, prefix="/operator", tags=["operator-api"]
+    )
+    app.include_router(
+        api_routes.hormiguero.router, prefix="/operator", tags=["operator-api"]
+    )
+    app.include_router(
+        api_routes.switch.router, prefix="/operator", tags=["operator-api"]
     )
     write_log("tentaculo_link", "included_operator_api_routers:success")
 except Exception as e:
@@ -2616,6 +2628,31 @@ async def operator_api_events(
         nonlocal last_row_id, heartbeat_count, connection_start
 
         try:
+            from tentaculo_link.db.events_metrics import get_events as get_events_snapshot
+
+            clients = get_clients()
+            madre_client = clients.get_client("madre")
+
+            snapshot_payload = {
+                "events": get_events_snapshot(limit=50).get("events", []),
+                "window": {"status": "unknown"},
+                "correlation_id": correlation_id,
+            }
+
+            if madre_client:
+                try:
+                    snapshot_payload["window"] = await madre_client.get(
+                        "/power/state", timeout=5.0
+                    )
+                except Exception as exc:
+                    snapshot_payload["window"] = {
+                        "status": "error",
+                        "error_code": "madre_unavailable",
+                        "detail": str(exc),
+                    }
+
+            yield f"event: snapshot\ndata: {json.dumps(snapshot_payload)}\n\n"
+
             while True:
                 # Check connection timeout
                 if time.time() - connection_start > max_connection_time:

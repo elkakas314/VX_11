@@ -1,0 +1,81 @@
+        ]
+
+        return {
+            "ok": True,
+            "data": {
+                "correlation_id": correlation_id,
+                "system_state": {
+                    "operational_mode": operational_mode,
+                    "policy_active": policy_active,
+                },
+                "services": services,
+                "features": features,
+                "db_health": db_health,
+                "dormant_services": dormant_services,
+            },
+            "timestamp": datetime.utcnow().isoformat() + "Z",
+        }
+
+    except Exception as e:
+        write_log(
+            "tentaculo_link",
+            f"operator_api_status:error:{str(e)[:100]}",
+            level="ERROR",
+        )
+        return {
+            "ok": False,
+            "data": {
+                "correlation_id": correlation_id,
+                "error": str(e),
+            },
+            "timestamp": datetime.utcnow().isoformat() + "Z",
+        }
+
+
+@app.get("/operator/api/events", tags=["operator-api-p0"])
+async def operator_api_events(
+    follow: bool = False,
+    x_correlation_id: Optional[str] = Header(None),
+    _: bool = Depends(token_guard),
+):
+    """
+    PHASE 3: Real-time Event Stream (SSE).
+
+    Returns Server-Sent Events with system status changes.
+
+    Usage:
+    - GET /operator/api/events?follow=true
+    - Client receives text/event-stream response
+    - Events: service_status, feature_toggle, performance_milestone
+    - Heartbeat: every 30s (prevent proxy timeout)
+    - Max connection: 5 minutes
+
+    Response (text/event-stream):
+    event: service_status
+    data: {"service":"madre","status":"up","timestamp":"2025-12-29T04:32:01Z"}
+
+    event: feature_toggle
+    data: {"feature":"chat","status":"on","timestamp":"2025-12-29T04:32:05Z"}
+
+    :heartbeat
+    """
+    import asyncio
+    from datetime import datetime
+
+    correlation_id = x_correlation_id or str(uuid.uuid4())
+    last_row_id = 0
+    heartbeat_count = 0
+    connection_start = time.time()
+    max_connection_time = 300  # 5 minutes
+
+    async def event_generator():
+        nonlocal last_row_id, heartbeat_count, connection_start
+
+        try:
+            while True:
+                # Check connection timeout
+                if time.time() - connection_start > max_connection_time:
+                    write_log(
+                        "tentaculo_link",
+                        f"events:connection_timeout:correlation_id={correlation_id}",
+                        level="DEBUG",

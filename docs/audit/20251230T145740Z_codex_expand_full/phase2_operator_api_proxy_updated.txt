@@ -1,0 +1,61 @@
+    allow_headers=["*"],
+)
+
+
+@app.middleware("http")
+async def operator_api_proxy(request: Request, call_next):
+    if request.method == "OPTIONS":
+        return await call_next(request)
+    if request.url.path.startswith("/operator/api"):
+        if not settings.operator_api_proxy_enabled:
+            if request.url.path.startswith("/operator/api/v1"):
+                rewritten_path = request.url.path.replace("/operator/api/v1", "/operator/api", 1)
+                request.scope["path"] = rewritten_path
+                request.scope["raw_path"] = rewritten_path.encode()
+            return await call_next(request)
+        correlation_id = request.headers.get("X-Correlation-Id") or str(uuid.uuid4())
+        if settings.enable_auth:
+            token_header_value = request.headers.get(settings.token_header)
+            if not token_header_value:
+                return JSONResponse(status_code=401, content={"detail": "auth_required"})
+            if token_header_value != VX11_TOKEN:
+                return JSONResponse(status_code=403, content={"detail": "forbidden"})
+
+        operator_url = settings.operator_url.rstrip("/")
+        request_path = request.url.path
+        if request_path.startswith("/operator/api/v1"):
+            upstream_path = request_path.replace("/operator/api/v1", "/api/v1", 1)
+        else:
+            upstream_path = request_path.replace("/operator/api", "/api/v1", 1)
+        target_url = f"{operator_url}{upstream_path}"
+        headers = dict(request.headers)
+        headers["X-Correlation-Id"] = correlation_id
+        headers[settings.token_header] = headers.get(settings.token_header, VX11_TOKEN)
+
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                if request.method == "GET" and request.url.path.endswith(
+                    "/events/stream"
+                ):
+                    async with client.stream(
+                        request.method,
+                        target_url,
+                        headers=headers,
+                        params=request.query_params,
+                    ) as resp:
+                        if resp.status_code >= 400:
+                            return JSONResponse(
+                                status_code=resp.status_code,
+                                content=resp.json(),
+                                headers={"X-Correlation-Id": correlation_id},
+                            )
+                        return StreamingResponse(
+                            resp.aiter_raw(),
+                            status_code=resp.status_code,
+                            media_type=resp.headers.get(
+                                "content-type", "text/event-stream"
+                            ),
+                            headers={"X-Correlation-Id": correlation_id},
+                        )
+
+                body = await request.body()

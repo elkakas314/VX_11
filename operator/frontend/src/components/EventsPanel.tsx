@@ -36,7 +36,7 @@ export const EventsPanel: React.FC = () => {
 
             const response = await apiClient.request<{ events: VX11Event[] }>(
                 'GET',
-                `/operator/api/v1/events?${params}`
+                `/operator/api/events?${params}`
             )
             if (!response.ok || !response.data) throw new Error(response.error || 'Failed to fetch events')
             setEvents(response.data.events || [])

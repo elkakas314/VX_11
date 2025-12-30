@@ -1,0 +1,3 @@
+tentaculo_link/main_v7.py:197:        operator_url = settings.operator_url.rstrip("/")
+tentaculo_link/main_v7.py:203:        target_url = f"{operator_url}{upstream_path}"
+tentaculo_link/clients.py:213:            "operator-backend": settings.operator_url

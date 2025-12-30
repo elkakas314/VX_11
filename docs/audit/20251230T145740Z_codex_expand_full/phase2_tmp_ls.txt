@@ -1,0 +1,24 @@
+total 5056
+drwxrwxrwt 15 root root   12288 Dec 30 14:57 .
+drwxr-xr-x 20 root root    4096 Dec 30 15:14 ..
+drwxr-xr-x  2 root root    4096 Dec 30 14:57 .tmpZL0TTX
+drwx------  2 root root    4096 Oct 24 00:46 TemporaryDirectory.7WCBZu
+drwx------  2 root root    4096 Oct 24 00:47 TemporaryDirectory.8iO1oO
+drwx------  2 root root    4096 Oct 24 01:17 TemporaryDirectory.9kqmdZ
+drwx------  2 root root    4096 Oct 24 00:46 TemporaryDirectory.SiN1hE
+drwx------  2 root root    4096 Dec 30 03:31 TemporaryDirectory.qJdAwV
+drwxr-xr-x  2 root root    4096 Dec 30 03:31 hsperfdata_root
+drwxr-xr-x  3 root root    4096 Oct 24 00:45 node-compile-cache
+drwxr-xr-x  3 root root    4096 Oct 24 01:05 pear
+-rw-r--r--  1 root root 1096607 Oct 24 00:37 python-build.20251024003533.87.log
+-rw-r--r--  1 root root 1007377 Oct 24 00:38 python-build.20251024003714.14320.log
+-rw-r--r--  1 root root  837387 Oct 24 00:40 python-build.20251024003848.27123.log
+-rw-r--r--  1 root root  856103 Oct 24 00:42 python-build.20251024004034.40068.log
+-rw-r--r--  1 root root  790608 Oct 24 00:44 python-build.20251024004227.53459.log
+-rw-r--r--  1 root root  184898 Oct 24 00:51 ruby-build.20251024004842.336.log
+-rw-r--r--  1 root root  185571 Oct 24 00:55 ruby-build.20251024005155.12427.log
+-rw-r--r--  1 root root  130205 Oct 24 00:58 ruby-build.20251024005527.24768.log
+drwx------  3 root root    4096 Oct 24 01:11 tmp.4jUiXyGBcD
+drwx------  3 root root    4096 Oct 24 01:05 tmp.MaffwQdjYb
+drwx------  3 root root    4096 Oct 24 00:59 tmp.m3XYkhlnVh
+drwxr-xr-x  3 root root    4096 Oct 24 01:16 v8-compile-cache-0

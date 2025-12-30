@@ -5,15 +5,17 @@ tentaculo_link/routes/audit.py
 Endpoints: GET /api/audit/runs, GET /api/audit/{id}, GET /api/audit/{id}/download
 """
 
-from typing import Optional
+from typing import Optional, List, Dict, Any
 from fastapi import APIRouter, Depends, Header, HTTPException
-from fastapi.responses import FileResponse, StreamingResponse
+from fastapi.responses import StreamingResponse
 import os
 import json
 import sqlite3
 from pathlib import Path
 import zipfile
 import io
+import re
+from datetime import datetime
 
 router = APIRouter(prefix="/api", tags=["audit"])
 
@@ -35,6 +37,60 @@ def get_db() -> sqlite3.Connection:
     conn = sqlite3.connect(str(db_path), timeout=5.0)
     conn.row_factory = sqlite3.Row
     return conn
+
+
+def get_audit_root() -> Path:
+    repo_root = Path(os.environ.get("VX11_REPO_ROOT", "/home/elkakas314/vx11"))
+    return repo_root / "docs" / "audit"
+
+
+def parse_run_timestamp(name: str) -> Optional[str]:
+    match = re.match(r"^(\\d{8}T\\d{6}Z)", name)
+    if not match:
+        return None
+    try:
+        dt = datetime.strptime(match.group(1), "%Y%m%dT%H%M%SZ")
+        return dt.isoformat() + "Z"
+    except ValueError:
+        return None
+
+
+def list_audit_runs(limit: int, offset: int) -> Dict[str, Any]:
+    audit_root = get_audit_root()
+    if not audit_root.exists():
+        return {"runs": [], "total": 0, "has_more": False}
+
+    candidates = [
+        path
+        for path in audit_root.iterdir()
+        if path.is_dir() and not path.name.startswith(".")
+    ]
+    candidates.sort(key=lambda p: p.name, reverse=True)
+
+    total = len(candidates)
+    selected = candidates[offset : offset + limit]
+
+    runs = []
+    for path in selected:
+        run_ts = parse_run_timestamp(path.name)
+        files = [file_path for file_path in path.rglob("*") if file_path.is_file()]
+        size_bytes = sum(file_path.stat().st_size for file_path in files)
+        runs.append(
+            {
+                "run_id": path.name,
+                "run_ts": run_ts,
+                "status": "available",
+                "path": str(path),
+                "files_count": len(files),
+                "size_bytes": size_bytes,
+            }
+        )
+
+    return {
+        "runs": runs,
+        "total": total,
+        "has_more": (offset + limit) < total,
+    }
 
 
 @router.get("/audit/runs")
@@ -69,77 +125,64 @@ async def get_audit_runs(
     }
     """
 
-    if not os.environ.get("VX11_AUDIT_ENABLED", "false").lower() in ("true", "1"):
-        return {
-            "error": "feature_disabled",
-            "flag": "VX11_AUDIT_ENABLED",
-            "runs": [],
-            "total": 0,
-            "has_more": False,
-        }
+    if os.environ.get("VX11_AUDIT_ENABLED", "false").lower() in ("true", "1"):
+        try:
+            conn = get_db()
+            cursor = conn.cursor()
 
-    try:
-        conn = get_db()
-        cursor = conn.cursor()
+            where_clause = ""
+            params = []
+            if status:
+                where_clause = "WHERE status = ?"
+                params = [status]
 
-        where_clause = ""
-        params = []
-        if status:
-            where_clause = "WHERE status = ?"
-            params = [status]
-
-        # Count total
-        cursor.execute(
-            f"SELECT COUNT(*) as cnt FROM manifestator_audit {where_clause}", params
-        )
-        total = cursor.fetchone()["cnt"]
-
-        # Fetch with pagination
-        cursor.execute(
-            f"""
-            SELECT audit_id, run_ts, status, correlation_id, 
-                   COALESCE(patch_plan_json, '{{}}') as patch_plan, evidence_paths_json
-            FROM manifestator_audit
-            {where_clause}
-            ORDER BY run_ts DESC
-            LIMIT ? OFFSET ?
-            """,
-            params + [limit, offset],
-        )
-        rows = cursor.fetchall()
-        conn.close()
-
-        runs = []
-        for row in rows:
-            try:
-                patch = json.loads(row["patch_plan"] or "{}")
-                summary = patch.get("summary", "Audit run")
-            except:
-                summary = "Audit run"
-
-            runs.append(
-                {
-                    "audit_id": row["audit_id"],
-                    "run_ts": row["run_ts"],
-                    "status": row["status"],
-                    "correlation_id": row["correlation_id"],
-                    "summary": summary,
-                    "p0_count": 0,  # Placeholder; calcular si es necesario
-                }
+            cursor.execute(
+                f"SELECT COUNT(*) as cnt FROM manifestator_audit {where_clause}", params
             )
+            total = cursor.fetchone()["cnt"]
 
-        return {
-            "runs": runs,
-            "total": total,
-            "has_more": (offset + limit) < total,
-        }
-    except Exception as e:
-        return {
-            "error": str(e),
-            "runs": [],
-            "total": 0,
-            "has_more": False,
-        }
+            cursor.execute(
+                f"""
+                SELECT audit_id, run_ts, status, correlation_id,
+                       COALESCE(patch_plan_json, '{{}}') as patch_plan, evidence_paths_json
+                FROM manifestator_audit
+                {where_clause}
+                ORDER BY run_ts DESC
+                LIMIT ? OFFSET ?
+                """,
+                params + [limit, offset],
+            )
+            rows = cursor.fetchall()
+            conn.close()
+
+            runs = []
+            for row in rows:
+                try:
+                    patch = json.loads(row["patch_plan"] or "{}")
+                    summary = patch.get("summary", "Audit run")
+                except json.JSONDecodeError:
+                    summary = "Audit run"
+
+                runs.append(
+                    {
+                        "run_id": row["audit_id"],
+                        "run_ts": row["run_ts"],
+                        "status": row["status"],
+                        "correlation_id": row["correlation_id"],
+                        "summary": summary,
+                        "source": "manifestator_audit",
+                    }
+                )
+
+            return {
+                "runs": runs,
+                "total": total,
+                "has_more": (offset + limit) < total,
+            }
+        except Exception:
+            pass
+
+    return list_audit_runs(limit=limit, offset=offset)
 
 
 @router.get("/audit/{audit_id}")
@@ -167,48 +210,68 @@ async def get_audit_detail(
     }
     """
 
-    if not os.environ.get("VX11_AUDIT_ENABLED", "false").lower() in ("true", "1"):
-        raise HTTPException(status_code=503, detail="feature_disabled")
-
-    try:
-        conn = get_db()
-        cursor = conn.cursor()
-        cursor.execute(
-            """
-            SELECT audit_id, run_ts, status, patch_plan_json, evidence_paths_json
-            FROM manifestator_audit
-            WHERE audit_id = ?
-            """,
-            (audit_id,),
-        )
-        row = cursor.fetchone()
-        conn.close()
-
-        if not row:
-            raise HTTPException(status_code=404, detail="audit_not_found")
-
-        try:
-            patch_plan = json.loads(row["patch_plan_json"] or "{}")
-            findings = patch_plan.get("findings", [])
-        except:
-            findings = []
-
-        try:
-            evidence_paths = json.loads(row["evidence_paths_json"] or "[]")
-        except:
-            evidence_paths = []
-
+    audit_root = get_audit_root()
+    audit_path = audit_root / audit_id
+    if audit_path.exists() and audit_path.is_dir():
+        files: List[Dict[str, Any]] = []
+        for path in sorted(audit_path.rglob("*")):
+            if path.is_file():
+                files.append(
+                    {
+                        "path": str(path.relative_to(audit_root)),
+                        "size_bytes": path.stat().st_size,
+                    }
+                )
         return {
-            "audit_id": row["audit_id"],
-            "run_ts": row["run_ts"],
-            "status": row["status"],
-            "findings": findings,
-            "artifacts": evidence_paths,
+            "run_id": audit_id,
+            "run_ts": parse_run_timestamp(audit_id),
+            "status": "available",
+            "files": files,
         }
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+
+    if os.environ.get("VX11_AUDIT_ENABLED", "false").lower() in ("true", "1"):
+        try:
+            conn = get_db()
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                SELECT audit_id, run_ts, status, patch_plan_json, evidence_paths_json
+                FROM manifestator_audit
+                WHERE audit_id = ?
+                """,
+                (audit_id,),
+            )
+            row = cursor.fetchone()
+            conn.close()
+
+            if not row:
+                raise HTTPException(status_code=404, detail="audit_not_found")
+
+            try:
+                patch_plan = json.loads(row["patch_plan_json"] or "{}")
+                findings = patch_plan.get("findings", [])
+            except json.JSONDecodeError:
+                findings = []
+
+            try:
+                evidence_paths = json.loads(row["evidence_paths_json"] or "[]")
+            except json.JSONDecodeError:
+                evidence_paths = []
+
+            return {
+                "run_id": row["audit_id"],
+                "run_ts": row["run_ts"],
+                "status": row["status"],
+                "findings": findings,
+                "artifacts": evidence_paths,
+                "source": "manifestator_audit",
+            }
+        except HTTPException:
+            raise
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+
+    raise HTTPException(status_code=404, detail="audit_not_found")
 
 
 @router.get("/audit/{audit_id}/download")
@@ -224,37 +287,15 @@ async def download_audit(
     - Binary ZIP file with all audit artifacts
     """
 
-    if not os.environ.get("VX11_AUDIT_ENABLED", "false").lower() in ("true", "1"):
-        raise HTTPException(status_code=503, detail="feature_disabled")
-
-    try:
-        conn = get_db()
-        cursor = conn.cursor()
-        cursor.execute(
-            "SELECT evidence_paths_json FROM manifestator_audit WHERE audit_id = ?",
-            (audit_id,),
-        )
-        row = cursor.fetchone()
-        conn.close()
-
-        if not row:
-            raise HTTPException(status_code=404, detail="audit_not_found")
-
-        try:
-            evidence_paths = json.loads(row["evidence_paths_json"] or "[]")
-        except:
-            evidence_paths = []
-
-        # Create ZIP in memory
+    audit_root = get_audit_root()
+    audit_path = audit_root / audit_id
+    if audit_path.exists() and audit_path.is_dir():
         zip_buffer = io.BytesIO()
         with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
-            repo_root = Path(os.environ.get("VX11_REPO_ROOT", "/home/elkakas314/vx11"))
-
-            for path in evidence_paths:
-                full_path = repo_root / path
-                if full_path.exists() and full_path.is_file():
-                    arcname = full_path.relative_to(repo_root)
-                    zf.write(full_path, arcname=arcname)
+            for path in audit_path.rglob("*"):
+                if path.is_file():
+                    arcname = path.relative_to(audit_path)
+                    zf.write(path, arcname=arcname)
 
         zip_buffer.seek(0)
         return StreamingResponse(
@@ -262,7 +303,47 @@ async def download_audit(
             media_type="application/zip",
             headers={"Content-Disposition": f"attachment; filename=audit_{audit_id}.zip"},
         )
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+
+    if os.environ.get("VX11_AUDIT_ENABLED", "false").lower() in ("true", "1"):
+        try:
+            conn = get_db()
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT evidence_paths_json FROM manifestator_audit WHERE audit_id = ?",
+                (audit_id,),
+            )
+            row = cursor.fetchone()
+            conn.close()
+
+            if not row:
+                raise HTTPException(status_code=404, detail="audit_not_found")
+
+            try:
+                evidence_paths = json.loads(row["evidence_paths_json"] or "[]")
+            except json.JSONDecodeError:
+                evidence_paths = []
+
+            zip_buffer = io.BytesIO()
+            with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
+                repo_root = Path(os.environ.get("VX11_REPO_ROOT", "/home/elkakas314/vx11"))
+
+                for path in evidence_paths:
+                    full_path = repo_root / path
+                    if full_path.exists() and full_path.is_file():
+                        arcname = full_path.relative_to(repo_root)
+                        zf.write(full_path, arcname=arcname)
+
+            zip_buffer.seek(0)
+            return StreamingResponse(
+                iter([zip_buffer.getvalue()]),
+                media_type="application/zip",
+                headers={
+                    "Content-Disposition": f"attachment; filename=audit_{audit_id}.zip"
+                },
+            )
+        except HTTPException:
+            raise
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+
+    raise HTTPException(status_code=404, detail="audit_not_found")

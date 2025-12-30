@@ -29,7 +29,7 @@ export const OverviewPanel: React.FC = () => {
                 const eventsResp = await apiClient.request<{
                     total?: number
                     events?: Array<{ created_at?: string }>
-                }>('GET', '/operator/api/v1/events?limit=1')
+                    }>('GET', '/operator/api/events?limit=1')
                 if (eventsResp.ok && eventsResp.data) {
                     setTotalEvents(eventsResp.data.total || 0)
                     if (eventsResp.data.events?.[0]?.created_at) {
@@ -40,7 +40,7 @@ export const OverviewPanel: React.FC = () => {
                 // Fetch lanes count
                 const lanesResp = await apiClient.request<{ lanes?: unknown[] }>(
                     'GET',
-                    '/operator/api/v1/rails/lanes'
+                    '/operator/api/rails/lanes'
                 )
                 if (lanesResp.ok && lanesResp.data) {
                     setActiveLanes(lanesResp.data.lanes?.length || 0)

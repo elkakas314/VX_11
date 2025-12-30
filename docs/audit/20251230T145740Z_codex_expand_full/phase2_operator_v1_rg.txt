@@ -1,0 +1,13 @@
+operator/frontend/src/views/CoDevView.tsx:39:            const resp = await apiClient.request('POST', '/operator/api/v1/assist/deepseek_r1', {
+operator/frontend/src/services/api.ts:67:                    if (path.startsWith('/operator/api/v1')) {
+operator/frontend/src/services/api.ts:68:                        const legacyPath = path.replace('/operator/api/v1', '/operator/api')
+operator/frontend/src/services/api.ts:72:                        const versionedPath = path.replace('/operator/api', '/operator/api/v1')
+operator/frontend/src/components/OverviewPanel.tsx:32:                }>('GET', '/operator/api/v1/events?limit=1')
+operator/frontend/src/components/OverviewPanel.tsx:43:                    '/operator/api/v1/rails/lanes'
+operator/frontend/src/components/MetricsPanel.tsx:32:                    `/operator/api/v1/metrics?window_seconds=${windowSeconds}`
+operator/frontend/src/components/P0ChecksPanel.tsx:54:                            <span>/operator/api/v1/chat</span>
+operator/frontend/src/components/P0ChecksPanel.tsx:61:                            <span>/operator/api/v1/status</span>
+operator/frontend/src/components/P0ChecksPanel.tsx:68:                            <span>/operator/api/v1/windows</span>
+operator/frontend/src/components/RailsPanel.tsx:25:                    '/operator/api/v1/rails/lanes'
+operator/frontend/src/components/RailsPanel.tsx:33:                    '/operator/api/v1/rails'
+operator/frontend/src/components/EventsPanel.tsx:39:                `/operator/api/v1/events?${params}`

@@ -1,0 +1,5 @@
+total 16
+drwxr-xr-x  4 root root 4096 Dec 30 03:31 .
+drwxr-xr-x 22 root root 4096 Dec 30 03:31 ..
+drwxr-xr-x  2 root root 4096 Dec 30 03:31 backend
+drwxr-xr-x  5 root root 4096 Dec 30 03:32 frontend

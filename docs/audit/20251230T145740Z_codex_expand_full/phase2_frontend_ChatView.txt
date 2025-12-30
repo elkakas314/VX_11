@@ -1,0 +1,121 @@
+        scrollToBottom()
+    }, [session.messages])
+
+    useEffect(() => {
+        const loadWindowStatus = async () => {
+            try {
+                const resp = await apiClient.windows()
+                if (resp.ok && resp.data) {
+                    setWindowStatus(resp.data)
+                }
+            } catch {
+                // Silent fail, status is informational
+            }
+        }
+
+        if (!windowStatus) {
+            loadWindowStatus()
+        }
+    }, [windowStatus, setWindowStatus])
+
+    async function handleOpenWindow() {
+        setWindowLoading(true)
+        setError(null)
+
+        try {
+            const resp = await apiClient.request('POST', '/operator/api/chat/window/open', {
+                services: ['switch'],
+                ttl_sec: 600,
+                mode: 'ttl',
+                reason: 'operator_manual_10min',
+            })
+
+            if (resp.ok && resp.data) {
+                const statusResp = await apiClient.windows()
+                if (statusResp.ok && statusResp.data) {
+                    setWindowStatus(statusResp.data)
+                }
+                setError(null)
+            } else {
+                throw new Error(resp.error || 'Failed to open window')
+            }
+        } catch (err: any) {
+            setError(`Window error: ${err.message}`)
+        } finally {
+            setWindowLoading(false)
+        }
+    }
+
+    async function handleCloseWindow() {
+        setWindowLoading(true)
+        setError(null)
+
+        try {
+            const resp = await apiClient.request('POST', '/operator/api/chat/window/close', {})
+
+            if (resp.ok) {
+                const statusResp = await apiClient.windows()
+                if (statusResp.ok && statusResp.data) {
+                    setWindowStatus(statusResp.data)
+                }
+                setError(null)
+            } else {
+                throw new Error(resp.error || 'Failed to close window')
+            }
+        } catch (err: any) {
+            setError(`Close error: ${err.message}`)
+        } finally {
+            setWindowLoading(false)
+        }
+    }
+
+    async function handleSend() {
+        // P12/P13: Chat only works when window is OPEN
+        if (!windowStatus || windowStatus.mode !== 'window_active') {
+            setError('Chat window is CLOSED. Click "Open 10 min" to enable chat.')
+            return
+        }
+
+        if (!input.trim()) return
+
+        // Add user message
+        const userMsg: ChatMessage = {
+            id: `msg_${Date.now()}`,
+            role: 'user',
+            content: input,
+            timestamp: Date.now(),
+        }
+
+        setSession((prev) => ({
+            ...prev,
+            messages: [...prev.messages, userMsg],
+        }))
+
+        setInput('')
+        setLoading(true)
+        setError(null)
+
+        try {
+            const resp = await apiClient.chat(input, session.id)
+
+            if (resp.ok && resp.data) {
+                const assistantMsg: ChatMessage = {
+                    id: `msg_${Date.now()}`,
+                    role: 'assistant',
+                    content: resp.data.response || resp.data.message || 'No response',
+                    timestamp: Date.now(),
+                    meta: {
+                        correlation_id: resp.data.correlation_id,
+                        source: resp.data.fallback_source || resp.data.provider_used,
+                    },
+                }
+
+                setSession((prev) => ({
+                    ...prev,
+                    messages: [...prev.messages, assistantMsg],
+                    degraded: resp.data.degraded || false,
+                }))
+            } else {
+                throw new Error(resp.error || 'Chat request failed')
+            }
+        } catch (err: any) {

@@ -1,0 +1,7 @@
+hormiguero/main.py:95:@app.get("/health")
+hormiguero/main.py:104:@app.get("/hormiguero/status")
+hormiguero/main.py:112:@app.post("/hormiguero/scan/once", response_model=ScanResponse)
+hormiguero/main.py:119:@app.get("/hormiguero/incidents")
+hormiguero/main.py:124:@app.get("/hormiguero/pheromones")
+hormiguero/main.py:129:@app.post("/hormiguero/actions/preview")
+hormiguero/main.py:135:@app.post("/hormiguero/actions/apply")

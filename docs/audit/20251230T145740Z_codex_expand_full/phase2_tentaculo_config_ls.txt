@@ -1,0 +1,4 @@
+total 12
+drwxr-xr-x  2 root root 4096 Dec 30 03:31 .
+drwxr-xr-x 12 root root 4096 Dec 30 03:31 ..
+-rw-r--r--  1 root root  789 Dec 30 03:31 command_routes.json

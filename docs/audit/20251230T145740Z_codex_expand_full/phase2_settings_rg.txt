@@ -1,0 +1,2 @@
+tentaculo_link/main_v7.py:3617:        "message": "Settings updated (not persisted in solo_madre mode)",
+tentaculo_link/routes/settings.py:2:VX11 Operator Routes: Settings

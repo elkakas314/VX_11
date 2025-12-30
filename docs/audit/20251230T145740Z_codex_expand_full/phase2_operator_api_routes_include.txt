@@ -1,0 +1,61 @@
+    )
+
+    @app.get("/operator/ui")
+    @app.get("/operator/ui/{path:path}")
+    async def operator_ui_missing(path: str = ""):
+        return Response(
+            content="Operator UI build not found. Run frontend build to generate dist.",
+            media_type="text/plain",
+            status_code=503,
+        )
+
+# Include new operator API routes with /operator prefix
+try:
+    app.include_router(
+        api_routes.events.router, prefix="/operator", tags=["operator-api"]
+    )
+    app.include_router(
+        api_routes.settings.router, prefix="/operator", tags=["operator-api"]
+    )
+    app.include_router(
+        api_routes.audit.router, prefix="/operator", tags=["operator-api"]
+    )
+    app.include_router(
+        api_routes.metrics.router, prefix="/operator", tags=["operator-api"]
+    )
+    app.include_router(
+        api_routes.rails.router, prefix="/operator", tags=["operator-api"]
+    )
+    app.include_router(
+        api_routes.window.router, prefix="/operator", tags=["operator-api"]
+    )
+    app.include_router(
+        api_routes.hormiguero.router, prefix="/operator", tags=["operator-api"]
+    )
+    app.include_router(
+        api_routes.switch.router, prefix="/operator", tags=["operator-api"]
+    )
+    write_log("tentaculo_link", "included_operator_api_routers:success")
+except Exception as e:
+    write_log(
+        "tentaculo_link",
+        f"WARNING: failed to include operator routers: {e}",
+        level="WARNING",
+    )
+
+app.include_router(api_routes.internal.router)
+app.include_router(api_routes.hormiguero.router)
+
+
+# ============ HEALTH & STATUS ============
+
+
+@app.get("/health")
+async def health():
+    """Simple health check."""
+    return {"status": "ok", "module": "tentaculo_link", "version": "7.0"}
+
+
+@app.get("/operator")
+async def operator_redirect():
+    """Redirect /operator to /operator/ui/."""
