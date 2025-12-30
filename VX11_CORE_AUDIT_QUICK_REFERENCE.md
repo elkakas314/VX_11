@@ -64,6 +64,31 @@ curl http://127.0.0.1:8000/health
 
 ---
 
+## NETWORK FIX (If "incorrect label expected default" error)
+
+**Problem**: vx11-network exists with desynchronized labels  
+**Solution**: Idempotent cleanup (safe even if already fixed)
+
+```bash
+# Stop and remove containers
+docker compose -f docker-compose.production.yml stop
+docker compose -f docker-compose.production.yml rm -f
+
+# Remove network (will be recreated with correct labels)
+docker network rm vx11-network 2>/dev/null || true
+
+# Recreate everything
+docker compose -f docker-compose.production.yml up -d --build
+sleep 8
+
+# Verify
+curl http://127.0.0.1:8000/health  # Should return 200 OK
+```
+
+**Evidence**: `docs/audit/20251230T170014Z_network_fix/`
+
+---
+
 ## AUDIT ARTIFACTS
 
 📍 **Location**: `docs/audit/20251230T154732Z_copilot_core_audit/`
