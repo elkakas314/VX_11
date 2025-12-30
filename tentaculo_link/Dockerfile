@@ -27,7 +27,6 @@ COPY --from=builder /root/.local /root/.local
 # Copy specific modules + minimal config (safer than copying entire tree)
 COPY config/ /app/config/
 COPY tentaculo_link/ /app/tentaculo_link/
-COPY vx11/ /app/vx11/
 COPY switch/ /app/switch/
 COPY madre/ /app/madre/
 COPY spawner/ /app/spawner/
@@ -39,9 +38,9 @@ RUN mkdir -p /app/logs /app/data /app/models /app/sandbox
 
 # Add user local bin to PATH
 ENV PATH=/root/.local/bin:$PATH
-ENV PYTHONPATH=/app:$PYTHONPATH
+ENV PYTHONPATH=/app
 
-CMD ["python", "-m", "uvicorn", "tentaculo_link.main_v7:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "tentaculo_link.main_v7:app", "--host", "0.0.0.0", "--port", "8000"]
 
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
     CMD curl -fsS http://localhost:8000/health || exit 1

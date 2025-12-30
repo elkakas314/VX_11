@@ -1066,7 +1066,7 @@ async def check_solo_madre_policy_status():
 
 def _plan_for_named_mode(mode: str, allowlist: List[str]) -> List[Dict[str, Any]]:
     modes = {
-        "low_power": ["madre"],
+        "low_power": ["madre", "tentaculo_link"],
         "operative_core": ["madre", "tentaculo_link", "switch", "spawner", "mcp"],
         "full": [
             "madre",

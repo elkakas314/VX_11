@@ -16,7 +16,7 @@ WORKDIR /app
 ENV BASE_PATH=/app
 ENV ULTRA_LOW_MEMORY=true
 ENV PYTHONUNBUFFERED=1
-ENV PYTHONPATH=/app:$PYTHONPATH
+ENV PYTHONPATH=/app
 
 RUN apt-get update && apt-get install -y --no-install-recommends curl && \
     rm -rf /var/lib/apt/lists/* && \
@@ -36,7 +36,7 @@ RUN mkdir -p /app/logs /app/data /app/models /app/sandbox
 # Add user local bin to PATH
 ENV PATH=/root/.local/bin:$PATH
 
-CMD ["python", "-m", "uvicorn", "switch.main:app", "--host", "0.0.0.0", "--port", "8002"]
+CMD ["python3", "-m", "uvicorn", "switch.main:app", "--host", "0.0.0.0", "--port", "8002"]
 
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
     CMD curl -fsS http://localhost:8002/health || exit 1

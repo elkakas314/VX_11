@@ -21,7 +21,7 @@ from fastapi import APIRouter, Depends, HTTPException, Header, Request
 from pydantic import BaseModel
 import subprocess
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 import os
 
 from .power_windows import get_window_manager, Window
@@ -436,7 +436,7 @@ async def window_close(authorized: bool = Depends(token_guard)) -> WindowCloseRe
 
         return WindowCloseResponse(
             window_id=window_id,
-            closed_at=datetime.utcnow().isoformat() + "Z",
+            closed_at=datetime.now(timezone.utc).isoformat() + "Z",
             services_stopped=services,
             state="closed",
         )

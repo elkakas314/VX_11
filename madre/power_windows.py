@@ -11,7 +11,7 @@ Gestiona ventanas (servicios temporales o indefinidos) con TTL automático.
 import json
 import logging
 import asyncio
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Optional, Set, List, Dict, Any
 from uuid import uuid4
@@ -37,7 +37,7 @@ class Window:
         self.mode = mode  # "ttl" o "hold"
         self.reason = reason
         self.state = "open"
-        self.created_at = created_at or datetime.utcnow()
+        self.created_at = created_at or datetime.now(timezone.utc)
 
         # Deadline (None si hold)
         if mode == "ttl" and ttl_sec:
@@ -52,14 +52,14 @@ class Window:
         """Retorna segundos restantes, o None si hold."""
         if self.deadline is None:
             return None
-        remaining = (self.deadline - datetime.utcnow()).total_seconds()
+        remaining = (self.deadline - datetime.now(timezone.utc)).total_seconds()
         return max(0, int(remaining))
 
     def is_expired(self) -> bool:
         """True si deadline ha pasado."""
         if self.deadline is None:
             return False
-        return datetime.utcnow() >= self.deadline
+        return datetime.now(timezone.utc) >= self.deadline
 
     def to_dict(self) -> Dict[str, Any]:
         """Serializa window a dict."""
@@ -158,7 +158,7 @@ class WindowManager:
                     self.active_window.to_dict() if self.active_window else None
                 ),
                 "history": self.history,
-                "last_update": datetime.utcnow().isoformat() + "Z",
+                "last_update": datetime.now(timezone.utc).isoformat() + "Z",
             }
             with open(self.state_file, "w") as f:
                 json.dump(data, f, indent=2)
@@ -211,7 +211,7 @@ class WindowManager:
 
         window = self.active_window
         window.state = "closed"
-        window.closed_at = datetime.utcnow()
+        window.closed_at = datetime.now(timezone.utc)
         window.close_reason = reason
 
         # Agregar a history
