@@ -256,12 +256,53 @@ async def spawner_submit(
             },
         )
 
+    madre_result = response.json()
+    requested_name = payload.get("task_name") or payload.get("name") or "operator_spawn"
+    ttl_seconds = 1
+    safe_cmd = "echo 'vx11 spawner ok'"
+
+    spawn_payload = {
+        "name": requested_name,
+        "cmd": safe_cmd,
+        "task_type": payload.get("task_type") or "operator_spawn",
+        "description": payload.get("description") or "operator_spawn_intent",
+        "ttl_seconds": ttl_seconds,
+        "trace_id": correlation_id,
+        "source": "operator",
+        "metadata": {
+            "intent_id": madre_result.get("intent_id"),
+            "task_id": madre_result.get("task_id"),
+            "policy": "observer_mode",
+            "cmd_overridden": payload.get("cmd") not in (None, "", safe_cmd),
+        },
+    }
+
+    clients = get_clients()
+    spawner_client = clients.get_client("spawner")
+    if not spawner_client:
+        return JSONResponse(
+            status_code=503,
+            content={
+                "status": "error",
+                "message": "spawner_client_unavailable",
+                "policy": window.get("mode"),
+                "correlation_id": correlation_id,
+            },
+        )
+
+    spawner_result = await spawner_client.post(
+        "/spawn",
+        payload=spawn_payload,
+        timeout=10.0,
+    )
+
     _log_spawn_event(
         "spawn_submit",
         {
             "correlation_id": correlation_id,
-            "payload": payload,
-            "madre_status": response.json(),
+            "payload": spawn_payload,
+            "madre_status": madre_result,
+            "spawner_status": spawner_result,
         },
     )
 
@@ -269,5 +310,7 @@ async def spawner_submit(
         "status": "queued",
         "policy": window.get("mode"),
         "correlation_id": correlation_id,
-        "result": response.json(),
+        "intent": madre_result,
+        "spawn": spawner_result,
+        "note": "cmd overridden to safe echo; ttl forced to 1s",
     }

@@ -10,6 +10,7 @@ Context-7 sessions, and intelligent request routing to internal services.
 
 import asyncio
 import json
+import os
 import time
 import uuid
 from pathlib import Path
@@ -61,6 +62,12 @@ VX11_TOKEN = (
     or settings.api_token
 )
 AUTH_HEADERS = {settings.token_header: VX11_TOKEN}
+OPERATOR_PROXY_ENABLED = os.environ.get(
+    "VX11_OPERATOR_PROXY_ENABLED", "false"
+).lower() in ("1", "true", "yes", "on")
+OPERATOR_CONTROL_ENABLED = os.environ.get(
+    "VX11_OPERATOR_CONTROL_ENABLED", "false"
+).lower() in ("1", "true", "yes", "on")
 
 
 def _resolve_files_dir() -> Path:
@@ -186,6 +193,8 @@ async def operator_api_proxy(request: Request, call_next):
     if request.method == "OPTIONS":
         return await call_next(request)
     if request.url.path.startswith("/operator/api"):
+        if not OPERATOR_PROXY_ENABLED:
+            return await call_next(request)
         correlation_id = request.headers.get("X-Correlation-Id") or str(uuid.uuid4())
         if settings.enable_auth:
             token_header_value = request.headers.get(settings.token_header)
@@ -761,6 +770,14 @@ async def operator_solo_madre_status(_: bool = Depends(token_guard)):
 @app.post("/operator/power/policy/solo_madre/apply")
 async def operator_solo_madre_apply(_: bool = Depends(token_guard)):
     """Proxy SOLO_MADRE apply to Madre."""
+    if not OPERATOR_CONTROL_ENABLED:
+        return JSONResponse(
+            status_code=403,
+            content={
+                "status": "off_by_policy",
+                "message": "Operator control disabled (observer mode)",
+            },
+        )
     clients = get_clients()
     madre = clients.get_client("madre")
     if not madre:
@@ -773,6 +790,14 @@ async def operator_solo_madre_apply(_: bool = Depends(token_guard)):
 @app.post("/operator/power/service/{name}/start")
 async def operator_power_start(name: str, _: bool = Depends(token_guard)):
     """Proxy service start to Madre."""
+    if not OPERATOR_CONTROL_ENABLED:
+        return JSONResponse(
+            status_code=403,
+            content={
+                "status": "off_by_policy",
+                "message": "Operator control disabled (observer mode)",
+            },
+        )
     clients = get_clients()
     madre = clients.get_client("madre")
     if not madre:
@@ -785,6 +810,14 @@ async def operator_power_start(name: str, _: bool = Depends(token_guard)):
 @app.post("/operator/power/service/{name}/stop")
 async def operator_power_stop(name: str, _: bool = Depends(token_guard)):
     """Proxy service stop to Madre."""
+    if not OPERATOR_CONTROL_ENABLED:
+        return JSONResponse(
+            status_code=403,
+            content={
+                "status": "off_by_policy",
+                "message": "Operator control disabled (observer mode)",
+            },
+        )
     clients = get_clients()
     madre = clients.get_client("madre")
     if not madre:
@@ -797,6 +830,14 @@ async def operator_power_stop(name: str, _: bool = Depends(token_guard)):
 @app.post("/operator/power/service/{name}/restart")
 async def operator_power_restart(name: str, _: bool = Depends(token_guard)):
     """Proxy service restart to Madre."""
+    if not OPERATOR_CONTROL_ENABLED:
+        return JSONResponse(
+            status_code=403,
+            content={
+                "status": "off_by_policy",
+                "message": "Operator control disabled (observer mode)",
+            },
+        )
     clients = get_clients()
     madre = clients.get_client("madre")
     if not madre:
@@ -3194,6 +3235,14 @@ async def operator_api_chat_window_open(
         "error_code": str (if error),
     }
     """
+    if not OPERATOR_CONTROL_ENABLED:
+        return JSONResponse(
+            status_code=403,
+            content={
+                "status": "off_by_policy",
+                "message": "Operator control disabled (observer mode)",
+            },
+        )
     try:
         # Proxy to Madre internal endpoint (never expose madre directly)
         clients = get_clients()
@@ -3298,6 +3347,14 @@ async def operator_api_chat_window_close(_: bool = Depends(token_guard)):
         "error_code": str (if error),
     }
     """
+    if not OPERATOR_CONTROL_ENABLED:
+        return JSONResponse(
+            status_code=403,
+            content={
+                "status": "off_by_policy",
+                "message": "Operator control disabled (observer mode)",
+            },
+        )
     try:
         clients = get_clients()
         madre_client = clients.get_client("madre")

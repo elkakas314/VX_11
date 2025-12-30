@@ -29,7 +29,7 @@ export const MetricsPanel: React.FC = () => {
                                 : 604800
                 const response = await apiClient.request<{ metrics: Metric[] }>(
                     'GET',
-                    `/operator/api/v1/metrics?window_seconds=${windowSeconds}`
+                    `/operator/api/metrics?window_seconds=${windowSeconds}`
                 )
 
                 if (!response.ok || !response.data) throw new Error(response.error || 'Failed to fetch metrics')

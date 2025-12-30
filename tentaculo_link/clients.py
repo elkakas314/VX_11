@@ -103,6 +103,7 @@ class ModuleClient:
         self,
         path: str,
         timeout: Optional[float] = None,
+        params: Optional[Dict[str, Any]] = None,
         extra_headers: Optional[Dict[str, str]] = None,
     ) -> Dict[str, Any]:
         """GET request with circuit breaker."""
@@ -123,7 +124,10 @@ class ModuleClient:
             if extra_headers:
                 headers.update(extra_headers)
             resp = await self.client.get(
-                url, timeout=timeout or self.timeout, headers=headers
+                url,
+                timeout=timeout or self.timeout,
+                headers=headers,
+                params=params,
             )
             if resp.status_code < 300:
                 self.circuit_breaker.record_success()
@@ -350,7 +354,10 @@ class VX11Clients:
         return await client.post(endpoint, payload)
 
     async def route_to_hormiguero(
-        self, endpoint: str, payload: Optional[Dict[str, Any]] = None
+        self,
+        endpoint: str,
+        payload: Optional[Dict[str, Any]] = None,
+        params: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """Route to Hormiguero."""
         client = self.get_client("hormiguero")
@@ -359,8 +366,7 @@ class VX11Clients:
         write_log("tentaculo_link", f"route_hormiguero:{endpoint}")
         if payload:
             return await client.post(endpoint, payload)
-        else:
-            return await client.get(endpoint)
+        return await client.get(endpoint, params=params)
 
 
 # Global singleton

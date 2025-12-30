@@ -102,6 +102,13 @@ class TestFrontDoorHealth:
         if len(operation_ids) != len(set(operation_ids)):
             pytest.skip("WARNING: Duplicate operationIds in OpenAPI spec")
 
+    def test_operator_ui_served(self, base_url, http_client):
+        """GET /operator/ui/ returns HTML (no blank screen)."""
+        resp = http_client.get(f"{base_url}/operator/ui/")
+        assert resp.status_code == 200
+        body = resp.text
+        assert "id=\"root\"" in body or "VX11 Operator" in body
+
 
 class TestHermesGetEngineAuth:
     """Hermes GET-engine endpoint auth validation"""

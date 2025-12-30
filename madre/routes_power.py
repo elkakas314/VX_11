@@ -457,14 +457,28 @@ async def get_power_state(
     """
     wm = get_window_manager()
     window = wm.active_window
+    force_windowed = os.environ.get("VX11_SOLO_MADRE", "1").lower() in (
+        "0",
+        "false",
+        "no",
+    )
 
     if window:
         active_services = list(window.services) + list(wm.SOLO_MADRE_SERVICES)
+    elif force_windowed:
+        extra_services = [
+            svc.strip()
+            for svc in os.environ.get("VX11_WINDOW_SERVICES", "").split(",")
+            if svc.strip()
+        ]
+        active_services = sorted(
+            set(extra_services + list(wm.SOLO_MADRE_SERVICES))
+        )
     else:
         active_services = list(wm.SOLO_MADRE_SERVICES)
 
     return PowerStateResponse(
-        policy="windowed" if window else "solo_madre",
+        policy="windowed" if window or force_windowed else "solo_madre",
         window_id=window.window_id if window else None,
         created_at=window.created_at.isoformat() + "Z" if window else None,
         deadline=(

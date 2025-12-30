@@ -38,8 +38,8 @@ export function SpawnerView() {
     const [formState, setFormState] = useState({
         task_name: '',
         task_type: 'spawn',
-        cmd: '',
-        ttl_seconds: 300,
+        cmd: 'auto (safe echo)',
+        ttl_seconds: 1,
     })
     const windowStatus = useWindowStatusStore((state) => state.windowStatus)
 
@@ -172,17 +172,14 @@ export function SpawnerView() {
                             <input
                                 type="text"
                                 value={formState.cmd}
-                                disabled={!actionAllowed}
-                                onChange={(e) =>
-                                    setFormState((prev) => ({ ...prev, cmd: e.target.value }))
-                                }
+                                disabled
                             />
                         </label>
                         <label>
                             TTL (sec)
                             <input
                                 type="number"
-                                min={60}
+                                min={1}
                                 value={formState.ttl_seconds}
                                 disabled={!actionAllowed}
                                 onChange={(e) =>
@@ -194,6 +191,9 @@ export function SpawnerView() {
                             />
                         </label>
                     </div>
+                    <p className="muted">
+                        Observer policy: command is auto-generated and TTL is forced to 1s.
+                    </p>
                     <div className="view-actions">
                         <button
                             className="btn-primary"

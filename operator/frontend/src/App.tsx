@@ -10,7 +10,7 @@ import { LeftRail } from './components/LeftRail'
 import { RightDrawer } from './components/RightDrawer'
 import { DegradedModeBanner } from './components/DegradedModeBanner'
 import { DebugDrawer } from './components/DebugDrawer'
-import { apiClient, API_BASE, buildApiUrl } from './services/api'
+import { apiClient, API_BASE } from './services/api'
 import { useEventsStore, useWindowStatusStore } from './stores'
 import './App.css'
 
@@ -43,47 +43,39 @@ export default function App() {
     }, [])
 
     useEffect(() => {
-        let eventSource: EventSource | null = null
-        let retryMs = 1000
-        let retryTimeout: number | undefined
+        let active = true
+        let intervalId: number | undefined
 
-        const connect = () => {
-            const eventsUrl = buildApiUrl('/operator/api/v1/events/stream')
-            eventSource = new EventSource(eventsUrl)
-
-            eventSource.onopen = () => {
-                setEventsConnected(true)
-                retryMs = 1000
-            }
-
-            eventSource.addEventListener('snapshot', (event) => {
-                try {
-                    const data = JSON.parse((event as MessageEvent).data)
-                    if (data.events) {
-                        setEvents(data.events)
-                    }
-                    if (data.window) {
-                        setWindowStatus(data.window)
-                    }
-                } catch (err) {
-                    console.error('Failed to parse snapshot:', err)
+        const poll = async () => {
+            try {
+                const [eventsResp, windowResp] = await Promise.all([
+                    apiClient.events(),
+                    apiClient.windows(),
+                ])
+                if (!active) return
+                if (eventsResp.ok && eventsResp.data) {
+                    const events = eventsResp.data.events || eventsResp.data
+                    setEvents(events)
+                    setEventsConnected(true)
+                } else {
+                    setEventsConnected(false)
                 }
-            })
-
-            eventSource.onerror = () => {
-                setEventsConnected(false)
-                eventSource?.close()
-                eventSource = null
-                retryTimeout = window.setTimeout(connect, retryMs)
-                retryMs = Math.min(retryMs * 2, 30000)
+                if (windowResp.ok && windowResp.data) {
+                    setWindowStatus(windowResp.data)
+                }
+            } catch (err) {
+                if (active) {
+                    setEventsConnected(false)
+                }
             }
         }
 
-        connect()
+        poll()
+        intervalId = window.setInterval(poll, 15000)
 
         return () => {
-            eventSource?.close()
-            if (retryTimeout) window.clearTimeout(retryTimeout)
+            active = false
+            if (intervalId) window.clearInterval(intervalId)
         }
     }, [setEvents, setWindowStatus])
 
@@ -103,7 +95,7 @@ export default function App() {
             <DegradedModeBanner show={degraded} />
             <DegradedModeBanner
                 show={!eventsConnected}
-                message="Disconnected from events stream. Reconnecting…"
+                message="Disconnected from events feed. Retrying…"
             />
 
             <header className="app-header">

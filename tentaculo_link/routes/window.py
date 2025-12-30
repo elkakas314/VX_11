@@ -31,10 +31,23 @@ async def get_madre_window_status() -> dict:
     Fallback a default si madre no responde.
     """
     try:
+        token = os.environ.get("VX11_TENTACULO_LINK_TOKEN", "")
+        headers = {"X-VX11-Token": token} if token else {}
         async with httpx.AsyncClient(timeout=3.0) as client:
-            response = await client.get("http://madre:8001/power/state")
+            response = await client.get(
+                "http://madre:8001/power/state", headers=headers
+            )
             if response.status_code == 200:
-                return response.json()
+                payload = response.json()
+                policy = payload.get("policy", "solo_madre")
+                return {
+                    "mode": "window_active" if policy == "windowed" else "solo_madre",
+                    "ttl_seconds": payload.get("ttl_remaining_sec"),
+                    "window_id": payload.get("window_id"),
+                    "services": payload.get("active_services", ["madre", "redis"]),
+                    "degraded": False,
+                    "reason": None,
+                }
     except Exception:
         pass
     

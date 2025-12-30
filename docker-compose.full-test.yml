@@ -48,6 +48,7 @@ services:
     environment:
       - VX11_MODE=test
       - VX11_SOLO_MADRE=0
+      - VX11_WINDOW_SERVICES=tentaculo_link,switch,spawner,operator-backend,operator-frontend
       - REDIS_URL=redis://redis-test:6379
       - DATABASE_URL=sqlite:///app/data/runtime/vx11_test.db
       - PYTHONUNBUFFERED=1
@@ -86,6 +87,8 @@ services:
       - VX11_MODE=test
       - VX11_TENTACULO_LINK_TOKEN=vx11-test-token
       - VX11_GATEWAY_TOKEN=vx11-test-token
+      - VX11_OPERATOR_PROXY_ENABLED=0
+      - VX11_OPERATOR_CONTROL_ENABLED=0
       - MADRE_URL=http://madre:8001
       - REDIS_URL=redis://redis-test:6379
       - PYTHONUNBUFFERED=1
@@ -172,8 +175,8 @@ services:
 
   operator-frontend:
     build:
-      context: operator/frontend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: operator/frontend/Dockerfile
       args:
         - VX11_PROFILE=test
         - VITE_API_BASE=/operator
