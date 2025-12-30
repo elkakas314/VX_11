@@ -50,6 +50,10 @@ docs/audit/**
 !docs/audit/DB_MAP_v7_FINAL.md
 !docs/audit/DB_SCHEMA_v7_FINAL.json
 !docs/audit/DB_MAP_v7_META.txt
+!docs/audit/SCORECARD.json
+!docs/audit/20251230_branch_consolidation/
+!docs/audit/DB_SCHEMA_v7_FINAL.json
+!docs/audit/DB_MAP_v7_META.txt
 !docs/audit/CLEANUP_EXCLUDES_CORE.txt
 !docs/audit/PERCENTAGES.json
 !docs/audit/SCORECARD.json

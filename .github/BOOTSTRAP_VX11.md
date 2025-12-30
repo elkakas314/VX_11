@@ -117,13 +117,17 @@
 
 ## 6. PENDING ACTIONS
 
-### TIER 1 (DO IMMEDIATELY)
+### TIER 1 (COMPLETED ✅)
 1. ✅ **FIXED**: Switch healthcheck (PORT 8002)
 2. ✅ **FIXED**: SCORECARD percentages
-3. ⏳ **REVIEW**: operator-e2e-hardening-20251225 branch (7 commits, deletes docs)
-   - Validate deletion list doesn't include core docs
-   - Run test suite if merging
-   - Coordinate with PR #14
+3. ✅ **REJECTED**: operator-e2e-hardening-20251225 branch
+   - **Reason**: Deletes forense evidence + canonical .github files (violates AGENTS.md)
+   - **Decision**: ARCHIVED (not deleted, retained for reference)
+   - **Evidence**: docs/audit/20251230_branch_consolidation/
+4. ✅ **REJECTED**: x/integrate-improvements-from-documentos.zip branch
+   - **Reason**: Diverges backward, reverts canonical DB maps
+   - **Decision**: ARCHIVED (not deleted)
+   - **Evidence**: docs/audit/20251230_branch_consolidation/
 
 ### TIER 2 (BEFORE PRODUCTION)
 1. Delete 8+ obsolete branches (safe cleanup):
