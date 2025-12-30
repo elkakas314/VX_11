@@ -32,7 +32,7 @@ export default function App() {
     const { setEvents } = useEventsStore()
     const { setWindowStatus } = useWindowStatusStore()
     const [debugData] = useState({
-        environment: process.env.NODE_ENV,
+        environment: (globalThis as any).process?.env?.NODE_ENV,
         apiBase: API_BASE || '(relative)',
         version: '7.0',
     })
@@ -154,6 +154,7 @@ export default function App() {
                     >
                         🧬 Spawner
                     </button>
+                    <button
                         className={`tab ${activeTab === 'audit' ? 'active' : ''}`}
                         onClick={() => setActiveTab('audit')}
                     >
@@ -189,11 +190,11 @@ export default function App() {
                         </div>
                     )}
                     {activeTab === 'spawner' && <SpawnerView />}
-    { activeTab === 'audit' && <AuditView /> }
-    { activeTab === 'settings' && <SettingsView /> }
-                </main >
+                    {activeTab === 'audit' && <AuditView />}
+                    {activeTab === 'settings' && <SettingsView />}
+                </main>
 
-        <RightDrawer activeTab={String(activeTab)} open={true} />
+                <RightDrawer activeTab={String(activeTab)} open={true} />
             </div >
 
             <footer className="app-footer">
