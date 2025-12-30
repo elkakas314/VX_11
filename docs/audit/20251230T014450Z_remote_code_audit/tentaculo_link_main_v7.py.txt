@@ -1,0 +1,260 @@
+"""
+Tentáculo Link v7.0 - Gateway Refactored
+
+Pure proxy + auth + context-7 middleware + modular clients.
+Version: 7.0 | Module: tentaculo_link | Port: 8000
+
+Main HTTP gateway for VX11 with token authentication, circuit breaker,
+Context-7 sessions, and intelligent request routing to internal services.
+"""
+
+import asyncio
+import json
+import time
+import uuid
+from pathlib import Path
+from typing import Any, Dict, Optional, Set, Union
+
+from contextlib import asynccontextmanager
+from fastapi import (
+    Depends,
+    FastAPI,
+    Header,
+    HTTPException,
+    Request,
+    WebSocket,
+    WebSocketDisconnect,
+)
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import (
+    JSONResponse,
+    StreamingResponse,
+    Response,
+    FileResponse,
+    RedirectResponse,
+)
+from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel, Field
+import httpx
+
+from config.forensics import write_log
+from config.settings import settings
+from config.tokens import get_token, load_tokens
+from config.cache import get_cache, cache_startup, cache_shutdown
+from config.cache_config import get_ttl, cache_decorator
+from config.rate_limit import get_rate_limiter, set_redis_for_limiter
+from config.metrics_prometheus import get_prometheus_metrics
+from tentaculo_link.clients import get_clients
+from tentaculo_link.context7_middleware import get_context7_manager
+from tentaculo_link.deepseek_client import DeepSeekClient, save_chat_to_db
+from tentaculo_link.deepseek_r1_client import get_deepseek_r1_client
+from switch.providers import get_provider  # PHASE 3: Provider registry
+from tentaculo_link import (
+    routes as api_routes,
+)  # Import routes package to avoid name collision
+
+# Load environment tokens
+load_tokens()
+VX11_TOKEN = (
+    get_token("VX11_TENTACULO_LINK_TOKEN")
+    or get_token("VX11_GATEWAY_TOKEN")
+    or settings.api_token
+)
+AUTH_HEADERS = {settings.token_header: VX11_TOKEN}
+
+
+def _resolve_files_dir() -> Path:
+    """Find writable directory for uploads."""
+    candidates = [
+        Path(settings.DATA_PATH) / "tentaculo_link" / "files",
+        Path("/tmp/tentaculo_link/files"),
+    ]
+    for path in candidates:
+        try:
+            path.mkdir(parents=True, exist_ok=True)
+            return path
+        except PermissionError:
+            continue
+    return candidates[-1]
+
+
+FILES_DIR = _resolve_files_dir()
+
+
+class TokenGuard:
+    """Token validation dependency."""
+
+    def __call__(self, x_vx11_token: str = Header(None)) -> bool:
+        if settings.enable_auth:
+            if not x_vx11_token:
+                raise HTTPException(status_code=401, detail="auth_required")
+            if x_vx11_token != VX11_TOKEN:
+                raise HTTPException(status_code=403, detail="forbidden")
+        return True
+
+
+token_guard = TokenGuard()
+
+
+class OperatorChatRequest(BaseModel):
+    """Chat message with session context."""
+
+    message: str
+    session_id: Optional[str] = None
+    user_id: Optional[str] = "local"
+    metadata: Optional[Dict[str, Any]] = None
+
+
+class PowerWindowOpenRequest(BaseModel):
+    """Request to open a power window (temporal service availability)."""
+
+    services: list[str]
+    ttl_sec: Optional[int] = 600  # 10 minutes default
+    mode: str = "ttl"  # "ttl" or "hold"
+    reason: str = "operator_manual"
+
+
+class OperatorChatResponse(BaseModel):
+    """Chat response."""
+
+    session_id: str
+    response: str
+    metadata: Optional[Dict[str, Any]] = None
+
+
+class OperatorTaskRequest(BaseModel):
+    """TASK/ANALYSIS request routed via Switch."""
+
+    task_type: str
+    payload: Dict[str, Any]
+    intent_type: Optional[str] = "task"
+    session_id: Optional[str] = None
+    user_id: Optional[str] = "local"
+    metadata: Optional[Dict[str, Any]] = None
+    provider_hint: Optional[str] = None
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Startup/shutdown lifecycle."""
+    clients = get_clients()
+    context7 = get_context7_manager()
+    cache = get_cache()
+    limiter = get_rate_limiter()
+    metrics = get_prometheus_metrics()
+
+    await clients.startup()
+    await cache_startup()  # Initialize Redis cache
+
+    # Link Redis to rate limiter
+    if cache.redis:
+        set_redis_for_limiter(cache.redis)
+
+    FILES_DIR.mkdir(parents=True, exist_ok=True)
+    write_log(
+        "tentaculo_link", "startup:v7_initialized (with cache+rate_limit+metrics)"
+    )
+
+    # Yield to allow app to run
+    yield
+
+    # Shutdown
+    await clients.shutdown()
+    await cache_shutdown()
+    write_log("tentaculo_link", "shutdown:v7_complete")
+
+
+# Create app
+app = FastAPI(
+    title="VX11 Tentáculo Link",
+    version="7.0",
+    lifespan=lifespan,
+)
+
+# Add CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.allowed_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+@app.middleware("http")
+async def operator_api_proxy(request: Request, call_next):
+    if request.method == "OPTIONS":
+        return await call_next(request)
+    if request.url.path.startswith("/operator/api"):
+        correlation_id = request.headers.get("X-Correlation-Id") or str(uuid.uuid4())
+        if settings.enable_auth:
+            token_header_value = request.headers.get(settings.token_header)
+            if not token_header_value:
+                return JSONResponse(status_code=401, content={"detail": "auth_required"})
+            if token_header_value != VX11_TOKEN:
+                return JSONResponse(status_code=403, content={"detail": "forbidden"})
+
+        operator_url = settings.operator_url.rstrip("/")
+        request_path = request.url.path
+        if request_path.startswith("/operator/api/v1"):
+            upstream_path = request_path.replace("/operator/api/v1", "/api/v1", 1)
+        else:
+            upstream_path = request_path.replace("/operator/api", "/api/v1", 1)
+        target_url = f"{operator_url}{upstream_path}"
+        headers = dict(request.headers)
+        headers["X-Correlation-Id"] = correlation_id
+        headers[settings.token_header] = headers.get(settings.token_header, VX11_TOKEN)
+
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                if request.method == "GET" and request.url.path.endswith(
+                    "/events/stream"
+                ):
+                    async with client.stream(
+                        request.method,
+                        target_url,
+                        headers=headers,
+                        params=request.query_params,
+                    ) as resp:
+                        if resp.status_code >= 400:
+                            return JSONResponse(
+                                status_code=resp.status_code,
+                                content=resp.json(),
+                                headers={"X-Correlation-Id": correlation_id},
+                            )
+                        return StreamingResponse(
+                            resp.aiter_raw(),
+                            status_code=resp.status_code,
+                            media_type=resp.headers.get(
+                                "content-type", "text/event-stream"
+                            ),
+                            headers={"X-Correlation-Id": correlation_id},
+                        )
+
+                body = await request.body()
+                resp = await client.request(
+                    request.method,
+                    target_url,
+                    headers=headers,
+                    params=request.query_params,
+                    content=body or None,
+                )
+        except Exception:
+            return JSONResponse(
+                status_code=403,
+                content={
+                    "status": "OFF_BY_POLICY",
+                    "service": "operator_backend",
+                    "message": "Disabled by SOLO_MADRE policy",
+                    "correlation_id": correlation_id,
+                    "recommended_action": "Ask Madre to open operator window",
+                },
+                headers={"X-Correlation-Id": correlation_id},
+            )
+
+        content_type = resp.headers.get("content-type", "")
+        if "application/json" in content_type:
+            try:
+                data = resp.json()
+                if isinstance(data, dict) and "correlation_id" not in data:
+                    data["correlation_id"] = correlation_id

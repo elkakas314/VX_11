@@ -1,0 +1,10 @@
+/workspace/VX_11/docker-compose.yml:5:    # No profile means it runs in every context (default, --profile core, --profile operator)
+/workspace/VX_11/docker-compose.yml:103:    profiles: ["core"]
+/workspace/VX_11/docker-compose.yml:137:    profiles: ["core"]
+/workspace/VX_11/docker-compose.yml:171:    profiles: ["core"]
+/workspace/VX_11/docker-compose.yml:211:    profiles: ["disabled", "maintenance"]
+/workspace/VX_11/docker-compose.yml:240:    profiles: ["core"]
+/workspace/VX_11/docker-compose.yml:273:    profiles: ["audio"]
+/workspace/VX_11/docker-compose.yml:278:    # Security: Shub is behind tentaculo gateway when started with --profile audio
+/workspace/VX_11/docker-compose.yml:306:    profiles: ["core"]
+/workspace/VX_11/docker-compose.yml:340:    profiles: ["operator"]

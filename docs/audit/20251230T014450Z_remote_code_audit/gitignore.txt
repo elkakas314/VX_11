@@ -63,8 +63,6 @@ docs/audit/**
 !docs/audit/20251228_SWITCH_HERMES_FIX/
 !docs/audit/20251228_SWITCH_HERMES_FIX/*.md
 !docs/audit/20251228_SWITCH_HERMES_FIX/*.sh
-!docs/audit/20251230T014450Z_remote_code_audit/
-!docs/audit/20251230T014450Z_remote_code_audit/**
 
 # Public audit artifacts allowed for remote sync
 !docs/audit/_public/**

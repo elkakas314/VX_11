@@ -1,0 +1,54 @@
+# Canonical override: make docker-compose plug-and-play without editing docker-compose.yml.
+# Adds build instructions for services that were image-only.
+
+services:
+  madre:
+    volumes:
+      - .:/app
+      - /var/run/docker.sock:/var/run/docker.sock
+    entrypoint:
+      [
+        "sh",
+        "-c",
+        "apt-get update && apt-get install -y docker-compose sqlite3 && python -m uvicorn madre.main:app --host 0.0.0.0 --port 8001",
+      ]
+
+  hermes:
+    build:
+      context: .
+      dockerfile: switch/hermes/Dockerfile
+    volumes:
+      - .:/app
+
+  switch:
+    volumes:
+      - .:/app
+
+  hormiguero:
+    build:
+      context: .
+      dockerfile: hormiguero/Dockerfile
+
+  shubniggurath:
+    build:
+      context: .
+      dockerfile: shubniggurath/Dockerfile
+    volumes:
+      - .:/app
+
+  manifestator:
+    build:
+      context: .
+      dockerfile: manifestator/Dockerfile
+    volumes:
+      - .:/app
+
+  tentaculo_link:
+    volumes:
+      - .:/app
+    env_file: .env.local
+
+  spawner:
+    environment:
+      # P1-1: Reaper interval (seconds). Default 60s for production; testing can override to 5s
+      VX11_SPAWNER_REAPER_INTERVAL_SECONDS: "60"

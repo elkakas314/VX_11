@@ -1,0 +1,9 @@
+/workspace/VX_11/docker-compose.yml:18:    ports:
+/workspace/VX_11/docker-compose.yml:70:    ports:
+/workspace/VX_11/docker-compose.yml:109:    ports:
+/workspace/VX_11/docker-compose.yml:143:    ports:
+/workspace/VX_11/docker-compose.yml:174:    ports:
+/workspace/VX_11/docker-compose.yml:212:    ports:
+/workspace/VX_11/docker-compose.yml:246:    ports:
+/workspace/VX_11/docker-compose.yml:312:    ports:
+/workspace/VX_11/docker-compose.yml:384:    ports:

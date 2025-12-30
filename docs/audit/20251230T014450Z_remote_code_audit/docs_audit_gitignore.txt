@@ -12,8 +12,6 @@ archived_**/
 archived_bak_*/
 
 # EXCEPTIONS: Core files must be preserved
-!20251230T014450Z_remote_code_audit/
-!20251230T014450Z_remote_code_audit/**
 !DB_SCHEMA_v7_FINAL.json
 !DB_MAP_v7_FINAL.md
 !DB_MAP_v7_META.txt

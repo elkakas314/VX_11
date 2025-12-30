@@ -1,0 +1,220 @@
+import asyncio
+import json
+import os
+import time
+import uuid
+from collections import deque
+from datetime import datetime, timezone
+from typing import Any, Dict, Optional
+
+import httpx
+from fastapi import Depends, FastAPI, Header, HTTPException, Request, Response
+from fastapi.responses import JSONResponse, StreamingResponse
+from pydantic import BaseModel, Field
+
+from config.forensics import write_log
+from config.settings import settings
+from config.tokens import get_token
+
+APP_VERSION = "7.0"
+
+VX11_TOKEN = (
+    get_token("VX11_OPERATOR_TOKEN")
+    or get_token("VX11_GATEWAY_TOKEN")
+    or settings.api_token
+)
+TOKEN_HEADER = settings.token_header
+
+RATE_LIMIT_WINDOW_SEC = int(os.environ.get("VX11_OPERATOR_RATE_WINDOW_SEC", "60"))
+RATE_LIMIT_MAX = int(os.environ.get("VX11_OPERATOR_RATE_LIMIT", "60"))
+RATE_STATE: Dict[str, list[float]] = {}
+
+AUDIT_LOG_PATH = os.environ.get(
+    "VX11_OPERATOR_AUDIT_LOG",
+    "/app/logs/operator_backend_audit.jsonl",
+)
+SCORECARD_PATH = os.environ.get(
+    "VX11_SCORECARD_PATH", "/app/docs/audit/SCORECARD.json"
+)
+PERCENTAGES_PATH = os.environ.get(
+    "VX11_PERCENTAGES_PATH", "/app/docs/audit/PERCENTAGES.json"
+)
+
+TENTACULO_BASE = settings.tentaculo_link_url.rstrip("/")
+
+
+class OperatorChatRequest(BaseModel):
+    message: str
+    session_id: Optional[str] = None
+    user_id: Optional[str] = "local"
+    metadata: Optional[Dict[str, Any]] = None
+
+
+class ExplorerQueryRequest(BaseModel):
+    preset_id: str = Field(..., description="Preset identifier")
+    params: Dict[str, Any] = Field(default_factory=dict)
+
+
+class PowerWindowRequest(BaseModel):
+    services: list[str]
+    ttl_sec: Optional[int] = 600
+    mode: str = "ttl"
+    reason: str = "operator_manual"
+
+
+class TokenGuard:
+    def __call__(self, x_vx11_token: Optional[str] = Header(None)) -> bool:
+        if settings.enable_auth:
+            if not x_vx11_token:
+                raise HTTPException(status_code=401, detail="auth_required")
+            if x_vx11_token != VX11_TOKEN:
+                raise HTTPException(status_code=403, detail="forbidden")
+        return True
+
+
+token_guard = TokenGuard()
+
+app = FastAPI(title="VX11 Operator Backend", version=APP_VERSION)
+
+
+@app.middleware("http")
+async def correlation_middleware(request: Request, call_next):
+    correlation_id = request.headers.get("X-Correlation-Id") or str(uuid.uuid4())
+    request.state.correlation_id = correlation_id
+    response = await call_next(request)
+    response.headers["X-Correlation-Id"] = correlation_id
+
+    content_type = response.headers.get("content-type", "")
+    if "application/json" in content_type and not isinstance(response, StreamingResponse):
+        try:
+            body = response.body
+            if body:
+                payload = json.loads(body)
+                if isinstance(payload, dict) and "correlation_id" not in payload:
+                    payload["correlation_id"] = correlation_id
+                    headers = dict(response.headers)
+                    headers.pop("content-length", None)
+                    return JSONResponse(
+                        status_code=response.status_code,
+                        content=payload,
+                        headers=headers,
+                    )
+        except Exception:
+            return response
+    return response
+
+
+def _now_iso() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+def _correlation_id(request: Request, x_correlation_id: Optional[str]) -> str:
+    return getattr(request.state, "correlation_id", None) or x_correlation_id or str(
+        uuid.uuid4()
+    )
+
+
+def _off_by_policy(
+    correlation_id: str, service: str = "operator_backend"
+) -> JSONResponse:
+    payload = {
+        "status": "OFF_BY_POLICY",
+        "service": service,
+        "message": "Disabled by SOLO_MADRE policy",
+        "correlation_id": correlation_id,
+        "recommended_action": "Ask Madre to open operator window",
+    }
+    return JSONResponse(status_code=403, content=payload)
+
+
+def _off_by_policy_with_runbook(
+    correlation_id: str, service: str, runbook: str
+) -> JSONResponse:
+    payload = {
+        "status": "OFF_BY_POLICY",
+        "service": service,
+        "message": "Disabled by SOLO_MADRE policy",
+        "correlation_id": correlation_id,
+        "recommended_action": "Ask Madre to open operator window",
+        "runbook": runbook,
+    }
+    return JSONResponse(status_code=403, content=payload)
+
+
+async def get_correlation_id(
+    request: Request, x_correlation_id: Optional[str] = Header(None)
+) -> str:
+    return _correlation_id(request, x_correlation_id)
+
+
+def _rate_limit_key(request: Request) -> str:
+    token = request.headers.get(TOKEN_HEADER, "")
+    ip = request.client.host if request.client else "unknown"
+    return f"{token}:{ip}"
+
+
+def _rate_limit_ok(identifier: str) -> bool:
+    now = time.time()
+    window_start = now - RATE_LIMIT_WINDOW_SEC
+    recent = [t for t in RATE_STATE.get(identifier, []) if t >= window_start]
+    if len(recent) >= RATE_LIMIT_MAX:
+        RATE_STATE[identifier] = recent
+        return False
+    recent.append(now)
+    RATE_STATE[identifier] = recent
+    return True
+
+
+def _write_audit(event: Dict[str, Any]) -> None:
+    try:
+        os.makedirs(os.path.dirname(AUDIT_LOG_PATH), exist_ok=True)
+        with open(AUDIT_LOG_PATH, "a", encoding="utf-8") as handle:
+            handle.write(json.dumps(event, ensure_ascii=False) + "\n")
+    except Exception as exc:
+        write_log("operator_backend", f"audit_log_error:{exc}", level="WARNING")
+
+
+def _load_json(path: str) -> Optional[Dict[str, Any]]:
+    try:
+        if os.path.exists(path):
+            with open(path, "r", encoding="utf-8") as handle:
+                return json.load(handle)
+    except Exception as exc:
+        write_log("operator_backend", f"json_read_error:{path}:{exc}", level="WARNING")
+    return None
+
+
+def _tail_lines(path: str, limit: int = 200) -> list[str]:
+    if limit <= 0:
+        return []
+    if not os.path.exists(path):
+        return []
+    try:
+        with open(path, "r", encoding="utf-8") as handle:
+            return list(deque(handle, maxlen=limit))
+    except Exception as exc:
+        write_log("operator_backend", f"log_tail_error:{path}:{exc}", level="WARNING")
+        return []
+
+
+def _intent_response(
+    action: str, correlation_id: str, payload: Optional[Dict[str, Any]] = None
+) -> Dict[str, Any]:
+    intent_id = f"{action}_{uuid.uuid4()}"
+    _write_audit(
+        {
+            "event": action,
+            "correlation_id": correlation_id,
+            "timestamp": _now_iso(),
+            "payload": payload or {},
+            "intent_id": intent_id,
+        }
+    )
+    return {
+        "status": "INTENT_QUEUED",
+        "intent_id": intent_id,
+        "action": action,
+        "message": "Intent queued for Madre review",
+    }
+
+

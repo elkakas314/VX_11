@@ -1,0 +1,260 @@
+     1	import asyncio
+     2	import json
+     3	import os
+     4	import time
+     5	import uuid
+     6	from collections import deque
+     7	from datetime import datetime, timezone
+     8	from typing import Any, Dict, Optional
+     9	
+    10	import httpx
+    11	from fastapi import Depends, FastAPI, Header, HTTPException, Request, Response
+    12	from fastapi.responses import JSONResponse, StreamingResponse
+    13	from pydantic import BaseModel, Field
+    14	
+    15	from config.forensics import write_log
+    16	from config.settings import settings
+    17	from config.tokens import get_token
+    18	
+    19	APP_VERSION = "7.0"
+    20	
+    21	VX11_TOKEN = (
+    22	    get_token("VX11_OPERATOR_TOKEN")
+    23	    or get_token("VX11_GATEWAY_TOKEN")
+    24	    or settings.api_token
+    25	)
+    26	TOKEN_HEADER = settings.token_header
+    27	
+    28	RATE_LIMIT_WINDOW_SEC = int(os.environ.get("VX11_OPERATOR_RATE_WINDOW_SEC", "60"))
+    29	RATE_LIMIT_MAX = int(os.environ.get("VX11_OPERATOR_RATE_LIMIT", "60"))
+    30	RATE_STATE: Dict[str, list[float]] = {}
+    31	
+    32	AUDIT_LOG_PATH = os.environ.get(
+    33	    "VX11_OPERATOR_AUDIT_LOG",
+    34	    "/app/logs/operator_backend_audit.jsonl",
+    35	)
+    36	SCORECARD_PATH = os.environ.get(
+    37	    "VX11_SCORECARD_PATH", "/app/docs/audit/SCORECARD.json"
+    38	)
+    39	PERCENTAGES_PATH = os.environ.get(
+    40	    "VX11_PERCENTAGES_PATH", "/app/docs/audit/PERCENTAGES.json"
+    41	)
+    42	
+    43	TENTACULO_BASE = settings.tentaculo_link_url.rstrip("/")
+    44	
+    45	
+    46	class OperatorChatRequest(BaseModel):
+    47	    message: str
+    48	    session_id: Optional[str] = None
+    49	    user_id: Optional[str] = "local"
+    50	    metadata: Optional[Dict[str, Any]] = None
+    51	
+    52	
+    53	class ExplorerQueryRequest(BaseModel):
+    54	    preset_id: str = Field(..., description="Preset identifier")
+    55	    params: Dict[str, Any] = Field(default_factory=dict)
+    56	
+    57	
+    58	class PowerWindowRequest(BaseModel):
+    59	    services: list[str]
+    60	    ttl_sec: Optional[int] = 600
+    61	    mode: str = "ttl"
+    62	    reason: str = "operator_manual"
+    63	
+    64	
+    65	class TokenGuard:
+    66	    def __call__(self, x_vx11_token: Optional[str] = Header(None)) -> bool:
+    67	        if settings.enable_auth:
+    68	            if not x_vx11_token:
+    69	                raise HTTPException(status_code=401, detail="auth_required")
+    70	            if x_vx11_token != VX11_TOKEN:
+    71	                raise HTTPException(status_code=403, detail="forbidden")
+    72	        return True
+    73	
+    74	
+    75	token_guard = TokenGuard()
+    76	
+    77	app = FastAPI(title="VX11 Operator Backend", version=APP_VERSION)
+    78	
+    79	
+    80	@app.middleware("http")
+    81	async def correlation_middleware(request: Request, call_next):
+    82	    correlation_id = request.headers.get("X-Correlation-Id") or str(uuid.uuid4())
+    83	    request.state.correlation_id = correlation_id
+    84	    response = await call_next(request)
+    85	    response.headers["X-Correlation-Id"] = correlation_id
+    86	
+    87	    content_type = response.headers.get("content-type", "")
+    88	    if "application/json" in content_type and not isinstance(response, StreamingResponse):
+    89	        try:
+    90	            body = response.body
+    91	            if body:
+    92	                payload = json.loads(body)
+    93	                if isinstance(payload, dict) and "correlation_id" not in payload:
+    94	                    payload["correlation_id"] = correlation_id
+    95	                    headers = dict(response.headers)
+    96	                    headers.pop("content-length", None)
+    97	                    return JSONResponse(
+    98	                        status_code=response.status_code,
+    99	                        content=payload,
+   100	                        headers=headers,
+   101	                    )
+   102	        except Exception:
+   103	            return response
+   104	    return response
+   105	
+   106	
+   107	def _now_iso() -> str:
+   108	    return datetime.now(timezone.utc).isoformat()
+   109	
+   110	
+   111	def _correlation_id(request: Request, x_correlation_id: Optional[str]) -> str:
+   112	    return getattr(request.state, "correlation_id", None) or x_correlation_id or str(
+   113	        uuid.uuid4()
+   114	    )
+   115	
+   116	
+   117	def _off_by_policy(
+   118	    correlation_id: str, service: str = "operator_backend"
+   119	) -> JSONResponse:
+   120	    payload = {
+   121	        "status": "OFF_BY_POLICY",
+   122	        "service": service,
+   123	        "message": "Disabled by SOLO_MADRE policy",
+   124	        "correlation_id": correlation_id,
+   125	        "recommended_action": "Ask Madre to open operator window",
+   126	    }
+   127	    return JSONResponse(status_code=403, content=payload)
+   128	
+   129	
+   130	def _off_by_policy_with_runbook(
+   131	    correlation_id: str, service: str, runbook: str
+   132	) -> JSONResponse:
+   133	    payload = {
+   134	        "status": "OFF_BY_POLICY",
+   135	        "service": service,
+   136	        "message": "Disabled by SOLO_MADRE policy",
+   137	        "correlation_id": correlation_id,
+   138	        "recommended_action": "Ask Madre to open operator window",
+   139	        "runbook": runbook,
+   140	    }
+   141	    return JSONResponse(status_code=403, content=payload)
+   142	
+   143	
+   144	async def get_correlation_id(
+   145	    request: Request, x_correlation_id: Optional[str] = Header(None)
+   146	) -> str:
+   147	    return _correlation_id(request, x_correlation_id)
+   148	
+   149	
+   150	def _rate_limit_key(request: Request) -> str:
+   151	    token = request.headers.get(TOKEN_HEADER, "")
+   152	    ip = request.client.host if request.client else "unknown"
+   153	    return f"{token}:{ip}"
+   154	
+   155	
+   156	def _rate_limit_ok(identifier: str) -> bool:
+   157	    now = time.time()
+   158	    window_start = now - RATE_LIMIT_WINDOW_SEC
+   159	    recent = [t for t in RATE_STATE.get(identifier, []) if t >= window_start]
+   160	    if len(recent) >= RATE_LIMIT_MAX:
+   161	        RATE_STATE[identifier] = recent
+   162	        return False
+   163	    recent.append(now)
+   164	    RATE_STATE[identifier] = recent
+   165	    return True
+   166	
+   167	
+   168	def _write_audit(event: Dict[str, Any]) -> None:
+   169	    try:
+   170	        os.makedirs(os.path.dirname(AUDIT_LOG_PATH), exist_ok=True)
+   171	        with open(AUDIT_LOG_PATH, "a", encoding="utf-8") as handle:
+   172	            handle.write(json.dumps(event, ensure_ascii=False) + "\n")
+   173	    except Exception as exc:
+   174	        write_log("operator_backend", f"audit_log_error:{exc}", level="WARNING")
+   175	
+   176	
+   177	def _load_json(path: str) -> Optional[Dict[str, Any]]:
+   178	    try:
+   179	        if os.path.exists(path):
+   180	            with open(path, "r", encoding="utf-8") as handle:
+   181	                return json.load(handle)
+   182	    except Exception as exc:
+   183	        write_log("operator_backend", f"json_read_error:{path}:{exc}", level="WARNING")
+   184	    return None
+   185	
+   186	
+   187	def _tail_lines(path: str, limit: int = 200) -> list[str]:
+   188	    if limit <= 0:
+   189	        return []
+   190	    if not os.path.exists(path):
+   191	        return []
+   192	    try:
+   193	        with open(path, "r", encoding="utf-8") as handle:
+   194	            return list(deque(handle, maxlen=limit))
+   195	    except Exception as exc:
+   196	        write_log("operator_backend", f"log_tail_error:{path}:{exc}", level="WARNING")
+   197	        return []
+   198	
+   199	
+   200	def _intent_response(
+   201	    action: str, correlation_id: str, payload: Optional[Dict[str, Any]] = None
+   202	) -> Dict[str, Any]:
+   203	    intent_id = f"{action}_{uuid.uuid4()}"
+   204	    _write_audit(
+   205	        {
+   206	            "event": action,
+   207	            "correlation_id": correlation_id,
+   208	            "timestamp": _now_iso(),
+   209	            "payload": payload or {},
+   210	            "intent_id": intent_id,
+   211	        }
+   212	    )
+   213	    return {
+   214	        "status": "INTENT_QUEUED",
+   215	        "intent_id": intent_id,
+   216	        "action": action,
+   217	        "message": "Intent queued for Madre review",
+   218	    }
+   219	
+   220	
+   221	OPERATOR_SETTINGS: Dict[str, Any] = {
+   222	    "appearance": {"theme": "dark", "language": "en"},
+   223	    "chat": {"model": "deepseek-r1", "temperature": 0.7},
+   224	    "security": {"enable_api_logs": False, "enable_debug_mode": False},
+   225	    "notifications": {"enable_events": True, "events_level": "info"},
+   226	}
+   227	
+   228	
+   229	async def _call_tentaculo(
+   230	    method: str,
+   231	    path: str,
+   232	    correlation_id: str,
+   233	    payload: Optional[Dict[str, Any]] = None,
+   234	    params: Optional[Dict[str, Any]] = None,
+   235	    timeout: float = 8.0,
+   236	) -> httpx.Response:
+   237	    headers = {TOKEN_HEADER: VX11_TOKEN, "X-Correlation-Id": correlation_id}
+   238	    async with httpx.AsyncClient(timeout=timeout) as client:
+   239	        return await client.request(
+   240	            method,
+   241	            f"{TENTACULO_BASE}{path}",
+   242	            headers=headers,
+   243	            json=payload,
+   244	            params=params,
+   245	        )
+   246	
+   247	
+   248	async def _get_window_status(correlation_id: str) -> Dict[str, Any]:
+   249	    response = await _call_tentaculo(
+   250	        "GET", "/api/window/status", correlation_id, timeout=5.0
+   251	    )
+   252	    if response.status_code >= 400:
+   253	        return {
+   254	            "mode": "solo_madre",
+   255	            "services": ["madre", "redis"],
+   256	            "degraded": True,
+   257	            "reason": "window_status_unavailable",
+   258	        }
+   259	    payload = response.json()
+   260	    services = set(payload.get("services", []))

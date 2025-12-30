@@ -1,0 +1,326 @@
+/workspace/VX_11/madre/power_manager.py:20:    from madre import power_saver as power_saver_module  # type: ignore
+/workspace/VX_11/madre/power_manager.py:22:    power_saver_module = None  # type: ignore
+/workspace/VX_11/madre/power_manager.py:95:    out_dir = os.path.join(base, f"madre_power_{action}_{_safe_name(service)}_{ts}")
+/workspace/VX_11/madre/power_manager.py:301:    # This ensures power control works for all services, not just active ones
+/workspace/VX_11/madre/power_manager.py:337:    state = _RATE.get(key, {"window_start": now, "count": 0, "blocked_until": 0})
+/workspace/VX_11/madre/power_manager.py:342:    if now - state["window_start"] > 60:
+/workspace/VX_11/madre/power_manager.py:343:        state["window_start"] = now
+/workspace/VX_11/madre/power_manager.py:466:@router.get("/madre/power/services")
+/workspace/VX_11/madre/power_manager.py:467:async def power_services() -> Dict[str, Any]:
+/workspace/VX_11/madre/power_manager.py:472:@router.get("/madre/power/token")
+/workspace/VX_11/madre/power_manager.py:473:async def power_token(request: Request) -> Dict[str, Any]:
+/workspace/VX_11/madre/power_manager.py:480:@router.post("/madre/power/maintenance/post_task")
+/workspace/VX_11/madre/power_manager.py:490:    if power_saver_module and hasattr(power_saver_module, "_resolve_db_path"):
+/workspace/VX_11/madre/power_manager.py:492:            db_path = power_saver_module._resolve_db_path()
+/workspace/VX_11/madre/power_manager.py:528:    if power_saver_module:
+/workspace/VX_11/madre/power_manager.py:530:            retention_result = power_saver_module.db_retention_cleanup(
+/workspace/VX_11/madre/power_manager.py:537:            rotation_result = power_saver_module.rotate_backups(
+/workspace/VX_11/madre/power_manager.py:544:            regen_result = power_saver_module.regen_dbmap(out_dir)
+/workspace/VX_11/madre/power_manager.py:611:@router.post("/madre/power/service/{name}/start")
+/workspace/VX_11/madre/power_manager.py:612:async def power_start(
+/workspace/VX_11/madre/power_manager.py:616:    x_vx11_power_key: Optional[str] = Header(None),
+/workspace/VX_11/madre/power_manager.py:617:    x_vx11_power_token: Optional[str] = Header(None),
+/workspace/VX_11/madre/power_manager.py:619:    return await _power_action(
+/workspace/VX_11/madre/power_manager.py:620:        "start", name, req, request, x_vx11_power_key, x_vx11_power_token
+/workspace/VX_11/madre/power_manager.py:624:@router.post("/madre/power/service/{name}/stop")
+/workspace/VX_11/madre/power_manager.py:625:async def power_stop(
+/workspace/VX_11/madre/power_manager.py:629:    x_vx11_power_key: Optional[str] = Header(None),
+/workspace/VX_11/madre/power_manager.py:630:    x_vx11_power_token: Optional[str] = Header(None),
+/workspace/VX_11/madre/power_manager.py:632:    return await _power_action(
+/workspace/VX_11/madre/power_manager.py:633:        "stop", name, req, request, x_vx11_power_key, x_vx11_power_token
+/workspace/VX_11/madre/power_manager.py:637:@router.post("/madre/power/service/{name}/restart")
+/workspace/VX_11/madre/power_manager.py:638:async def power_restart(
+/workspace/VX_11/madre/power_manager.py:642:    x_vx11_power_key: Optional[str] = Header(None),
+/workspace/VX_11/madre/power_manager.py:643:    x_vx11_power_token: Optional[str] = Header(None),
+/workspace/VX_11/madre/power_manager.py:645:    return await _power_action(
+/workspace/VX_11/madre/power_manager.py:646:        "restart", name, req, request, x_vx11_power_key, x_vx11_power_token
+/workspace/VX_11/madre/power_manager.py:650:@router.post("/madre/power/mode/idle_min")
+/workspace/VX_11/madre/power_manager.py:651:async def power_idle_min(
+/workspace/VX_11/madre/power_manager.py:654:    x_vx11_power_key: Optional[str] = Header(None),
+/workspace/VX_11/madre/power_manager.py:655:    x_vx11_power_token: Optional[str] = Header(None),
+/workspace/VX_11/madre/power_manager.py:658:    P0-3 SECURITY: POST /madre/power/mode/idle_min
+/workspace/VX_11/madre/power_manager.py:660:    Idle-min power mode requires THREE security checks (same as hard_off):
+/workspace/VX_11/madre/power_manager.py:667:    return await _power_mode(
+/workspace/VX_11/madre/power_manager.py:668:        "idle_min", req, request, x_vx11_power_key, x_vx11_power_token
+/workspace/VX_11/madre/power_manager.py:672:@router.post("/madre/power/mode/hard_off")
+/workspace/VX_11/madre/power_manager.py:673:async def power_hard_off(
+/workspace/VX_11/madre/power_manager.py:676:    x_vx11_power_key: Optional[str] = Header(None),
+/workspace/VX_11/madre/power_manager.py:677:    x_vx11_power_token: Optional[str] = Header(None),
+/workspace/VX_11/madre/power_manager.py:680:    P0-3 SECURITY: POST /madre/power/mode/hard_off
+/workspace/VX_11/madre/power_manager.py:682:    Hard-off power mode requires THREE security checks:
+/workspace/VX_11/madre/power_manager.py:692:    curl -X POST http://localhost:8001/madre/power/mode/hard_off \
+/workspace/VX_11/madre/power_manager.py:698:    return await _power_mode(
+/workspace/VX_11/madre/power_manager.py:699:        "hard_off", req, request, x_vx11_power_key, x_vx11_power_token
+/workspace/VX_11/madre/power_manager.py:703:async def _power_action(
+/workspace/VX_11/madre/power_manager.py:733:        db_write = _record_db(f"power_{action}_plan", f"service:{name}")
+/workspace/VX_11/madre/power_manager.py:751:            f"power_{action}_plan", f"service:{name}:docker_unavailable"
+/workspace/VX_11/madre/power_manager.py:796:    db_write = _record_db(f"power_{action}_apply", f"service:{name}")
+/workspace/VX_11/madre/power_manager.py:810:async def _power_mode(
+/workspace/VX_11/madre/power_manager.py:842:        db_write = _record_db(f"power_{action}_plan", "mode")
+/workspace/VX_11/madre/power_manager.py:859:        db_write = _record_db(f"power_{action}_plan", "mode:docker_unavailable")
+/workspace/VX_11/madre/power_manager.py:903:    db_write = _record_db(f"power_{action}_apply", "mode")
+/workspace/VX_11/madre/power_manager.py:925:@router.post("/madre/power/mode")
+/workspace/VX_11/madre/power_manager.py:926:async def set_power_mode_simple(req: ModeRequest, apply: bool = True):
+/workspace/VX_11/madre/power_manager.py:939:@router.post("/madre/power/service/start")
+/workspace/VX_11/madre/power_manager.py:964:@router.post("/madre/power/service/stop")
+/workspace/VX_11/madre/power_manager.py:983:@router.get("/madre/power/status")
+/workspace/VX_11/madre/power_manager.py:984:async def get_power_status_simple():
+/workspace/VX_11/madre/power_manager.py:998:@router.post("/madre/power/policy/solo_madre/apply")
+/workspace/VX_11/madre/power_manager.py:999:async def apply_solo_madre_policy():
+/workspace/VX_11/madre/power_manager.py:1001:    Apply SOLO_MADRE policy: stop all services except madre.
+/workspace/VX_11/madre/power_manager.py:1003:    Evidence saved to docs/audit/madre_power_solo_madre_*.
+/workspace/VX_11/madre/power_manager.py:1006:    out_dir = _make_out_dir("solo_madre_policy", "apply")
+/workspace/VX_11/madre/power_manager.py:1007:    plan = _plan_for_named_mode("low_power", allowlist)
+/workspace/VX_11/madre/power_manager.py:1012:            "policy": "solo_madre",
+/workspace/VX_11/madre/power_manager.py:1013:            "mode": "low_power",
+/workspace/VX_11/madre/power_manager.py:1022:    _record_db("power_solo_madre_apply", "policy")
+/workspace/VX_11/madre/power_manager.py:1026:        "policy": "solo_madre",
+/workspace/VX_11/madre/power_manager.py:1029:        "message": "SOLO_MADRE policy applied: all services stopped except madre",
+/workspace/VX_11/madre/power_manager.py:1033:@router.get("/madre/power/policy/solo_madre/status")
+/workspace/VX_11/madre/power_manager.py:1034:async def check_solo_madre_policy_status():
+/workspace/VX_11/madre/power_manager.py:1036:    Check if SOLO_MADRE policy is currently active.
+/workspace/VX_11/madre/power_manager.py:1057:    is_solo_madre = len(running_services) == 1 and "madre" in running_services
+/workspace/VX_11/madre/power_manager.py:1061:        "policy_active": is_solo_madre,
+/workspace/VX_11/madre/power_manager.py:1069:        "low_power": ["madre", "tentaculo_link"],
+/workspace/VX_11/madre/power_manager.py:1104:def register_power_routes(app) -> None:
+/workspace/VX_11/madre/main.py:14:from . import power_saver as power_saver_module
+/workspace/VX_11/madre/main.py:15:from . import power_manager as power_manager_module
+/workspace/VX_11/madre/main.py:16:from . import power_windows
+/workspace/VX_11/madre/main.py:17:from . import routes_power
+/workspace/VX_11/madre/main.py:53:_policy = PolicyEngine()
+/workspace/VX_11/madre/main.py:75:    wm = power_windows.get_window_manager()
+/workspace/VX_11/madre/main.py:81:                log.warning(f"TTL enforcement: window {expired.window_id} expired")
+/workspace/VX_11/madre/main.py:103:    power_windows.init_window_manager()
+/workspace/VX_11/madre/main.py:257:        risk = _policy.classify_risk(dsl.domain, dsl.action)
+/workspace/VX_11/madre/main.py:258:        requires_confirmation = _policy.requires_confirmation(risk)
+/workspace/VX_11/madre/main.py:289:            confirm_token = _policy.generate_confirm_token()
+/workspace/VX_11/madre/main.py:375:    risk = _policy.classify_risk(req.target, req.action)
+/workspace/VX_11/madre/main.py:376:    requires_confirmation = _policy.requires_confirmation(risk)
+/workspace/VX_11/madre/main.py:381:            confirm_token = _policy.generate_confirm_token()
+/workspace/VX_11/madre/main.py:522:    # Get delegated services (power status)
+/workspace/VX_11/madre/main.py:578:    # Determine mode (detect from power/policy if possible)
+/workspace/VX_11/madre/main.py:579:    mode = "solo_madre"  # default
+/workspace/VX_11/madre/main.py:581:        # Check if solo_madre policy is active by introspecting power_manager
+/workspace/VX_11/madre/main.py:582:        # For now, use simple heuristic: if only madre+redis+tentaculo, then solo_madre
+/workspace/VX_11/madre/main.py:650:    if not _policy.validate_confirm_token(confirm_token, stored_token):
+/workspace/VX_11/madre/main.py:705:@app.get("/power/status")
+/workspace/VX_11/madre/main.py:706:async def power_status():
+/workspace/VX_11/madre/main.py:707:    out_dir = power_saver_module.make_out_dir(prefix="madre_power_saver_status")
+/workspace/VX_11/madre/main.py:709:    await asyncio.to_thread(power_saver_module.snapshot, out_dir)
+/workspace/VX_11/madre/main.py:710:    z = await asyncio.to_thread(power_saver_module.list_zombies)
+/workspace/VX_11/madre/main.py:732:@app.post("/power/idle_min")
+/workspace/VX_11/madre/main.py:733:async def power_idle_min(req: IdleMinRequest):
+/workspace/VX_11/madre/main.py:734:    out_dir = power_saver_module.make_out_dir(prefix="madre_power_saver_idle_min")
+/workspace/VX_11/madre/main.py:736:    res = await asyncio.to_thread(power_saver_module.idle_min, out_dir, req.apply)
+/workspace/VX_11/madre/main.py:737:    report = await asyncio.to_thread(power_saver_module.final_report, out_dir)
+/workspace/VX_11/madre/main.py:747:@app.post("/power/regen_dbmap")
+/workspace/VX_11/madre/main.py:748:async def power_regen_dbmap():
+/workspace/VX_11/madre/main.py:749:    out_dir = power_saver_module.make_out_dir(prefix="madre_power_saver_regen")
+/workspace/VX_11/madre/main.py:750:    res = await asyncio.to_thread(power_saver_module.regen_dbmap, out_dir)
+/workspace/VX_11/madre/main.py:751:    report = await asyncio.to_thread(power_saver_module.final_report, out_dir)
+/workspace/VX_11/madre/main.py:755:@app.post("/power/ritual")
+/workspace/VX_11/madre/main.py:756:async def power_ritual(req: RitualRequest):
+/workspace/VX_11/madre/main.py:757:    out_dir = power_saver_module.make_out_dir(prefix="madre_power_saver_ritual")
+/workspace/VX_11/madre/main.py:759:    await asyncio.to_thread(power_saver_module.snapshot, out_dir)
+/workspace/VX_11/madre/main.py:761:    await asyncio.to_thread(power_saver_module.write_zombies, out_dir)
+/workspace/VX_11/madre/main.py:763:    idle_res = await asyncio.to_thread(power_saver_module.idle_min, out_dir, req.apply)
+/workspace/VX_11/madre/main.py:765:    await asyncio.to_thread(power_saver_module.snapshot, out_dir)
+/workspace/VX_11/madre/main.py:767:    regen_res = await asyncio.to_thread(power_saver_module.regen_dbmap, out_dir)
+/workspace/VX_11/madre/main.py:769:    report = await asyncio.to_thread(power_saver_module.final_report, out_dir)
+/workspace/VX_11/madre/main.py:809:power_manager_module.register_power_routes(app)
+/workspace/VX_11/madre/main.py:979:app.include_router(routes_power.router, prefix="/madre/power", tags=["power-manager"])
+/workspace/VX_11/madre/power_windows.py:5:- window_id: UUID único
+/workspace/VX_11/madre/power_windows.py:20:log = logging.getLogger("vx11.madre.power_windows")
+/workspace/VX_11/madre/power_windows.py:28:        window_id: str,
+/workspace/VX_11/madre/power_windows.py:35:        self.window_id = window_id
+/workspace/VX_11/madre/power_windows.py:65:        """Serializa window a dict."""
+/workspace/VX_11/madre/power_windows.py:67:            "window_id": self.window_id,
+/workspace/VX_11/madre/power_windows.py:80:        """Deserializa window desde dict."""
+/workspace/VX_11/madre/power_windows.py:86:        window = cls(
+/workspace/VX_11/madre/power_windows.py:87:            window_id=data["window_id"],
+/workspace/VX_11/madre/power_windows.py:94:        window.state = data.get("state", "open")
+/workspace/VX_11/madre/power_windows.py:96:            window.deadline = datetime.fromisoformat(
+/workspace/VX_11/madre/power_windows.py:100:            window.closed_at = datetime.fromisoformat(
+/workspace/VX_11/madre/power_windows.py:103:        window.close_reason = data.get("close_reason", "")
+/workspace/VX_11/madre/power_windows.py:104:        return window
+/workspace/VX_11/madre/power_windows.py:108:    """Gestiona estado de ventanas (window_id, TTL, servicios activos)."""
+/workspace/VX_11/madre/power_windows.py:127:        self.state_file = state_file or Path("docs/audit/madre_windows_state.json")
+/workspace/VX_11/madre/power_windows.py:128:        self.active_window: Optional[Window] = None
+/workspace/VX_11/madre/power_windows.py:136:            self.active_window = None
+/workspace/VX_11/madre/power_windows.py:143:                if data.get("active_window"):
+/workspace/VX_11/madre/power_windows.py:144:                    self.active_window = Window.from_dict(data["active_window"])
+/workspace/VX_11/madre/power_windows.py:149:            self.active_window = None
+/workspace/VX_11/madre/power_windows.py:157:                "active_window": (
+/workspace/VX_11/madre/power_windows.py:158:                    self.active_window.to_dict() if self.active_window else None
+/workspace/VX_11/madre/power_windows.py:177:    def register_window(
+/workspace/VX_11/madre/power_windows.py:184:        if self.active_window and self.active_window.state == "open":
+/workspace/VX_11/madre/power_windows.py:185:            raise ValueError(f"Window already active: {self.active_window.window_id}")
+/workspace/VX_11/madre/power_windows.py:190:        window_id = str(uuid4())
+/workspace/VX_11/madre/power_windows.py:191:        window = Window(
+/workspace/VX_11/madre/power_windows.py:192:            window_id=window_id,
+/workspace/VX_11/madre/power_windows.py:199:        self.active_window = window
+/workspace/VX_11/madre/power_windows.py:202:            f"Registered window {window_id}: {services}, mode={mode}, ttl={ttl_sec}s"
+/workspace/VX_11/madre/power_windows.py:204:        return window
+/workspace/VX_11/madre/power_windows.py:206:    def close_window(self, reason: str = "manual") -> Optional[Window]:
+/workspace/VX_11/madre/power_windows.py:208:        if not self.active_window:
+/workspace/VX_11/madre/power_windows.py:209:            log.warning("No active window to close")
+/workspace/VX_11/madre/power_windows.py:212:        window = self.active_window
+/workspace/VX_11/madre/power_windows.py:213:        window.state = "closed"
+/workspace/VX_11/madre/power_windows.py:214:        window.closed_at = datetime.now(timezone.utc)
+/workspace/VX_11/madre/power_windows.py:215:        window.close_reason = reason
+/workspace/VX_11/madre/power_windows.py:218:        self.history.append(window.to_dict())
+/workspace/VX_11/madre/power_windows.py:220:        self.active_window = None
+/workspace/VX_11/madre/power_windows.py:222:        log.info(f"Closed window {window.window_id}: {reason}")
+/workspace/VX_11/madre/power_windows.py:223:        return window
+/workspace/VX_11/madre/power_windows.py:228:        Retorna window si expiró (ya cerrada), None si no o si no hay ventana.
+/workspace/VX_11/madre/power_windows.py:230:        if not self.active_window or self.active_window.state != "open":
+/workspace/VX_11/madre/power_windows.py:233:        if not self.active_window.is_expired():
+/workspace/VX_11/madre/power_windows.py:236:        log.warning(f"TTL expired for window {self.active_window.window_id}")
+/workspace/VX_11/madre/power_windows.py:237:        return self.close_window(reason="ttl_expired")
+/workspace/VX_11/madre/power_windows.py:239:    def get_window(self, window_id: str) -> Optional[Window]:
+/workspace/VX_11/madre/power_windows.py:241:        if self.active_window and self.active_window.window_id == window_id:
+/workspace/VX_11/madre/power_windows.py:242:            return self.active_window
+/workspace/VX_11/madre/power_windows.py:245:    def get_active_window(self) -> Optional[Window]:
+/workspace/VX_11/madre/power_windows.py:247:        return self.active_window
+/workspace/VX_11/madre/power_windows.py:250:        """Retorna estado actual para GET /madre/power/state."""
+/workspace/VX_11/madre/power_windows.py:251:        if self.active_window:
+/workspace/VX_11/madre/power_windows.py:252:            policy = "windowed"
+/workspace/VX_11/madre/power_windows.py:253:            window_info = self.active_window.to_dict()
+/workspace/VX_11/madre/power_windows.py:255:            policy = "solo_madre"
+/workspace/VX_11/madre/power_windows.py:256:            window_info = None
+/workspace/VX_11/madre/power_windows.py:259:            "policy": policy,
+/workspace/VX_11/madre/power_windows.py:260:            "window_info": window_info,
+/workspace/VX_11/madre/power_windows.py:261:            "solo_madre_services": list(self.SOLO_MADRE_SERVICES),
+/workspace/VX_11/madre/power_windows.py:266:_window_manager: Optional[WindowManager] = None
+/workspace/VX_11/madre/power_windows.py:269:def get_window_manager() -> WindowManager:
+/workspace/VX_11/madre/power_windows.py:271:    global _window_manager
+/workspace/VX_11/madre/power_windows.py:272:    if _window_manager is None:
+/workspace/VX_11/madre/power_windows.py:273:        _window_manager = WindowManager()
+/workspace/VX_11/madre/power_windows.py:274:    return _window_manager
+/workspace/VX_11/madre/power_windows.py:277:def init_window_manager(state_file: Optional[Path] = None) -> WindowManager:
+/workspace/VX_11/madre/power_windows.py:279:    global _window_manager
+/workspace/VX_11/madre/power_windows.py:280:    _window_manager = WindowManager(state_file=state_file)
+/workspace/VX_11/madre/power_windows.py:282:    return _window_manager
+/workspace/VX_11/madre/routes_power.py:5:- POST /madre/power/window/open — abre ventana + inicia servicios
+/workspace/VX_11/madre/routes_power.py:6:- POST /madre/power/window/close — cierra ventana + detiene servicios
+/workspace/VX_11/madre/routes_power.py:7:- GET /madre/power/state — lee estado
+/workspace/VX_11/madre/routes_power.py:8:- POST /madre/power/policy/solo_madre/apply — aplica SOLO_MADRE
+/workspace/VX_11/madre/routes_power.py:9:- GET /madre/power/policy/solo_madre/status — chequea SOLO_MADRE activo
+/workspace/VX_11/madre/routes_power.py:12:- Uses existing /madre/power/service/{name}/start|stop endpoints
+/workspace/VX_11/madre/routes_power.py:27:from .power_windows import get_window_manager, Window
+/workspace/VX_11/madre/routes_power.py:29:log = logging.getLogger("vx11.madre.routes_power")
+/workspace/VX_11/madre/routes_power.py:72:    window_id: str
+/workspace/VX_11/madre/routes_power.py:81:    window_id: str
+/workspace/VX_11/madre/routes_power.py:88:    policy: str  # "solo_madre" o "windowed"
+/workspace/VX_11/madre/routes_power.py:89:    window_id: Optional[str]
+/workspace/VX_11/madre/routes_power.py:97:    policy_active: bool
+/workspace/VX_11/madre/routes_power.py:330:@router.post("/window/open", response_model=WindowOpenResponse)
+/workspace/VX_11/madre/routes_power.py:331:async def window_open(
+/workspace/VX_11/madre/routes_power.py:338:    POST /madre/power/window/open
+/workspace/VX_11/madre/routes_power.py:346:    wm = get_window_manager()
+/workspace/VX_11/madre/routes_power.py:358:    if wm.active_window and wm.active_window.state == "open":
+/workspace/VX_11/madre/routes_power.py:361:            detail=f"Window already active: {wm.active_window.window_id}. Close it first.",
+/workspace/VX_11/madre/routes_power.py:366:        window = wm.register_window(
+/workspace/VX_11/madre/routes_power.py:378:            wm.close_window("exec_failed")
+/workspace/VX_11/madre/routes_power.py:385:            f"Window opened: {window.window_id}, services: {req.services}, status: {exec_result['status']}"
+/workspace/VX_11/madre/routes_power.py:390:            window_id=window.window_id,
+/workspace/VX_11/madre/routes_power.py:391:            created_at=window.created_at.isoformat() + "Z",
+/workspace/VX_11/madre/routes_power.py:392:            deadline=window.deadline.isoformat() + "Z" if window.deadline else None,
+/workspace/VX_11/madre/routes_power.py:395:            ttl_remaining_sec=window.ttl_remaining_sec(),
+/workspace/VX_11/madre/routes_power.py:401:        log.error(f"window_open error: {e}")
+/workspace/VX_11/madre/routes_power.py:405:@router.post("/window/close", response_model=WindowCloseResponse)
+/workspace/VX_11/madre/routes_power.py:406:async def window_close(authorized: bool = Depends(token_guard)) -> WindowCloseResponse:
+/workspace/VX_11/madre/routes_power.py:411:    POST /madre/power/window/close
+/workspace/VX_11/madre/routes_power.py:413:    wm = get_window_manager()
+/workspace/VX_11/madre/routes_power.py:415:    if not wm.active_window:
+/workspace/VX_11/madre/routes_power.py:416:        raise HTTPException(status_code=404, detail="No active window")
+/workspace/VX_11/madre/routes_power.py:418:    window = wm.active_window
+/workspace/VX_11/madre/routes_power.py:419:    window_id = window.window_id
+/workspace/VX_11/madre/routes_power.py:420:    services = list(window.services)
+/workspace/VX_11/madre/routes_power.py:428:            # Continue anyway, close window in state
+/workspace/VX_11/madre/routes_power.py:431:        wm.close_window("manual_close")
+/workspace/VX_11/madre/routes_power.py:434:            f"Window closed: {window_id}, services: {services}, status: {exec_result['status']}"
+/workspace/VX_11/madre/routes_power.py:438:            window_id=window_id,
+/workspace/VX_11/madre/routes_power.py:445:        log.error(f"window_close error: {e}")
+/workspace/VX_11/madre/routes_power.py:450:async def get_power_state(
+/workspace/VX_11/madre/routes_power.py:454:    Lee estado actual (policy, ventana activa, TTL restante).
+/workspace/VX_11/madre/routes_power.py:456:    GET /madre/power/state
+/workspace/VX_11/madre/routes_power.py:458:    wm = get_window_manager()
+/workspace/VX_11/madre/routes_power.py:459:    window = wm.active_window
+/workspace/VX_11/madre/routes_power.py:461:    if window:
+/workspace/VX_11/madre/routes_power.py:462:        active_services = list(window.services) + list(wm.SOLO_MADRE_SERVICES)
+/workspace/VX_11/madre/routes_power.py:467:        policy="windowed" if window else "solo_madre",
+/workspace/VX_11/madre/routes_power.py:468:        window_id=window.window_id if window else None,
+/workspace/VX_11/madre/routes_power.py:469:        created_at=window.created_at.isoformat() + "Z" if window else None,
+/workspace/VX_11/madre/routes_power.py:471:            window.deadline.isoformat() + "Z" if window and window.deadline else None
+/workspace/VX_11/madre/routes_power.py:473:        ttl_remaining_sec=window.ttl_remaining_sec() if window else None,
+/workspace/VX_11/madre/routes_power.py:478:@router.post("/policy/solo_madre/apply")
+/workspace/VX_11/madre/routes_power.py:479:async def apply_solo_madre(authorized: bool = Depends(token_guard)) -> dict:
+/workspace/VX_11/madre/routes_power.py:481:    Aplica policy SOLO_MADRE (cierra ventana + detiene todo excepto madre+redis).
+/workspace/VX_11/madre/routes_power.py:484:    POST /madre/power/policy/solo_madre/apply
+/workspace/VX_11/madre/routes_power.py:486:    wm = get_window_manager()
+/workspace/VX_11/madre/routes_power.py:493:        if wm.active_window:
+/workspace/VX_11/madre/routes_power.py:494:            services_to_stop = list(wm.active_window.services)
+/workspace/VX_11/madre/routes_power.py:505:            wm.close_window("solo_madre_applied")
+/workspace/VX_11/madre/routes_power.py:512:            "policy": "solo_madre",
+/workspace/VX_11/madre/routes_power.py:520:        log.error(f"apply_solo_madre error: {e}")
+/workspace/VX_11/madre/routes_power.py:524:@router.get("/policy/solo_madre/status", response_model=SoloMadreStatusResponse)
+/workspace/VX_11/madre/routes_power.py:525:async def check_solo_madre_status(
+/workspace/VX_11/madre/routes_power.py:529:    Chequea si policy SOLO_MADRE está activo.
+/workspace/VX_11/madre/routes_power.py:531:    GET /madre/power/policy/solo_madre/status
+/workspace/VX_11/madre/routes_power.py:533:    wm = get_window_manager()
+/workspace/VX_11/madre/routes_power.py:544:    policy_active = set(running_services_list) == set(wm.SOLO_MADRE_SERVICES)
+/workspace/VX_11/madre/routes_power.py:547:        policy_active=policy_active,
+/workspace/VX_11/madre/main_legacy.py:49:from madre import power_saver as power_saver_module
+/workspace/VX_11/madre/main_legacy.py:260:def _load_policy(session, module: str):
+/workspace/VX_11/madre/main_legacy.py:299:        state.power_mode = data.get("power_mode", "balanced")
+/workspace/VX_11/madre/main_legacy.py:323:    async def power_on(self, module: str) -> Dict[str, Any]:
+/workspace/VX_11/madre/main_legacy.py:338:            write_log("madre", f"power_on:{module}")
+/workspace/VX_11/madre/main_legacy.py:341:            write_log("madre", f"power_on_error:{module}:{e}", level="ERROR")
+/workspace/VX_11/madre/main_legacy.py:344:    async def power_off(self, module: str) -> Dict[str, Any]:
+/workspace/VX_11/madre/main_legacy.py:359:            write_log("madre", f"power_off:{module}")
+/workspace/VX_11/madre/main_legacy.py:362:            write_log("madre", f"power_off_error:{module}:{e}", level="ERROR")
+/workspace/VX_11/madre/main_legacy.py:403:                result = await self.power_off(mod)
+/workspace/VX_11/madre/main_legacy.py:410:            result = await self.power_off("manifestator")
+/workspace/VX_11/madre/main_legacy.py:422:_power_manager = PowerManager()
+/workspace/VX_11/madre/main_legacy.py:522:        pol = _load_policy(session, module)
+/workspace/VX_11/madre/main_legacy.py:692:@app.post("/madre/power/on/{module}")
+/workspace/VX_11/madre/main_legacy.py:693:async def power_on_endpoint(module: str):
+/workspace/VX_11/madre/main_legacy.py:695:    return await _power_manager.power_on(module)
+/workspace/VX_11/madre/main_legacy.py:698:@app.post("/madre/power/off/{module}")
+/workspace/VX_11/madre/main_legacy.py:699:async def power_off_endpoint(module: str):
+/workspace/VX_11/madre/main_legacy.py:701:    return await _power_manager.power_off(module)
+/workspace/VX_11/madre/main_legacy.py:704:@app.get("/madre/power/status")
+/workspace/VX_11/madre/main_legacy.py:705:async def power_status_endpoint():
+/workspace/VX_11/madre/main_legacy.py:707:    return await _power_manager.get_status()
+/workspace/VX_11/madre/main_legacy.py:710:@app.post("/madre/power/auto-decide")
+/workspace/VX_11/madre/main_legacy.py:711:async def power_auto_decide():
+/workspace/VX_11/madre/main_legacy.py:713:    return await _power_manager.decide_auto()
+/workspace/VX_11/madre/main_legacy.py:716:@app.post("/madre/power/db_retention")
+/workspace/VX_11/madre/main_legacy.py:725:    out_dir = power_saver_module.make_out_dir(base=base, prefix="madre_db_retention")
+/workspace/VX_11/madre/main_legacy.py:727:        power_saver_module.db_retention_cleanup,
+/workspace/VX_11/madre/main_legacy.py:1989:        "power_mode": settings.environment,
+/workspace/VX_11/madre/power_saver.py:31:def make_out_dir(base: str = None, prefix: str = "madre_power_saver") -> str:
+/workspace/VX_11/madre/power_saver.py:329:            return "low_power"
+/workspace/VX_11/madre/power_saver.py:334:    low_power_log_days = _env_int("VX11_RETENTION_LOG_DAYS_LOW_POWER", 7)
+/workspace/VX_11/madre/power_saver.py:340:        if kind == "log" and profile in ("low_power", "ultra_low_memory"):
+/workspace/VX_11/madre/power_saver.py:341:            return low_power_log_days
+/workspace/VX_11/madre/power_saver.py:369:            "log_days_low_power": low_power_log_days,
+/workspace/VX_11/madre/README.md:28:│   ├── policy.py             # PolicyEngine: risk classification + tokens
+/workspace/VX_11/madre/README.md:177:### core/policy.py (PolicyEngine)
+/workspace/VX_11/madre/fluzo_integration.py:24:            "profile": "balanced" | "low_power" | "performance",
+/workspace/VX_11/madre/fluzo_integration.py:80:        "low_power": {
+/workspace/VX_11/madre/main_v7_production.py:44:_policy = PolicyEngine()
+/workspace/VX_11/madre/main_v7_production.py:145:        risk = _policy.classify_risk(dsl.domain, dsl.action)
+/workspace/VX_11/madre/main_v7_production.py:146:        requires_confirmation = _policy.requires_confirmation(risk)
+/workspace/VX_11/madre/main_v7_production.py:177:            confirm_token = _policy.generate_confirm_token()
+/workspace/VX_11/madre/main_v7_production.py:259:    risk = _policy.classify_risk(req.target, req.action)
+/workspace/VX_11/madre/main_v7_production.py:260:    requires_confirmation = _policy.requires_confirmation(risk)
+/workspace/VX_11/madre/main_v7_production.py:265:            confirm_token = _policy.generate_confirm_token()
+/workspace/VX_11/madre/main_v7_production.py:338:    if not _policy.validate_confirm_token(confirm_token, stored_token):
+/workspace/VX_11/madre/core/policy.py:8:log = logging.getLogger("madre.policy")
+/workspace/VX_11/madre/core/policy.py:87:    def requires_confirmation(risk: RiskLevel, policy_override: bool = False) -> bool:
+/workspace/VX_11/madre/core/policy.py:89:        if policy_override:
+/workspace/VX_11/madre/core/db.py:214:    def get_policy(module: str) -> Optional[Dict[str, Any]]:
+/workspace/VX_11/madre/core/db.py:215:        """Retrieve policy for module."""
+/workspace/VX_11/madre/core/__init__.py:15:from .policy import PolicyEngine

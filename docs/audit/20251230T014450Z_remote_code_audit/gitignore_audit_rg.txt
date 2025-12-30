@@ -1,0 +1,21 @@
+49:docs/audit/**
+50:!docs/audit/DB_MAP_v7_FINAL.md
+51:!docs/audit/DB_SCHEMA_v7_FINAL.json
+52:!docs/audit/DB_MAP_v7_META.txt
+53:!docs/audit/CLEANUP_EXCLUDES_CORE.txt
+54:!docs/audit/PERCENTAGES.json
+55:!docs/audit/SCORECARD.json
+56:!docs/audit/FASE6_EVIDENCE_INDEX.md
+57:!docs/audit/FASE7_CONCLUSIÓN_FINAL.md
+58:!docs/audit/DIAGNOSTIC_ASSESSMENT_20251222.md
+59:!docs/audit/OPERATOR_UI_COMPLETE_20251228/
+60:!docs/audit/OPERATOR_UI_COMPLETE_20251228/*.md
+61:!docs/audit/20251228_OPERATOR_UI_FINAL/
+62:!docs/audit/20251228_OPERATOR_UI_FINAL/*.md
+63:!docs/audit/20251228_SWITCH_HERMES_FIX/
+64:!docs/audit/20251228_SWITCH_HERMES_FIX/*.md
+65:!docs/audit/20251228_SWITCH_HERMES_FIX/*.sh
+67:# Public audit artifacts allowed for remote sync
+68:!docs/audit/_public/**
+70:# VX11 audit artifacts (must not live in repo root)
+76:.copilot-audit/

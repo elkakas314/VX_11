@@ -1,0 +1,231 @@
+   320	
+   321	        time.sleep(1)
+   322	
+   323	    log.error(f"Health check timeout for {services}")
+   324	    return False
+   325	
+   326	
+   327	# ============= Endpoints =============
+   328	
+   329	
+   330	@router.post("/window/open", response_model=WindowOpenResponse)
+   331	async def window_open(
+   332	    req: WindowOpenRequest, authorized: bool = Depends(token_guard)
+   333	) -> WindowOpenResponse:
+   334	    """
+   335	    Abre una ventana temporal (TTL) o indefinida (hold).
+   336	    PHASE 2: Ejecuta docker compose start para cada servicio.
+   337	
+   338	    POST /madre/power/window/open
+   339	    {
+   340	      "services": ["tentaculo_link", "switch", "hermes"],
+   341	      "ttl_sec": 300,
+   342	      "mode": "ttl",
+   343	      "reason": "e2e_test"
+   344	    }
+   345	    """
+   346	    wm = get_window_manager()
+   347	
+   348	    # Validar allowlist
+   349	    services_set = set(req.services)
+   350	    if not wm.is_allowlist_valid(services_set):
+   351	        invalid = services_set - wm.ALLOWLIST
+   352	        log.warning(f"Allowlist violation: {invalid}")
+   353	        raise HTTPException(
+   354	            status_code=422, detail=f"Services not in allowlist: {invalid}"
+   355	        )
+   356	
+   357	    # Validar que no hay ventana activa
+   358	    if wm.active_window and wm.active_window.state == "open":
+   359	        raise HTTPException(
+   360	            status_code=409,
+   361	            detail=f"Window already active: {wm.active_window.window_id}. Close it first.",
+   362	        )
+   363	
+   364	    try:
+   365	        # Registrar ventana en WindowManager
+   366	        window = wm.register_window(
+   367	            services=services_set,
+   368	            ttl_sec=req.ttl_sec if req.mode == "ttl" else None,
+   369	            mode=req.mode,
+   370	            reason=req.reason,
+   371	        )
+   372	
+   373	        # PHASE 2: Ejecutar docker compose start realmente
+   374	        exec_result = docker_compose_up(list(req.services))
+   375	
+   376	        if exec_result["status"] == "fail":
+   377	            # Si falla completamente, cerrar ventana y reportar
+   378	            wm.close_window("exec_failed")
+   379	            raise HTTPException(
+   380	                status_code=500,
+   381	                detail=f"docker compose up failed: {exec_result['results']}",
+   382	            )
+   383	
+   384	        log.info(
+   385	            f"Window opened: {window.window_id}, services: {req.services}, status: {exec_result['status']}"
+   386	        )
+   387	
+   388	        # Retornar estado
+   389	        return WindowOpenResponse(
+   390	            window_id=window.window_id,
+   391	            created_at=window.created_at.isoformat() + "Z",
+   392	            deadline=window.deadline.isoformat() + "Z" if window.deadline else None,
+   393	            services_started=req.services,
+   394	            state="open",
+   395	            ttl_remaining_sec=window.ttl_remaining_sec(),
+   396	        )
+   397	
+   398	    except HTTPException:
+   399	        raise
+   400	    except Exception as e:
+   401	        log.error(f"window_open error: {e}")
+   402	        raise HTTPException(status_code=500, detail=f"Internal error: {str(e)}")
+   403	
+   404	
+   405	@router.post("/window/close", response_model=WindowCloseResponse)
+   406	async def window_close(authorized: bool = Depends(token_guard)) -> WindowCloseResponse:
+   407	    """
+   408	    Cierra ventana activa (manual).
+   409	    PHASE 2: Ejecuta docker compose stop para cada servicio.
+   410	
+   411	    POST /madre/power/window/close
+   412	    """
+   413	    wm = get_window_manager()
+   414	
+   415	    if not wm.active_window:
+   416	        raise HTTPException(status_code=404, detail="No active window")
+   417	
+   418	    window = wm.active_window
+   419	    window_id = window.window_id
+   420	    services = list(window.services)
+   421	
+   422	    try:
+   423	        # PHASE 2: Detener servicios realmente
+   424	        exec_result = docker_compose_stop(services)
+   425	
+   426	        if exec_result["status"] == "fail":
+   427	            log.warning(f"docker compose stop had failures: {exec_result['results']}")
+   428	            # Continue anyway, close window in state
+   429	
+   430	        # Cerrar ventana en WindowManager
+   431	        wm.close_window("manual_close")
+   432	
+   433	        log.info(
+   434	            f"Window closed: {window_id}, services: {services}, status: {exec_result['status']}"
+   435	        )
+   436	
+   437	        return WindowCloseResponse(
+   438	            window_id=window_id,
+   439	            closed_at=datetime.now(timezone.utc).isoformat() + "Z",
+   440	            services_stopped=services,
+   441	            state="closed",
+   442	        )
+   443	
+   444	    except Exception as e:
+   445	        log.error(f"window_close error: {e}")
+   446	        raise HTTPException(status_code=500, detail=f"Internal error: {str(e)}")
+   447	
+   448	
+   449	@router.get("/state", response_model=PowerStateResponse)
+   450	async def get_power_state(
+   451	    authorized: bool = Depends(token_guard),
+   452	) -> PowerStateResponse:
+   453	    """
+   454	    Lee estado actual (policy, ventana activa, TTL restante).
+   455	
+   456	    GET /madre/power/state
+   457	    """
+   458	    wm = get_window_manager()
+   459	    window = wm.active_window
+   460	
+   461	    if window:
+   462	        active_services = list(window.services) + list(wm.SOLO_MADRE_SERVICES)
+   463	    else:
+   464	        active_services = list(wm.SOLO_MADRE_SERVICES)
+   465	
+   466	    return PowerStateResponse(
+   467	        policy="windowed" if window else "solo_madre",
+   468	        window_id=window.window_id if window else None,
+   469	        created_at=window.created_at.isoformat() + "Z" if window else None,
+   470	        deadline=(
+   471	            window.deadline.isoformat() + "Z" if window and window.deadline else None
+   472	        ),
+   473	        ttl_remaining_sec=window.ttl_remaining_sec() if window else None,
+   474	        active_services=active_services,
+   475	    )
+   476	
+   477	
+   478	@router.post("/policy/solo_madre/apply")
+   479	async def apply_solo_madre(authorized: bool = Depends(token_guard)) -> dict:
+   480	    """
+   481	    Aplica policy SOLO_MADRE (cierra ventana + detiene todo excepto madre+redis).
+   482	    PHASE 2: Ejecuta docker compose stop para todos los servicios de la ventana.
+   483	
+   484	    POST /madre/power/policy/solo_madre/apply
+   485	    """
+   486	    wm = get_window_manager()
+   487	
+   488	    try:
+   489	        # Si hay ventana activa, obtener servicios a detener
+   490	        services_to_stop = []
+   491	        exec_result = {"status": "ok", "results": []}
+   492	
+   493	        if wm.active_window:
+   494	            services_to_stop = list(wm.active_window.services)
+   495	
+   496	            # PHASE 2: Detener servicios realmente
+   497	            exec_result = docker_compose_stop(services_to_stop)
+   498	
+   499	            if exec_result["status"] == "fail":
+   500	                log.warning(
+   501	                    f"docker compose stop had failures: {exec_result['results']}"
+   502	                )
+   503	
+   504	            # Cerrar ventana en estado
+   505	            wm.close_window("solo_madre_applied")
+   506	
+   507	        log.info(
+   508	            f"Solo Madre applied, services stopped: {services_to_stop}, status: {exec_result['status']}"
+   509	        )
+   510	
+   511	        return {
+   512	            "policy": "solo_madre",
+   513	            "services_stopped": services_to_stop,
+   514	            "state": "applied",
+   515	            "exec_status": exec_result["status"],
+   516	            "exec_details": exec_result.get("results", []),
+   517	        }
+   518	
+   519	    except Exception as e:
+   520	        log.error(f"apply_solo_madre error: {e}")
+   521	        raise HTTPException(status_code=500, detail=f"Internal error: {str(e)}")
+   522	
+   523	
+   524	@router.get("/policy/solo_madre/status", response_model=SoloMadreStatusResponse)
+   525	async def check_solo_madre_status(
+   526	    authorized: bool = Depends(token_guard),
+   527	) -> SoloMadreStatusResponse:
+   528	    """
+   529	    Chequea si policy SOLO_MADRE está activo.
+   530	
+   531	    GET /madre/power/policy/solo_madre/status
+   532	    """
+   533	    wm = get_window_manager()
+   534	    ps = get_docker_ps()
+   535	
+   536	    # collect service names that are running, filter out None and coerce to str
+   537	    running_services_list = [
+   538	        str(item.get("Service"))
+   539	        for item in ps
+   540	        if "running" in (item.get("State") or "").lower()
+   541	        and item.get("Service") is not None
+   542	    ]
+   543	    # compare as sets to ignore ordering and ensure type-compatibility
+   544	    policy_active = set(running_services_list) == set(wm.SOLO_MADRE_SERVICES)
+   545	
+   546	    return SoloMadreStatusResponse(
+   547	        policy_active=policy_active,
+   548	        running_services=running_services_list,
+   549	        expected_services=list(wm.SOLO_MADRE_SERVICES),
+   550	    )

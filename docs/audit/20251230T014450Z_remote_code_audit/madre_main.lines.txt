@@ -1,0 +1,181 @@
+   540	        )
+   541	        db_info["quick_check"] = result.stdout.strip()
+   542	    except Exception as e:
+   543	        db_info["quick_check"] = f"error: {str(e)}"
+   544	
+   545	    # FK violations count
+   546	    try:
+   547	        result = subprocess.run(
+   548	            ["sqlite3", db_path, "PRAGMA foreign_key_check;"],
+   549	            capture_output=True,
+   550	            text=True,
+   551	            timeout=5,
+   552	        )
+   553	        fk_lines = result.stdout.strip().split("\n") if result.stdout.strip() else []
+   554	        db_info["fk_violations"] = len([l for l in fk_lines if l])
+   555	    except Exception as e:
+   556	        db_info["fk_violations"] = -1
+   557	
+   558	    # Canon info
+   559	    canon_dir = Path("docs/canon")
+   560	    canon_files = list(canon_dir.glob("*.json")) if canon_dir.exists() else []
+   561	    canon_info = {
+   562	        "files": len(canon_files),
+   563	        "dir": str(canon_dir),
+   564	    }
+   565	
+   566	    # Compute composite hash if possible
+   567	    if canon_files:
+   568	        import hashlib
+   569	
+   570	        hashes = []
+   571	        for cf in sorted(canon_files):
+   572	            try:
+   573	                hashes.append(hashlib.sha256(cf.read_bytes()).hexdigest()[:8])
+   574	            except:
+   575	                pass
+   576	        canon_info["hash_composite"] = "".join(hashes)[:16] if hashes else "N/A"
+   577	
+   578	    # Determine mode (detect from power/policy if possible)
+   579	    mode = "solo_madre"  # default
+   580	    try:
+   581	        # Check if solo_madre policy is active by introspecting power_manager
+   582	        # For now, use simple heuristic: if only madre+redis+tentaculo, then solo_madre
+   583	        pass
+   584	    except:
+   585	        pass
+   586	
+   587	    return {
+   588	        "module": "madre",
+   589	        "version": "7.0",
+   590	        "mode": mode,
+   591	        "services_expected": ["tentaculo_link", "redis"],
+   592	        "services_running": list(deps.keys()) if isinstance(deps, dict) else [],
+   593	        "db": db_info,
+   594	        "canon": canon_info,
+   595	        "timestamp": datetime.utcnow().isoformat() + "Z",
+   596	    }
+   597	
+   598	
+   599	@app.get("/sessions")
+   600	async def sessions():
+   601	    return {
+   602	        "sessions": [{"session_id": sid, **meta} for sid, meta in _SESSIONS.items()]
+   603	    }
+   604	
+   605	
+   606	# ============ PLAN ENDPOINTS ============
+   607	
+   608	
+   609	@app.get("/madre/plans")
+   610	async def lista_planes(skip: int = 0, limit: int = 10):
+   611	    """Get recent plans (from tasks where module='madre')."""
+   612	    # Simplified: return stub
+   613	    return {
+   614	        "plans": [],
+   615	        "skip": skip,
+   616	        "limit": limit,
+   617	        "note": "Full implementation requires DB query",
+   618	    }
+   619	
+   620	
+   621	@app.get("/madre/plans/{plan_id}")
+   622	async def get_plan(plan_id: str):
+   623	    """Get specific plan details."""
+   624	    task = MadreDB.get_task(plan_id)
+   625	    if not task:
+   626	        raise HTTPException(status_code=404, detail="Plan not found")
+   627	
+   628	    plan_json = MadreDB.get_context(plan_id, "madre:plan")
+   629	    intent_id = MadreDB.get_context(plan_id, "madre:intent_id")
+   630	    mode = MadreDB.get_context(plan_id, "madre:mode")
+   631	
+   632	    return {
+   633	        "task": task,
+   634	        "plan_json": plan_json,
+   635	        "intent_id": intent_id,
+   636	        "mode": mode,
+   637	    }
+   638	
+   639	
+   640	@app.post("/madre/plans/{plan_id}/confirm")
+   641	async def confirm_plan(plan_id: str, confirm_token: str):
+   642	    """Confirm and resume a WAITING plan."""
+   643	    stored_token = MadreDB.get_context(plan_id, "madre:confirm_token")
+   644	
+   645	    if not stored_token:
+   646	        raise HTTPException(
+   647	            status_code=400, detail="No confirmation pending for this plan"
+   648	        )
+   649	
+   650	    if not _policy.validate_confirm_token(confirm_token, stored_token):
+   651	        raise HTTPException(status_code=403, detail="Invalid token")
+   652	
+   653	    # Resume plan
+   654	    MadreDB.update_task(plan_id, status="running")
+   655	    MadreDB.record_action(
+   656	        module="madre",
+   657	        action="plan_confirmed",
+   658	        reason=f"plan_id:{plan_id}",
+   659	    )
+   660	
+   661	    return {"status": "confirmed", "plan_id": plan_id}
+   662	
+   663	
+   664	class MadreTaskAliasRequest(BaseModel):
+   665	    message: Optional[str] = None
+   666	    payload: Optional[Dict[str, Any]] = None
+   667	    intent_type: Optional[str] = None
+   668	    session_id: Optional[str] = None
+   669	    metadata: Optional[Dict[str, Any]] = None
+   670	
+   671	
+   672	async def _madre_task_alias(req: MadreTaskAliasRequest):
+   673	    """
+   674	    Alias compatible para /madre/task.
+   675	    Si viene mensaje, reusa /madre/chat; si no, devuelve aceptación degradada.
+   676	    """
+   677	    if req.message:
+   678	        return await madre_chat(
+   679	            ChatRequest(
+   680	                message=req.message,
+   681	                session_id=req.session_id,
+   682	                context=req.metadata or {},
+   683	            )
+   684	        )
+   685	    return {
+   686	        "status": "accepted",
+   687	        "note": "madre_task_alias",
+   688	        "intent_type": req.intent_type,
+   689	        "payload": req.payload or {},
+   690	        "session_id": req.session_id,
+   691	    }
+   692	
+   693	
+   694	# ====== POWER SAVER ENDPOINTS ======
+   695	
+   696	
+   697	class IdleMinRequest(BaseModel):
+   698	    apply: bool = False
+   699	
+   700	
+   701	class RitualRequest(BaseModel):
+   702	    apply: bool = False
+   703	
+   704	
+   705	@app.get("/power/status")
+   706	async def power_status():
+   707	    out_dir = power_saver_module.make_out_dir(prefix="madre_power_saver_status")
+   708	    # snapshot and zombies
+   709	    await asyncio.to_thread(power_saver_module.snapshot, out_dir)
+   710	    z = await asyncio.to_thread(power_saver_module.list_zombies)
+   711	    # processes in repo
+   712	    proc_list = []
+   713	    try:
+   714	        res = subprocess.run(
+   715	            ["ps", "axo", "pid,ppid,stat,cmd"],
+   716	            capture_output=True,
+   717	            text=True,
+   718	            check=False,
+   719	        )
+   720	        proc_list = [l for l in res.stdout.splitlines() if "/home/elkakas314/vx11" in l]
