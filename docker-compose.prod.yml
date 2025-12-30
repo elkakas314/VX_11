@@ -5,35 +5,35 @@
 
 services:
   madre:
-    ports: null
+    ports: []
 
   switch:
-    ports: null
+    ports: []
 
   hermes:
-    ports: null
+    ports: []
 
   hormiguero:
-    ports: null
+    ports: []
 
   manifestator:
-    ports: null
+    ports: []
 
   mcp:
-    ports: null
+    ports: []
 
   shubniggurath:
     # internal only; ensure no host port is published in prod
-    ports: null
+    ports: []
 
   spawner:
-    ports: null
+    ports: []
 
   operator-backend:
-    ports: null
+    ports: []
 
   redis:
-    ports: null
+    ports: []
 # Note: tentaculo_link keeps its port mapping in the base compose file
 # to remain the single external entrypoint (8000). For production, run
 # with this overlay and verify with `docker compose ps` that only
