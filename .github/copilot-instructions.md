@@ -137,6 +137,72 @@ curl -X POST http://localhost:8001/madre/power/mode \
 
 ---
 
+## MODELOS & COSTE OPTIMIZATION
+
+### Preferencias de Modelo (en orden)
+1. **DeepSeek R1** (si disponible) — Reasoning complejo, debugging, análisis
+2. **GPT-5 mini** — Respuestas compactas, código rápido, ejecución
+3. **GPT-4.1** — Fallback, análisis arquitectónico
+
+### Anti-Patterns (PROHIBIDOS)
+- ❌ Sobre-planificación (no hacer listas de 20 pasos)
+- ❌ Preguntar antes de actuar (salvo destructivo/ambiguo)
+- ❌ Refactoring paralelo (cambio = una cosa)
+- ❌ Limpieza "mientras estamos"
+- ❌ Secretos en código (siempre env vars)
+
+### Regla de Oro
+**Ejecutar → Verificar → Corregir** (no planificar → esperar → ejecutar)
+
+---
+
+## DeepSeek R1 DEFAULT RULE (SIN PEDIRLO)
+
+### ¿CUÁNDO usar DeepSeek R1 (siempre que sea posible)?
+- Razonamiento = "explicar por qué"
+- Debugging = "encontrar qué está mal"
+- Análisis = "evaluar impacto"
+- Código = "implementar, refactor, testing"
+- Decisiones = "árbol de opciones, trade-offs"
+
+### ¿CÓMO usarlo?
+- **Si disponible**: Endpoint VX11 `/operator/api/assist/deepseek_r1`
+  ```bash
+  curl -X POST http://localhost:8000/operator/api/assist/deepseek_r1 \
+    -H "X-VX11-Token: vx11-local-token" \
+    -H "Content-Type: application/json" \
+    -d '{"purpose":"debug","prompt":"...","temperature":1.0}'
+  ```
+- **CLI/SDK**: Pasar `--model deepseek-r1` o `model="deepseek-r1"` a llamada LLM
+
+### ¿DEGRADACIÓN?
+- Si DeepSeek R1 NO está disponible → fallback a GPT-5 mini/GPT-4.1
+- **REGISTRAR**: Log en docs/audit/$TS/model_usage.json:
+  ```json
+  {
+    "timestamp": "20251230T221000Z",
+    "attempted_model": "deepseek-r1",
+    "fallback_used": "gpt-4.1",
+    "reason": "endpoint_unavailable",
+    "task": "<task_name>"
+  }
+  ```
+- Marcar degradation en SCORECARD.json
+
+### Metadata Obligatoria (respuestas DeepSeek R1)
+```json
+{
+  "provider_used": "deepseek",
+  "model_used": "r1",
+  "trace_id": "<uuid>",
+  "temperature": 1.0,
+  "reasoning_tokens": 1234,
+  "total_tokens": 5678
+}
+```
+
+---
+
 ## GIT DISCIPLINE (NON-NEGOTIABLE)
 
 - **Remote**: vx_11_remote ONLY (never 'origin' if not exists; always verify with `git remote -v`)
