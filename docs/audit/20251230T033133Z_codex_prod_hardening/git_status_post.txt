@@ -1,0 +1,8 @@
+## work
+D  .env
+D  .env.deepseek
+ M docs/audit/CORE_GATES_PACK.md
+ M operator/backend/main.py
+ M operator/frontend/src/components/HormigueroPanel.tsx
+ M operator/frontend/src/services/api.ts
+ M tentaculo_link/routes/rails.py

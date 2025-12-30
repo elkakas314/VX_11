@@ -1,0 +1,60 @@
+tentaculo_link/main_v7.py:338:app.include_router(api_routes.hormiguero.router)
+tentaculo_link/main_v7.py:388:            "hormiguero": 8004,
+tentaculo_link/main_v7.py:837:    hormiguero = clients.get_client("hormiguero")
+tentaculo_link/main_v7.py:838:    if not hormiguero:
+tentaculo_link/main_v7.py:839:        raise HTTPException(status_code=503, detail="hormiguero_unavailable")
+tentaculo_link/main_v7.py:842:    result = await hormiguero.post(
+tentaculo_link/main_v7.py:843:        "/hormiguero/inee/extended/builder/patchset", payload=body
+tentaculo_link/main_v7.py:856:    hormiguero = clients.get_client("hormiguero")
+tentaculo_link/main_v7.py:857:    if not hormiguero:
+tentaculo_link/main_v7.py:858:        raise HTTPException(status_code=503, detail="hormiguero_unavailable")
+tentaculo_link/main_v7.py:861:    result = await hormiguero.post(
+tentaculo_link/main_v7.py:862:        "/hormiguero/inee/extended/colony/register", payload=body
+tentaculo_link/main_v7.py:875:    hormiguero = clients.get_client("hormiguero")
+tentaculo_link/main_v7.py:876:    if not hormiguero:
+tentaculo_link/main_v7.py:877:        raise HTTPException(status_code=503, detail="hormiguero_unavailable")
+tentaculo_link/main_v7.py:880:    result = await hormiguero.post(
+tentaculo_link/main_v7.py:881:        "/hormiguero/inee/extended/colony/envelope", payload=body
+tentaculo_link/main_v7.py:893:    hormiguero = clients.get_client("hormiguero")
+tentaculo_link/main_v7.py:894:    if not hormiguero:
+tentaculo_link/main_v7.py:895:        raise HTTPException(status_code=503, detail="hormiguero_unavailable")
+tentaculo_link/main_v7.py:897:    result = await hormiguero.get("/hormiguero/inee/extended/status")
+tentaculo_link/main_v7.py:1063:@app.get("/hormiguero/queen/status")
+tentaculo_link/main_v7.py:1064:async def hormiguero_status(_: bool = Depends(token_guard)):
+tentaculo_link/main_v7.py:1067:    result = await clients.route_to_hormiguero("/queen/status")
+tentaculo_link/main_v7.py:1068:    write_log("tentaculo_link", "route_hormiguero:queen_status")
+tentaculo_link/main_v7.py:1072:@app.get("/hormiguero/report")
+tentaculo_link/main_v7.py:1073:async def hormiguero_report(limit: int = 50, _: bool = Depends(token_guard)):
+tentaculo_link/main_v7.py:1076:    result = await clients.route_to_hormiguero(f"/report?limit={limit}")
+tentaculo_link/main_v7.py:1077:    write_log("tentaculo_link", f"route_hormiguero:report:limit={limit}")
+tentaculo_link/main_v7.py:1095:            "hormiguero": {"queen_alive": True},
+tentaculo_link/main_v7.py:1896:        "hormiguero": health_results.get("hormiguero", {}),
+tentaculo_link/main_v7.py:2037:            "hormiguero": {"status": "OFF_BY_POLICY", "reason": "solo_madre policy"},
+tentaculo_link/main_v7.py:2075:    for name in ["switch", "hermes", "hormiguero", "spawner"]:
+tentaculo_link/main_v7.py:2081:                "hormiguero": 8004,
+tentaculo_link/main_v7.py:2477:                "name": "hormiguero",
+tentaculo_link/main_v7.py:2542:            {"name": "hormiguero", "port": 8004, "status": "dormant"},
+tentaculo_link/main_v7.py:2849:            "dormant_services": ["hormiguero", "shubniggurath", "mcp"]
+tentaculo_link/main_v7.py:2917:                "name": "hormiguero",
+tentaculo_link/main_v7.py:2920:                "activation": "docker compose up --profile dormant hormiguero",
+tentaculo_link/main_v7.py:3534:                    "id": "hormiguero",
+tentaculo_link/inee_remote_routes.py:14:- heartbeat -> Hormiguero (POST /hormiguero/heartbeat)
+tentaculo_link/inee_remote_routes.py:48:_hormiguero_client: Optional[Any] = None
+tentaculo_link/inee_remote_routes.py:51:def init_inee_remote_routes(madre_client=None, hormiguero_client=None):
+tentaculo_link/inee_remote_routes.py:53:    global _madre_client, _hormiguero_client
+tentaculo_link/inee_remote_routes.py:55:    _hormiguero_client = hormiguero_client
+tentaculo_link/inee_remote_routes.py:116:    if not _hormiguero_client:
+tentaculo_link/inee_remote_routes.py:120:    # result = await _hormiguero_client.post(
+tentaculo_link/inee_remote_routes.py:121:    #     "/hormiguero/inee/heartbeat",
+tentaculo_link/routes/__init__.py:15:from . import hormiguero
+tentaculo_link/routes/__init__.py:25:    "hormiguero",
+tentaculo_link/routes/rails.py:18:from hormiguero.manifestator.controller import RailsController
+tentaculo_link/routes/hormiguero.py:9:router = APIRouter(prefix="/api/hormiguero", tags=["hormiguero"])
+tentaculo_link/routes/hormiguero.py:26:    result = await clients.route_to_hormiguero("/hormiguero/scan/once")
+tentaculo_link/clients.py:207:            "hormiguero": settings.hormiguero_url
+tentaculo_link/clients.py:208:            or f"http://hormiguero:{settings.hormiguero_port}",
+tentaculo_link/clients.py:352:    async def route_to_hormiguero(
+tentaculo_link/clients.py:356:        client = self.get_client("hormiguero")
+tentaculo_link/clients.py:358:            return {"error": "hormiguero_unavailable"}
+tentaculo_link/clients.py:359:        write_log("tentaculo_link", f"route_hormiguero:{endpoint}")
+tentaculo_link/_legacy/inbox/MOVE_PLAN_20251216.md:45:│   ├── hormiguero_adapter.py

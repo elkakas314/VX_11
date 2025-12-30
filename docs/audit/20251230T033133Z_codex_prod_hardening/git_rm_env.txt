@@ -1,0 +1,2 @@
+rm '.env'
+rm '.env.deepseek'

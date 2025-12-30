@@ -1,0 +1,80 @@
+operator/backend/Dockerfile:38:    CMD curl -fsS http://localhost:8011/operator/api/health || exit 1
+operator/backend/__init__.py:1:"""VX11 Operator backend package."""
+operator/backend/main.py:21:VX11_TOKEN = (
+operator/backend/main.py:22:    get_token("VX11_OPERATOR_TOKEN")
+operator/backend/main.py:23:    or get_token("VX11_GATEWAY_TOKEN")
+operator/backend/main.py:28:RATE_LIMIT_WINDOW_SEC = int(os.environ.get("VX11_OPERATOR_RATE_WINDOW_SEC", "60"))
+operator/backend/main.py:29:RATE_LIMIT_MAX = int(os.environ.get("VX11_OPERATOR_RATE_LIMIT", "60"))
+operator/backend/main.py:33:    "VX11_OPERATOR_AUDIT_LOG",
+operator/backend/main.py:37:    "VX11_SCORECARD_PATH", "/app/docs/audit/SCORECARD.json"
+operator/backend/main.py:40:    "VX11_PERCENTAGES_PATH", "/app/docs/audit/PERCENTAGES.json"
+operator/backend/main.py:43:TENTACULO_BASE = settings.tentaculo_link_url.rstrip("/")
+operator/backend/main.py:70:            if x_vx11_token != VX11_TOKEN:
+operator/backend/main.py:77:app = FastAPI(title="VX11 Operator Backend", version=APP_VERSION)
+operator/backend/main.py:229:async def _call_tentaculo(
+operator/backend/main.py:237:    headers = {TOKEN_HEADER: VX11_TOKEN, "X-Correlation-Id": correlation_id}
+operator/backend/main.py:241:            f"{TENTACULO_BASE}{path}",
+operator/backend/main.py:249:    response = await _call_tentaculo(
+operator/backend/main.py:261:    services.update({"tentaculo_link"})
+operator/backend/main.py:267:    response = await _call_tentaculo(
+operator/backend/main.py:275:@app.get("/operator/api/health")
+operator/backend/main.py:285:@app.get("/operator/api/env")
+operator/backend/main.py:300:@app.get("/operator/api/status")
+operator/backend/main.py:317:@app.get("/operator/api/modules")
+operator/backend/main.py:351:@app.get("/operator/api/topology")
+operator/backend/main.py:366:        "tentaculo_link": core.get("services", {}).get("tentaculo_link", {}),
+operator/backend/main.py:383:@app.get("/operator/api/windows")
+operator/backend/main.py:392:@app.post("/operator/api/chat/window/open")
+operator/backend/main.py:401:    response = await _call_tentaculo(
+operator/backend/main.py:415:@app.post("/operator/api/chat/window/close")
+operator/backend/main.py:423:    response = await _call_tentaculo("POST", "/api/window/close", correlation_id)
+operator/backend/main.py:434:@app.get("/operator/api/chat/window/status")
+operator/backend/main.py:443:@app.post("/operator/api/chat")
+operator/backend/main.py:458:    response = await _call_tentaculo(
+operator/backend/main.py:473:@app.get("/operator/api/events")
+operator/backend/main.py:479:    response = await _call_tentaculo(
+operator/backend/main.py:485:@app.get("/operator/api/events/stream")
+operator/backend/main.py:490:    heartbeat_sec = int(os.environ.get("VX11_OPERATOR_SSE_HEARTBEAT", "15"))
+operator/backend/main.py:491:    poll_interval_sec = int(os.environ.get("VX11_OPERATOR_SSE_POLL", "60"))
+operator/backend/main.py:503:                    events_resp = await _call_tentaculo(
+operator/backend/main.py:543:@app.get("/operator/api/logs/tail")
+operator/backend/main.py:557:@app.get("/operator/api/audit/runs")
+operator/backend/main.py:564:    response = await _call_tentaculo(
+operator/backend/main.py:573:@app.get("/operator/api/audit/runs/{run_id}")
+operator/backend/main.py:579:    response = await _call_tentaculo(
+operator/backend/main.py:585:@app.get("/operator/api/explorer/presets")
+operator/backend/main.py:607:@app.post("/operator/api/explorer/query")
+operator/backend/main.py:622:        response = await _call_tentaculo(
+operator/backend/main.py:629:        response = await _call_tentaculo(
+operator/backend/main.py:637:@app.post("/operator/api/madre/plan")
+operator/backend/main.py:658:@app.post("/operator/api/madre/execute")
+operator/backend/main.py:679:@app.post("/operator/api/madre/cancel")
+operator/backend/main.py:700:@app.get("/operator/api/madre/status/{intent_id}")
+operator/backend/main.py:716:@app.get("/operator/api/hormiguero/status")
+operator/backend/main.py:724:    response = await _call_tentaculo(
+operator/backend/main.py:730:@app.post("/operator/api/hormiguero/scan/once")
+operator/backend/main.py:741:    response = await _call_tentaculo(
+operator/backend/main.py:755:    lanes_resp = await _call_tentaculo(
+operator/backend/main.py:758:    rails_resp = await _call_tentaculo(
+operator/backend/main.py:769:@app.get("/operator/api/manifestator/status")
+operator/backend/main.py:778:    response = await _call_tentaculo(
+operator/backend/main.py:788:@app.post("/operator/api/manifestator/patchplan")
+operator/backend/main.py:810:@app.post("/operator/api/manifestator/compare")
+operator/backend/main.py:835:@app.post("/operator/api/manifestator/apply")
+operator/backend/main.py:856:@app.get("/operator/api/shub/status")
+operator/backend/main.py:868:@app.get("/operator/api/shub/jobs")
+operator/backend/main.py:880:@app.post("/operator/api/shub/jobs/submit")
+operator/backend/main.py:894:@app.post("/operator/api/assist/deepseek_r1")
+operator/backend/main.py:908:@app.get("/operator/api/assist/deepseek_r1/status")
+operator/backend/main.py:920:@app.get("/operator/api/metrics")
+operator/backend/main.py:926:    response = await _call_tentaculo(
+operator/backend/main.py:935:@app.get("/operator/api/scorecard")
+operator/backend/main.py:953:@app.get("/operator/api/audit")
+operator/backend/main.py:958:    response = await _call_tentaculo(
+operator/backend/main.py:964:@app.get("/operator/api/settings")
+operator/backend/main.py:972:@app.post("/operator/api/settings")
+operator/backend/main.py:997:@app.get("/operator/api/rails/lanes")
+operator/backend/main.py:1002:    response = await _call_tentaculo("GET", "/api/rails/lanes", correlation_id)
+operator/backend/main.py:1006:@app.get("/operator/api/rails")
+operator/backend/main.py:1011:    response = await _call_tentaculo("GET", "/api/rails", correlation_id)
+operator/backend/main.py:1015:@app.get("/operator/api/healthz")

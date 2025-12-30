@@ -1,0 +1,2 @@
+docker-compose.production.yml
+- tentaculo_link: "8000:8000"
