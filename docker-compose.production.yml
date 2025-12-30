@@ -1,0 +1,392 @@
+# Production Deployment: Single-Entrypoint Architecture
+# INVARIANT: Only tentaculo_link (8000) published to host. All other services internal.
+# Usage: docker compose -f docker-compose.production.yml up -d --build
+
+services:
+  # ========== TENTACULO LINK (PORT 8000 ONLY) ==========
+  tentaculo_link:
+    # INVARIANTE: tentaculo_link is ALWAYS ON (single entrypoint for all clients)
+    # No profile means it runs in every context (default, --profile core, --profile operator)
+    build:
+      context: .
+      dockerfile: tentaculo_link/Dockerfile
+      args:
+        - REQUIREMENTS_FILE=requirements_tentaculo.txt
+    image: vx11-tentaculo-link:v6.7
+    container_name: vx11-tentaculo-link
+    hostname: tentaculo-link
+    networks:
+      default:
+        aliases:
+          - tentaculo_link
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./build/artifacts/logs:/app/logs
+      - ./data/runtime:/app/data/runtime
+      - ./docs/audit:/app/docs/audit:ro
+      - ./data/backups:/app/data/backups
+      - ./build/artifacts/sandbox:/app/sandbox
+      - ./models:/app/models
+    environment:
+      - ULTRA_LOW_MEMORY=true
+      - LOG_LEVEL=INFO
+      - PYTHONUNBUFFERED=1
+      - API_TOKEN=vx11-local-token
+      - VX11_GATEWAY_TOKEN=vx11-local-token
+      - VX11_TENTACULO_LINK_TOKEN=vx11-local-token
+      - VX11_OPERATOR_TOKEN=vx11-local-token
+      - VX11_LOCAL_TOKEN=vx11-local-token
+      - VX11_REDIS_URL=redis://:vx11-redis-local@redis:6379/0
+      - VX11_CACHE_TTL_HEALTH=60
+      - VX11_CACHE_ENABLED=true
+      - VX11_RATE_LIMIT_ENABLED=true
+      - VX11_RATE_LIMIT_USER=1000
+      - VX11_RATE_LIMIT_PROTECTED=100
+      - VX11_METRICS_ENABLED=true
+      - VX11_METRICS_PORT=9090
+      - VX11_MANIFESTATOR_ENABLED=true
+      - VX11_REPO_ROOT=/app
+      # P0: DeepSeek API fallback for chat (solo_madre policy)
+      # NOTE: DEEPSEEK_API_KEY MUST be set from .env (never hardcode in repo)
+      # See .env.example for template
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-not-set}
+      - DEEPSEEK_BASE_URL=https://api.deepseek.com/v1
+    mem_limit: 512m
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+
+  # ========== MADRE (INTERNAL ONLY) ==========
+  madre:
+    build:
+      context: .
+      dockerfile: madre/Dockerfile
+    image: vx11-madre:v6.7
+    container_name: vx11-madre
+    volumes:
+      - ./build/artifacts/logs:/app/logs
+      - ./data/runtime:/app/data/runtime
+      - ./build/artifacts/sandbox:/app/sandbox
+      - ./models:/app/models
+      - /var/run/docker.sock:/var/run/docker.sock:rw
+    environment:
+      - ULTRA_LOW_MEMORY=true
+      - LOG_LEVEL=INFO
+      - PYTHONUNBUFFERED=1
+      - API_TOKEN=vx11-local-token
+      - VX11_GATEWAY_TOKEN=vx11-local-token
+      - VX11_TENTACULO_LINK_TOKEN=vx11-local-token
+      - VX11_OPERATOR_TOKEN=vx11-local-token
+      - VX11_LOCAL_TOKEN=vx11-local-token
+      - VX11_ALLOW_SERVICE_CONTROL=1
+      - VX11_MAINTENANCE_WINDOW_ENABLED=1
+    mem_limit: 512m
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+
+  # ========== SWITCH (INTERNAL ONLY) ==========
+  switch:
+    profiles: ["core"]
+    build:
+      context: .
+      dockerfile: switch/Dockerfile
+    image: vx11-switch:v6.7
+    container_name: vx11-switch
+    volumes:
+      - ./build/artifacts/logs:/app/logs
+      - ./data/runtime:/app/data/runtime
+      - ./models:/app/models
+    environment:
+      - ULTRA_LOW_MEMORY=true
+      - LOG_LEVEL=INFO
+      - PYTHONUNBUFFERED=1
+      - API_TOKEN=vx11-local-token
+      - VX11_GATEWAY_TOKEN=vx11-local-token
+      - VX11_TENTACULO_LINK_TOKEN=vx11-local-token
+      - VX11_OPERATOR_TOKEN=vx11-local-token
+      - VX11_LOCAL_TOKEN=vx11-local-token
+    mem_limit: 512m
+    depends_on:
+      - tentaculo_link
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+
+  # ========== HERMES (INTERNAL ONLY) ==========
+  hermes:
+    profiles: ["core"]
+    build:
+      context: .
+      dockerfile: switch/hermes/Dockerfile
+    image: vx11-hermes:v6.7
+    container_name: vx11-hermes
+    volumes:
+      - ./build/artifacts/logs:/app/logs
+      - ./data/runtime:/app/data/runtime
+      - ./models:/app/models
+    environment:
+      - ULTRA_LOW_MEMORY=true
+      - LOG_LEVEL=INFO
+      - PYTHONUNBUFFERED=1
+      - API_TOKEN=vx11-local-token
+      - VX11_GATEWAY_TOKEN=vx11-local-token
+      - VX11_TENTACULO_LINK_TOKEN=vx11-local-token
+      - VX11_OPERATOR_TOKEN=vx11-local-token
+      - VX11_LOCAL_TOKEN=vx11-local-token
+    mem_limit: 512m
+    depends_on:
+      - tentaculo_link
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+
+  # ========== HORMIGUERO (INTERNAL ONLY) ==========
+  hormiguero:
+    profiles: ["core"]
+    image: vx11-hormiguero:v6.7
+    container_name: vx11-hormiguero
+    volumes:
+      - ./build/artifacts/logs:/app/logs
+      - ./data/runtime:/app/data/runtime
+    environment:
+      - ULTRA_LOW_MEMORY=true
+      - LOG_LEVEL=INFO
+      - PYTHONUNBUFFERED=1
+      - API_TOKEN=vx11-local-token
+      - VX11_GATEWAY_TOKEN=vx11-local-token
+      - VX11_TENTACULO_LINK_TOKEN=vx11-local-token
+      - VX11_OPERATOR_TOKEN=vx11-local-token
+      - VX11_LOCAL_TOKEN=vx11-local-token
+      - HORMIGUERO_TENTACULO_URL=http://tentaculo_link:8000
+      - HORMIGUERO_MADRE_URL=http://madre:8001
+      - HORMIGUERO_SWITCH_URL=http://switch:8002
+      - HORMIGUERO_SPAWNER_URL=http://spawner:8008
+      - HORMIGUERO_MANIFESTATOR_URL=http://manifestator:8005
+    mem_limit: 512m
+    depends_on:
+      - tentaculo_link
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+
+  # ========== MANIFESTATOR (INTERNAL ONLY) ==========
+  manifestator:
+    build:
+      context: .
+      dockerfile: manifestator/Dockerfile
+    image: vx11-manifestator:v6.7
+    container_name: vx11-manifestator
+    profiles: ["disabled", "maintenance"]
+    volumes:
+      - ./build/artifacts/logs:/app/logs
+      - ./data/runtime:/app/data/runtime
+      - .:/app/vx11:ro # Read-only access to repo
+    environment:
+      - ULTRA_LOW_MEMORY=true
+      - LOG_LEVEL=INFO
+      - PYTHONUNBUFFERED=1
+      - API_TOKEN=vx11-local-token
+      - VX11_GATEWAY_TOKEN=vx11-local-token
+      - VX11_TENTACULO_LINK_TOKEN=vx11-local-token
+      - VX11_OPERATOR_TOKEN=vx11-local-token
+      - VX11_LOCAL_TOKEN=vx11-local-token
+    mem_limit: 512m
+    depends_on:
+      - tentaculo_link
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8005/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+
+  # ========== MCP (INTERNAL ONLY) ==========
+  mcp:
+    profiles: ["core"]
+    build:
+      context: .
+      dockerfile: mcp/Dockerfile
+    image: vx11-mcp:v6.7
+    container_name: vx11-mcp
+    volumes:
+      - ./build/artifacts/logs:/app/logs
+      - ./data/runtime:/app/data/runtime
+    environment:
+      - ULTRA_LOW_MEMORY=true
+      - LOG_LEVEL=INFO
+      - PYTHONUNBUFFERED=1
+      - API_TOKEN=vx11-local-token
+      - VX11_GATEWAY_TOKEN=vx11-local-token
+      - VX11_TENTACULO_LINK_TOKEN=vx11-local-token
+      - VX11_OPERATOR_TOKEN=vx11-local-token
+      - VX11_LOCAL_TOKEN=vx11-local-token
+    mem_limit: 512m
+    depends_on:
+      - tentaculo_link
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8006/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+
+  # ========== SHUB NIGGURATH (INTERNAL ONLY) ==========
+  shubniggurath:
+    profiles: ["audio"]
+    image: vx11-shub:v6.7
+    container_name: vx11-shubniggurath
+    # NO PORTS: Internal only. Access via tentaculo_link proxy.
+    volumes:
+      - ./build/artifacts/logs:/app/logs
+      - ./data/runtime:/app/data/runtime
+      - ./models:/app/models
+      - ./build/artifacts/sandbox:/app/sandbox
+    environment:
+      - ULTRA_LOW_MEMORY=true
+      - LOG_LEVEL=INFO
+      - PYTHONUNBUFFERED=1
+      - API_TOKEN=vx11-local-token
+      - VX11_GATEWAY_TOKEN=vx11-local-token
+      - VX11_TENTACULO_LINK_TOKEN=vx11-local-token
+      - VX11_OPERATOR_TOKEN=vx11-local-token
+      - VX11_LOCAL_TOKEN=vx11-local-token
+    mem_limit: 512m
+    depends_on:
+      - tentaculo_link
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "true"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+
+  # ========== SPAWNER (INTERNAL ONLY) ==========
+  spawner:
+    profiles: ["core"]
+    build:
+      context: .
+      dockerfile: spawner/Dockerfile
+    image: vx11-spawner:v6.7
+    container_name: vx11-spawner
+    volumes:
+      - ./build/artifacts/logs:/app/logs
+      - ./data/runtime:/app/data/runtime
+      - ./build/artifacts/sandbox:/app/sandbox
+    environment:
+      - ULTRA_LOW_MEMORY=true
+      - LOG_LEVEL=INFO
+      - PYTHONUNBUFFERED=1
+      - API_TOKEN=vx11-local-token
+      - VX11_GATEWAY_TOKEN=vx11-local-token
+      - VX11_TENTACULO_LINK_TOKEN=vx11-local-token
+      - VX11_OPERATOR_TOKEN=vx11-local-token
+      - VX11_LOCAL_TOKEN=vx11-local-token
+    mem_limit: 512m
+    depends_on:
+      - tentaculo_link
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8008/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+
+  # ========== OPERATOR BACKEND (INTERNAL ONLY) ==========
+  operator-backend:
+    profiles: ["operator"]
+    build:
+      context: .
+      dockerfile: operator_backend/backend/Dockerfile
+    image: vx11-operator-backend:v7.0
+    container_name: vx11-operator-backend
+    hostname: operator-backend
+    networks:
+      default:
+        aliases:
+          - operator-backend
+    volumes:
+      - ./build/artifacts/logs:/app/logs
+      - ./data/runtime:/app/data/runtime
+    environment:
+      - ULTRA_LOW_MEMORY=true
+      - LOG_LEVEL=INFO
+      - PYTHONUNBUFFERED=1
+      - API_TOKEN=vx11-local-token
+      - VX11_GATEWAY_TOKEN=vx11-local-token
+      - VX11_TENTACULO_LINK_TOKEN=vx11-local-token
+      - VX11_OPERATOR_TOKEN=vx11-local-token
+      - VX11_LOCAL_TOKEN=vx11-local-token
+      - VX11_REPO_ROOT=/app
+    depends_on:
+      - tentaculo_link
+    restart: unless-stopped
+
+  # ========== REDIS (CACHE LAYER - INTERNAL ONLY) ==========
+  redis:
+    image: redis:7-alpine
+    container_name: vx11-redis
+    hostname: redis
+    volumes:
+      - ./data/redis:/data
+    environment:
+      - REDIS_PASSWORD=vx11-redis-local
+    command: redis-server --appendonly yes --requirepass vx11-redis-local
+    mem_limit: 256m
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "vx11-redis-local", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      default:
+        aliases:
+          - redis
+
+volumes:
+  logs:
+    driver: local
+  data:
+    driver: local
+  models:
+    driver: local
+  sandbox:
+    driver: local
+
+networks:
+  default:
+    name: vx11-network
+    driver: bridge
