@@ -10,8 +10,6 @@ _archive/**/*.tar.gz
 archived_**/
 20251*T*Z_*/
 archived_bak_*/
-!*_remote_megarelease/
-!*_remote_megarelease/**
 
 # EXCEPTIONS: Core files must be preserved
 !DB_SCHEMA_v7_FINAL.json

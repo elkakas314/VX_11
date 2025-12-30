@@ -1,0 +1,61 @@
+                            return JSONResponse(
+                                status_code=resp.status_code,
+                                content=resp.json(),
+                                headers={"X-Correlation-Id": correlation_id},
+                            )
+                        return StreamingResponse(
+                            resp.aiter_raw(),
+                            status_code=resp.status_code,
+                            media_type=resp.headers.get(
+                                "content-type", "text/event-stream"
+                            ),
+                            headers={"X-Correlation-Id": correlation_id},
+                        )
+
+                body = await request.body()
+                resp = await client.request(
+                    request.method,
+                    target_url,
+                    headers=headers,
+                    params=request.query_params,
+                    content=body or None,
+                )
+        except Exception:
+            return JSONResponse(
+                status_code=403,
+                content={
+                    "status": "OFF_BY_POLICY",
+                    "service": "operator_backend",
+                    "message": "Disabled by SOLO_MADRE policy",
+                    "correlation_id": correlation_id,
+                    "recommended_action": "Ask Madre to open operator window",
+                },
+                headers={"X-Correlation-Id": correlation_id},
+            )
+
+        content_type = resp.headers.get("content-type", "")
+        if "application/json" in content_type:
+            try:
+                data = resp.json()
+                if isinstance(data, dict) and "correlation_id" not in data:
+                    data["correlation_id"] = correlation_id
+                return JSONResponse(
+                    status_code=resp.status_code,
+                    content=data,
+                    headers={"X-Correlation-Id": correlation_id},
+                )
+            except Exception:
+                pass
+
+        return Response(
+            content=resp.content,
+            status_code=resp.status_code,
+            media_type=resp.headers.get("content-type", "application/json"),
+            headers={"X-Correlation-Id": correlation_id},
+        )
+
+    return await call_next(request)
+
+# Mount Operator UI static files
+operator_ui_candidates = [
+    Path(__file__).parent.parent / "operator_ui" / "frontend" / "dist",

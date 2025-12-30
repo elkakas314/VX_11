@@ -5,7 +5,7 @@
  * 
  * API base is configurable (VITE_VX11_API_BASE). Defaults:
  * - Dev: http://localhost:8000
- * - Prod: relative to current origin
+ * - Prod: window.location.origin
  */
 
 const TOKEN =
@@ -16,16 +16,15 @@ const RAW_BASE =
     import.meta.env.VITE_VX11_API_BASE ||
     import.meta.env.VITE_VX11_API_BASE_URL ||
     ''
-const DEFAULT_BASE = import.meta.env.DEV ? 'http://localhost:8000' : ''
+const DEFAULT_BASE = import.meta.env.DEV
+    ? 'http://localhost:8000'
+    : typeof window !== 'undefined'
+      ? window.location.origin
+      : 'http://localhost:8000'
 
 export const API_BASE = (RAW_BASE as string).trim() || DEFAULT_BASE
 
-export const buildApiUrl = (path: string) => {
-    if (!API_BASE) {
-        return path
-    }
-    return new URL(path, API_BASE).toString()
-}
+export const buildApiUrl = (path: string) => new URL(path, API_BASE).toString()
 
 interface ApiResponse<T> {
     ok: boolean
@@ -199,29 +198,3 @@ class ApiClient {
         const results: Record<string, any> = {}
 
         const chatResp = await this.chat('ping')
-        results.chat_ask = chatResp.ok
-        results.chat_ask_error = chatResp.error
-
-        const statusResp = await this.status()
-        results.status = statusResp.ok
-        results.status_error = statusResp.error
-
-        const windowsResp = await this.windows()
-        results.windows = windowsResp.ok
-        results.windows_error = windowsResp.error
-
-        const hormigResp = await this.hormigueroStatus()
-        results.hormiguero_status = hormigResp.ok
-        results.hormiguero_status_error = hormigResp.error
-
-        return {
-            chat_ask: results.chat_ask,
-            status: results.status,
-            windows: results.windows,
-            hormiguero_status: results.hormiguero_status,
-            results,
-        }
-    }
-}
-
-export const apiClient = new ApiClient()

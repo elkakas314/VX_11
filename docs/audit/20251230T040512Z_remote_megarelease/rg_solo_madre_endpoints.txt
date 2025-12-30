@@ -1,0 +1,59 @@
+tentaculo_link/main_v7.py:549:    # P1 Fallback: if switch is offline (solo_madre mode), use madre chat
+tentaculo_link/main_v7.py:607:    Same behavior: route to Switch with fallback to Madre if solo_madre mode.
+tentaculo_link/main_v7.py:627:        "windows": {"policy": "solo_madre", "active_count": 0},
+tentaculo_link/main_v7.py:651:                    "policy", "solo_madre"
+tentaculo_link/main_v7.py:746:@app.get("/operator/power/policy/solo_madre/status")
+tentaculo_link/main_v7.py:747:async def operator_solo_madre_status(_: bool = Depends(token_guard)):
+tentaculo_link/main_v7.py:753:    result = await madre.get("/madre/power/policy/solo_madre/status")
+tentaculo_link/main_v7.py:754:    write_log("tentaculo_link", "operator_solo_madre_status")
+tentaculo_link/main_v7.py:758:@app.post("/operator/power/policy/solo_madre/apply")
+tentaculo_link/main_v7.py:759:async def operator_solo_madre_apply(_: bool = Depends(token_guard)):
+tentaculo_link/main_v7.py:765:    result = await madre.post("/madre/power/policy/solo_madre/apply", payload={})
+tentaculo_link/main_v7.py:766:    write_log("tentaculo_link", "operator_solo_madre_apply")
+tentaculo_link/main_v7.py:2027:        "policy": "solo_madre",  # Always solo_madre by default
+tentaculo_link/main_v7.py:2035:            "switch": {"status": "OFF_BY_POLICY", "reason": "solo_madre policy"},
+tentaculo_link/main_v7.py:2036:            "hermes": {"status": "OFF_BY_POLICY", "reason": "solo_madre policy"},
+tentaculo_link/main_v7.py:2037:            "hormiguero": {"status": "OFF_BY_POLICY", "reason": "solo_madre policy"},
+tentaculo_link/main_v7.py:2038:            "spawner": {"status": "OFF_BY_POLICY", "reason": "solo_madre policy"},
+tentaculo_link/main_v7.py:2062:    # Core (always should be up in solo_madre)
+tentaculo_link/main_v7.py:2074:    # Optional (OFF_BY_POLICY in solo_madre)
+tentaculo_link/main_v7.py:2084:            "reason": "solo_madre policy active",
+tentaculo_link/main_v7.py:2348:        degraded_response = f"[LOCAL LLM DEGRADED] Received message ({len(req.message)} chars). Switch unavailable in solo_madre mode."
+tentaculo_link/main_v7.py:2412:                "operational_mode": "solo_madre",
+tentaculo_link/main_v7.py:2413:                "policy_active": "solo_madre"
+tentaculo_link/main_v7.py:2431:        operational_mode = "solo_madre"  # default
+tentaculo_link/main_v7.py:2432:        policy_active = "solo_madre"
+tentaculo_link/main_v7.py:2522:            "metrics": {"status": "off", "reason": "solo_madre_mode"},
+tentaculo_link/main_v7.py:2839:            "operational_mode": "solo_madre",
+tentaculo_link/main_v7.py:2860:        operational_mode = "solo_madre"  # Current default
+tentaculo_link/main_v7.py:2875:                "status": "off" if operational_mode == "solo_madre" else "on",
+tentaculo_link/main_v7.py:2877:                    "low_power_mode" if operational_mode == "solo_madre" else None
+tentaculo_link/main_v7.py:3396:                "active_services": ["madre", "redis"],  # solo_madre always active
+tentaculo_link/main_v7.py:3495:        "policy": "solo_madre",
+tentaculo_link/main_v7.py:3554:        "policy_note": "solo_madre: Only core services up. Optional services OFF_BY_POLICY (not an error).",
+tentaculo_link/main_v7.py:3613:    Returns updated settings (no persistence in solo_madre).
+tentaculo_link/main_v7.py:3617:        "message": "Settings updated (not persisted in solo_madre mode)",
+madre/power_manager.py:998:@router.post("/madre/power/policy/solo_madre/apply")
+madre/power_manager.py:999:async def apply_solo_madre_policy():
+madre/power_manager.py:1003:    Evidence saved to docs/audit/madre_power_solo_madre_*.
+madre/power_manager.py:1006:    out_dir = _make_out_dir("solo_madre_policy", "apply")
+madre/power_manager.py:1012:            "policy": "solo_madre",
+madre/power_manager.py:1022:    _record_db("power_solo_madre_apply", "policy")
+madre/power_manager.py:1026:        "policy": "solo_madre",
+madre/power_manager.py:1033:@router.get("/madre/power/policy/solo_madre/status")
+madre/power_manager.py:1034:async def check_solo_madre_policy_status():
+madre/power_manager.py:1057:    is_solo_madre = len(running_services) == 1 and "madre" in running_services
+madre/power_manager.py:1061:        "policy_active": is_solo_madre,
+madre/routes_power.py:8:- POST /madre/power/policy/solo_madre/apply — aplica SOLO_MADRE
+madre/routes_power.py:9:- GET /madre/power/policy/solo_madre/status — chequea SOLO_MADRE activo
+madre/routes_power.py:88:    policy: str  # "solo_madre" o "windowed"
+madre/routes_power.py:467:        policy="windowed" if window else "solo_madre",
+madre/routes_power.py:478:@router.post("/policy/solo_madre/apply")
+madre/routes_power.py:479:async def apply_solo_madre(authorized: bool = Depends(token_guard)) -> dict:
+madre/routes_power.py:484:    POST /madre/power/policy/solo_madre/apply
+madre/routes_power.py:505:            wm.close_window("solo_madre_applied")
+madre/routes_power.py:512:            "policy": "solo_madre",
+madre/routes_power.py:520:        log.error(f"apply_solo_madre error: {e}")
+madre/routes_power.py:524:@router.get("/policy/solo_madre/status", response_model=SoloMadreStatusResponse)
+madre/routes_power.py:525:async def check_solo_madre_status(
+madre/routes_power.py:531:    GET /madre/power/policy/solo_madre/status

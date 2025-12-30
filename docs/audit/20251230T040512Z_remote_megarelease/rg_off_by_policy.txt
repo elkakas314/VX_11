@@ -1,0 +1,38 @@
+operator/frontend/src/services/api.ts:77:                    if (errorJson?.status === 'OFF_BY_POLICY') {
+operator/frontend/src/services/api.ts:78:                        errorDetail = errorJson.message || 'OFF_BY_POLICY'
+operator/backend/main.py:121:        "status": "OFF_BY_POLICY",
+operator/backend/main.py:134:        "status": "OFF_BY_POLICY",
+operator/backend/main.py:337:            "status": "UP" if name in allowed else "OFF_BY_POLICY",
+operator/backend/main.py:363:        return "OFF_BY_POLICY"
+tentaculo_link/main_v7.py:246:                    "status": "OFF_BY_POLICY",
+tentaculo_link/main_v7.py:2020:    Returns current policy + core service health + OFF_BY_POLICY state.
+tentaculo_link/main_v7.py:2035:            "switch": {"status": "OFF_BY_POLICY", "reason": "solo_madre policy"},
+tentaculo_link/main_v7.py:2036:            "hermes": {"status": "OFF_BY_POLICY", "reason": "solo_madre policy"},
+tentaculo_link/main_v7.py:2037:            "hormiguero": {"status": "OFF_BY_POLICY", "reason": "solo_madre policy"},
+tentaculo_link/main_v7.py:2038:            "spawner": {"status": "OFF_BY_POLICY", "reason": "solo_madre policy"},
+tentaculo_link/main_v7.py:2055:    OFF_BY_POLICY modules shown as inactive (not error).
+tentaculo_link/main_v7.py:2074:    # Optional (OFF_BY_POLICY in solo_madre)
+tentaculo_link/main_v7.py:2077:            "status": "OFF_BY_POLICY",
+tentaculo_link/main_v7.py:3522:                    "status": "OFF_BY_POLICY",
+tentaculo_link/main_v7.py:3529:                    "status": "OFF_BY_POLICY",
+tentaculo_link/main_v7.py:3536:                    "status": "OFF_BY_POLICY",
+tentaculo_link/main_v7.py:3543:                    "status": "OFF_BY_POLICY",
+tentaculo_link/main_v7.py:3554:        "policy_note": "solo_madre: Only core services up. Optional services OFF_BY_POLICY (not an error).",
+docs/canon/VX11_OPERATOR_SUPERPACK_CANONICAL_v7.2.0.json:13:        "Operator DOWN is not an ERROR (it's OFF_BY_POLICY in SOLO_MADRE)",
+docs/canon/VX11_OPERATOR_SUPERPACK_CANONICAL_v7.2.0.json:45:                "If operator_backend is DOWN in SOLO_MADRE: requests return degraded=true + OFF_BY_POLICY (not an error)"
+docs/canon/VX11_OPERATOR_SUPERPACK_CANONICAL_v7.2.0.json:84:                "Post-window test must show degraded=true or OFF_BY_POLICY for operator endpoints"
+docs/canon/VX11_OPERATOR_SUPERPACK_CANONICAL_v7.2.0.json:257:                                "reason": "OFF_BY_POLICY"
+docs/canon/VX11_OPERATOR_SUPERPACK_CANONICAL_v7.2.0.json:591:            "fix_v7_2_0": "Operator DOWN returns degraded=true + OFF_BY_POLICY (not an error); UX banner explains"
+docs/canon/VX11_OPERATOR_SUPERPACK_CANONICAL_v7.0.0.json:345:                        "behavior": "Show OK/OFF_BY_POLICY/DEGRADED/UNKNOWN; click -> module detail"
+docs/canon/VX11_OPERATOR_SUPERPACK_CANONICAL_v7.0.0.json:680:                                "status": "OK|OFF_BY_POLICY|DEGRADED|RESTARTING|UNKNOWN",
+docs/canon/VX11_OPERATOR_SUPERPACK_CANONICAL_v7.0.0.json:1269:            "UI works in solo_madre: shows OFF_BY_POLICY correctly.",
+docs/PROMPT_9R_TEMPLATE.md:24:2. **Runtime default**: policy **"solo_madre"** (madre+redis+tentaculo_link). Lo demás = OFF_BY_POLICY.
+docs/PROMPT_9R_TEMPLATE.md:95:- Limitaciones: OFF_BY_POLICY no es error, es estado esperado"""
+docs/PROMPT_9R_TEMPLATE.md:174:- ✅ Chat usable aunque esté degraded (OFF_BY_POLICY ≠ error)
+docs/PROMPT_9R_TEMPLATE.md:201:- Shapes estables, siempre 200 OK (OFF_BY_POLICY como estado válido)
+docs/operatorjson.txt:254:            "behavior": "Show OK/OFF_BY_POLICY/DEGRADED/UNKNOWN; click -> module detail"
+docs/operatorjson.txt:477:                "status": "OK|OFF_BY_POLICY|DEGRADED|RESTARTING|UNKNOWN",
+docs/operatorjson.txt:797:      "UI works in solo_madre: shows OFF_BY_POLICY correctly.",
+docs/inbox/20251228T234445Z_inputs/unzipped/operatorjson.txt:254:            "behavior": "Show OK/OFF_BY_POLICY/DEGRADED/UNKNOWN; click -> module detail"
+docs/inbox/20251228T234445Z_inputs/unzipped/operatorjson.txt:477:                "status": "OK|OFF_BY_POLICY|DEGRADED|RESTARTING|UNKNOWN",
+docs/inbox/20251228T234445Z_inputs/unzipped/operatorjson.txt:797:      "UI works in solo_madre: shows OFF_BY_POLICY correctly.",

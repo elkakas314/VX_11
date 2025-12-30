@@ -1,0 +1,9 @@
+## work
+D  .env
+D  .env.deepseek
+D  .env.phase5
+ M .gitignore
+ M docs/audit/.gitignore
+ M operator/frontend/src/services/api.ts
+?? docs/audit/20251230T040512Z_remote_megarelease/
+?? docs/audit/ROTATION.md

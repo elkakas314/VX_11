@@ -1,0 +1,99 @@
+## .env
+# VX11 Environment - Loaded by docker-compose.yml
+# P0: DeepSeek API Token for Operator Chat Fallback
+DEEPSEEK_API_KEY=<REDACTED>
+DEEPSEEK_BASE_URL=<REDACTED>
+
+## .env.deepseek
+DEEPSEEK_API_KEY=<REDACTED>
+
+## .env.phase5
+# VX11 Feature Flags Configuration
+# Place this in .env or docker-compose.override.yml
+
+# ============= PHASE 2: Power Windows =============
+VX11_POWER_WINDOWS_ENABLED=<REDACTED>
+VX11_POWER_WINDOWS_CORE_MODE=<REDACTED>
+VX11_POWER_WINDOWS_TIMEOUT_SEC=<REDACTED>
+VX11_POWER_WINDOWS_TTL_CHECK_INTERVAL=<REDACTED>
+
+# ============= PHASE 3: E2E Conductor =============
+VX11_E2E_CONDUCTOR_ENABLED=<REDACTED>
+VX11_E2E_CONDUCTOR_CPU_THROTTLE_THRESHOLD=<REDACTED>
+VX11_E2E_CONDUCTOR_MEMORY_THROTTLE_THRESHOLD=<REDACTED>
+
+# ============= PHASE 4: Autofix Conductor =============
+VX11_AUTOFIX_ENABLED=<REDACTED>
+VX11_AUTOFIX_MAX_CYCLES=<REDACTED>
+VX11_DEEPSEEK_API_TOKEN=<REDACTED>
+
+# ============= PHASE 5: INEE + Manifestator =============
+# **ALL OFF by default**
+
+# Hormiguero INEE
+VX11_INEE_ENABLED=<REDACTED>
+VX11_INEE_FORWARD_ENABLED=<REDACTED>
+VX11_INEE_CPU_QUOTA_ENABLED=<REDACTED>
+VX11_INEE_AUTONOMOUS_SCALING_ENABLED=<REDACTED>
+VX11_INEE_NAMESPACE_PREFIX=<REDACTED>
+
+# Manifestator
+VX11_MANIFESTATOR_EMIT_INTENT_ENABLED=<REDACTED>
+VX11_MANIFESTATOR_BUILD_DIRECT_DISABLED=<REDACTED>
+
+# ============= Logging & Audit =============
+VX11_LOG_LEVEL=<REDACTED>
+VX11_AUDIT_ENABLED=<REDACTED>
+VX11_FORENSIC_ENABLED=<REDACTED>
+
+# ============= Authentication =============
+VX11_TOKEN=<REDACTED>
+VX11_TENTACULO_LINK_TOKEN=<REDACTED>
+
+## .env.example
+# VX11 Environment Variables - Example
+
+# ========== CORE TOKENS & AUTH ==========
+VX11_TENTACULO_LINK_TOKEN=<REDACTED>
+VX11_GATEWAY_TOKEN=<REDACTED>
+X_VX11_TOKEN=<REDACTED>
+
+# ========== DEEPSEEK API (P0: Chat fallback in solo_madre) ==========
+# Required for /operator/api/chat fallback when switch is down
+# ⚠️  SECURITY: Get your key from https://platform.deepseek.com/api_keys
+# ⚠️  NEVER hardcode this value in docker-compose.yml (use .env instead)
+# ⚠️  NEVER commit this file to git (it's in .gitignore)
+DEEPSEEK_API_KEY=<REDACTED>
+DEEPSEEK_BASE_URL=<REDACTED>
+
+# ========== DATABASE ==========
+DATABASE_URL=<REDACTED>
+
+# ========== REDIS ==========
+REDIS_URL=<REDACTED>
+
+# ========== PORTS ==========
+TENTACULO_LINK_PORT=<REDACTED>
+MADRE_PORT=<REDACTED>
+SWITCH_PORT=<REDACTED>
+HERMES_PORT=<REDACTED>
+HORMIGUERO_PORT=<REDACTED>
+MANIFESTATOR_PORT=<REDACTED>
+MCP_PORT=<REDACTED>
+SHUB_PORT=<REDACTED>
+SPAWNER_PORT=<REDACTED>
+OPERATOR_PORT=<REDACTED>
+
+# ========== ENVIRONMENT ==========
+ENVIRONMENT=<REDACTED>
+ENABLE_AUTH=<REDACTED>
+
+# ========== MODELS (Legacy; P0 uses DeepSeek) ==========
+DEFAULT_MODEL=<REDACTED>
+LOCAL_MODELS_PATH=<REDACTED>
+OLLAMA_ENDPOINT=<REDACTED>
+
+# ========== LOGGING ==========
+LOG_LEVEL=<REDACTED>
+ENABLE_FORENSICS=<REDACTED>
+

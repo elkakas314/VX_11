@@ -1,0 +1,315 @@
+START_HERE_OPERATOR_UI_PHASE4.txt:97:✅ Respects solo_madre policy
+operator/frontend/src/stores/index.ts:62:  mode: 'solo_madre' | 'window_active' | 'degraded'
+operator/frontend/src/components/DegradedModeBanner.tsx:8:    message = 'Degraded Mode: Some services are unavailable (solo_madre policy active)',
+operator/frontend/src/components/OverviewPanel.tsx:116:                    className={`rounded-lg p-4 border border-slate-600 text-white md:col-span-1 lg:col-span-4 ${windowStatus.mode === 'solo_madre' ? 'bg-blue-900' : 'bg-green-900'
+operator/frontend/src/components/PowerCard.tsx:89:                    {power.mode === 'solo_madre' && (
+operator/frontend/src/components/WindowStatusBar.tsx:32:        solo_madre: 'bg-blue-900',
+operator/frontend/src/views/OverviewView.tsx:97:                    ⚠️ Degraded Mode: Some services are unavailable (solo_madre policy active)
+operator/frontend/__tests__/operator-endpoints.test.ts:288:                        rail_id: 'rail_002_solo_madre_default',
+operator/frontend/__tests__/operator-endpoints.test.ts:289:                        name: 'solo_madre Default Policy',
+operator/frontend/__tests__/operator-endpoints.test.ts:372:    describe('Window Lifecycle - solo_madre ↔ window_active', () => {
+operator/frontend/__tests__/operator-endpoints.test.ts:378:                    mode: 'solo_madre',
+operator/frontend/__tests__/operator-endpoints.test.ts:398:            expect(data.data.mode).toBe('solo_madre')
+operator/backend/main.py:254:            "mode": "solo_madre",
+operator/backend/main.py:294:        "policy": window.get("mode", "solo_madre"),
+operator/backend/main.py:310:        "policy": window.get("mode", "solo_madre"),
+operator/backend/main.py:338:            "reason": "window_active" if name in allowed else "solo_madre",
+operator/backend/main.py:379:        "policy": window.get("mode", "solo_madre"),
+FINAL_DELIVERY_SUMMARY_20251229.md:99:  "policy": "solo_madre",
+FINAL_DELIVERY_SUMMARY_20251229.md:188:- ✅ Policy: solo_madre correctly enforced
+FINAL_DELIVERY_SUMMARY_20251229.md:208:2. Run docker-compose up (solo_madre policy will activate automatically)
+docker-compose.production.yml:50:      # P0: DeepSeek API fallback for chat (solo_madre policy)
+docker-compose.yml:46:      # P0: DeepSeek API fallback for chat (solo_madre policy)
+OPERATOR_UI_ARCHITECTURE_PHASE4.json:10:            "solo_madre_default": "Operator OFF by policy unless activated",
+OPERATOR_UI_ARCHITECTURE_PHASE4.json:42:                    "mode": "string ('solo_madre' | 'window_active' | 'full')",
+OPERATOR_UI_ARCHITECTURE_PHASE4.json:54:                "purpose": "Warning banner when solo_madre policy is active"
+OPERATOR_UI_ARCHITECTURE_PHASE4.json:312:                    "window_mode": "('solo_madre' | 'window_active' | 'full') = solo_madre",
+OPERATOR_UI_ARCHITECTURE_PHASE4.json:439:                        "mode": "string ('solo_madre' | 'window_active')",
+OPERATOR_UI_ARCHITECTURE_PHASE4.json:576:            "policy_blocked": "Display banner: 'Operation blocked: solo_madre policy active' → Explain policy",
+OPERATOR_UI_ARCHITECTURE_PHASE4.json:1054:            "solo_madre is default policy (operator OFF by default)",
+VX11_PHASE_1_2_3_4_COMPLETE_FINAL_REPORT.md:18:  ✅ FASE 2-A: Apply solo_madre policy (10 services stopped, madre+redis running)
+VX11_PHASE_1_2_3_4_COMPLETE_FINAL_REPORT.md:72:  ✅ test_p0_2_solo_madre_policy_state (solo_madre policy active)
+VX11_PHASE_1_2_3_4_COMPLETE_FINAL_REPORT.md:160:  - Policy: solo_madre (10 services stopped)
+OPERATOR_UI_PHASE4_DATA_FLOWS.md:56:│     mode: "solo_madre"|"window_active",    │
+OPERATOR_UI_PHASE4_DATA_FLOWS.md:441:    │   ├─→ Store.setError('solo_madre policy active')
+OPERATOR_UI_PHASE4_VERIFICATION.txt:129:  ✅ Respects solo_madre policy (gated at backend)
+OPERATOR_UI_PHASE4_VERIFICATION.txt:210:  ✅ Policy Gating: Respects solo_madre policy
+tentaculo_link/routes/window.py:41:    # Fallback: assume solo_madre mode
+tentaculo_link/routes/window.py:43:        "mode": "solo_madre",
+tentaculo_link/routes/window.py:56:    Falls back to solo_madre if madre is unavailable.
+tentaculo_link/routes/window.py:60:      "mode": "solo_madre|window_active",
+tentaculo_link/routes/window.py:73:        "mode": status.get("mode", "solo_madre"),
+tentaculo_link/deepseek_client.py:4:When switch is unavailable (solo_madre policy), this client provides
+tentaculo_link/main_v7.py:549:    # P1 Fallback: if switch is offline (solo_madre mode), use madre chat
+tentaculo_link/main_v7.py:607:    Same behavior: route to Switch with fallback to Madre if solo_madre mode.
+tentaculo_link/main_v7.py:627:        "windows": {"policy": "solo_madre", "active_count": 0},
+tentaculo_link/main_v7.py:651:                    "policy", "solo_madre"
+tentaculo_link/main_v7.py:746:@app.get("/operator/power/policy/solo_madre/status")
+tentaculo_link/main_v7.py:747:async def operator_solo_madre_status(_: bool = Depends(token_guard)):
+tentaculo_link/main_v7.py:753:    result = await madre.get("/madre/power/policy/solo_madre/status")
+tentaculo_link/main_v7.py:754:    write_log("tentaculo_link", "operator_solo_madre_status")
+tentaculo_link/main_v7.py:758:@app.post("/operator/power/policy/solo_madre/apply")
+tentaculo_link/main_v7.py:759:async def operator_solo_madre_apply(_: bool = Depends(token_guard)):
+tentaculo_link/main_v7.py:765:    result = await madre.post("/madre/power/policy/solo_madre/apply", payload={})
+tentaculo_link/main_v7.py:766:    write_log("tentaculo_link", "operator_solo_madre_apply")
+tentaculo_link/main_v7.py:2027:        "policy": "solo_madre",  # Always solo_madre by default
+tentaculo_link/main_v7.py:2035:            "switch": {"status": "OFF_BY_POLICY", "reason": "solo_madre policy"},
+tentaculo_link/main_v7.py:2036:            "hermes": {"status": "OFF_BY_POLICY", "reason": "solo_madre policy"},
+tentaculo_link/main_v7.py:2037:            "hormiguero": {"status": "OFF_BY_POLICY", "reason": "solo_madre policy"},
+tentaculo_link/main_v7.py:2038:            "spawner": {"status": "OFF_BY_POLICY", "reason": "solo_madre policy"},
+tentaculo_link/main_v7.py:2062:    # Core (always should be up in solo_madre)
+tentaculo_link/main_v7.py:2074:    # Optional (OFF_BY_POLICY in solo_madre)
+tentaculo_link/main_v7.py:2084:            "reason": "solo_madre policy active",
+tentaculo_link/main_v7.py:2348:        degraded_response = f"[LOCAL LLM DEGRADED] Received message ({len(req.message)} chars). Switch unavailable in solo_madre mode."
+tentaculo_link/main_v7.py:2412:                "operational_mode": "solo_madre",
+tentaculo_link/main_v7.py:2413:                "policy_active": "solo_madre"
+tentaculo_link/main_v7.py:2431:        operational_mode = "solo_madre"  # default
+tentaculo_link/main_v7.py:2432:        policy_active = "solo_madre"
+tentaculo_link/main_v7.py:2522:            "metrics": {"status": "off", "reason": "solo_madre_mode"},
+tentaculo_link/main_v7.py:2839:            "operational_mode": "solo_madre",
+tentaculo_link/main_v7.py:2860:        operational_mode = "solo_madre"  # Current default
+tentaculo_link/main_v7.py:2875:                "status": "off" if operational_mode == "solo_madre" else "on",
+tentaculo_link/main_v7.py:2877:                    "low_power_mode" if operational_mode == "solo_madre" else None
+tentaculo_link/main_v7.py:3396:                "active_services": ["madre", "redis"],  # solo_madre always active
+tentaculo_link/main_v7.py:3495:        "policy": "solo_madre",
+tentaculo_link/main_v7.py:3554:        "policy_note": "solo_madre: Only core services up. Optional services OFF_BY_POLICY (not an error).",
+tentaculo_link/main_v7.py:3613:    Returns updated settings (no persistence in solo_madre).
+tentaculo_link/main_v7.py:3617:        "message": "Settings updated (not persisted in solo_madre mode)",
+PRODUCTION_DEPLOYMENT_BRIEF.md:48:**Running Services** (solo_madre):
+PRODUCTION_DEPLOYMENT_BRIEF.md:79:GET  /madre/power/policy/solo_madre     → Current policy
+PRODUCTION_DEPLOYMENT_BRIEF.md:105:# Start docker compose (solo_madre mode)
+FINAL_CLOSURE_SUMMARY_FASES_7_11.md:54:✅ solo_madre_default  
+FINAL_CLOSURE_SUMMARY_FASES_7_11.md:114:- GET /madre/power/policy/solo_madre/status → policy state
+FINAL_CLOSURE_SUMMARY_FASES_7_11.md:211:3. **Test dormant activation**: POST /madre/power/policy/solo_madre/apply
+VX11_STATUS_SNAPSHOT.txt:29:POLICY APPLIED:           solo_madre (stops all non-core services)
+VX11_STATUS_SNAPSHOT.txt:68:  ✅ TEST 1: Apply solo_madre policy              (5.2s)   → 10 svc stopped
+VX11_STATUS_SNAPSHOT.txt:106:  ✅ Policy engine (solo_madre working)
+OPERATOR_DELIVERY_SUMMARY.txt:164:│     - Degraded fallback if VX11_MODE=solo_madre (switch down)                │
+OPERATOR_DELIVERY_SUMMARY.txt:172:│   ✓ solo_madre Policy Behavior (CORRECT)                                     │
+OPERATOR_DELIVERY_SUMMARY.txt:173:│     - When solo_madre policy active:                                         │
+POWER_MANAGER_HARDENING_PHASE1.md:29:2. ✅ Tested solo_madre policy application via API (10 services stopped)
+POWER_MANAGER_HARDENING_PHASE1.md:43:TEST 1: Apply solo_madre policy        ✅ PASS (5.2s, 10 services stopped)
+POWER_MANAGER_HARDENING_PHASE1.md:75:- Policy engine (solo_madre policy) ✅
+VALIDATION_REPORT_INDEPENDENT.md:29:    "solo_madre_default": "PASS",
+VALIDATION_REPORT_INDEPENDENT.md:169:| **5** | Services | solo_madre default + dormant flags | ✅ PASS |
+PRODUCTION_CLOSURE_FINAL_SUMMARY.md:9:VX11 production closure has been successfully executed with comprehensive auditing, corrections, testing, and documentation. The system is production-ready under solo_madre policy with all gates verified and 6 deliverables generated.
+PRODUCTION_CLOSURE_FINAL_SUMMARY.md:100:- ✅ **B) Runtime solo_madre**: madre/redis/tentaculo UP, switch/etc OFF (policy enforced)
+PRODUCTION_CLOSURE_FINAL_SUMMARY.md:170:- Verify solo_madre policy stable in production
+PRODUCTION_CLOSURE_FINAL_SUMMARY.md:211:**Next**: Deploy to production with solo_madre policy active. Monitor health endpoints for first 24 hours.
+DEPLOYMENT_READY_SUMMARY.md:189:$ curl -s http://localhost:8001/madre/power/policy/solo_madre/status
+DEPLOYMENT_READY_SUMMARY.md:197:✅ **Evidence**: /app/docs/audit/madre_power_solo_madre_policy_apply_20251228T011957Z/  
+DEPLOYMENT_READY_SUMMARY.md:212:└── madre_power_solo_madre_policy_apply_20251228T011957Z/
+OPERATOR_CLOSEOUT_20251229.md:175:- Policy: solo_madre (enforced)
+OPERATOR_CLOSEOUT_20251229.md:209:| Policy enforcement | ✅ solo_madre maintained |
+PRODUCTION_CLOSURE_COMPLETE.md:35:- **Status**: Dormant by default in solo_madre mode
+PRODUCTION_CLOSURE_COMPLETE.md:46:- ✅ Service status updated (solo_madre: 3 running, 5 dormant)
+PRODUCTION_CLOSURE_COMPLETE.md:55:- ✅ **GATE 5**: Services configured (solo_madre default)
+madre/power_manager.py:998:@router.post("/madre/power/policy/solo_madre/apply")
+madre/power_manager.py:999:async def apply_solo_madre_policy():
+madre/power_manager.py:1003:    Evidence saved to docs/audit/madre_power_solo_madre_*.
+madre/power_manager.py:1006:    out_dir = _make_out_dir("solo_madre_policy", "apply")
+madre/power_manager.py:1012:            "policy": "solo_madre",
+madre/power_manager.py:1022:    _record_db("power_solo_madre_apply", "policy")
+madre/power_manager.py:1026:        "policy": "solo_madre",
+madre/power_manager.py:1033:@router.get("/madre/power/policy/solo_madre/status")
+madre/power_manager.py:1034:async def check_solo_madre_policy_status():
+madre/power_manager.py:1057:    is_solo_madre = len(running_services) == 1 and "madre" in running_services
+madre/power_manager.py:1061:        "policy_active": is_solo_madre,
+madre/main.py:579:    mode = "solo_madre"  # default
+madre/main.py:581:        # Check if solo_madre policy is active by introspecting power_manager
+madre/main.py:582:        # For now, use simple heuristic: if only madre+redis+tentaculo, then solo_madre
+madre/power_windows.py:255:            policy = "solo_madre"
+madre/power_windows.py:261:            "solo_madre_services": list(self.SOLO_MADRE_SERVICES),
+madre/routes_power.py:8:- POST /madre/power/policy/solo_madre/apply — aplica SOLO_MADRE
+madre/routes_power.py:9:- GET /madre/power/policy/solo_madre/status — chequea SOLO_MADRE activo
+madre/routes_power.py:88:    policy: str  # "solo_madre" o "windowed"
+madre/routes_power.py:467:        policy="windowed" if window else "solo_madre",
+madre/routes_power.py:478:@router.post("/policy/solo_madre/apply")
+madre/routes_power.py:479:async def apply_solo_madre(authorized: bool = Depends(token_guard)) -> dict:
+madre/routes_power.py:484:    POST /madre/power/policy/solo_madre/apply
+madre/routes_power.py:505:            wm.close_window("solo_madre_applied")
+madre/routes_power.py:512:            "policy": "solo_madre",
+madre/routes_power.py:520:        log.error(f"apply_solo_madre error: {e}")
+madre/routes_power.py:524:@router.get("/policy/solo_madre/status", response_model=SoloMadreStatusResponse)
+madre/routes_power.py:525:async def check_solo_madre_status(
+madre/routes_power.py:531:    GET /madre/power/policy/solo_madre/status
+OPERATOR_E2E_DELIVERY.md:234:| `/operator/power/policy/solo_madre/status` | GET | Yes | Policy check |
+OPERATOR_E2E_DELIVERY.md:235:| `/operator/power/policy/solo_madre/apply` | POST | Yes | Apply SOLO_MADRE |
+OPERATOR_UI_COMPONENT_VISUAL_TREE.txt:37:│ DegradedModeBanner.tsx (if solo_madre policy)                  │
+OPERATOR_UI_COMPONENT_VISUAL_TREE.txt:365:├─ mode: 'solo_madre' | 'window_active' | 'full'
+scripts/migrations/002_inee_manifestator_integration.sql:236:  'rail_002_solo_madre_default',
+scripts/migrations/002_inee_manifestator_integration.sql:237:  'solo_madre Default Policy',
+scripts/migrations/002_inee_manifestator_integration.sql:240:  '{"default_policy": "solo_madre", "services_required": ["madre", "redis"], "allowed_services_on_window": ["switch", "spawner", "hormiguero"]}',
+scripts/e2e_test_conductor_v1.py:265:async def test_solo_madre_verification() -> Dict[str, Any]:
+scripts/e2e_test_conductor_v1.py:275:                f"{MADRE_URL}/madre/power/policy/solo_madre/status",
+scripts/e2e_test_conductor_v1.py:363:    solo_result = await test_solo_madre_verification()
+scripts/e2e_test_conductor_v1.py:364:    results["tests"]["solo_madre_verification"] = solo_result
+scripts/e2e_test_conductor_v0.py:253:        if policy == "solo_madre":
+scripts/e2e_test_conductor_v0.py:255:            results["tests"]["final_state_solo_madre"] = {
+scripts/e2e_test_conductor_v0.py:260:            print(f"⚠️  Policy is '{policy}', expected 'solo_madre'")
+scripts/e2e_test_conductor_v0.py:261:            results["tests"]["final_state_solo_madre"] = {
+scripts/contracts_generate_17of17.py:120:    # 3) Runtime policy solo_madre and defaults OFF manifestator/shub
+scripts/contracts_generate_17of17.py:123:    solo = "solo_madre" in policy_text
+scripts/contracts_generate_17of17.py:126:        solo = solo or policy_json.get("default_mode") == "solo_madre"
+scripts/contracts_generate_17of17.py:136:                f"solo_madre_in_file: {solo}",
+scripts/contracts_generate_17of17.py:145:        "Runtime policy solo_madre + defaults OFF manifestator/shub",
+scripts/contracts_generate_17of17.py:222:    # 12) No prohibited ports listening in solo_madre
+scripts/contracts_generate_17of17.py:234:    add_contract(12, "No prohibited ports listening in solo_madre", "PASS" if not prohibited else "FAIL", [str(ports_ev)], "prohibited=" + ",".join(map(str, prohibited)) if prohibited else "")
+scripts/generate_scorecard_complete.py:248:    - solo_madre mode capability (40%)
+scripts/generate_scorecard_complete.py:250:    - return to solo_madre + health OK (30%)
+scripts/generate_scorecard_complete.py:252:    For local-ready: check if solo_madre mode is documented and services respond.
+scripts/generate_scorecard_complete.py:256:    # Check 1: solo_madre capability (40%)
+scripts/generate_scorecard_complete.py:364:            "solo_madre autonomy + service health"
+scripts/generate_scorecard_complete.py:366:            else "Services not responding to health checks or solo_madre not configured"
+scripts/generate_scorecard_complete.py:398:        "autonomia_pct": "solo_madre capability + service health checks (tentaculo_link 8000)",
+docs/canon/VX11_OPERATOR_SUPERPACK_CANONICAL_v7.2.0.json:38:        "runtime_default_solo_madre": {
+docs/canon/VX11_OPERATOR_SUPERPACK_CANONICAL_v7.2.0.json:164:            "default_solo_madre": {
+docs/canon/VX11_OPERATOR_SUPERPACK_CANONICAL_v7.0.1.json:28:        "runtime_default_solo_madre": {
+shubniggurath/routes/canonical_routes.py:113:        "disabled_by_policy": False,  # Unless VX11_RUNTIME_DEFAULT=solo_madre
+docs/canon/VX11_OPERATOR_SUPERPACK_CANONICAL_v7.0.0.json:24:            "mode": "solo_madre",
+docs/canon/VX11_OPERATOR_SUPERPACK_CANONICAL_v7.0.0.json:127:        "design_goal": "Visually striking dark tentacular UI; operationally complete and canon-aligned; usable in solo_madre mode; real-time observability with safe controls.",
+docs/canon/VX11_OPERATOR_SUPERPACK_CANONICAL_v7.0.0.json:196:                    "current_mode (solo_madre/window_active)",
+docs/canon/VX11_OPERATOR_SUPERPACK_CANONICAL_v7.0.0.json:577:                "VX11_MODE=solo_madre",
+docs/canon/VX11_OPERATOR_SUPERPACK_CANONICAL_v7.0.0.json:675:                        "mode": "solo_madre|window_active|full_profile",
+docs/canon/VX11_OPERATOR_SUPERPACK_CANONICAL_v7.0.0.json:1189:                "assert": "services started only inside window; end state returns to solo_madre"
+docs/canon/VX11_OPERATOR_SUPERPACK_CANONICAL_v7.0.0.json:1269:            "UI works in solo_madre: shows OFF_BY_POLICY correctly.",
+docs/canon/VX11_SHUB_CANONICAL_v1.7.1-canon.full.json:8:        "description": "Shub-Niggurath is the VX11 audio/REAPER orchestration module. It stays disabled by default under solo_madre and must be reachable only via tentaculo_link. Mutators require a Madre window-token. The module provides job-based pipelines, REAPER bridge (filesystem queue), plugin/script/action indexing, and DB-backed artifacts/logging.",
+docs/canon/VX11_SHUB_CANONICAL_v1.7.1-canon.full.json:14:        "runtime_default": "solo_madre",
+docs/canon/VX11_SHUB_CANONICAL_v1.7.1-canon.full.json:38:        "runtime_default": "solo_madre",
+docs/canon/VX11_SHUB_CANONICAL_v1.7.1-canon.full.json:40:        "no_autostart_under_solo_madre": true
+docs/DEPLOYMENT_READY_SUMMARY_PHASE2.md:52:  ⚠️ solo_madre_verification:    DEGRADED (redis extra, not critical)
+docs/DEPLOYMENT_READY_SUMMARY_PHASE2.md:153:   # Expected: {"policy":"solo_madre","window_id":null,...}
+docs/PROMPT_9R_TEMPLATE.md:24:2. **Runtime default**: policy **"solo_madre"** (madre+redis+tentaculo_link). Lo demás = OFF_BY_POLICY.
+docs/inbox/20251228T234445Z_inputs/unzipped/hormiguero_manifetsaator.txt:16:2) Runtime default: `solo_madre`. Todo lo nuevo debe quedar “dormido”: sin tasks, sin timers, sin threads, sin colas activas, sin WS abiertos.
+docs/inbox/20251228T234445Z_inputs/unzipped/hormiguero_manifetsaator.txt:25:B) Por defecto NO CAMBIA el comportamiento actual: health/P0/contratos siguen OK en modo `solo_madre`.
+docs/inbox/20251228T234445Z_inputs/unzipped/hormiguero_manifetsaator.txt:78:1) En modo default (`solo_madre`): P0/contratos/health siguen PASS (sin degradación).
+docs/inbox/20251228T234445Z_inputs/unzipped/hormiguero_manifetsaator.txt:129:3. **solo_madre**: Estado por defecto, solo telemetría básica
+docs/inbox/20251228T234445Z_inputs/unzipped/hormiguero_manifetsaator.txt:241:5. Al timeout o cierre manual: vuelve a solo_madre
+docs/inbox/20251228T234445Z_inputs/unzipped/hormiguero_manifetsaator.txt:295:3. **solo_madre default** - Solo telemetría básica
+docs/inbox/20251228T234445Z_inputs/unzipped/hormiguero_manifetsaator.txt:2823:solo_madre:        Solo telemetría básica, todo lo demás OFF
+docs/inbox/20251228T234445Z_inputs/unzipped/hormiguero_manifetsaator.txt:2834:    "solo_madre": {
+docs/inbox/20251228T234445Z_inputs/unzipped/hormiguero_manifetsaator.txt:2849:        "to_solo_madre": {
+docs/inbox/20251228T234445Z_inputs/unzipped/hormiguero_manifetsaator.txt:2859:        "to_solo_madre": {
+docs/inbox/20251228T234445Z_inputs/unzipped/hormiguero_manifetsaator.txt:3123:    # 5. Cambiar estado global a solo_madre
+docs/inbox/20251228T234445Z_inputs/unzipped/hormiguero_manifetsaator.txt:3124:    self.set_global_state("solo_madre")
+docs/inbox/20251228T234445Z_inputs/unzipped/hormiguero_manifetsaator.txt:3195:  "current_state": "solo_madre",
+docs/inbox/20251228T234445Z_inputs/unzipped/diagrams.txt:80:    TC->>PM: ensure_solo_madre()
+docs/inbox/20251228T234445Z_inputs/unzipped/diagrams.txt:90:    - system_returns_to_solo_madre
+docs/inbox/20251228T234445Z_inputs/unzipped/diagrams.txt:269:        - system_recovered_to_solo_madre: true
+docs/inbox/20251228T234445Z_inputs/unzipped/diagrams.txt:330:      solo_madre: boolean
+docs/inbox/20251228T234445Z_inputs/unzipped/diagrams.txt:346:  - path: /api/v1/system/solo_madre
+docs/inbox/20251228T234445Z_inputs/unzipped/diagrams.txt:438:        assert self.power.verify_solo_madre()
+docs/inbox/20251228T234445Z_inputs/unzipped/diagrams.txt:448:            self.power.ensure_solo_madre(timeout=30)
+docs/inbox/20251228T234445Z_inputs/unzipped/diagrams.txt:663:  solo_madre_verification:
+docs/inbox/20251228T234445Z_inputs/unzipped/operatorjson.txt:22:      "mode": "solo_madre",
+docs/inbox/20251228T234445Z_inputs/unzipped/operatorjson.txt:96:    "design_goal": "Visually striking dark tentacular UI; operationally complete and canon-aligned; usable in solo_madre mode; real-time observability with safe controls.",
+docs/inbox/20251228T234445Z_inputs/unzipped/operatorjson.txt:134:          "current_mode (solo_madre/window_active)",
+docs/inbox/20251228T234445Z_inputs/unzipped/operatorjson.txt:416:      "mode_awareness": ["VX11_MODE=solo_madre", "maintenance_window_active"],
+docs/inbox/20251228T234445Z_inputs/unzipped/operatorjson.txt:472:            "mode": "solo_madre|window_active|full_profile",
+docs/inbox/20251228T234445Z_inputs/unzipped/operatorjson.txt:736:        "assert": "services started only inside window; end state returns to solo_madre"
+docs/inbox/20251228T234445Z_inputs/unzipped/operatorjson.txt:797:      "UI works in solo_madre: shows OFF_BY_POLICY correctly.",
+docs/inbox/20251228T234445Z_inputs/unzipped/shubjson.txt:19:- Shub OFF por defecto (solo_madre); tentaculo_link debe responder 503 en <3s si Shub está OFF
+docs/inbox/20251228T234445Z_inputs/unzipped/shubjson.txt:29:2) Runtime default “solo_madre”: Shub deshabilitado por defecto. Ventanas temporales solo por Madre.
+docs/inbox/20251228T234445Z_inputs/unzipped/shubjson.txt:1577:      "mode": "solo_madre",
+docs/inbox/20251228T234445Z_inputs/unzipped/shubjson.txt:3566:# 2. Runtime default "solo_madre"
+docs/inbox/20251228T234445Z_inputs/unzipped/shubjson.txt:3567:curl -s http://localhost:8001/madre/api/v1/shub/status | grep -q '"mode":"solo_madre"' || {
+docs/vx11_contructor.txt:21:| `CANONICAL_RUNTIME_POLICY_VX11.json`                                 |             Policy `solo_madre` + ventanas temporales |        P0 | Añadir `manifestator` y `shubniggurath` a `allowed_temporal_window_core` **sin tocar constraints**.  |
+docs/vx11_contructor.txt:554:    "runtime_policy": "solo_madre",
+docs/vx11_contructor.txt:593:    "Default state is disabled; must remain OFF under solo_madre unless explicitly enabled in a temporal maintenance window.",
+docs/vx11_contructor.txt:744:* **No tocar** `default_mode: "solo_madre"`
+docs/vx11_contructor.txt:808:> Objetivo: probar **canonicidad** y **no romper solo_madre**. Lo demás se marca NV si el repo no tiene tests/endpoints.
+docs/vx11_contructor.txt:886:- Policy: default_mode = solo_madre. Manifestator y shubniggurath OFF por defecto.
+docs/vx11_contructor.txt:997:  * `docs/CANONICAL_RUNTIME_POLICY_VX11.json` (solo_madre + constraints)
+OPERATOR_UI_PHASE4_IMPLEMENTATION_GUIDE.md:22:export type WindowMode = 'solo_madre' | 'window_active' | 'full';
+OPERATOR_UI_PHASE4_IMPLEMENTATION_GUIDE.md:163:  mode: 'solo_madre',
+PRODUCTION_READINESS_PHASE_8_11.md:33:✅ solo_madre_default (madre + redis + tentaculo running)
+PRODUCTION_READINESS_PHASE_8_11.md:102:GET  /madre/power/policy/solo_madre/status → Policy state
+PRODUCTION_READINESS_PHASE_8_11.md:267:- [x] solo_madre default (only 3 running)
+PRODUCTION_READINESS_PHASE_8_11.md:290:3. **Test dormant activation** (POST /madre/power/policy/solo_madre/apply)
+tests/test_p1_power_manager.py:150:    P1.4: Verify solo_madre policy is idempotent
+tests/test_p1_power_manager.py:155:        f"http://localhost:{madre_port}/madre/power/policy/solo_madre/apply",
+tests/test_p1_power_manager.py:164:        f"http://localhost:{madre_port}/madre/power/policy/solo_madre/apply",
+tests/test_operator_chat_e2e_p1.py:50:            # madre should be up (solo_madre mode)
+tests/test_operator_chat_e2e_p1.py:162:            # In solo_madre mode, should succeed with fallback
+tests/test_e2e_workflows.py:24:    1. Initial state: solo_madre policy (2 containers)
+tests/test_e2e_workflows.py:27:    4. Re-apply solo_madre policy (stops them)
+tests/test_e2e_workflows.py:32:    9. Verify back to solo_madre state
+tests/test_e2e_workflows.py:35:    # Step 1: Verify initial solo_madre state
+tests/test_e2e_workflows.py:68:    # Step 4: Re-apply solo_madre policy
+tests/test_e2e_workflows.py:70:        f"http://localhost:{madre_port}/madre/power/policy/solo_madre/apply",
+tests/test_e2e_workflows.py:73:    assert response.status_code == 200, "Failed to apply solo_madre policy"
+tests/test_e2e_workflows.py:117:    # Step 9: Verify back to solo_madre state
+tests/test_e2e_workflows.py:128:    # Verify solo_madre policy still active
+tests/test_e2e_workflows.py:130:        f"http://localhost:{madre_port}/madre/power/policy/solo_madre/status",
+tests/test_e2e_workflows.py:135:    assert result.get("policy_active") is True, "solo_madre policy not active at end"
+tests/test_e2e_workflows.py:146:    1. Idle state (solo_madre): madre + redis
+tests/test_e2e_workflows.py:205:    # Step 7: Clean up - return to solo_madre
+tests/test_e2e_workflows.py:207:        f"http://localhost:{madre_port}/madre/power/policy/solo_madre/apply",
+tests/test_e2e_workflows.py:210:    assert response.status_code == 200, "Failed to cleanup: return to solo_madre"
+tests/test_madre_status_p0.py:56:            assert data["mode"] in ["solo_madre", "window", "operative", "low_power"]
+tests/test_madre_status_p0.py:152:            # In solo_madre mode, should have at least tentaculo_link or redis running
+tests/test_operator_chat_e2e_p1_v2.py:44:                pytest.skip("operator_backend requires auth (expected in solo_madre)")
+tests/test_operator_chat_e2e_p1_v2.py:156:            # In solo_madre mode, should succeed with fallback
+tests/test_power_manager.py:38:def test_p0_2_solo_madre_policy_state(docker_state):
+tests/test_power_manager.py:40:    P0.2: Verify solo_madre policy has been applied
+OPERATOR_UI_PHASE4_COMPLETE.md:140:- Respects solo_madre policy (gated at backend) ✅
+OPERATOR_UI_PHASE4_COMPLETE.md:308:- Respects solo_madre policy (backend enforced)
+OPERATOR_UI_PHASE4_COMPLETE.md:309:- Operator UI disabled when solo_madre active
+OPERATOR_UI_PHASE4_COMPLETE.md:487:4. ✅ **Policy respect**: Honors solo_madre policy
+OPERATOR_UI_PHASE4_DELIVERY_SUMMARY.json:199:        "solo_madre is default policy",
+OPERATOR_UI_PHASE4_DELIVERY_SUMMARY.json:208:        "Policy check gating (respects solo_madre policy)",
+docs/diagrams.txt:80:    TC->>PM: ensure_solo_madre()
+docs/diagrams.txt:90:    - system_returns_to_solo_madre
+docs/diagrams.txt:269:        - system_recovered_to_solo_madre: true
+docs/diagrams.txt:330:      solo_madre: boolean
+docs/diagrams.txt:346:  - path: /api/v1/system/solo_madre
+docs/diagrams.txt:438:        assert self.power.verify_solo_madre()
+docs/diagrams.txt:448:            self.power.ensure_solo_madre(timeout=30)
+docs/diagrams.txt:663:  solo_madre_verification:
+docs/operatorjson.txt:22:      "mode": "solo_madre",
+docs/operatorjson.txt:96:    "design_goal": "Visually striking dark tentacular UI; operationally complete and canon-aligned; usable in solo_madre mode; real-time observability with safe controls.",
+docs/operatorjson.txt:134:          "current_mode (solo_madre/window_active)",
+docs/operatorjson.txt:416:      "mode_awareness": ["VX11_MODE=solo_madre", "maintenance_window_active"],
+docs/operatorjson.txt:472:            "mode": "solo_madre|window_active|full_profile",
+docs/operatorjson.txt:736:        "assert": "services started only inside window; end state returns to solo_madre"
+docs/operatorjson.txt:797:      "UI works in solo_madre: shows OFF_BY_POLICY correctly.",
+docs/POWER_WINDOWS_SPEC.md:51:GET /madre/power/policy/solo_madre/status
+docs/POWER_WINDOWS_SPEC.md:52:POST /madre/power/policy/solo_madre/apply
+docs/POWER_WINDOWS_SPEC.md:90:    "policy": "solo_madre" | "windowed"
+docs/shubjson.txt:19:- Shub OFF por defecto (solo_madre); tentaculo_link debe responder 503 en <3s si Shub está OFF
+docs/shubjson.txt:29:2) Runtime default “solo_madre”: Shub deshabilitado por defecto. Ventanas temporales solo por Madre.
+docs/shubjson.txt:1577:      "mode": "solo_madre",
+docs/shubjson.txt:3566:# 2. Runtime default "solo_madre"
+docs/shubjson.txt:3567:curl -s http://localhost:8001/madre/api/v1/shub/status | grep -q '"mode":"solo_madre"' || {
+docs/DEPLOYMENT_COMPLETE_REPORT.md:141:  Response: {policy: "solo_madre"|"windowed", window_id: "uuid"?}
+docs/DEPLOYMENT_COMPLETE_REPORT.md:144:GET /madre/power/policy/solo_madre/status
+docs/DEPLOYMENT_COMPLETE_REPORT.md:148:POST /madre/power/policy/solo_madre/apply
+docs/DEPLOYMENT_COMPLETE_REPORT.md:149:  Response: {policy: "solo_madre", services_stopped: [...]}
+docs/DEPLOYMENT_COMPLETE_REPORT.md:184:# Expected: {"policy":"solo_madre", ...}
+docs/audit/20251228_SWITCH_HERMES_FIX/test_p0_power_window.sh:90:log_step "6" "curl /madre/power/policy/solo_madre/status" "IN_PROGRESS" "Checking power policy"
+docs/audit/20251228_SWITCH_HERMES_FIX/test_p0_power_window.sh:91:POWER_STATUS=$(curl -s http://localhost:8000/madre/power/policy/solo_madre/status 2>/dev/null || echo "{\"policy_active\": false}")
+docs/audit/20251228_SWITCH_HERMES_FIX/test_p0_power_window.sh:92:log_step "6" "curl /madre/power/policy/solo_madre/status" "✅ PASS" "Retrieved power policy"
+docs/audit/20251228_SWITCH_HERMES_FIX/test_p0_power_window.sh:149:curl http://localhost:8000/madre/power/policy/solo_madre/status
+docs/audit/20251228_OPERATOR_UI_FINAL/OPERATOR_FRONTEND_IMPLEMENTATION_SUMMARY.md:157:- Policy badge (operative_core=blue, solo_madre=red)
+docs/audit/OPERATOR_UI_COMPLETE_20251228/FEATURES_AND_USAGE.md:40:  - Power policy (operative_core / solo_madre / full)
+docs/audit/OPERATOR_UI_COMPLETE_20251228/FEATURES_AND_USAGE.md:177:2. **Power Mode**: Check PowerCard (blue = normal, red = solo_madre)
+docs/audit/OPERATOR_UI_COMPLETE_20251228/IMPLEMENTATION_SUMMARY.md:21:   - Power window policy (solo_madre, operative_core, full)
+docs/canonical/modules/shubniggurath/shubniggurath_canonical.json:511:    "runtime_policy": "solo_madre",
+docs/canonical/modules/shubniggurath/VX11_SHUB_CANONICAL_v1.7.1.json:511:    "runtime_policy": "solo_madre",
+docs/canonical/modules/manifestator/manifestator_canonical.json:14:    "Default state is disabled; must remain OFF under solo_madre unless explicitly enabled in a temporal maintenance window.",
+docs/canonical/modules/manifestator/VX11_MANIFESTATOR_CANONICAL_v7.0.0.json:14:    "Default state is disabled; must remain OFF under solo_madre unless explicitly enabled in a temporal maintenance window.",
+docs/hormiguero_manifetsaator.txt:16:2) Runtime default: `solo_madre`. Todo lo nuevo debe quedar “dormido”: sin tasks, sin timers, sin threads, sin colas activas, sin WS abiertos.
+docs/hormiguero_manifetsaator.txt:25:B) Por defecto NO CAMBIA el comportamiento actual: health/P0/contratos siguen OK en modo `solo_madre`.
+docs/hormiguero_manifetsaator.txt:78:1) En modo default (`solo_madre`): P0/contratos/health siguen PASS (sin degradación).
+docs/hormiguero_manifetsaator.txt:129:3. **solo_madre**: Estado por defecto, solo telemetría básica
+docs/hormiguero_manifetsaator.txt:241:5. Al timeout o cierre manual: vuelve a solo_madre
+docs/hormiguero_manifetsaator.txt:295:3. **solo_madre default** - Solo telemetría básica
+docs/hormiguero_manifetsaator.txt:2823:solo_madre:        Solo telemetría básica, todo lo demás OFF
+docs/hormiguero_manifetsaator.txt:2834:    "solo_madre": {
+docs/hormiguero_manifetsaator.txt:2849:        "to_solo_madre": {
+docs/hormiguero_manifetsaator.txt:2859:        "to_solo_madre": {
+docs/hormiguero_manifetsaator.txt:3123:    # 5. Cambiar estado global a solo_madre
+docs/hormiguero_manifetsaator.txt:3124:    self.set_global_state("solo_madre")
+docs/hormiguero_manifetsaator.txt:3195:  "current_state": "solo_madre",
+docs/COPILOT_BOOTSTRAP_CHECKLIST.txt:77:@vx11 solo_madre          → Aplicar SOLO_MADRE policy
+docs/CANONICAL_MASTER_VX11.json:31:      "id": "solo_madre_default_low_power",

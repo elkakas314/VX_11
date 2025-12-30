@@ -1,0 +1,31 @@
+    LOGS_PATH: str = "/app/logs"
+    DATA_PATH: str = "/app/data"
+
+    # ========== ULTRA-LOW-MEMORY MODE ==========
+    ULTRA_LOW_MEMORY: bool = True
+    max_memory_mb: int = 512  # Límite por contenedor
+    max_model_size_mb: int = 256  # Límite de modelos descargados
+    cache_ttl_seconds: int = 300
+
+    # ========== URLs BASE (Docker networking con fallback a localhost) ==========
+    tentaculo_link_url: str = Field(
+        default_factory=lambda: _resolve_docker_url("tentaculo_link", 8000)
+    )
+    gateway_url: str = Field(
+        default_factory=lambda: _resolve_docker_url("tentaculo_link", 8000)
+    )
+    madre_url: str = Field(default_factory=lambda: _resolve_docker_url("madre", 8001))
+    switch_url: str = Field(default_factory=lambda: _resolve_docker_url("switch", 8002))
+    hermes_url: str = Field(default_factory=lambda: _resolve_docker_url("hermes", 8003))
+    hormiguero_url: str = Field(
+        default_factory=lambda: _resolve_docker_url("hormiguero", 8004)
+    )
+    manifestator_url: str = Field(
+        default_factory=lambda: _resolve_docker_url("manifestator", 8005)
+    )
+    mcp_url: str = Field(default_factory=lambda: _resolve_docker_url("mcp", 8006))
+    shub_url: str = Field(
+        default_factory=lambda: _resolve_docker_url("shubniggurath", 8007)
+    )
+    spawner_url: str = Field(
+        default_factory=lambda: _resolve_docker_url("spawner", 8008)

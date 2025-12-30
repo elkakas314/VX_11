@@ -1,0 +1,61 @@
+                        headers=headers,
+                    )
+        except Exception:
+            return response
+    return response
+
+
+def _now_iso() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+def _correlation_id(request: Request, x_correlation_id: Optional[str]) -> str:
+    return getattr(request.state, "correlation_id", None) or x_correlation_id or str(
+        uuid.uuid4()
+    )
+
+
+def _off_by_policy(
+    correlation_id: str, service: str = "operator_backend"
+) -> JSONResponse:
+    payload = {
+        "status": "OFF_BY_POLICY",
+        "service": service,
+        "message": "Disabled by SOLO_MADRE policy",
+        "correlation_id": correlation_id,
+        "recommended_action": "Ask Madre to open operator window",
+    }
+    return JSONResponse(status_code=403, content=payload)
+
+
+def _off_by_policy_with_runbook(
+    correlation_id: str, service: str, runbook: str
+) -> JSONResponse:
+    payload = {
+        "status": "OFF_BY_POLICY",
+        "service": service,
+        "message": "Disabled by SOLO_MADRE policy",
+        "correlation_id": correlation_id,
+        "recommended_action": "Ask Madre to open operator window",
+        "runbook": runbook,
+    }
+    return JSONResponse(status_code=403, content=payload)
+
+
+async def get_correlation_id(
+    request: Request, x_correlation_id: Optional[str] = Header(None)
+) -> str:
+    return _correlation_id(request, x_correlation_id)
+
+
+def _rate_limit_key(request: Request) -> str:
+    token = request.headers.get(TOKEN_HEADER, "")
+    ip = request.client.host if request.client else "unknown"
+    return f"{token}:{ip}"
+
+
+def _rate_limit_ok(identifier: str) -> bool:
+    now = time.time()
+    window_start = now - RATE_LIMIT_WINDOW_SEC
+    recent = [t for t in RATE_STATE.get(identifier, []) if t >= window_start]
+    if len(recent) >= RATE_LIMIT_MAX:

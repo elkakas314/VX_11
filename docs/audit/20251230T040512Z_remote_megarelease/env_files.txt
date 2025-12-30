@@ -1,0 +1,5 @@
+.env.deepseek
+.env
+.env.phase5
+.env.example
+attic/.env.example

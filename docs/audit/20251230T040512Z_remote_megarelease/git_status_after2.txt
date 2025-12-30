@@ -1,0 +1,7 @@
+## work
+D  .env
+D  .env.deepseek
+D  .env.phase5
+ M .gitignore
+ M operator/frontend/src/services/api.ts
+?? docs/audit/ROTATION.md

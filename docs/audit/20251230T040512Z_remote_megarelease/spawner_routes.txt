@@ -1,0 +1,2 @@
+761:@app.post("/spawner/create", response_model=SpawnResponse)
+766:@app.post("/spawner/spawn", response_model=SpawnResponse)

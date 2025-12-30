@@ -1,0 +1,7 @@
+spawner/main.py:563:@app.get("/health")
+operator/backend/main.py:1021:    ("/health", ["GET"], health),
+switch/main.py:673:        request.url.path == "/health" or request.url.path.startswith("/metrics")
+switch/main.py:759:@app.get("/health")
+switch/hermes/main.py:293:@app.get("/health")
+madre/main.py:132:@app.get("/health", response_model=HealthResponse)
+tentaculo_link/main_v7.py:344:@app.get("/health")

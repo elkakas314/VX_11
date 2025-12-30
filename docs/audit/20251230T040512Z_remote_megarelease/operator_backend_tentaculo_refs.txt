@@ -1,0 +1,25 @@
+43:TENTACULO_BASE = settings.tentaculo_link_url.rstrip("/")
+229:async def _call_tentaculo(
+241:            f"{TENTACULO_BASE}{path}",
+249:    response = await _call_tentaculo(
+261:    services.update({"tentaculo_link"})
+267:    response = await _call_tentaculo(
+366:        "tentaculo_link": core.get("services", {}).get("tentaculo_link", {}),
+401:    response = await _call_tentaculo(
+423:    response = await _call_tentaculo("POST", "/api/window/close", correlation_id)
+458:    response = await _call_tentaculo(
+479:    response = await _call_tentaculo(
+503:                    events_resp = await _call_tentaculo(
+564:    response = await _call_tentaculo(
+579:    response = await _call_tentaculo(
+622:        response = await _call_tentaculo(
+629:        response = await _call_tentaculo(
+724:    response = await _call_tentaculo(
+741:    response = await _call_tentaculo(
+755:    lanes_resp = await _call_tentaculo(
+758:    rails_resp = await _call_tentaculo(
+778:    response = await _call_tentaculo(
+926:    response = await _call_tentaculo(
+958:    response = await _call_tentaculo(
+1002:    response = await _call_tentaculo("GET", "/api/rails/lanes", correlation_id)
+1011:    response = await _call_tentaculo("GET", "/api/rails", correlation_id)

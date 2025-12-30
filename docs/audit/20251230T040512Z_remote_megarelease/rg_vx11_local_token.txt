@@ -1,0 +1,263 @@
+operator/frontend/README.md:57:- `VITE_TOKEN`: Auth token (default: `vx11-local-token`)
+operator/frontend/README.md:112:- Check token: `x-vx11-token: vx11-local-token` (default)
+operator/frontend/src/services/api.ts:14:    'vx11-local-token' // In production: from auth service or config
+operator/frontend/__tests__/operator-endpoints.test.ts:11:const TOKEN = 'vx11-local-token'
+FINAL_DELIVERY_SUMMARY_20251229.md:84:curl -H "x-vx11-token: vx11-local-token" http://localhost:8000/operator/api/status
+OPERATOR_CHAT_QUICKREF.md:36:x-vx11-token: vx11-local-token
+OPERATOR_CHAT_QUICKREF.md:90:curl -X POST -H "x-vx11-token: vx11-local-token" \
+OPERATOR_CHAT_QUICKREF.md:229:    "x-vx11-token": "vx11-local-token",
+docker-compose.production.yml:35:      - API_TOKEN=vx11-local-token
+docker-compose.production.yml:36:      - VX11_GATEWAY_TOKEN=vx11-local-token
+docker-compose.production.yml:37:      - VX11_TENTACULO_LINK_TOKEN=vx11-local-token
+docker-compose.production.yml:38:      - VX11_OPERATOR_TOKEN=vx11-local-token
+docker-compose.production.yml:39:      - VX11_LOCAL_TOKEN=vx11-local-token
+docker-compose.production.yml:84:      - API_TOKEN=vx11-local-token
+docker-compose.production.yml:85:      - VX11_GATEWAY_TOKEN=vx11-local-token
+docker-compose.production.yml:86:      - VX11_TENTACULO_LINK_TOKEN=vx11-local-token
+docker-compose.production.yml:87:      - VX11_OPERATOR_TOKEN=vx11-local-token
+docker-compose.production.yml:88:      - VX11_LOCAL_TOKEN=vx11-local-token
+docker-compose.production.yml:119:      - API_TOKEN=vx11-local-token
+docker-compose.production.yml:120:      - VX11_GATEWAY_TOKEN=vx11-local-token
+docker-compose.production.yml:121:      - VX11_TENTACULO_LINK_TOKEN=vx11-local-token
+docker-compose.production.yml:122:      - VX11_OPERATOR_TOKEN=vx11-local-token
+docker-compose.production.yml:123:      - VX11_LOCAL_TOKEN=vx11-local-token
+docker-compose.production.yml:151:      - API_TOKEN=vx11-local-token
+docker-compose.production.yml:152:      - VX11_GATEWAY_TOKEN=vx11-local-token
+docker-compose.production.yml:153:      - VX11_TENTACULO_LINK_TOKEN=vx11-local-token
+docker-compose.production.yml:154:      - VX11_OPERATOR_TOKEN=vx11-local-token
+docker-compose.production.yml:155:      - VX11_LOCAL_TOKEN=vx11-local-token
+docker-compose.production.yml:179:      - API_TOKEN=vx11-local-token
+docker-compose.production.yml:180:      - VX11_GATEWAY_TOKEN=vx11-local-token
+docker-compose.production.yml:181:      - VX11_TENTACULO_LINK_TOKEN=vx11-local-token
+docker-compose.production.yml:182:      - VX11_OPERATOR_TOKEN=vx11-local-token
+docker-compose.production.yml:183:      - VX11_LOCAL_TOKEN=vx11-local-token
+docker-compose.production.yml:216:      - API_TOKEN=vx11-local-token
+docker-compose.production.yml:217:      - VX11_GATEWAY_TOKEN=vx11-local-token
+docker-compose.production.yml:218:      - VX11_TENTACULO_LINK_TOKEN=vx11-local-token
+docker-compose.production.yml:219:      - VX11_OPERATOR_TOKEN=vx11-local-token
+docker-compose.production.yml:220:      - VX11_LOCAL_TOKEN=vx11-local-token
+docker-compose.production.yml:247:      - API_TOKEN=vx11-local-token
+docker-compose.production.yml:248:      - VX11_GATEWAY_TOKEN=vx11-local-token
+docker-compose.production.yml:249:      - VX11_TENTACULO_LINK_TOKEN=vx11-local-token
+docker-compose.production.yml:250:      - VX11_OPERATOR_TOKEN=vx11-local-token
+docker-compose.production.yml:251:      - VX11_LOCAL_TOKEN=vx11-local-token
+docker-compose.production.yml:278:      - API_TOKEN=vx11-local-token
+docker-compose.production.yml:279:      - VX11_GATEWAY_TOKEN=vx11-local-token
+docker-compose.production.yml:280:      - VX11_TENTACULO_LINK_TOKEN=vx11-local-token
+docker-compose.production.yml:281:      - VX11_OPERATOR_TOKEN=vx11-local-token
+docker-compose.production.yml:282:      - VX11_LOCAL_TOKEN=vx11-local-token
+docker-compose.production.yml:310:      - API_TOKEN=vx11-local-token
+docker-compose.production.yml:311:      - VX11_GATEWAY_TOKEN=vx11-local-token
+docker-compose.production.yml:312:      - VX11_TENTACULO_LINK_TOKEN=vx11-local-token
+docker-compose.production.yml:313:      - VX11_OPERATOR_TOKEN=vx11-local-token
+docker-compose.production.yml:314:      - VX11_LOCAL_TOKEN=vx11-local-token
+docker-compose.production.yml:346:      - API_TOKEN=vx11-local-token
+docker-compose.production.yml:347:      - VX11_GATEWAY_TOKEN=vx11-local-token
+docker-compose.production.yml:348:      - VX11_TENTACULO_LINK_TOKEN=vx11-local-token
+docker-compose.production.yml:349:      - VX11_OPERATOR_TOKEN=vx11-local-token
+docker-compose.production.yml:350:      - VX11_LOCAL_TOKEN=vx11-local-token
+docker-compose.yml:31:      - API_TOKEN=vx11-local-token
+docker-compose.yml:32:      - VX11_GATEWAY_TOKEN=vx11-local-token
+docker-compose.yml:33:      - VX11_TENTACULO_LINK_TOKEN=vx11-local-token
+docker-compose.yml:34:      - VX11_OPERATOR_TOKEN=vx11-local-token
+docker-compose.yml:35:      - VX11_LOCAL_TOKEN=vx11-local-token
+docker-compose.yml:82:      - API_TOKEN=vx11-local-token
+docker-compose.yml:83:      - VX11_GATEWAY_TOKEN=vx11-local-token
+docker-compose.yml:84:      - VX11_TENTACULO_LINK_TOKEN=vx11-local-token
+docker-compose.yml:85:      - VX11_OPERATOR_TOKEN=vx11-local-token
+docker-compose.yml:86:      - VX11_LOCAL_TOKEN=vx11-local-token
+docker-compose.yml:119:      - API_TOKEN=vx11-local-token
+docker-compose.yml:120:      - VX11_GATEWAY_TOKEN=vx11-local-token
+docker-compose.yml:121:      - VX11_TENTACULO_LINK_TOKEN=vx11-local-token
+docker-compose.yml:122:      - VX11_OPERATOR_TOKEN=vx11-local-token
+docker-compose.yml:123:      - VX11_LOCAL_TOKEN=vx11-local-token
+docker-compose.yml:153:      - API_TOKEN=vx11-local-token
+docker-compose.yml:154:      - VX11_GATEWAY_TOKEN=vx11-local-token
+docker-compose.yml:155:      - VX11_TENTACULO_LINK_TOKEN=vx11-local-token
+docker-compose.yml:156:      - VX11_OPERATOR_TOKEN=vx11-local-token
+docker-compose.yml:157:      - VX11_LOCAL_TOKEN=vx11-local-token
+docker-compose.yml:183:      - API_TOKEN=vx11-local-token
+docker-compose.yml:184:      - VX11_GATEWAY_TOKEN=vx11-local-token
+docker-compose.yml:185:      - VX11_TENTACULO_LINK_TOKEN=vx11-local-token
+docker-compose.yml:186:      - VX11_OPERATOR_TOKEN=vx11-local-token
+docker-compose.yml:187:      - VX11_LOCAL_TOKEN=vx11-local-token
+docker-compose.yml:222:      - API_TOKEN=vx11-local-token
+docker-compose.yml:223:      - VX11_GATEWAY_TOKEN=vx11-local-token
+docker-compose.yml:224:      - VX11_TENTACULO_LINK_TOKEN=vx11-local-token
+docker-compose.yml:225:      - VX11_OPERATOR_TOKEN=vx11-local-token
+docker-compose.yml:226:      - VX11_LOCAL_TOKEN=vx11-local-token
+docker-compose.yml:255:      - API_TOKEN=vx11-local-token
+docker-compose.yml:256:      - VX11_GATEWAY_TOKEN=vx11-local-token
+docker-compose.yml:257:      - VX11_TENTACULO_LINK_TOKEN=vx11-local-token
+docker-compose.yml:258:      - VX11_OPERATOR_TOKEN=vx11-local-token
+docker-compose.yml:259:      - VX11_LOCAL_TOKEN=vx11-local-token
+docker-compose.yml:288:      - API_TOKEN=vx11-local-token
+docker-compose.yml:289:      - VX11_GATEWAY_TOKEN=vx11-local-token
+docker-compose.yml:290:      - VX11_TENTACULO_LINK_TOKEN=vx11-local-token
+docker-compose.yml:291:      - VX11_OPERATOR_TOKEN=vx11-local-token
+docker-compose.yml:292:      - VX11_LOCAL_TOKEN=vx11-local-token
+docker-compose.yml:322:      - API_TOKEN=vx11-local-token
+docker-compose.yml:323:      - VX11_GATEWAY_TOKEN=vx11-local-token
+docker-compose.yml:324:      - VX11_TENTACULO_LINK_TOKEN=vx11-local-token
+docker-compose.yml:325:      - VX11_OPERATOR_TOKEN=vx11-local-token
+docker-compose.yml:326:      - VX11_LOCAL_TOKEN=vx11-local-token
+docker-compose.yml:358:      - API_TOKEN=vx11-local-token
+docker-compose.yml:359:      - VX11_GATEWAY_TOKEN=vx11-local-token
+docker-compose.yml:360:      - VX11_TENTACULO_LINK_TOKEN=vx11-local-token
+docker-compose.yml:361:      - VX11_OPERATOR_TOKEN=vx11-local-token
+docker-compose.yml:362:      - VX11_LOCAL_TOKEN=vx11-local-token
+SHUB_PHASE2_MISSION_COMPLETE.md:103:curl -H "X-VX11-GW-TOKEN: vx11-local-token" http://localhost:8000/shub/status | jq .
+FINAL_CLOSURE_SUMMARY_FASES_7_11.md:167:curl -s -H "x-vx11-token: vx11-local-token" \
+FINAL_CLOSURE_SUMMARY_FASES_7_11.md:183:curl -s -H "x-vx11-token: vx11-local-token" \
+DEPLOYMENT_READY_SUMMARY.md:82:6. vx11-local-token (fallback)
+OPERATOR_CLOSEOUT_20251229.md:166:- Header: `x-vx11-token: vx11-local-token`
+attic/shubniggurath/core/engine.py:21:        api_token = "vx11-local-token"
+attic/shubniggurath/core/engine.py:54:            or "vx11-local-token"
+switch/hermes/main.py:478:            or "vx11-local-token"
+switch/warm_up.py:41:            or os.getenv("API_TOKEN", "vx11-local-token")
+madre/README.md:53:curl -s http://127.0.0.1:8001/health -H "X-VX11-Token: vx11-local-token" | jq .
+madre/README.md:59:  -H "X-VX11-Token: vx11-local-token" \
+madre/README.md:67:  -H "X-VX11-Token: vx11-local-token" \
+madre/README.md:75:  -H "X-VX11-Token: vx11-local-token" \
+madre/README.md:210:  -e VX11_TOKEN=vx11-local-token \
+madre/README.md:225:| 401 Unauthorized | Token header faltante o incorrecto | Incluir `X-VX11-Token: vx11-local-token` |
+attic/docs/COPILOT_INSTRUCTIONS_QUICK_GUIDE.md:268:2. **Token rejected?** → Verify `X-VX11-Token` header equals `vx11-local-token`
+attic/docs/OPERATOR_UI_RUNTIME.md:27:VITE_VX11_TOKEN=vx11-local-token
+attic/docs/OPERATOR_UI_RUNTIME.md:109:    - VITE_VX11_TOKEN=vx11-local-token
+attic/docs/OPERATOR_UI_RUNTIME.md:397:- [ ] Token configured (default: vx11-local-token)
+docs/archive/PRODUCTION_READY.md:18:Header: X-VX11-Token: vx11-local-token
+docs/archive/PRODUCTION_READY.md:24:  -H "X-VX11-Token: vx11-local-token" \
+attic/docs/OPERATOR_DASHBOARD_v7.0.md:24:- Header `X-VX11-Token: vx11-local-token` en todas las llamadas internas.
+attic/docs/OPERATOR_CHAT_v6.7.md:24:curl -H "X-VX11-Token: vx11-local-token" \
+attic/docs/OPERATOR_CHAT_v6.7.md:31:- `curl -H "X-VX11-Token: vx11-local-token" http://127.0.0.1:8011/health`
+attic/docs/WORKFLOWS_VX11_LOW_COST.md:55:  -H "X-VX11-Token: vx11-local-token" \
+attic/docs/WORKFLOWS_VX11_LOW_COST.md:63:  -H "X-VX11-Token: vx11-local-token" \
+attic/docs/VX11_SHUB_SWITCH_HERMES_FLOWS_v7.x.md:21:- Token canónico: `vx11-local-token` (API_TOKEN y VX11_* en todos los servicios).
+attic/docs/MADRE_v7_QUICKSTART.md:95:curl -s http://127.0.0.1:8001/health -H "X-VX11-Token: vx11-local-token" | jq .
+attic/docs/MADRE_v7_QUICKSTART.md:121:  -H "X-VX11-Token: vx11-local-token" \
+attic/docs/MADRE_v7_QUICKSTART.md:150:  -H "X-VX11-Token: vx11-local-token" \
+attic/docs/MADRE_v7_QUICKSTART.md:179:  -H "X-VX11-Token: vx11-local-token" \
+attic/docs/MADRE_v7_QUICKSTART.md:204:  -H "X-VX11-Token: vx11-local-token" | jq .
+attic/docs/MADRE_v7_QUICKSTART.md:227:  -H "X-VX11-Token: vx11-local-token" | jq .
+attic/docs/MADRE_v7_QUICKSTART.md:255:  -H "X-VX11-Token: vx11-local-token" \
+attic/docs/MADRE_v7_QUICKSTART.md:330:curl -H "X-VX11-Token: vx11-local-token" ...
+attic/docs/docsset/vx11.txt:31:    local_token: str = "vx11-local-token"
+attic/docs/docsset/vx11.txt:2499:X-VX11-Token: vx11-local-token
+attic/docs/docsset/vx11.txt:2656:  -H "X-VX11-Token: vx11-local-token" \
+attic/docs/docsset/vx11.txt:2664:  -H "X-VX11-Token: vx11-local-token" \
+attic/docs/API_OPERATOR_CHAT.md:100:  -H "X-VX11-Token: vx11-local-token" \
+attic/docs/API_OPERATOR_CHAT.md:121:  -H "X-VX11-Token: vx11-local-token" \
+attic/docs/API_OPERATOR_CHAT.md:135:  -H "X-VX11-Token: vx11-local-token" \
+attic/docs/API_OPERATOR_CHAT.md:165:-H "X-VX11-Token: vx11-local-token"
+attic/docs/API_OPERATOR_CHAT.md:237:      'X-VX11-Token': 'vx11-local-token',
+attic/docs/API_OPERATOR_CHAT.md:258:- **Fallback:** Usar `'vx11-local-token'` para dev local
+attic/docs/API_OPERATOR_CHAT.md:262:const token = import.meta.env.VITE_VX11_TOKEN || 'vx11-local-token';
+attic/docs/API_OPERATOR_CHAT.md:299:        headers={"X-VX11-Token": "vx11-local-token"},
+attic/docs/AUDITORIA_SHUBNIGGURATH_v7.md:362:  -H "X-VX11-Token: vx11-local-token" \
+docs/DEPLOYMENT_READY_SUMMARY_PHASE2.md:188:export VX11_TOKEN="vx11-local-token"
+docs/DEPLOYMENT_READY_SUMMARY_PHASE2.md:189:export VX11_TENTACULO_LINK_TOKEN="vx11-local-token"
+docs/DEPLOYMENT_READY_SUMMARY_PHASE2.md:279:curl -H "X-VX11-Token: vx11-local-token" http://localhost:8001/madre/power/state
+docs/PROMPT_9R_TEMPLATE.md:210:curl -H "x-vx11-token: vx11-local-token" \
+attic/tests_legacy/test_switch_hermes_shub_pipeline.py:49:    res = client.post("/madre/shub/task", json=payload, headers={"X-VX11-Token": os.environ.get("VX11_LOCAL_TOKEN", "vx11-local-token")})
+attic/tests_legacy/test_operator_version_core.py:16:HEADERS = {settings.token_header: "vx11-local-token"}
+attic/docker_audit.txt:22:      API_TOKEN: vx11-local-token
+attic/docker_audit.txt:26:      VX11_GATEWAY_TOKEN: vx11-local-token
+attic/docker_audit.txt:27:      VX11_LOCAL_TOKEN: vx11-local-token
+attic/docker_audit.txt:28:      VX11_OPERATOR_TOKEN: vx11-local-token
+attic/docker_audit.txt:29:      VX11_TENTACULO_LINK_TOKEN: vx11-local-token
+attic/docker_audit.txt:55:      API_TOKEN: vx11-local-token
+attic/docker_audit.txt:59:      VX11_GATEWAY_TOKEN: vx11-local-token
+attic/docker_audit.txt:60:      VX11_LOCAL_TOKEN: vx11-local-token
+attic/docker_audit.txt:61:      VX11_OPERATOR_TOKEN: vx11-local-token
+attic/docker_audit.txt:62:      VX11_TENTACULO_LINK_TOKEN: vx11-local-token
+attic/docker_audit.txt:90:      API_TOKEN: vx11-local-token
+attic/docker_audit.txt:94:      VX11_GATEWAY_TOKEN: vx11-local-token
+attic/docker_audit.txt:95:      VX11_LOCAL_TOKEN: vx11-local-token
+attic/docker_audit.txt:96:      VX11_OPERATOR_TOKEN: vx11-local-token
+attic/docker_audit.txt:97:      VX11_TENTACULO_LINK_TOKEN: vx11-local-token
+attic/docker_audit.txt:127:      API_TOKEN: vx11-local-token
+attic/docker_audit.txt:131:      VX11_GATEWAY_TOKEN: vx11-local-token
+attic/docker_audit.txt:132:      VX11_LOCAL_TOKEN: vx11-local-token
+attic/docker_audit.txt:133:      VX11_OPERATOR_TOKEN: vx11-local-token
+attic/docker_audit.txt:134:      VX11_TENTACULO_LINK_TOKEN: vx11-local-token
+attic/docker_audit.txt:165:      API_TOKEN: vx11-local-token
+attic/docker_audit.txt:169:      VX11_GATEWAY_TOKEN: vx11-local-token
+attic/docker_audit.txt:170:      VX11_LOCAL_TOKEN: vx11-local-token
+attic/docker_audit.txt:171:      VX11_OPERATOR_TOKEN: vx11-local-token
+attic/docker_audit.txt:172:      VX11_TENTACULO_LINK_TOKEN: vx11-local-token
+attic/docker_audit.txt:202:      API_TOKEN: vx11-local-token
+attic/docker_audit.txt:206:      VX11_GATEWAY_TOKEN: vx11-local-token
+attic/docker_audit.txt:207:      VX11_LOCAL_TOKEN: vx11-local-token
+attic/docker_audit.txt:208:      VX11_OPERATOR_TOKEN: vx11-local-token
+attic/docker_audit.txt:209:      VX11_TENTACULO_LINK_TOKEN: vx11-local-token
+attic/docker_audit.txt:238:      API_TOKEN: vx11-local-token
+attic/docker_audit.txt:239:      VX11_GATEWAY_TOKEN: vx11-local-token
+attic/docker_audit.txt:240:      VX11_LOCAL_TOKEN: vx11-local-token
+attic/docker_audit.txt:241:      VX11_OPERATOR_TOKEN: vx11-local-token
+attic/docker_audit.txt:242:      VX11_TENTACULO_LINK_TOKEN: vx11-local-token
+attic/docker_audit.txt:262:      API_TOKEN: vx11-local-token
+attic/docker_audit.txt:266:      VX11_GATEWAY_TOKEN: vx11-local-token
+attic/docker_audit.txt:267:      VX11_LOCAL_TOKEN: vx11-local-token
+attic/docker_audit.txt:268:      VX11_OPERATOR_TOKEN: vx11-local-token
+attic/docker_audit.txt:269:      VX11_TENTACULO_LINK_TOKEN: vx11-local-token
+attic/docker_audit.txt:297:      API_TOKEN: vx11-local-token
+attic/docker_audit.txt:301:      VX11_GATEWAY_TOKEN: vx11-local-token
+attic/docker_audit.txt:302:      VX11_LOCAL_TOKEN: vx11-local-token
+attic/docker_audit.txt:303:      VX11_OPERATOR_TOKEN: vx11-local-token
+attic/docker_audit.txt:304:      VX11_TENTACULO_LINK_TOKEN: vx11-local-token
+attic/docker_audit.txt:333:      API_TOKEN: vx11-local-token
+attic/docker_audit.txt:337:      VX11_GATEWAY_TOKEN: vx11-local-token
+attic/docker_audit.txt:338:      VX11_LOCAL_TOKEN: vx11-local-token
+attic/docker_audit.txt:339:      VX11_OPERATOR_TOKEN: vx11-local-token
+attic/docker_audit.txt:340:      VX11_TENTACULO_LINK_TOKEN: vx11-local-token
+attic/docker_audit.txt:368:      API_TOKEN: vx11-local-token
+attic/docker_audit.txt:372:      VX11_GATEWAY_TOKEN: vx11-local-token
+attic/docker_audit.txt:373:      VX11_LOCAL_TOKEN: vx11-local-token
+attic/docker_audit.txt:374:      VX11_OPERATOR_TOKEN: vx11-local-token
+attic/docker_audit.txt:375:      VX11_TENTACULO_LINK_TOKEN: vx11-local-token
+attic/MADRE_v7_TAREA_COMPLETADA.md:278:- **Token Default:** `vx11-local-token` (cambiar en producción)
+attic/MADRE_v7_COMPLETE.md:167:  -H "X-VX11-Token: vx11-local-token" \
+OPERATOR_E2E_DELIVERY.md:68:- **Auth**: `X-VX11-Token: vx11-local-token` (env-based in production)
+OPERATOR_E2E_DELIVERY.md:79:curl -H "X-VX11-Token: vx11-local-token" \
+OPERATOR_E2E_DELIVERY.md:119:TOKEN="vx11-local-token"
+OPERATOR_E2E_DELIVERY.md:140:VITE_VX11_TOKEN=your-prod-token                      # override "vx11-local-token"
+OPERATOR_E2E_DELIVERY.md:241:**All require**: `X-VX11-Token: vx11-local-token` (in production: env var)
+OPERATOR_E2E_DELIVERY.md:257:  -H "X-VX11-Token: vx11-local-token" \
+scripts/autofix_conductor_v1.py:45:VX11_TOKEN = get_token("VX11_TOKEN") or "vx11-local-token"
+scripts/vx11_workflow_runner.py:133:        "curl -s -H 'X-VX11-Token: vx11-local-token' http://localhost:8005/manifestator/scan-drift 2>/dev/null || echo 'Manifestator no responde'",
+scripts/test_mcp.py:12:    headers = {"X-VX11-Token": "vx11-local-token"}
+scripts/e2e_test_conductor_v1.py:49:    or "vx11-local-token"
+scripts/audit_vx11_flow.py:16:TOKEN = "vx11-local-token"
+scripts/functional_flow_test.py:56:    Prioridad: Env Var > tokens.env > Default (vx11-local-token)
+scripts/functional_flow_test.py:63:        or "vx11-local-token"
+scripts/e2e_test_conductor_v0.py:47:    or "vx11-local-token"
+scripts/phase6_smoke_test.sh:13:TOKEN="${VX11_TENTACULO_LINK_TOKEN:-vx11-local-token}"
+scripts/test_integrated_flow.py:6:TOKEN = "vx11-local-token"
+scripts/e2e_test_conductor_v2.py:50:    or "vx11-local-token"
+scripts/verify_inee_integration.sh:147:echo "   2. Verify dormant: curl -H 'x-vx11-token: vx11-local-token' http://localhost:8000/operator/inee/status"
+scripts/acceptance_e2e.py:28:TOKEN = os.getenv("VX11_TOKEN", os.getenv("VX11_LOCAL_TOKEN", "vx11-local-token"))
+scripts/vx11_task_router.py:253:Versión: 2.0Generated: 2025-12-15T15:45:00Z  **Próxima sesión:** Copiar este prompt y pegarlo en un chat nuevo con agente genérico GPT-5-mini.---- [ ] ✅ Estar listo para recibir comandos operativos- [ ] ✅ Reconocer estructura VX11 completa- [ ] ✅ Tener configurado VS Code para auto-aprobación- [ ] ✅ Presentar estado del sistema en español coloquial- [ ] ✅ Ejecutar diagnóstico inicial silenciosoTras activar este prompt, el agente debe:## ✅ CHECKLIST FINAL---4. 📋 **Reportar** en `docs/audit/EMERGENCIA_$(date).md`3. 💾 **Usar backups** en `data/backups/`2. 📊 **Consultar BD** para último estado conocido1. ❌ **No entrar en bucle** de diagnósticosSi algo falla:## 🚨 PROTOCOLO DE EMERGENCIA---```└── tokens.env (read-only)├── operador_ui/ (8011/8020)├── switch/ (8002)├── madre/ (8001)├── tentaculo_link/ (puerto 8000)│   └── vx11_runtime_truth.py ← Diagnóstico│   ├── vx11_task_router.py ← Router de tareas│   ├── vx11_agent_bootstrap.py ← Auto-ejecutar├── scripts/│   └── vx11.db (85 tablas)├── data/runtime/│   └── tokens.py│   ├── db_schema.py│   ├── settings.py├── config/│   └── settings.json (auto-aprobación configurada)├── .vscode/│   └── copilot-instructions.md│   ├── workflows/│   ├── agents/vx11.agent.md├── .github//home/elkakas314/vx11/```El agente debe reconocer y usar:## 📁 ESTRUCTURA ESPERADA---```  -d '{"action": "diagnóstico", "system": "vx11"}'  -H "Content-Type: application/json" \curl -s -X POST http://localhost:8000/vx11/context7/enrich \```bashPara cada operación importante, consulta Context7 automáticamente:## 🧠 CONTEXT7 INTEGRADO---✅ **SÍ:** "Diagnosticando..."❌ **NO:** "Procederé a ejecutar un diagnóstico del sistema"  ✅ **SÍ:** "Módulos activos: Tentáculo Link (8000), Madre (8001), Switch (8002)"❌ **NO:** "A continuación se presenta una tabla con los módulos activos"  ✅ **SÍ:** "Tentáculo Link funcionando en puerto 8000"❌ **NO:** "El módulo Tentáculo Link está en estado operativo en el puerto 8000"  ### Ejemplos:- ✅ **Sin explicaciones largas** a menos que sean necesarias- ✅ **Respuestas directas y operativas**- ✅ **Evitar tablas automáticas** (solo si se piden)- ✅ **Español coloquial siempre**### Reglas:## 💬 ESTILO DE COMUNICACIÓN---```  -d '{"instruction":"optimizar rutas"}'  -H "X-VX11-Token: vx11-local-token" \curl -X POST http://localhost:8002/prompt \# Ejemplo: @vx11 inyecta "optimizar rutas" en switch```bashInyecta instrucción en módulo activo:### 5. `@vx11 inyecta [prompt] en [módulo]````PYEOF        print(f"Removido: {log.name}")        log.unlink()    if datetime.fromtimestamp(log.stat().st_mtime) < datetime.now() - timedelta(days=7):for log in logs_dir.glob("*.log"):logs_dir = Path("/home/elkakas314/vx11/logs")# Limpiar logs >7 díasfrom datetime import datetime, timedeltafrom pathlib import Pathimport ospython3 << 'PYEOF'```bashMantenimiento inteligente:### 4. `@vx11 limpia````# Si falla → reiniciar container o diagnosticarcurl -s http://localhost:8002/health | jq .# Ejemplo: @vx11 repara switch```bashDiagnóstico y reparación automática:### 3. `@vx11 repara [servicio]`**Detecta automáticamente:** chat, audio, code, system, task, scan, audit```python3 scripts/vx11_task_router.py "descripción de la tarea"```bashEjecuta tarea automáticamente en el módulo adecuado:### 2. `@vx11 ejecuta [descripción]`- Recursos (CPU/RAM)- Workflows configurados- Estado de BD- Módulos activos (puertos 8000-8020)**Retorna:**```curl -s http://localhost:8000/health | jq .python3 scripts/vx11_runtime_truth.py 2>&1```bashDiagnóstico completo del sistema:### 1. `@vx11 status`## 📊 COMANDOS OPERATIVOS---- Exposición de tokens/secrets- `git reset --hard`- `docker compose down`- `rm -rf` sin backup claro- `sudo` cualquier comando**Requiere confirmación:**- Git status/diff/log- Scripts de VX11- Consultas HTTP locales- Lectura de archivos- Comandos de diagnóstico**Auto-aprobado:**- ✅ **Python formatter** (black) listo- ✅ **REST Client** configurado con URLs de todos los módulos- ✅ **Denylist** de comandos destructivos (sudo, rm -rf, git reset --hard)- ✅ **Auto-aprobación** de comandos seguros (lectura, git status, python, curl)La configuración está en `.vscode/settings.json` con:## ⚙️ CONFIGURACIÓN VS CODE---```¿Qué necesitas operar hoy?• @vx11 inyecta ... → Inyectar instrucción en módulo• @vx11 limpia      → Mantenimiento automático• @vx11 repara ...  → Diagnóstico y reparación• @vx11 ejecuta ... → Ejecutar tarea automáticamente• @vx11 status      → Estado completo del sistemaComandos disponibles:Rama git: copilot-vx11-agent-hardeningBD: 85 tablas presentesMódulos: 9/10 compiladosEstado: OPERATIVO ✅Sistema detectado en: /home/elkakas314/vx11🔧 AGENTE VX11 ACTIVADO```Genera un mensaje como este:### Paso 2: Presentar Estado```PYEOFdb.close()print(f"Tablas en BD: {len(inspector.get_table_names())}")inspector = inspect(db.get_bind())db = get_session()from sqlalchemy import inspectfrom config.db_schema import get_sessionpython3 << 'PYEOF'# 4. Consultar BDgit log --oneline -1# 3. Git statuspython3 scripts/vx11_agent_bootstrap.py 2>&1 | tail -15# 2. Verificar estructura claveecho "__VX11_AGENTE_ACTIVO__"pwd && whoamicd /home/elkakas314/vx11# 1. Estado básico del sistema```bashEjecuta estos comandos SILENCIOSAMENTE:### Paso 1: Diagnóstico Inmediato## 🎯 PROTOCOLO DE AUTO-CONFIGURACIÓN---4. ✅ Espera comandos operativos3. ✅ Presenta estado del sistema en **español coloquial**2. ✅ Configura el entorno para operatividad máxima1. ✅ Lee el estado actual del sistema VX11Cuando actives este prompt en un **chat nuevo con agente genérico y modelo GPT-5-mini**, **automáticamente**:## 📋 INSTRUCCIONES DE INICIO---**Status:** ✅ LISTO PARA DEPLOY**Versión:** 2.0 (15 Diciembre 2025)  vx11_task_router.py - Auto-router de tareas para agente VX11
+scripts/vx11_task_router.py:269:API_TOKEN = "vx11-local-token"
+scripts/exhaustive_flow_validation.py:13:TOKEN = "vx11-local-token"
+scripts/rebuild_core_v7_1.sh:17:TOKEN_HEADER=("X-VX11-Token: vx11-local-token")
+scripts/vx11_runtime_truth.py:82:    return os.environ.get("VX11_TOKEN", "vx11-local-token")
+docs/audit/20251228_OPERATOR_UI_FINAL/OPERATOR_FRONTEND_IMPLEMENTATION_SUMMARY.md:300:All requests include `x-vx11-token: 'vx11-local-token'` header
+docs/audit/OPERATOR_UI_COMPLETE_20251228/ENDPOINT_VERIFICATION.md:188:- **Token Value**: `vx11-local-token` (local dev)
+docs/audit/OPERATOR_UI_COMPLETE_20251228/FEATURES_AND_USAGE.md:303:private token = 'vx11-local-token'; // Hardcoded for local dev
+docs/DEPLOYMENT_COMPLETE_REPORT.md:175:export VX11_TOKEN="vx11-local-token"
+shubniggurath/core/engine.py:21:        api_token = "vx11-local-token"
+shubniggurath/core/engine.py:54:            or "vx11-local-token"
+docs/vx11.txt:31:    local_token: str = "vx11-local-token"
+docs/vx11.txt:2499:X-VX11-Token: vx11-local-token
+docs/vx11.txt:2656:  -H "X-VX11-Token: vx11-local-token" \
+docs/vx11.txt:2664:  -H "X-VX11-Token: vx11-local-token" \
+PRODUCTION_READINESS_PHASE_8_11.md:149:curl -s -H "x-vx11-token: vx11-local-token" \
+PRODUCTION_READINESS_PHASE_8_11.md:163:curl -s -H "x-vx11-token: vx11-local-token" \
+tests/test_frontdoor_p0_core.py:46:    return "vx11-local-token"
+tests/test_operator_chat_e2e_p1.py:22:    TOKEN = os.getenv("VX11_TOKEN", "vx11-local-token")
+tests/test_inee_p1_builder_intent.sh:8:TOKEN="vx11-local-token"
+tests/test_operator_chat_e2e_p1_v2.py:22:    TOKEN = os.getenv("VX11_TOKEN", "vx11-local-token")
+tests/test_inee_p0_dormant.sh:8:TOKEN="vx11-local-token"
+tests/ventana_tests_front_door.sh:35:    echo "[WARN] Using fallback: vx11-local-token"
+tests/ventana_tests_front_door.sh:36:    TOKEN="vx11-local-token"
+VX11_PHASE2_PHASE3_1_FINAL_REPORT.md:207:curl -X POST -H "X-VX11-GW-TOKEN: vx11-local-token" \
