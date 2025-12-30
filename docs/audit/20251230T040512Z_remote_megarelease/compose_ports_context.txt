@@ -1,0 +1,59 @@
+docker-compose.production.yml-20-        aliases:
+docker-compose.production.yml-21-          - tentaculo_link
+docker-compose.production.yml:22:    ports:
+docker-compose.production.yml-23-      - "8000:8000"
+docker-compose.production.yml-24-    volumes:
+--
+docker-compose.yml-16-        aliases:
+docker-compose.yml-17-          - tentaculo_link
+docker-compose.yml:18:    ports:
+docker-compose.yml-19-      - "8000:8000"
+docker-compose.yml-20-    volumes:
+--
+docker-compose.yml-68-    image: vx11-madre:v6.7
+docker-compose.yml-69-    container_name: vx11-madre
+docker-compose.yml:70:    ports:
+docker-compose.yml-71-      - "8001:8001"
+docker-compose.yml-72-    volumes:
+--
+docker-compose.yml-107-    image: vx11-switch:v6.7
+docker-compose.yml-108-    container_name: vx11-switch
+docker-compose.yml:109:    ports:
+docker-compose.yml-110-      - "8002:8002"
+docker-compose.yml-111-    volumes:
+--
+docker-compose.yml-141-    image: vx11-hermes:v6.7
+docker-compose.yml-142-    container_name: vx11-hermes
+docker-compose.yml:143:    ports:
+docker-compose.yml-144-      - "8003:8003"
+docker-compose.yml-145-    volumes:
+--
+docker-compose.yml-172-    image: vx11-hormiguero:v6.7
+docker-compose.yml-173-    container_name: vx11-hormiguero
+docker-compose.yml:174:    ports:
+docker-compose.yml-175-      - "8004:8004"
+docker-compose.yml-176-    volumes:
+--
+docker-compose.yml-210-    container_name: vx11-manifestator
+docker-compose.yml-211-    profiles: ["disabled", "maintenance"]
+docker-compose.yml:212:    ports:
+docker-compose.yml-213-      - "8005:8005"
+docker-compose.yml-214-    volumes:
+--
+docker-compose.yml-244-    image: vx11-mcp:v6.7
+docker-compose.yml-245-    container_name: vx11-mcp
+docker-compose.yml:246:    ports:
+docker-compose.yml-247-      - "8006:8006"
+docker-compose.yml-248-    volumes:
+--
+docker-compose.yml-310-    image: vx11-spawner:v6.7
+docker-compose.yml-311-    container_name: vx11-spawner
+docker-compose.yml:312:    ports:
+docker-compose.yml-313-      - "8008:8008"
+docker-compose.yml-314-    volumes:
+--
+docker-compose.yml-382-    container_name: vx11-redis
+docker-compose.yml-383-    hostname: redis
+docker-compose.yml:384:    ports:
+docker-compose.yml-385-      - "6379:6379"
+docker-compose.yml-386-    volumes:

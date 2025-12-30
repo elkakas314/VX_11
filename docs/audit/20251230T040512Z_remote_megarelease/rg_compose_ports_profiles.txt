@@ -1,0 +1,26 @@
+docker-compose.production.yml:22:    ports:
+docker-compose.production.yml:105:    profiles: ["core"]
+docker-compose.production.yml:137:    profiles: ["core"]
+docker-compose.production.yml:169:    profiles: ["core"]
+docker-compose.production.yml:207:    profiles: ["disabled", "maintenance"]
+docker-compose.production.yml:234:    profiles: ["core"]
+docker-compose.production.yml:265:    profiles: ["audio"]
+docker-compose.production.yml:296:    profiles: ["core"]
+docker-compose.production.yml:328:    profiles: ["operator"]
+docker-compose.yml:18:    ports:
+docker-compose.yml:70:    ports:
+docker-compose.yml:103:    profiles: ["core"]
+docker-compose.yml:109:    ports:
+docker-compose.yml:137:    profiles: ["core"]
+docker-compose.yml:143:    ports:
+docker-compose.yml:171:    profiles: ["core"]
+docker-compose.yml:174:    ports:
+docker-compose.yml:211:    profiles: ["disabled", "maintenance"]
+docker-compose.yml:212:    ports:
+docker-compose.yml:240:    profiles: ["core"]
+docker-compose.yml:246:    ports:
+docker-compose.yml:273:    profiles: ["audio"]
+docker-compose.yml:306:    profiles: ["core"]
+docker-compose.yml:312:    ports:
+docker-compose.yml:340:    profiles: ["operator"]
+docker-compose.yml:384:    ports:

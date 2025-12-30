@@ -1,0 +1,9 @@
+21:tokens.env*
+22:.env
+23:.env.local
+24:.env.*.local
+25:.env.dev.local
+26:.env.production.local
+27:.env.deepseek
+28:.env.*
+29:secrets/*.env

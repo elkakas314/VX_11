@@ -1,0 +1,80 @@
+/**
+ * API Client for VX11 Operator
+ * Consumes: tentaculo_link:8000 only (via relative URL)
+ * No direct calls to backend services
+ * 
+ * API base is configurable (VITE_VX11_API_BASE). Defaults:
+ * - Dev: http://localhost:8000
+ * - Prod: window.location.origin
+ */
+
+const TOKEN =
+    import.meta.env.VITE_VX11_TOKEN ||
+    import.meta.env.VITE_VX11_TENTACULO_TOKEN ||
+    'vx11-local-token' // In production: from auth service or config
+const RAW_BASE =
+    import.meta.env.VITE_VX11_API_BASE ||
+    import.meta.env.VITE_VX11_API_BASE_URL ||
+    ''
+const DEFAULT_BASE = import.meta.env.DEV ? 'http://localhost:8000' : ''
+
+export const API_BASE = (RAW_BASE as string).trim() || DEFAULT_BASE
+
+export const buildApiUrl = (path: string) => {
+    if (!API_BASE) {
+        return path
+    }
+    return new URL(path, API_BASE).toString()
+}
+
+interface ApiResponse<T> {
+    ok: boolean
+    data?: T
+    error?: string
+    status: number
+}
+
+class ApiClient {
+    private backoffMs = 1000
+    private maxBackoffMs = 30000
+
+    async request<T>(
+        method: string,
+        path: string,
+        body?: any,
+        options?: { noRetry?: boolean; timeout?: number }
+    ): Promise<ApiResponse<T>> {
+        const url = buildApiUrl(path)
+        const timeout = options?.timeout || 5000
+
+        try {
+            const controller = new AbortController()
+            const timeoutId = setTimeout(() => controller.abort(), timeout)
+
+            const response = await fetch(url, {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-vx11-token': TOKEN,
+                },
+                body: body ? JSON.stringify(body) : undefined,
+                signal: controller.signal,
+            })
+
+            clearTimeout(timeoutId)
+
+            if (!response.ok) {
+                if (
+                    response.status === 404 &&
+                    !options?.noRetry &&
+                    path.startsWith('/operator/api/v1')
+                ) {
+                    const legacyPath = path.replace('/operator/api/v1', '/operator/api')
+                    return this.request(method, legacyPath, body, { ...options, noRetry: true })
+                }
+                let errorDetail = `HTTP ${response.status}`
+                try {
+                    const errorJson = await response.json()
+                    if (errorJson?.status === 'OFF_BY_POLICY') {
+                        errorDetail = errorJson.message || 'OFF_BY_POLICY'
+                        return {

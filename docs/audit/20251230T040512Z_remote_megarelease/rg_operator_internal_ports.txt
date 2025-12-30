@@ -1,0 +1,1 @@
+operator/backend/Dockerfile:38:    CMD curl -fsS http://localhost:8011/operator/api/health || exit 1

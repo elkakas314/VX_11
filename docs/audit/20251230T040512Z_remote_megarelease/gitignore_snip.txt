@@ -1,42 +1,3 @@
-node_modules
-node_modules
-operator/**/node_modules
-operator/**/dist
-__pycache__/
-*.pyc
-
-# Python envs / caches
-.venv/
-venv/
-.pytest_cache/
-.mypy_cache/
-
-# Local logs / artifacts
-*.log
-*.zip
-*.tar.gz
-.autosync.log
-
-# Secrets (never commit)
-tokens.env*
-.env
-.env.local
-.env.*.local
-.env.dev.local
-.env.production.local
-.env.deepseek
-.env.*
-secrets/*.env
-
-# VS Code / GitHub local-only backups (do not modify those dirs; just ignore noise)
-.vscode/*.bak
-.vscode/*.backup
-.github/*.zip
-.github/*.backup
-.github/*.bak
-.github/agents/_backup/
-.devcontainer/
-
 # Runtime DB + backups (SQLite)
 data/
 
@@ -63,9 +24,6 @@ docs/audit/**
 !docs/audit/20251228_SWITCH_HERMES_FIX/
 !docs/audit/20251228_SWITCH_HERMES_FIX/*.md
 !docs/audit/20251228_SWITCH_HERMES_FIX/*.sh
-!docs/audit/ROTATION.md
-!docs/audit/*_remote_megarelease/
-!docs/audit/*_remote_megarelease/**
 
 # Public audit artifacts allowed for remote sync
 !docs/audit/_public/**
@@ -81,9 +39,3 @@ functional_flow_results.json
 
 # VSCode workspace noise (repo policy: do not modify these dirs)
 .vscode/
-
-# Node lockfile (repo does not track it)
-package-lock.json
-
-# Local docker ignore (keep out of git status)
-.dockerignore

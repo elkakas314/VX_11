@@ -1,0 +1,368 @@
+VX11_QUICK_START.md:75:curl -X POST http://localhost:8001/madre/power/maintenance/post_task -d '{}' > docs/audit/$TS/madre_post.json 2>&1
+VX11_QUICK_START.md:84:curl -X POST http://localhost:8008/spawn \
+VX11_QUICK_START.md:192:curl -X POST http://localhost:8001/madre/power/maintenance/post_task \
+operator/backend/Dockerfile:38:    CMD curl -fsS http://localhost:8011/operator/api/health || exit 1
+docker-compose.production.yml:97:      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+docker-compose.production.yml:129:      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+docker-compose.production.yml:161:      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+docker-compose.production.yml:194:      test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
+docker-compose.production.yml:257:      test: ["CMD", "curl", "-f", "http://localhost:8006/health"]
+docker-compose.production.yml:320:      test: ["CMD", "curl", "-f", "http://localhost:8008/health"]
+docker-compose.yml:95:      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+docker-compose.yml:129:      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+docker-compose.yml:163:      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+docker-compose.yml:198:      test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
+docker-compose.yml:265:      test: ["CMD", "curl", "-f", "http://localhost:8006/health"]
+docker-compose.yml:332:      test: ["CMD", "curl", "-f", "http://localhost:8008/health"]
+config/settings.py:94:        "http://localhost:8011",
+OPERATOR_ENDPOINTS_README.md:79:curl -s http://localhost:8011/api/modules | jq .
+OPERATOR_ENDPOINTS_README.md:118:curl -s http://localhost:8011/api/topology | jq .
+OPERATOR_ENDPOINTS_README.md:129:curl -s "http://localhost:8011/api/fs/list?path=/docs/audit" | jq .
+OPERATOR_ENDPOINTS_README.md:132:curl -s "http://localhost:8011/api/fs/list?path=/docs/canon" | jq .
+OPERATOR_ENDPOINTS_README.md:135:curl -s "http://localhost:8011/api/fs/list?path=/data/runtime" | jq .
+OPERATOR_ENDPOINTS_README.md:138:curl -s "http://localhost:8011/api/fs/list?path=/logs" | jq .
+OPERATOR_ENDPOINTS_README.md:141:curl -s "http://localhost:8011/api/fs/list?path=/forensic" | jq .
+OPERATOR_ENDPOINTS_README.md:172:curl -s "http://localhost:8011/api/fs/list" | jq .
+OPERATOR_ENDPOINTS_README.md:176:curl -s "http://localhost:8011/api/fs/list?path=/etc/passwd" | jq .
+OPERATOR_ENDPOINTS_README.md:180:curl -s "http://localhost:8011/api/fs/list?path=/docs/audit/nonexistent" | jq .
+OPERATOR_ENDPOINTS_README.md:190:export TOKEN=$(curl -s -X POST http://localhost:8011/auth/login \
+OPERATOR_ENDPOINTS_README.md:194:export CSRF=$(curl -s -X POST http://localhost:8011/auth/login \
+OPERATOR_ENDPOINTS_README.md:203:curl -s http://localhost:8011/api/modules | jq '.data | {total, modules: (.modules | length)}'
+OPERATOR_ENDPOINTS_README.md:207:curl -s http://localhost:8011/api/topology | jq '.data | {nodes: (.nodes | length), edges: (.edges | length)}'
+OPERATOR_ENDPOINTS_README.md:213:  curl -s "http://localhost:8011/api/fs/list?path=$path" | jq '.data.total_items'
+OPERATOR_ENDPOINTS_README.md:219:curl -s "http://localhost:8011/api/fs/list" | jq '.ok'
+OPERATOR_ENDPOINTS_README.md:221:curl -s "http://localhost:8011/api/fs/list?path=/etc/passwd" | jq '.ok'
+OPERATOR_ENDPOINTS_README.md:382:curl -s -X POST http://localhost:8001/madre/power/maintenance/post_task \
+FASE_8_INTEGRATION_REFERENCE.txt:99:  VX11_OPERATOR_URL: "http://localhost:8011" (default)
+FASE_8_INTEGRATION_REFERENCE.txt:101:  VX11_MADRE_URL: "http://localhost:8001" (default)
+FASE_8_INTEGRATION_REFERENCE.txt:102:  VX11_SWITCH_URL: "http://localhost:8002" (default)
+FASE_8_INTEGRATION_REFERENCE.txt:158:         http://localhost:8011/operator/api/chat \
+FASE_8_INTEGRATION_REFERENCE.txt:165:         http://localhost:8001/madre/power/maintenance/post_task
+FASE_8_INTEGRATION_REFERENCE.txt:187:          Run: curl http://localhost:8001/health (madre)
+FASE_8_INTEGRATION_REFERENCE.txt:188:          Run: curl http://localhost:8002/health (switch)
+attic/hormiguero/Dockerfile:41:    CMD curl -fsS http://localhost:8004/health || exit 1
+PRODUCTION_DEPLOYMENT_BRIEF.md:116:curl -s http://localhost:8001/madre/power/status | jq
+PRODUCTION_DEPLOYMENT_BRIEF.md:130:curl -X POST http://localhost:8001/madre/power/maintenance/post_task \
+PRODUCTION_DEPLOYMENT_BRIEF.md:163:curl http://localhost:8001/madre/power/status
+PRODUCTION_DEPLOYMENT_BRIEF.md:248:curl -s http://localhost:8001/madre/power/status | jq
+FINAL_CLOSURE_SUMMARY_FASES_7_11.md:172:curl -s -X POST http://localhost:8001/madre/power/maintenance/post_task | jq .status
+FINAL_CLOSURE_SUMMARY_FASES_7_11.md:187:curl -s http://localhost:8001/madre/power/status | jq .status
+mcp/README.md:32:curl -fsS http://localhost:8006/health
+mcp/Dockerfile:41:    CMD curl -fsS http://localhost:8006/health || exit 1
+attic/shubniggurath/README.md:146:VX11_MADRE_URL=http://localhost:8001
+attic/shubniggurath/README.md:147:VX11_SWITCH_URL=http://localhost:8002
+attic/shubniggurath/README.md:148:VX11_MCP_URL=http://localhost:8006
+switch/README.md:39:curl -s http://localhost:8002/switch/chat \\
+switch/README.md:55:curl -fsS http://localhost:8002/health
+switch/README.md:61:curl -fsS http://localhost:8002/health
+switch/README.md:64:Nota: `curl http://localhost:8002/...` falla con "connection refused" si Switch no
+attic/shubniggurath/docs/SHUB_AUDIT_STRUCTURAL.json:93:                    "localhost:8001",
+attic/shubniggurath/docs/SHUB_AUDIT_STRUCTURAL.json:94:                    "localhost:8002",
+attic/shubniggurath/docs/SHUB_AUDIT_STRUCTURAL.json:95:                    "localhost:8006"
+switch/hermes/README.md:34:curl -s http://localhost:8003/hermes/discover \\
+switch/hermes/README.md:56:curl -fsS http://localhost:8003/health
+switch/hermes/README.md:62:curl -fsS http://localhost:8003/health
+switch/hermes/README.md:65:Nota: `curl http://localhost:8003/...` falla con "connection refused" si Hermes no
+switch/hermes/Dockerfile:42:    CMD curl -fsS http://localhost:8003/health || exit 1
+switch/Dockerfile:42:    CMD curl -fsS http://localhost:8002/health || exit 1
+attic/shubniggurath/README_FASE1.md:336:curl http://localhost:8001/health  # Madre
+attic/shubniggurath/README_FASE1.md:337:curl http://localhost:8004/health  # Hormiguero
+attic/shubniggurath/README_FASE1.md:338:curl http://localhost:8002/health  # Switch
+attic/shubniggurath/README_FASE1.md:360:- Health cascade: `curl http://localhost:8001/orchestration/module_states`
+attic/shubniggurath/shub_vx11_bridge.py:23:        madre_url: str = "http://localhost:8001",
+attic/shubniggurath/shub_vx11_bridge.py:24:        switch_url: str = "http://localhost:8002",
+attic/shubniggurath/shub_vx11_bridge.py:25:        mcp_url: str = "http://localhost:8006",
+madre/power_manager.py:692:    curl -X POST http://localhost:8001/madre/power/mode/hard_off \
+madre/Dockerfile:41:    CMD curl -fsS http://localhost:8001/health || exit 1
+docs/archive/VX11_v6_EXECUTIVE_SUMMARY.txt:228:☐ curl http://localhost:8001/orchestration/module_states
+docs/archive/VX11_v6_EXECUTIVE_SUMMARY.txt:229:☐ curl http://localhost:8002/switch/hermes/status
+attic/docs/VX11_HORMIGUERO_v7_COMPLETION.md:292:curl http://localhost:8004/health
+attic/docs/VX11_HORMIGUERO_v7_COMPLETION.md:299:curl -X POST http://localhost:8004/scan \
+attic/docs/VX11_HORMIGUERO_v7_COMPLETION.md:307:curl "http://localhost:8004/report?limit=20" \
+attic/docs/VX11_HORMIGUERO_v7_COMPLETION.md:315:curl http://localhost:8004/queen/status \
+attic/docs/VX11_HORMIGUERO_v7_COMPLETION.md:323:curl -X POST "http://localhost:8004/queen/dispatch?incident_id=5" \
+attic/docs/VX11_HORMIGUERO_v7_COMPLETION.md:516:curl http://localhost:8004/queen/status \
+attic/docs/VX11_HORMIGUERO_v7_COMPLETION.md:522:curl http://localhost:8004/report?limit=50 \
+attic/docs/VX11_HORMIGUERO_v7_COMPLETION.md:528:curl -X POST http://localhost:8004/scan \
+attic/docs/OPERATOR_UI_RUNTIME.md:23:# Backend URL (default: localhost:8011)
+attic/docs/OPERATOR_UI_RUNTIME.md:24:VITE_OPERATOR_API_URL=http://localhost:8011
+attic/docs/OPERATOR_UI_RUNTIME.md:47:Backend:   http://localhost:8011
+attic/docs/OPERATOR_UI_RUNTIME.md:48:WebSocket: ws://localhost:8011/ws
+attic/docs/OPERATOR_UI_RUNTIME.md:152:        target: "http://localhost:8011",
+attic/docs/OPERATOR_UI_RUNTIME.md:156:        target: "ws://localhost:8011",
+attic/docs/OPERATOR_UI_RUNTIME.md:199:**Request:** `http://localhost:5173` → `http://localhost:8011/operator/chat`
+attic/docs/OPERATOR_UI_RUNTIME.md:205:**Request:** `http://localhost:8020` → `ws://localhost:8011/ws`
+attic/docs/OPERATOR_UI_RUNTIME.md:335:- **Solution:** Check `curl http://localhost:8011/health`
+attic/docs/OPERATOR_UI_RUNTIME.md:394:- [ ] Backend running on localhost:8011
+attic/docs/OPERATOR_UI_RUNTIME.md:396:- [ ] `VITE_OPERATOR_API_URL=http://localhost:8011` in .env.local
+attic/docs/SHUBNIGGURATH_COMPLETE.md:78:curl http://localhost:8011/operator/shub/dashboard
+attic/docs/SHUBNIGGURATH_COMPLETE.md:115:curl http://localhost:8011/operator/shub/dashboard
+attic/docs/SHUBNIGGURATH_COMPLETE.md:118:curl http://localhost:8011/operator/shub/engines/health
+attic/docs/SHUBNIGGURATH_COMPLETE.md:121:curl http://localhost:8011/operator/shub/queue
+attic/docs/SHUBNIGGURATH_COMPLETE.md:124:curl http://localhost:8011/operator/shub/stats
+attic/docs/SHUB_OPERATOR_AUDIT_v1.md:96:curl http://localhost:8011/health
+attic/docs/SHUB_OPERATOR_AUDIT_v1.md:122:- Backend Operator: `http://operator-backend:8011` (Docker) / `http://localhost:8011` (local)
+attic/docs/BLOQUE_E_DOCKER_OPTIMIZATION_v7_1.md:235:   curl http://localhost:8001/health  # Madre
+attic/docs/MADRE_PRODUCTION_v7_HARDENING_REPORT.md:284:  Command: curl -fsS http://localhost:8001/health
+attic/docs/SHUB_API_EXAMPLES.md:254:curl -X POST http://localhost:8002/switch/chat \
+attic/docs/HORMIGUERO_UI_CANONICAL.md:64:curl http://localhost:8004/queen/status
+attic/docs/HORMIGUERO_UI_CANONICAL.md:93:curl "http://localhost:8004/report?limit=100"
+attic/docs/HORMIGUERO_UI_CANONICAL.md:136:curl -X POST "http://localhost:8004/queen/dispatch?incident_id=1"
+attic/docs/HORMIGUERO_UI_CANONICAL.md:371:WS ws://localhost:8004/hormiguero/stream
+attic/docs/HORMIGUERO_UI_CANONICAL.md:443:REACT_APP_OPERATOR_API=http://localhost:8001
+attic/docs/DEEP_SURGEON_VX11_v7_FINAL_COMPLETION.md:384:url = "http://localhost:8001"  # ❌ NOT IN CODEBASE
+attic/docs/DEEP_SURGEON_VX11_v7_FINAL_COMPLETION.md:464:├─ curl http://localhost:8004/health (check hormiguero)
+attic/docs/DEEP_SURGEON_VX11_v7_FINAL_COMPLETION.md:468:├─ curl http://localhost:8004/queen/status → {queen, ants}
+attic/docs/DEEP_SURGEON_VX11_v7_FINAL_COMPLETION.md:469:├─ curl -X POST http://localhost:8004/scan → triggers scan cycle
+attic/docs/DEEP_SURGEON_VX11_v7_FINAL_COMPLETION.md:470:├─ curl http://localhost:8004/report → recent incidents
+attic/docs/VX11_v7_1_DOCUMENTATION_INDEX.md:133:open http://localhost:8011
+attic/docs/VX11_v7_1_DOCUMENTATION_INDEX.md:282:- [ ] Access modern UI at `http://localhost:8011`
+attic/docs/SHUB_VX11_V7_FINAL_REPORT.md:324:curl http://localhost:8001/health
+attic/docs/SHUB_VX11_V7_FINAL_REPORT.md:325:curl http://localhost:8002/health
+attic/docs/API_REFERENCE.md:52:Base URL: `http://localhost:8001`
+attic/docs/API_REFERENCE.md:133:Base URL: `http://localhost:8002`
+attic/docs/API_REFERENCE.md:205:Base URL: `http://localhost:8003`
+attic/docs/API_REFERENCE.md:286:Base URL: `http://localhost:8004`
+attic/docs/API_REFERENCE.md:432:Base URL: `http://localhost:8006`
+attic/docs/API_REFERENCE.md:571:curl -X POST http://localhost:8001/task \
+attic/docs/API_REFERENCE.md:582:curl http://localhost:8002/switch/providers | jq .
+attic/docs/API_REFERENCE.md:587:curl -X POST http://localhost:8003/hermes/exec \
+attic/docs/API_REFERENCE.md:598:curl -X POST http://localhost:8006/mcp/chat \
+attic/docs/VX11_OPERATOR_v7_FULL_COMPLETION.md:241:curl http://localhost:8011/health
+attic/docs/VX11_OPERATOR_v7_FULL_COMPLETION.md:245:curl -X POST http://localhost:8011/operator/chat \
+attic/docs/VX11_OPERATOR_v7_FULL_COMPLETION.md:252:http://localhost:8011  (prod with nginx)
+attic/docs/VX11_OPERATOR_v7_FULL_COMPLETION.md:272:✅ **CORS configured** – localhost:8011, 127.0.0.1:8011
+attic/docs/VX11_OPERATOR_v7_FULL_COMPLETION.md:411:curl http://localhost:8011/health
+attic/docs/VX11_OPERATOR_v7_FULL_COMPLETION.md:415:curl -X POST http://localhost:8011/operator/chat \
+docs/archive/VX11_v6_COMPLETION_REPORT.md:396:curl http://localhost:8001/orchestration/module_states
+docs/archive/VX11_v6_COMPLETION_REPORT.md:397:curl http://localhost:8002/switch/hermes/status
+docs/archive/QUICK_REFERENCE.md:48:curl -X POST http://localhost:8001/task \
+docs/archive/QUICK_REFERENCE.md:67:curl http://localhost:8003/hermes/available | jq .
+docs/archive/QUICK_REFERENCE.md:72:curl http://localhost:8002/switch/providers | jq .
+docs/archive/QUICK_REFERENCE.md:211:curl http://localhost:8001/orchestration/module_states | jq .
+docs/archive/QUICK_REFERENCE.md:216:curl -X POST http://localhost:8001/orchestration/set_module_state \
+docs/archive/QUICK_REFERENCE.md:240:curl -X POST http://localhost:8002/switch/hermes/select_engine \
+docs/archive/QUICK_REFERENCE.md:247:curl -X POST http://localhost:8002/switch/hermes/record_result \
+docs/archive/QUICK_REFERENCE.md:254:curl http://localhost:8002/switch/hermes/status | jq .
+attic/docs/DEEP_SURGEON_FASE_3_OPERATOR_BACKEND_v7_COMPLETE.md:132:- http://localhost:8011
+attic/docs/DEEP_SURGEON_FASE_3_OPERATOR_BACKEND_v7_COMPLETE.md:386:  "http://localhost:8011",
+attic/docs/DEEP_SURGEON_FASE_3_OPERATOR_BACKEND_v7_COMPLETE.md:517:- [ ] Test: `curl http://localhost:8011/health`
+attic/docs/VX11_SWITCH_HERMES_v7_COMPLETION.md:465:curl http://localhost:8002/health
+attic/docs/VX11_SWITCH_HERMES_v7_COMPLETION.md:466:curl http://localhost:8003/health
+attic/docs/VX11_SWITCH_HERMES_v7_COMPLETION.md:469:curl http://localhost:8003/hermes/resources
+attic/docs/VX11_SWITCH_HERMES_v7_COMPLETION.md:472:curl http://localhost:8002/switch/queue/status
+attic/docs/VX11_SWITCH_HERMES_v7_COMPLETION.md:497:curl -X POST http://localhost:8003/hermes/register/local_model \
+attic/docs/API_OPERATOR_CHAT.md:233:  const response = await fetch('http://localhost:8011/operator/chat', {
+docs/archive/INSTRUCCIONES_PASO_2_1.md:276:curl -X POST http://localhost:8002/switch/chat \
+docs/archive/INSTRUCCIONES_PASO_2_1.md:282:curl -X GET http://localhost:8002/switch/ga/status \
+docs/archive/DEVELOPMENT.md:196:       test: ["CMD", "curl", "-f", "http://localhost:8008/health"]
+docs/archive/DEVELOPMENT.md:209:     CMD curl -f http://localhost:8008/health || exit 1
+docs/archive/DEVELOPMENT.md:215:   curl http://localhost:8008/health
+docs/archive/DEVELOPMENT.md:369:curl http://localhost:8003/hermes/jobs | jq .
+docs/archive/DEVELOPMENT.md:372:curl http://localhost:8004/hormiguero/colony/status | jq .
+docs/archive/DEVELOPMENT.md:375:curl http://localhost:8002/switch/providers | jq .
+attic/docker_audit.txt:37:      - http://localhost:8003/health
+attic/docker_audit.txt:70:      - http://localhost:8004/health
+attic/docker_audit.txt:105:      - http://localhost:8001/health
+attic/docker_audit.txt:180:      - http://localhost:8006/health
+attic/docker_audit.txt:217:      - http://localhost:8011/health
+attic/docker_audit.txt:312:      - http://localhost:8008/health
+attic/docker_audit.txt:348:      - http://localhost:8002/health
+attic/MADRE_v7_TAREA_COMPLETADA.md:210:Health Check: curl -fsS http://localhost:8001/health
+docs/archive/VX11_v7_DEPLOYMENT_READY.md:100:curl http://localhost:8011/health
+docs/archive/VX11_v7_DEPLOYMENT_READY.md:108:http://localhost:8011 (backend API)
+docs/archive/VX11_v7_DEPLOYMENT_READY.md:115:  http://localhost:8011/health
+docs/archive/VX11_v7_DEPLOYMENT_READY.md:118:curl -X POST http://localhost:8011/operator/chat \
+docs/archive/VX11_v7_DEPLOYMENT_READY.md:205:3. Health check: `curl http://localhost:8011/health`
+attic/spawner/Dockerfile:41:    CMD curl -fsS http://localhost:8008/health || exit 1
+docs/archive/COMPLETION_STATUS.md:71:curl http://localhost:8001/orchestration/module_states
+docs/archive/COMPLETION_STATUS.md:74:curl -X POST http://localhost:8001/orchestration/set_module_state \
+docs/archive/COMPLETION_STATUS.md:88:curl -X POST http://localhost:8002/switch/hermes/select_engine \
+docs/archive/COMPLETION_STATUS.md:92:curl http://localhost:8002/switch/hermes/status
+docs/archive/COMPLETION_STATUS.md:95:curl -X POST http://localhost:8002/switch/hermes/record_result \
+docs/archive/COMPLETION_STATUS.md:138:curl http://localhost:8001/orchestration/module_states | jq .
+docs/archive/COMPLETION_STATUS.md:141:curl http://localhost:8002/switch/hermes/status | jq .
+docs/archive/SHUBNIGGURATH_EXECUTION_COMPLETE.md:243:curl http://localhost:8011/operator/shub/dashboard
+docs/archive/SHUBNIGGURATH_EXECUTION_COMPLETE.md:317:✅ curl http://localhost:8011/operator/shub/dashboard returns dashboard data
+docs/archive/VX11_v7_1_COMPLETION_REPORT.md:299:http://localhost:8011/
+scripts/autofix_conductor_v1.py:44:MADRE_URL = "http://localhost:8001"
+scripts/test_mcp.py:6:    url = "http://localhost:8006/mcp/copilot-bridge"
+scripts/e2e_test_conductor_v1.py:44:MADRE_URL = "http://localhost:8001"
+scripts/audit_vx11_flow.py:9:    "madre": "http://localhost:8001",
+scripts/audit_vx11_flow.py:10:    "switch": "http://localhost:8002",
+scripts/audit_vx11_flow.py:11:    "hormiguero": "http://localhost:8004",
+scripts/audit_vx11_flow.py:12:    "spawner": "http://localhost:8008",
+docs/archive/PRODUCTION_READY.md:13:- **API Backend:** http://localhost:8011
+docs/archive/PRODUCTION_READY.md:23:curl -X POST http://localhost:8011/operator/chat \
+docs/archive/FASE_3_RESUMEN_EJECUTIVO.md:45:- Configurado para localhost:8011, 8020
+scripts/e2e_test_conductor_v0.py:41:MADRE_URL = "http://localhost:8001"
+scripts/test_integrated_flow.py:5:BASE_URL = "http://localhost:8001"
+scripts/vx11_production_readiness.py:35:    "madre": ("http://localhost:8001/health", "Madre (Orchestration)"),
+scripts/vx11_production_readiness.py:36:    "switch": ("http://localhost:8002/health", "Switch (Routing)"),
+scripts/vx11_production_readiness.py:37:    "hermes": ("http://localhost:8003/health", "Hermes (CLI/Models)"),
+scripts/vx11_production_readiness.py:38:    "hormiguero": ("http://localhost:8004/health", "Hormiguero (Parallelization)"),
+scripts/vx11_production_readiness.py:40:    "mcp": ("http://localhost:8006/health", "MCP (Conversational)"),
+scripts/vx11_production_readiness.py:42:    "operator": ("http://localhost:8011/health", "Operator (UI Backend)"),
+scripts/e2e_test_conductor_v2.py:44:MADRE_URL = "http://localhost:8001"
+scripts/e2e_test_conductor_v2.py:68:    "switch": ("http://localhost:8002/health", 5),
+scripts/e2e_test_conductor_v2.py:69:    "hermes": ("http://localhost:8003/health", 5),
+scripts/e2e_test_conductor_v2.py:70:    "spawner": ("http://localhost:8004/health", 5),
+scripts/e2e_test_conductor_v2.py:71:    "madre": ("http://localhost:8001/health", 5),
+scripts/e2e_test_conductor_v2.py:329:            resp = await client.get(f"http://localhost:8002/switch/state", timeout=5)
+scripts/run_shub_dev.sh:73:echo "   Dashboard:       http://localhost:8011/operator/shub/dashboard"
+scripts/vx11_task_router.py:253:Versión: 2.0Generated: 2025-12-15T15:45:00Z  **Próxima sesión:** Copiar este prompt y pegarlo en un chat nuevo con agente genérico GPT-5-mini.---- [ ] ✅ Estar listo para recibir comandos operativos- [ ] ✅ Reconocer estructura VX11 completa- [ ] ✅ Tener configurado VS Code para auto-aprobación- [ ] ✅ Presentar estado del sistema en español coloquial- [ ] ✅ Ejecutar diagnóstico inicial silenciosoTras activar este prompt, el agente debe:## ✅ CHECKLIST FINAL---4. 📋 **Reportar** en `docs/audit/EMERGENCIA_$(date).md`3. 💾 **Usar backups** en `data/backups/`2. 📊 **Consultar BD** para último estado conocido1. ❌ **No entrar en bucle** de diagnósticosSi algo falla:## 🚨 PROTOCOLO DE EMERGENCIA---```└── tokens.env (read-only)├── operador_ui/ (8011/8020)├── switch/ (8002)├── madre/ (8001)├── tentaculo_link/ (puerto 8000)│   └── vx11_runtime_truth.py ← Diagnóstico│   ├── vx11_task_router.py ← Router de tareas│   ├── vx11_agent_bootstrap.py ← Auto-ejecutar├── scripts/│   └── vx11.db (85 tablas)├── data/runtime/│   └── tokens.py│   ├── db_schema.py│   ├── settings.py├── config/│   └── settings.json (auto-aprobación configurada)├── .vscode/│   └── copilot-instructions.md│   ├── workflows/│   ├── agents/vx11.agent.md├── .github//home/elkakas314/vx11/```El agente debe reconocer y usar:## 📁 ESTRUCTURA ESPERADA---```  -d '{"action": "diagnóstico", "system": "vx11"}'  -H "Content-Type: application/json" \curl -s -X POST http://localhost:8000/vx11/context7/enrich \```bashPara cada operación importante, consulta Context7 automáticamente:## 🧠 CONTEXT7 INTEGRADO---✅ **SÍ:** "Diagnosticando..."❌ **NO:** "Procederé a ejecutar un diagnóstico del sistema"  ✅ **SÍ:** "Módulos activos: Tentáculo Link (8000), Madre (8001), Switch (8002)"❌ **NO:** "A continuación se presenta una tabla con los módulos activos"  ✅ **SÍ:** "Tentáculo Link funcionando en puerto 8000"❌ **NO:** "El módulo Tentáculo Link está en estado operativo en el puerto 8000"  ### Ejemplos:- ✅ **Sin explicaciones largas** a menos que sean necesarias- ✅ **Respuestas directas y operativas**- ✅ **Evitar tablas automáticas** (solo si se piden)- ✅ **Español coloquial siempre**### Reglas:## 💬 ESTILO DE COMUNICACIÓN---```  -d '{"instruction":"optimizar rutas"}'  -H "X-VX11-Token: vx11-local-token" \curl -X POST http://localhost:8002/prompt \# Ejemplo: @vx11 inyecta "optimizar rutas" en switch```bashInyecta instrucción en módulo activo:### 5. `@vx11 inyecta [prompt] en [módulo]````PYEOF        print(f"Removido: {log.name}")        log.unlink()    if datetime.fromtimestamp(log.stat().st_mtime) < datetime.now() - timedelta(days=7):for log in logs_dir.glob("*.log"):logs_dir = Path("/home/elkakas314/vx11/logs")# Limpiar logs >7 díasfrom datetime import datetime, timedeltafrom pathlib import Pathimport ospython3 << 'PYEOF'```bashMantenimiento inteligente:### 4. `@vx11 limpia````# Si falla → reiniciar container o diagnosticarcurl -s http://localhost:8002/health | jq .# Ejemplo: @vx11 repara switch```bashDiagnóstico y reparación automática:### 3. `@vx11 repara [servicio]`**Detecta automáticamente:** chat, audio, code, system, task, scan, audit```python3 scripts/vx11_task_router.py "descripción de la tarea"```bashEjecuta tarea automáticamente en el módulo adecuado:### 2. `@vx11 ejecuta [descripción]`- Recursos (CPU/RAM)- Workflows configurados- Estado de BD- Módulos activos (puertos 8000-8020)**Retorna:**```curl -s http://localhost:8000/health | jq .python3 scripts/vx11_runtime_truth.py 2>&1```bashDiagnóstico completo del sistema:### 1. `@vx11 status`## 📊 COMANDOS OPERATIVOS---- Exposición de tokens/secrets- `git reset --hard`- `docker compose down`- `rm -rf` sin backup claro- `sudo` cualquier comando**Requiere confirmación:**- Git status/diff/log- Scripts de VX11- Consultas HTTP locales- Lectura de archivos- Comandos de diagnóstico**Auto-aprobado:**- ✅ **Python formatter** (black) listo- ✅ **REST Client** configurado con URLs de todos los módulos- ✅ **Denylist** de comandos destructivos (sudo, rm -rf, git reset --hard)- ✅ **Auto-aprobación** de comandos seguros (lectura, git status, python, curl)La configuración está en `.vscode/settings.json` con:## ⚙️ CONFIGURACIÓN VS CODE---```¿Qué necesitas operar hoy?• @vx11 inyecta ... → Inyectar instrucción en módulo• @vx11 limpia      → Mantenimiento automático• @vx11 repara ...  → Diagnóstico y reparación• @vx11 ejecuta ... → Ejecutar tarea automáticamente• @vx11 status      → Estado completo del sistemaComandos disponibles:Rama git: copilot-vx11-agent-hardeningBD: 85 tablas presentesMódulos: 9/10 compiladosEstado: OPERATIVO ✅Sistema detectado en: /home/elkakas314/vx11🔧 AGENTE VX11 ACTIVADO```Genera un mensaje como este:### Paso 2: Presentar Estado```PYEOFdb.close()print(f"Tablas en BD: {len(inspector.get_table_names())}")inspector = inspect(db.get_bind())db = get_session()from sqlalchemy import inspectfrom config.db_schema import get_sessionpython3 << 'PYEOF'# 4. Consultar BDgit log --oneline -1# 3. Git statuspython3 scripts/vx11_agent_bootstrap.py 2>&1 | tail -15# 2. Verificar estructura claveecho "__VX11_AGENTE_ACTIVO__"pwd && whoamicd /home/elkakas314/vx11# 1. Estado básico del sistema```bashEjecuta estos comandos SILENCIOSAMENTE:### Paso 1: Diagnóstico Inmediato## 🎯 PROTOCOLO DE AUTO-CONFIGURACIÓN---4. ✅ Espera comandos operativos3. ✅ Presenta estado del sistema en **español coloquial**2. ✅ Configura el entorno para operatividad máxima1. ✅ Lee el estado actual del sistema VX11Cuando actives este prompt en un **chat nuevo con agente genérico y modelo GPT-5-mini**, **automáticamente**:## 📋 INSTRUCCIONES DE INICIO---**Status:** ✅ LISTO PARA DEPLOY**Versión:** 2.0 (15 Diciembre 2025)  vx11_task_router.py - Auto-router de tareas para agente VX11
+scripts/vx11_task_router.py:284:    ("Madre", "http://localhost:8001", "/madre/daughter/spawn"),
+scripts/vx11_task_router.py:285:    ("Spawner", "http://localhost:8008", "/spawner/spawn"),
+scripts/vx11_task_router.py:286:    ("MCP", "http://localhost:8006", "/mcp/sandbox/exec_cmd"),
+scripts/test_real_data_endpoints_final.sh:10:#  - Backend available: http://localhost:8011
+scripts/test_real_data_endpoints_final.sh:15:BASE_URL="${1:-http://localhost:8011}"
+scripts/test_v6_features.sh:161:echo "   curl http://localhost:8001/orchestration/module_states"
+scripts/test_v6_features.sh:163:echo "   curl http://localhost:8002/switch/hermes/status"
+scripts/autonomy_evidence_runner.py:226:        ["curl", "-s", "-m", "7", "http://localhost:8002/health"],
+scripts/autonomy_evidence_runner.py:234:        ["curl", "-s", "-m", "7", "http://localhost:8003/health"],
+scripts/autonomy_evidence_runner.py:242:        ["curl", "-s", "-m", "7", "http://localhost:8001/health"],
+scripts/autonomy_evidence_runner.py:333:        ["curl", "-s", "-m", "7", "http://localhost:8004/health"],
+scripts/test_real_data_endpoints.sh:8:BASE_URL="http://localhost:8011"
+README.md:49:curl http://localhost:8011/operator/chat | jq .
+README.md:102:curl http://localhost:8001/orchestration/module_states | jq .
+README.md:105:curl -X POST http://localhost:8001/orchestration/set_module_state \
+README.md:110:curl -X POST http://localhost:8001/orchestration/set_module_state \
+README.md:126:curl -X POST http://localhost:8002/switch/hermes/select_engine \
+README.md:131:curl http://localhost:8002/switch/hermes/status | jq .
+README.md:134:curl -X POST http://localhost:8002/switch/hermes/record_result \
+README.md:176:curl -X POST http://localhost:8001/task \
+README.md:184:curl http://localhost:8002/switch/providers | jq .
+README.md:386:# UI now has modern dark theme at http://localhost:8011
+hormiguero/Dockerfile:32:    CMD curl -fsS http://localhost:8004/health || exit 1
+shubniggurath/README.md:146:VX11_MADRE_URL=http://localhost:8001
+shubniggurath/README.md:147:VX11_SWITCH_URL=http://localhost:8002
+shubniggurath/README.md:148:VX11_MCP_URL=http://localhost:8006
+docs/archive/FASES_4_7_COMPLETION_EXECUTIVE_SUMMARY.md:234:□ curl http://localhost:8011/health (200 OK)
+docs/archive/FASES_4_7_COMPLETION_EXECUTIVE_SUMMARY.md:236:□ curl -X POST http://localhost:8011/operator/chat (chat works)
+docs/archive/FASES_4_7_COMPLETION_EXECUTIVE_SUMMARY.md:253:# Runs on http://localhost:8011
+docs/archive/FASES_4_7_COMPLETION_EXECUTIVE_SUMMARY.md:271:curl http://localhost:8011/health
+docs/archive/FASES_4_7_COMPLETION_EXECUTIVE_SUMMARY.md:496:3. Health check: `curl http://localhost:8011/health`
+docs/archive/FINAL_COMMANDS.md:334:curl -X POST http://localhost:8001/task \
+docs/archive/FINAL_COMMANDS.md:357:curl http://localhost:8002/switch/providers | jq .
+docs/archive/FINAL_COMMANDS.md:379:curl http://localhost:8003/hermes/available | jq .
+docs/archive/FINAL_COMMANDS.md:413:curl -X POST http://localhost:8006/mcp/chat \
+shubniggurath/docs/SHUB_AUDIT_STRUCTURAL.json:93:                    "localhost:8001",
+shubniggurath/docs/SHUB_AUDIT_STRUCTURAL.json:94:                    "localhost:8002",
+shubniggurath/docs/SHUB_AUDIT_STRUCTURAL.json:95:                    "localhost:8006"
+docs/DEPLOYMENT_READY_SUMMARY_PHASE2.md:151:   curl -s http://localhost:8001/madre/power/state \
+docs/DEPLOYMENT_READY_SUMMARY_PHASE2.md:192:curl -H "X-VX11-Token: $(echo $VX11_TOKEN)" http://localhost:8001/madre/power/state
+docs/DEPLOYMENT_READY_SUMMARY_PHASE2.md:279:curl -H "X-VX11-Token: vx11-local-token" http://localhost:8001/madre/power/state
+shubniggurath/README_FASE1.md:336:curl http://localhost:8001/health  # Madre
+shubniggurath/README_FASE1.md:337:curl http://localhost:8004/health  # Hormiguero
+shubniggurath/README_FASE1.md:338:curl http://localhost:8002/health  # Switch
+shubniggurath/README_FASE1.md:360:- Health cascade: `curl http://localhost:8001/orchestration/module_states`
+shubniggurath/shub_vx11_bridge.py:23:        madre_url: str = "http://localhost:8001",
+shubniggurath/shub_vx11_bridge.py:24:        switch_url: str = "http://localhost:8002",
+shubniggurath/shub_vx11_bridge.py:25:        mcp_url: str = "http://localhost:8006",
+VALIDATION_REPORT_INDEPENDENT.md:251:curl -X POST http://localhost:8001/madre/power/maintenance/post_task
+DEPLOYMENT_READY_SUMMARY.md:189:$ curl -s http://localhost:8001/madre/power/policy/solo_madre/status
+DEPLOYMENT_READY_SUMMARY.md:270:- Contact: madre control plane (localhost:8001/health) for system status
+docs/inbox/20251228T234445Z_inputs/unzipped/shubjson.txt:3567:curl -s http://localhost:8001/madre/api/v1/shub/status | grep -q '"mode":"solo_madre"' || {
+docs/inbox/20251228T234445Z_inputs/unzipped/shubjson.txt:3573:curl -X POST http://localhost:8002/operator/api/v1/shub/control 2>/dev/null | grep -q "405\|404\|403" || {
+PRODUCTION_READINESS_PHASE_8_11.md:153:curl -s http://localhost:8001/madre/power/status | jq .status
+PRODUCTION_READINESS_PHASE_8_11.md:156:curl -s -X POST http://localhost:8001/madre/power/maintenance/post_task | jq .status
+tests/test_madre_power_manager_phase4.py:9:MADRE_URL = "http://localhost:8001"
+tests/test_madre_power_manager_phase4.py:62:        "madre": "http://localhost:8001/health",
+tests/test_madre_power_manager_phase4.py:63:        "switch": "http://localhost:8002/health",
+tests/test_madre_power_manager_phase4.py:64:        "hermes": "http://localhost:8003/health",
+tests/test_madre_power_manager_phase4.py:65:        "hormiguero": "http://localhost:8004/health",
+tests/test_madre_power_manager_phase4.py:66:        "spawner": "http://localhost:8008/health",
+tests/test_no_bypass.py:24:        r"localhost:8011",
+tests/test_no_bypass.py:26:        r"localhost:8001",
+tests/test_no_bypass.py:28:        r"localhost:8002",
+tests/test_integration_flows_e2e.py:73:        resp = requests.get("http://localhost:8002/health", timeout=7)
+tests/test_integration_flows_e2e.py:80:        resp = requests.get("http://localhost:8003/health", timeout=7)
+tests/test_integration_flows_e2e.py:86:        resp = requests.get("http://localhost:8001/health", timeout=7)
+tests/test_integration_flows_e2e.py:115:                "http://localhost:8001/spawn_daughter",
+tests/test_integration_flows_e2e.py:153:        resp = requests.get("http://localhost:8004/health", timeout=7)
+tests/test_frontdoor_p0_core.py:164:        """Direct access to localhost:8002 should NOT be used in actual requests"""
+tests/test_frontdoor_p0_core.py:175:        """Direct access to localhost:8003 should NOT work via front-door tests"""
+tests/test_operator_chat_e2e_phase8.py:25:    OPERATOR_URL = os.getenv("VX11_OPERATOR_URL", "http://localhost:8011")
+tests/test_operator_chat_e2e_phase8.py:27:    MADRE_URL = os.getenv("VX11_MADRE_URL", "http://localhost:8001")
+tests/test_operator_chat_e2e_phase8.py:28:    SWITCH_URL = os.getenv("VX11_SWITCH_URL", "http://localhost:8002")
+tests/test_operator_chat_e2e_phase8.py:365:    OPERATOR_URL = os.getenv("VX11_OPERATOR_URL", "http://localhost:8011")
+tests/test_operator_chat_e2e_p1.py:19:    BASE_OPERATOR = os.getenv("VX11_OPERATOR_URL", "http://localhost:8011")
+tests/test_operator_chat_e2e_p1.py:21:    BASE_MADRE = os.getenv("VX11_MADRE_URL", "http://localhost:8001")
+tests/test_inee_p1_builder_intent.sh:9:HORMIGUERO_URL="http://localhost:8004"
+tests/test_stability_p0_runner_p0.py:39:        success, latency_ms = health_check("http://localhost:8001/health")
+tests/test_stability_p0_runner_p0.py:49:        success, latency_ms = health_check("http://localhost:8001/health")
+tests/test_stability_p0_runner_p0.py:58:            success, _ = health_check("http://localhost:8001/health")
+tests/test_stability_p0_runner_p0.py:72:            "http://localhost:8001/health", max_retries=3
+tests/test_stability_p0_runner_p0.py:170:        result = flow_check("http://localhost:8001/status", "test-endpoint")
+tests/test_stability_p0_runner_p0.py:181:        result = flow_check("http://localhost:8001/status", "test-endpoint")
+tests/test_operator_chat_e2e_p1_v2.py:19:    BASE_OPERATOR = os.getenv("VX11_OPERATOR_URL", "http://localhost:8011")
+tests/test_operator_chat_e2e_p1_v2.py:21:    BASE_MADRE = os.getenv("VX11_MADRE_URL", "http://localhost:8001")
+tests/test_operator_api_map_status.py:125:    # - madre should be reachable (http://localhost:8001/health)
+tests/test_inee_p0_dormant.sh:9:HORMIGUERO_URL="http://localhost:8004"
+FASE_8_CODE_DELIVERY.txt:84:   - VX11_OPERATOR_URL=http://localhost:8011 (for tests)
+FASE_8_CODE_DELIVERY.txt:90:   curl -X POST http://localhost:8001/madre/power/maintenance/post_task
+spawner/main.py:136:        or "http://localhost:8001"
+spawner/Dockerfile:32:    CMD curl -fsS http://localhost:8008/health || exit 1
+IMPLEMENTATION_DELIVERABLES.md:104:curl -s -X POST http://localhost:8011/auth/login \
+IMPLEMENTATION_DELIVERABLES.md:111:curl -s http://localhost:8011/api/modules | jq .
+IMPLEMENTATION_DELIVERABLES.md:118:curl -s http://localhost:8011/api/topology | jq '.data | {nodes: (.nodes|length), edges: (.edges|length)}'
+IMPLEMENTATION_DELIVERABLES.md:126:curl -s "http://localhost:8011/api/fs/list?path=/docs/audit" | jq '.data.total_items'
+IMPLEMENTATION_DELIVERABLES.md:129:curl -s "http://localhost:8011/api/fs/list?path=/docs/canon" | jq '.data.total_items'
+IMPLEMENTATION_DELIVERABLES.md:132:curl -s "http://localhost:8011/api/fs/list?path=/data/runtime" | jq '.data.total_items'
+IMPLEMENTATION_DELIVERABLES.md:135:curl -s "http://localhost:8011/api/fs/list?path=/logs" | jq '.data.total_items'
+IMPLEMENTATION_DELIVERABLES.md:138:curl -s "http://localhost:8011/api/fs/list?path=/forensic" | jq '.data.total_items'
+IMPLEMENTATION_DELIVERABLES.md:144:curl -s "http://localhost:8011/api/fs/list" | jq '.ok'
+IMPLEMENTATION_DELIVERABLES.md:148:curl -s "http://localhost:8011/api/fs/list?path=/etc/passwd" | jq '.ok'
+IMPLEMENTATION_DELIVERABLES.md:152:curl -s "http://localhost:8011/api/fs/list?path=/docs/audit/nonexistent" | jq '.ok'
+audit_hormiguero.py:9:HORMIGUERO_URL = "http://localhost:8004/hormiguero/scan/once"
+test_entrypoint_proxy.sh:15:BACKEND_EXTERNAL="http://localhost:8011"
+OPERATOR_ENDPOINTS_QUICKREF.md:71:curl -s -X POST http://localhost:8011/auth/login \
+OPERATOR_ENDPOINTS_QUICKREF.md:76:export TOKEN="$(curl -s -X POST http://localhost:8011/auth/login -H 'Content-Type: application/json' -d '{\"username\": \"admin\", \"password\": \"admin\"}' | jq -r '.access_token')"
+OPERATOR_ENDPOINTS_QUICKREF.md:77:export CSRF="$(curl -s -X POST http://localhost:8011/auth/login -H 'Content-Type: application/json' -d '{\"username\": \"admin\", \"password\": \"admin\"}' | jq -r '.csrf_token')"
+OPERATOR_ENDPOINTS_QUICKREF.md:83:curl -s http://localhost:8011/api/modules | jq .
+OPERATOR_ENDPOINTS_QUICKREF.md:100:curl -s http://localhost:8011/api/topology | jq .
+OPERATOR_ENDPOINTS_QUICKREF.md:117:curl -s "http://localhost:8011/api/fs/list?path=/docs/audit" | jq .
+OPERATOR_ENDPOINTS_QUICKREF.md:120:curl -s "http://localhost:8011/api/fs/list?path=/docs/canon" | jq .
+OPERATOR_ENDPOINTS_QUICKREF.md:123:curl -s "http://localhost:8011/api/fs/list?path=/data/runtime" | jq .
+OPERATOR_ENDPOINTS_QUICKREF.md:126:curl -s "http://localhost:8011/api/fs/list?path=/logs" | jq .
+OPERATOR_ENDPOINTS_QUICKREF.md:129:curl -s "http://localhost:8011/api/fs/list?path=/forensic" | jq .
+OPERATOR_ENDPOINTS_QUICKREF.md:133:curl -s "http://localhost:8011/api/fs/list" | jq .
+OPERATOR_ENDPOINTS_QUICKREF.md:136:curl -s "http://localhost:8011/api/fs/list?path=/etc/passwd" | jq .
+OPERATOR_ENDPOINTS_QUICKREF.md:139:curl -s "http://localhost:8011/api/fs/list?path=/docs/audit/nonexistent" | jq .
+OPERATOR_ENDPOINTS_QUICKREF.md:355:curl -s -X POST http://localhost:8001/madre/power/maintenance/post_task \
+docs/Archivo de texto.txt:1493:        target: 'http://localhost:8011',
+docs/Archivo de texto.txt:1562:VITE_OPERATOR_BASE_URL=http://localhost:8011
+docs/Archivo de texto.txt:1563:VITE_WS_URL=ws://localhost:8011/ws
+docs/Archivo de texto.txt:1654:const BASE_URL = import.meta.env.VITE_OPERATOR_BASE_URL || 'http://localhost:8011'
+docs/Archivo de texto.txt:1923:  import.meta.env.VITE_WS_URL || 'ws://localhost:8011/ws'
+docs/Archivo de texto.txt:2719:- Operator backend running (http://localhost:8011)
+docs/Archivo de texto.txt:2743:| VITE_OPERATOR_BASE_URL | http://localhost:8011 | Operator backend API URL |
+docs/Archivo de texto.txt:2744:| VITE_WS_URL | ws://localhost:8011/ws | WebSocket endpoint |
+docs/Archivo de texto.txt:3064:2. Asegurar que `operator_backend` esté ejecutándose en `http://localhost:8011`
+docs/Archivo de texto.txt:3133:- Endpoint: `ws://localhost:8011/ws`
+docs/Archivo de texto.txt:3657:        target: 'http://localhost:8011',
+docs/Archivo de texto.txt:3725:VITE_OPERATOR_BASE_URL=http://localhost:8011
+docs/Archivo de texto.txt:3726:VITE_WS_URL=ws://localhost:8011/ws
+docs/Archivo de texto.txt:4083:const BASE_URL = import.meta.env.VITE_OPERATOR_BASE_URL || 'http://localhost:8011'
+docs/Archivo de texto.txt:4427:  import.meta.env.VITE_WS_URL || 'ws://localhost:8011/ws'
+docs/Archivo de texto.txt:5520:- Operator backend running on `http://localhost:8011`
+docs/Archivo de texto.txt:5555:| `VITE_OPERATOR_BASE_URL` | `http://localhost:8011` | Operator backend API URL |
+docs/Archivo de texto.txt:5556:| `VITE_WS_URL` | `ws://localhost:8011/ws` | WebSocket endpoint |
+docs/Archivo de texto.txt:5732:   - Ensure operator_backend is running on `http://localhost:8011`
+docs/Archivo de texto.txt:5734:   - Test WebSocket connection at `ws://localhost:8011/ws`
+docs/shubjson.txt:3567:curl -s http://localhost:8001/madre/api/v1/shub/status | grep -q '"mode":"solo_madre"' || {
+docs/shubjson.txt:3573:curl -X POST http://localhost:8002/operator/api/v1/shub/control 2>/dev/null | grep -q "405\|404\|403" || {
+docs/DEPLOYMENT_COMPLETE_REPORT.md:182:curl -s http://localhost:8001/madre/power/state \
+docs/DEPLOYMENT_COMPLETE_REPORT.md:207:# Verify: curl http://localhost:8001/health
+docs/DEPLOYMENT_COMPLETE_REPORT.md:358:curl -s http://localhost:8001/madre/power/state \
+docs/DEPLOYMENT_COMPLETE_REPORT.md:368:curl -X POST http://localhost:8001/madre/power/window/open \
+docs/audit/20251228_SWITCH_HERMES_FIX/test_p0_power_window.sh:74:log_step "4" "curl http://localhost:8002/health" "IN_PROGRESS" "Testing /health"
+docs/audit/20251228_SWITCH_HERMES_FIX/test_p0_power_window.sh:75:if curl -f http://localhost:8002/health > /tmp/health_switch.log 2>&1; then
+docs/audit/20251228_SWITCH_HERMES_FIX/test_p0_power_window.sh:76:    log_step "4" "curl http://localhost:8002/health" "✅ PASS" "Status OK"
+docs/audit/20251228_SWITCH_HERMES_FIX/test_p0_power_window.sh:78:    log_step "4" "curl http://localhost:8002/health" "❌ FAIL" "Endpoint unreachable"
+docs/audit/20251228_SWITCH_HERMES_FIX/test_p0_power_window.sh:82:log_step "5" "curl http://localhost:8003/health" "IN_PROGRESS" "Testing /health"
+docs/audit/20251228_SWITCH_HERMES_FIX/test_p0_power_window.sh:83:if curl -f http://localhost:8003/health > /tmp/health_hermes.log 2>&1; then
+docs/audit/20251228_SWITCH_HERMES_FIX/test_p0_power_window.sh:84:    log_step "5" "curl http://localhost:8003/health" "✅ PASS" "Status OK"
+docs/audit/20251228_SWITCH_HERMES_FIX/test_p0_power_window.sh:86:    log_step "5" "curl http://localhost:8003/health" "⚠ WARN" "Optional endpoint (may timeout)"
+docs/audit/20251228_SWITCH_HERMES_FIX/test_p0_power_window.sh:147:curl -f http://localhost:8002/health
+docs/audit/20251228_SWITCH_HERMES_FIX/test_p0_power_window.sh:148:curl -f http://localhost:8003/health
