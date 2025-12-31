@@ -13,6 +13,7 @@ import json
 import os
 import time
 import uuid
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Literal, Optional, Set, Union
 
@@ -147,6 +148,17 @@ class OperatorTaskRequest(BaseModel):
     user_id: Optional[str] = "local"
     metadata: Optional[Dict[str, Any]] = None
     provider_hint: Optional[str] = None
+
+
+class OperatorChatCommandRequest(BaseModel):
+    """Chat command request (status, open/close window, spawn task)."""
+
+    command: str  # "status" | "open_window" | "close_window" | "spawn" | "message"
+    args: Optional[Dict[str, Any]] = None
+    message: Optional[str] = None  # For "message" command
+    session_id: Optional[str] = None
+    user_id: Optional[str] = "local"
+    correlation_id: Optional[str] = None
 
 
 @asynccontextmanager
@@ -2172,6 +2184,274 @@ async def operator_api_modules(_: bool = Depends(token_guard)):
     return {"modules": modules}
 
 
+@app.post("/operator/api/chat/commands", tags=["operator-api-p0"])
+async def operator_api_chat_commands(
+    req: OperatorChatCommandRequest,
+    _: bool = Depends(token_guard),
+):
+    """
+    Operator chat commands: status, open_window, close_window, spawn, message.
+
+    Commands:
+    - status: Get window + module status
+    - open_window switch|spawner [ttl_sec]: Open temporal window
+    - close_window: Close active window
+    - spawn <intent> [metadata]: Submit spawn task (windowed)
+    - message: Send chat message (delegated to /operator/api/chat)
+
+    Returns structured response with command result + window status.
+    """
+    session_id = req.session_id or f"session_{int(time.time())}"
+    correlation_id = req.correlation_id or str(uuid.uuid4())
+
+    response_base = {
+        "session_id": session_id,
+        "correlation_id": correlation_id,
+        "command": req.command,
+        "timestamp": datetime.utcnow().isoformat(),
+    }
+
+    # Command: STATUS
+    if req.command == "status":
+        try:
+            clients = get_clients()
+            madre_client = clients.get_client("madre")
+
+            window_status = {"status": "unknown"}
+            if madre_client:
+                window_status = await madre_client.get("/power/state", timeout=3.0) or {
+                    "status": "none",
+                    "active_services": ["madre", "redis"],
+                }
+
+            modules = {
+                "tentaculo_link": {"status": "ok", "port": 8000},
+                "madre": {"status": "ok", "port": 8001},
+                "switch": {"status": "available", "port": 8002},
+                "spawner": {"status": "available", "port": 8005},
+                "hermes": {"status": "available", "port": 8006},
+            }
+
+            return {
+                **response_base,
+                "result": "ok",
+                "window": window_status,
+                "modules": modules,
+            }
+        except Exception as e:
+            write_log(
+                "tentaculo_link", f"chat_cmd_status_error:{str(e)}", level="WARNING"
+            )
+            return {
+                **response_base,
+                "result": "error",
+                "error": str(e)[:100],
+            }
+
+    # Command: OPEN_WINDOW
+    elif req.command == "open_window":
+        if not OPERATOR_CONTROL_ENABLED:
+            return {
+                **response_base,
+                "result": "off_by_policy",
+                "message": "Operator control disabled",
+            }
+
+        args = req.args or {}
+        services = args.get("services", ["switch"])
+        ttl_sec = args.get("ttl_sec", 600)
+
+        try:
+            clients = get_clients()
+            madre_client = clients.get_client("madre")
+
+            if not madre_client:
+                return {
+                    **response_base,
+                    "result": "error",
+                    "error": "madre_unavailable",
+                }
+
+            result = await madre_client.post(
+                "/power/window/open",
+                payload={
+                    "services": services,
+                    "ttl_sec": ttl_sec,
+                    "mode": "ttl",
+                    "reason": "operator_chat_command",
+                },
+                timeout=10.0,
+            )
+
+            write_log(
+                "tentaculo_link",
+                f"chat_cmd_open_window:services={services}:ttl={ttl_sec}",
+                level="INFO",
+            )
+            return {
+                **response_base,
+                "result": "ok" if result and result.get("window_id") else "error",
+                "window": result or {"error": "no_response"},
+            }
+        except Exception as e:
+            write_log(
+                "tentaculo_link",
+                f"chat_cmd_open_window_error:{str(e)}",
+                level="WARNING",
+            )
+            return {
+                **response_base,
+                "result": "error",
+                "error": str(e)[:100],
+            }
+
+    # Command: CLOSE_WINDOW
+    elif req.command == "close_window":
+        if not OPERATOR_CONTROL_ENABLED:
+            return {
+                **response_base,
+                "result": "off_by_policy",
+                "message": "Operator control disabled",
+            }
+
+        try:
+            clients = get_clients()
+            madre_client = clients.get_client("madre")
+
+            if not madre_client:
+                return {
+                    **response_base,
+                    "result": "error",
+                    "error": "madre_unavailable",
+                }
+
+            result = await madre_client.post(
+                "/power/window/close",
+                payload={},
+                timeout=10.0,
+            )
+
+            write_log("tentaculo_link", "chat_cmd_close_window", level="INFO")
+            return {
+                **response_base,
+                "result": "ok" if result and result.get("window_id") else "error",
+                "window": result or {"error": "no_response"},
+            }
+        except Exception as e:
+            write_log(
+                "tentaculo_link",
+                f"chat_cmd_close_window_error:{str(e)}",
+                level="WARNING",
+            )
+            return {
+                **response_base,
+                "result": "error",
+                "error": str(e)[:100],
+            }
+
+    # Command: SPAWN
+    elif req.command == "spawn":
+        if not OPERATOR_CONTROL_ENABLED:
+            return {
+                **response_base,
+                "result": "off_by_policy",
+                "message": "Operator control disabled",
+            }
+
+        # Check if spawner window is open
+        try:
+            clients = get_clients()
+            madre_client = clients.get_client("madre")
+
+            window_status = None
+            if madre_client:
+                window_status = await madre_client.get("/power/state", timeout=3.0)
+
+            # Check if spawner service is in active window
+            if not window_status or "spawner" not in window_status.get(
+                "active_services", []
+            ):
+                return {
+                    **response_base,
+                    "result": "off_by_policy",
+                    "message": "Spawner window not open. Use 'open_window spawner' first.",
+                }
+
+            # Forward to spawner via tentaculo_link proxy
+            args = req.args or {}
+            intent = args.get("intent", "task")
+            metadata = args.get("metadata", {})
+
+            spawner_client = clients.get_client("spawner")
+            if spawner_client:
+                result = await spawner_client.post(
+                    "/spawner/submit",
+                    payload={
+                        "intent": intent,
+                        "metadata": metadata,
+                        "session_id": session_id,
+                        "correlation_id": correlation_id,
+                    },
+                    timeout=5.0,
+                )
+
+                write_log(
+                    "tentaculo_link", f"chat_cmd_spawn:intent={intent}", level="INFO"
+                )
+                return {
+                    **response_base,
+                    "result": "ok" if result and result.get("run_id") else "error",
+                    "spawn": result or {"error": "no_response"},
+                }
+            else:
+                return {
+                    **response_base,
+                    "result": "error",
+                    "error": "spawner_unavailable",
+                }
+        except Exception as e:
+            write_log(
+                "tentaculo_link", f"chat_cmd_spawn_error:{str(e)}", level="WARNING"
+            )
+            return {
+                **response_base,
+                "result": "error",
+                "error": str(e)[:100],
+            }
+
+    # Command: MESSAGE
+    elif req.command == "message":
+        if not req.message:
+            return {
+                **response_base,
+                "result": "error",
+                "error": "message_required",
+            }
+
+        # Delegate to /operator/api/chat
+        chat_req = OperatorChatRequest(
+            message=req.message,
+            session_id=session_id,
+            user_id=req.user_id,
+        )
+
+        return await operator_api_chat(chat_req, correlation_id)
+
+    else:
+        return {
+            **response_base,
+            "result": "error",
+            "error": f"unknown_command: {req.command}",
+            "available_commands": [
+                "status",
+                "open_window",
+                "close_window",
+                "spawn",
+                "message",
+            ],
+        }
+
+
 @app.post("/operator/api/chat", tags=["operator-api-p0"])
 async def operator_api_chat(
     req: OperatorChatRequest,
@@ -3516,6 +3796,161 @@ async def operator_api_chat_window_status(_: bool = Depends(token_guard)):
             "status": "none",
             "error": str(e)[:100],
         }
+
+
+@app.post("/operator/api/spawner/submit", tags=["operator-api-spawner"])
+async def operator_api_spawner_submit(
+    payload: Dict[str, Any],
+    _: bool = Depends(token_guard),
+):
+    """
+    Spawn new task (daughter execution).
+
+    Requires: spawner window to be active.
+
+    Request:
+    {
+        "intent": "task_name",
+        "metadata": {...},
+        "session_id": "...",
+        "correlation_id": "..."
+    }
+
+    Returns:
+    {
+        "status": "ok" | "off_by_policy" | "error",
+        "run_id": "uuid",
+        "correlation_id": "...",
+    }
+    """
+    if not OPERATOR_CONTROL_ENABLED:
+        return JSONResponse(
+            status_code=403,
+            content={
+                "status": "off_by_policy",
+                "message": "Operator control disabled",
+            },
+        )
+
+    try:
+        # Check if spawner window is open
+        clients = get_clients()
+        madre_client = clients.get_client("madre")
+
+        window_status = None
+        if madre_client:
+            window_status = await madre_client.get("/power/state", timeout=3.0)
+
+        if not window_status or "spawner" not in window_status.get(
+            "active_services", []
+        ):
+            return JSONResponse(
+                status_code=403,
+                content={
+                    "status": "off_by_policy",
+                    "message": "Spawner window not open",
+                },
+            )
+
+        # Forward to spawner service
+        spawner_client = clients.get_client("spawner")
+        if not spawner_client:
+            return JSONResponse(
+                status_code=503,
+                content={
+                    "status": "error",
+                    "error_code": "spawner_unavailable",
+                },
+            )
+
+        result = await spawner_client.post(
+            "/spawner/submit",
+            payload=payload,
+            timeout=5.0,
+        )
+
+        write_log(
+            "tentaculo_link",
+            f"spawner_submit:intent={payload.get('intent')}:run_id={result.get('run_id')}",
+            level="INFO",
+        )
+        return result or {
+            "status": "error",
+            "error_code": "no_response",
+        }
+
+    except Exception as e:
+        write_log(
+            "tentaculo_link",
+            f"spawner_submit_error:{type(e).__name__}:{str(e)[:100]}",
+            level="ERROR",
+        )
+        return JSONResponse(
+            status_code=500,
+            content={
+                "status": "error",
+                "error_code": "internal_error",
+                "error_msg": str(e)[:100],
+            },
+        )
+
+
+@app.get("/operator/api/spawner/status", tags=["operator-api-spawner"])
+async def operator_api_spawner_status(
+    run_id: Optional[str] = None,
+    _: bool = Depends(token_guard),
+):
+    """
+    Get spawner task status.
+
+    Query params:
+    - run_id: specific run to query (optional)
+
+    Returns task status or list of recent tasks.
+    """
+    if not OPERATOR_CONTROL_ENABLED:
+        return JSONResponse(
+            status_code=403,
+            content={
+                "status": "off_by_policy",
+                "message": "Operator control disabled",
+            },
+        )
+
+    try:
+        clients = get_clients()
+        spawner_client = clients.get_client("spawner")
+
+        if not spawner_client:
+            return JSONResponse(
+                status_code=503,
+                content={
+                    "status": "error",
+                    "error_code": "spawner_unavailable",
+                },
+            )
+
+        endpoint = f"/spawner/status/{run_id}" if run_id else "/spawner/status"
+        result = await spawner_client.get(endpoint, timeout=3.0)
+
+        return result or {
+            "status": "unknown",
+            "runs": [],
+        }
+
+    except Exception as e:
+        write_log(
+            "tentaculo_link",
+            f"spawner_status_error:{str(e)[:100]}",
+            level="WARNING",
+        )
+        return JSONResponse(
+            status_code=500,
+            content={
+                "status": "error",
+                "error_code": "internal_error",
+            },
+        )
 
 
 # DEPRECATED: Duplicate removed (see line 2656 for canonical implementation)
