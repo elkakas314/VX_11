@@ -3,11 +3,14 @@ P0 CORE TESTS: Front-door validation (via localhost:8000 only)
 Validates single-entrypoint architecture, auth chain, and basic contracts.
 """
 
-import pytest
-import httpx
 import json
 import os
+from pathlib import Path
 from typing import Optional
+
+import pytest
+from fastapi.testclient import TestClient
+from config.settings import settings
 
 
 # ============================================================================
@@ -52,21 +55,21 @@ def get_vx11_token() -> str:
 
 
 @pytest.fixture(scope="session")
-def base_url() -> str:
-    """Front-door only: localhost:8000"""
-    return "http://localhost:8000"
-
-
-@pytest.fixture(scope="session")
 def token() -> str:
     """Resolve VX11_TOKEN"""
     return get_vx11_token()
 
 
-@pytest.fixture(scope="session")
-def http_client() -> httpx.Client:
-    """Sync HTTP client"""
-    return httpx.Client(timeout=5.0)
+@pytest.fixture
+def http_client() -> TestClient:
+    """Test client for tentaculo_link."""
+    prev_auth = settings.enable_auth
+    settings.enable_auth = True
+    from tentaculo_link.main_v7 import app
+
+    with TestClient(app) as client:
+        yield client
+    settings.enable_auth = prev_auth
 
 
 # ============================================================================
@@ -77,17 +80,17 @@ def http_client() -> httpx.Client:
 class TestFrontDoorHealth:
     """Health endpoints must be accessible via front-door"""
 
-    def test_health_ok(self, base_url, http_client):
+    def test_health_ok(self, http_client):
         """GET /health returns 200 with status=ok"""
-        resp = http_client.get(f"{base_url}/health")
+        resp = http_client.get("/health")
         assert resp.status_code == 200
         data = resp.json()
         assert data.get("status") == "ok"
         assert data.get("module") == "tentaculo_link"
 
-    def test_openapi_exists(self, base_url, http_client):
+    def test_openapi_exists(self, http_client):
         """GET /openapi.json returns valid JSON with paths"""
-        resp = http_client.get(f"{base_url}/openapi.json")
+        resp = http_client.get("/openapi.json")
         assert resp.status_code == 200
         data = resp.json()
         assert "paths" in data
@@ -102,9 +105,12 @@ class TestFrontDoorHealth:
         if len(operation_ids) != len(set(operation_ids)):
             pytest.skip("WARNING: Duplicate operationIds in OpenAPI spec")
 
-    def test_operator_ui_served(self, base_url, http_client):
+    def test_operator_ui_served(self, http_client):
         """GET /operator/ui/ returns HTML (no blank screen)."""
-        resp = http_client.get(f"{base_url}/operator/ui/")
+        operator_ui_path = Path(__file__).resolve().parent.parent / "operator/frontend/dist"
+        if not operator_ui_path.exists():
+            pytest.skip("Operator UI dist not built; run npm run build")
+        resp = http_client.get("/operator/ui/")
         assert resp.status_code == 200
         body = resp.text
         assert "id=\"root\"" in body or "VX11 Operator" in body
@@ -113,18 +119,18 @@ class TestFrontDoorHealth:
 class TestHermesGetEngineAuth:
     """Hermes GET-engine endpoint auth validation"""
 
-    def test_get_engine_without_token_401(self, base_url, http_client):
+    def test_get_engine_without_token_401(self, http_client):
         """POST /hermes/get-engine without token => 401"""
         resp = http_client.post(
-            f"{base_url}/hermes/get-engine",
+            "/hermes/get-engine",
             json={"engine_id": "gpt4"},
         )
         assert resp.status_code == 401
 
-    def test_get_engine_with_token_200(self, base_url, http_client, token):
+    def test_get_engine_with_token_200(self, http_client, token):
         """POST /hermes/get-engine with token => 200"""
         resp = http_client.post(
-            f"{base_url}/hermes/get-engine",
+            "/hermes/get-engine",
             json={"engine_id": "gpt4"},
             headers={"X-VX11-Token": token},
         )
@@ -133,10 +139,10 @@ class TestHermesGetEngineAuth:
         assert "engine_id" in data
         assert data["engine_id"] == "gpt4"
 
-    def test_get_engine_missing_engine_id_422(self, base_url, http_client, token):
+    def test_get_engine_missing_engine_id_422(self, http_client, token):
         """POST /hermes/get-engine with token but no engine_id => 422"""
         resp = http_client.post(
-            f"{base_url}/hermes/get-engine",
+            "/hermes/get-engine",
             json={},
             headers={"X-VX11-Token": token},
         )
@@ -146,18 +152,18 @@ class TestHermesGetEngineAuth:
 class TestHermesExecuteAuth:
     """Hermes execute endpoint auth validation"""
 
-    def test_execute_without_token_401(self, base_url, http_client):
+    def test_execute_without_token_401(self, http_client):
         """POST /hermes/execute without token => 401"""
         resp = http_client.post(
-            f"{base_url}/hermes/execute",
+            "/hermes/execute",
             json={"command": "test"},
         )
         assert resp.status_code == 401
 
-    def test_execute_with_token_200(self, base_url, http_client, token):
+    def test_execute_with_token_200(self, http_client, token):
         """POST /hermes/execute with token => 200/202"""
         resp = http_client.post(
-            f"{base_url}/hermes/execute",
+            "/hermes/execute",
             json={"command": "test"},
             headers={"X-VX11-Token": token},
         )
@@ -187,10 +193,10 @@ class TestNoBypass:
 class TestTokenChain:
     """Verify X-VX11-Token propagates through layers"""
 
-    def test_token_reaches_hermes_via_proxy(self, base_url, http_client, token):
+    def test_token_reaches_hermes_via_proxy(self, http_client, token):
         """Token forwarded by proxy reaches hermes (return value includes engine_id)"""
         resp = http_client.post(
-            f"{base_url}/hermes/get-engine",
+            "/hermes/get-engine",
             json={"engine_id": "unique_test_id_12345"},
             headers={"X-VX11-Token": token},
         )
@@ -208,9 +214,9 @@ class TestTokenChain:
 class TestOpenAPIContracts:
     """OpenAPI spec must be consistent and complete"""
 
-    def test_hermes_endpoints_in_openapi(self, base_url, http_client):
+    def test_hermes_endpoints_in_openapi(self, http_client):
         """Hermes endpoints (/hermes/*) must exist in OpenAPI"""
-        resp = http_client.get(f"{base_url}/openapi.json")
+        resp = http_client.get("/openapi.json")
         assert resp.status_code == 200
         data = resp.json()
         paths = data.get("paths", {})
@@ -223,9 +229,9 @@ class TestOpenAPIContracts:
         for path in required_paths:
             assert path in paths, f"Missing path in OpenAPI: {path}"
 
-    def test_hermes_endpoints_have_auth_requirement(self, base_url, http_client):
+    def test_hermes_endpoints_have_auth_requirement(self, http_client):
         """Hermes endpoints should document auth requirement"""
-        resp = http_client.get(f"{base_url}/openapi.json")
+        resp = http_client.get("/openapi.json")
         assert resp.status_code == 200
         data = resp.json()
         paths = data.get("paths", {})

@@ -158,7 +158,7 @@ class TestOperatorSwitchAdjustment:
         db_session.commit()
         
         retrieved = db_session.query(OperatorSwitchAdjustment).filter_by(
-            session_id="test-adj-session"
+            session_id=session_id
         ).first()
         assert retrieved is not None
         assert retrieved.applied is False

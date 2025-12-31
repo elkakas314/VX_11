@@ -328,7 +328,7 @@ services:
     profiles: ["operator"]
     build:
       context: .
-      dockerfile: operator_backend/backend/Dockerfile
+      dockerfile: operator/backend/Dockerfile
     image: vx11-operator-backend:v7.0
     container_name: vx11-operator-backend
     hostname: operator-backend

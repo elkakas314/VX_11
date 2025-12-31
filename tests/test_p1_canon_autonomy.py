@@ -5,10 +5,13 @@ Tests for canonical specifications and autonomy observability.
 Markers: @pytest.mark.p1, @pytest.mark.canon, @pytest.mark.integration
 """
 
-import pytest
-import json
 import hashlib
+import json
 from pathlib import Path
+
+import pytest
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
 
 
 @pytest.mark.p1
@@ -18,7 +21,7 @@ def test_p1_canon_files_exist():
     P1.8: Verify canonical spec files exist
     Expected: docs/canon/ contains canonical JSON files
     """
-    canon_dir = Path("/home/elkakas314/vx11/docs/canon")
+    canon_dir = REPO_ROOT / "docs/canon"
     assert canon_dir.exists(), "docs/canon directory not found"
 
     json_files = list(canon_dir.glob("*.json"))
@@ -46,7 +49,7 @@ def test_p1_canon_schema_hash_stability():
     P1.9: Verify canonical schema hashes remain stable
     Expected: Canonical specs hash doesn't change unexpectedly
     """
-    canon_dir = Path("/home/elkakas314/vx11/docs/canon")
+    canon_dir = REPO_ROOT / "docs/canon"
 
     # Calculate hash of all canonical files
     hasher = hashlib.sha256()

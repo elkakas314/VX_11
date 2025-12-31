@@ -18,8 +18,10 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import declarative_base, sessionmaker
 from datetime import datetime
+from pathlib import Path
 import os
 import hashlib
+import json
 
 # Usar declarative_base desde sqlalchemy.orm (SQLAlchemy 2.0 compatible)
 Base = declarative_base()
@@ -127,6 +129,44 @@ class ModuleHealth(Base):
     error_count = Column(Integer, default=0)
     uptime_seconds = Column(Float, default=0.0)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class ModuleStatus(Base):
+    """Estado canónico reportado por Madre."""
+
+    __tablename__ = "module_status"
+
+    module_name = Column(String, primary_key=True)
+    service_name = Column(String)
+    port = Column(Integer)
+    health_url = Column(String)
+    status = Column(String, nullable=False)
+    checked_at_utc = Column(String, nullable=False)
+    notes = Column(Text)
+    report_path = Column(Text)
+
+
+class CanonicalRegistry(Base):
+    __tablename__ = "canonical_registry"
+
+    canonical_version = Column(String, primary_key=True)
+    git_commit = Column(String)
+    git_branch = Column(String)
+    master_path = Column(String)
+    master_sha256 = Column(String)
+    created_at_utc = Column(String)
+
+
+class CanonicalDoc(Base):
+    __tablename__ = "canonical_docs"
+
+    doc_type = Column(String, primary_key=True)
+    version = Column(String)
+    sha256 = Column(String)
+    content_json = Column(Text)
+    source_path = Column(Text)
+    created_at_utc = Column(Text)
+    git_head = Column(Text)
 
 
 class ModelRegistry(Base):
@@ -278,6 +318,21 @@ class AuditLogs(Base):
     level = Column(String(16), default="INFO")
     message = Column(Text, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class CopilotActionsLog(Base):
+    __tablename__ = "copilot_actions_log"
+
+    id = Column(Integer, primary_key=True)
+    session_id = Column(String)
+    timestamp = Column(DateTime)
+    action = Column(Text)
+    mode = Column(Text)
+    files_touched = Column(Integer)
+    git_commit = Column(String)
+    status = Column(Text)
+    notes = Column(Text)
+    action_type = Column(Text)
 
 
 class SandboxExec(Base):
@@ -856,6 +911,90 @@ class PheromoneLog(Base):
     executed_at = Column(DateTime, nullable=True)
 
 
+# ========== INEE TABLES ==========
+
+
+class INEEColony(Base):
+    __tablename__ = "inee_colonies"
+
+    colony_id = Column(String, primary_key=True)
+    name = Column(String)
+    status = Column(String)
+    beta_queen_url = Column(String)
+    protocol = Column(String)
+    last_heartbeat = Column(DateTime)
+    last_seen = Column(DateTime)
+    max_agents = Column(Integer)
+    rate_limit_per_minute = Column(Integer)
+    created_at = Column(DateTime)
+    created_by = Column(String)
+
+
+class INEEAgent(Base):
+    __tablename__ = "inee_agents"
+
+    agent_id = Column(String, primary_key=True)
+    colony_id = Column(String, ForeignKey("inee_colonies.colony_id"), primary_key=True)
+    role = Column(String)
+    status = Column(String)
+    last_checkin = Column(DateTime)
+    telemetry_json = Column(Text)
+    created_at = Column(DateTime)
+
+
+class INEEIntent(Base):
+    __tablename__ = "inee_intents"
+
+    intent_id = Column(String, primary_key=True)
+    colony_id = Column(String, ForeignKey("inee_colonies.colony_id"), nullable=False)
+    agent_id = Column(String)
+    phase = Column(String, nullable=False)
+    intent_type = Column(String)
+    payload_json = Column(Text, nullable=False)
+    correlation_id = Column(String)
+    created_at = Column(DateTime)
+    updated_at = Column(DateTime)
+    approver_id = Column(String)
+    approval_reason = Column(String)
+    result_json = Column(Text)
+
+
+class INEENonce(Base):
+    __tablename__ = "inee_nonces"
+
+    nonce = Column(String, primary_key=True)
+    colony_id = Column(String, ForeignKey("inee_colonies.colony_id"), primary_key=True)
+    used_at = Column(DateTime)
+    request_hash = Column(String)
+
+
+class INEEPolicy(Base):
+    __tablename__ = "inee_policies"
+
+    policy_id = Column(String, primary_key=True)
+    policy_type = Column(String)
+    target_entity = Column(String)
+    config_json = Column(Text, nullable=False)
+    active = Column(Boolean)
+    created_at = Column(DateTime)
+    updated_at = Column(DateTime)
+    updated_by = Column(String)
+
+
+class INEEAuditEvent(Base):
+    __tablename__ = "inee_audit_events"
+
+    event_id = Column(String, primary_key=True)
+    correlation_id = Column(String, primary_key=True)
+    ts = Column(DateTime, primary_key=True)
+    source = Column(String)
+    event_type = Column(String)
+    severity = Column(String)
+    message = Column(Text)
+    structured_json = Column(Text)
+    archive_date = Column(DateTime)
+
+
 # ========== OPERATOR v7.0 TABLES ==========
 
 
@@ -865,7 +1004,7 @@ class OperatorSession(Base):
     __tablename__ = "operator_session"
 
     id = Column(Integer, primary_key=True)
-    session_id = Column(String(64), nullable=False)
+    session_id = Column(String(64), nullable=False, unique=True)
     user_id = Column(String(64), nullable=False, default="local")
     source = Column(String(50), nullable=False, default="web")  # web, cli, api
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -976,6 +1115,83 @@ def migrate_legacy_tables(engine=unified_engine):
             _copy_table(engine, legacy, unified_table)
 
 
+def _ensure_operator_session_unique(engine):
+    try:
+        with engine.begin() as conn:
+            conn.execute(
+                text(
+                    "CREATE UNIQUE INDEX IF NOT EXISTS ux_operator_session_session_id "
+                    "ON operator_session(session_id)"
+                )
+            )
+    except Exception:
+        # Best-effort: keep runtime resilient if table doesn't exist yet.
+        pass
+
+
+def _seed_canonical_tables(engine):
+    repo_root = Path(__file__).resolve().parents[1]
+    master_path = repo_root / "docs" / "CANONICAL_MASTER_VX11.json"
+    if not master_path.exists():
+        return
+    try:
+        master = json.loads(master_path.read_text(encoding="utf-8"))
+    except Exception:
+        return
+
+    canonical_version = master.get("canonical_version")
+    git_commit = master.get("git_commit")
+    git_branch = master.get("git_branch")
+    created_at = master.get("generated_at_utc")
+    sha_map = master.get("sha256", {})
+    canonical_files = master.get("canonical_files", {})
+
+    try:
+        with engine.begin() as conn:
+            registry_count = conn.execute(
+                text("SELECT COUNT(*) FROM canonical_registry")
+            ).scalar()
+            if not registry_count:
+                master_hash = hashlib.sha256(master_path.read_bytes()).hexdigest()
+                conn.execute(
+                    text(
+                        "INSERT INTO canonical_registry (canonical_version, git_commit, git_branch, master_path, master_sha256, created_at_utc) "
+                        "VALUES (:canonical_version, :git_commit, :git_branch, :master_path, :master_sha256, :created_at_utc)"
+                    ),
+                    {
+                        "canonical_version": canonical_version,
+                        "git_commit": git_commit,
+                        "git_branch": git_branch,
+                        "master_path": str(master_path.as_posix()),
+                        "master_sha256": master_hash,
+                        "created_at_utc": created_at,
+                    },
+                )
+
+            docs_count = conn.execute(
+                text("SELECT COUNT(*) FROM canonical_docs")
+            ).scalar()
+            if not docs_count:
+                for doc_type, rel_path in canonical_files.items():
+                    conn.execute(
+                        text(
+                            "INSERT INTO canonical_docs (doc_type, version, sha256, content_json, source_path, created_at_utc, git_head) "
+                            "VALUES (:doc_type, :version, :sha256, :content_json, :source_path, :created_at_utc, :git_head)"
+                        ),
+                        {
+                            "doc_type": doc_type,
+                            "version": canonical_version,
+                            "sha256": sha_map.get(rel_path),
+                            "content_json": None,
+                            "source_path": rel_path,
+                            "created_at_utc": created_at,
+                            "git_head": git_commit,
+                        },
+                    )
+    except Exception:
+        return
+
+
 # ========== PHASE 3: CLI CONCENTRATOR + FLUZO TABLES ==========
 
 
@@ -1069,6 +1285,8 @@ if os.environ.get("VX11_TEST_IMPORT_SAFE", "0") in ("0", "false", "False", ""):
     # Normal runtime: crear tablas y migrar legacy -> unified
     Base.metadata.create_all(unified_engine)
     migrate_legacy_tables(unified_engine)
+    _ensure_operator_session_unique(unified_engine)
+    _seed_canonical_tables(unified_engine)
 else:
     # En modo de import seguro para tests, evitamos crear/migrar tablas
     # para que los tests controlen la sesión/engine y no se poluyan datos en disco.
