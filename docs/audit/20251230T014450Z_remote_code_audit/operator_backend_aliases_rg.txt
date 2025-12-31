@@ -1,0 +1,3 @@
+1063:def _register_aliases(prefix: str, include_in_schema: bool) -> None:
+1073:_register_aliases("/api/v1", include_in_schema=True)
+1074:_register_aliases("/api", include_in_schema=False)

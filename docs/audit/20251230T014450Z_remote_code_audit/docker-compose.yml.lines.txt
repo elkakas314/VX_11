@@ -1,0 +1,200 @@
+     1	services:
+     2	  # ========== TENTACULO LINK (PORT 8000) ==========
+     3	  tentaculo_link:
+     4	    # INVARIANTE: tentaculo_link is ALWAYS ON (single entrypoint for all clients)
+     5	    # No profile means it runs in every context (default, --profile core, --profile operator)
+     6	    build:
+     7	      context: .
+     8	      dockerfile: tentaculo_link/Dockerfile
+     9	      args:
+    10	        - REQUIREMENTS_FILE=requirements_tentaculo.txt
+    11	    image: vx11-tentaculo-link:v6.7
+    12	    container_name: vx11-tentaculo-link
+    13	    hostname: tentaculo-link
+    14	    networks:
+    15	      default:
+    16	        aliases:
+    17	          - tentaculo_link
+    18	    ports:
+    19	      - "8000:8000"
+    20	    volumes:
+    21	      - ./build/artifacts/logs:/app/logs
+    22	      - ./data/runtime:/app/data/runtime
+    23	      - ./docs/audit:/app/docs/audit:ro
+    24	      - ./data/backups:/app/data/backups
+    25	      - ./build/artifacts/sandbox:/app/sandbox
+    26	      - ./models:/app/models
+    27	    environment:
+    28	      - ULTRA_LOW_MEMORY=true
+    29	      - LOG_LEVEL=INFO
+    30	      - PYTHONUNBUFFERED=1
+    31	      - API_TOKEN=vx11-local-token
+    32	      - VX11_GATEWAY_TOKEN=vx11-local-token
+    33	      - VX11_TENTACULO_LINK_TOKEN=vx11-local-token
+    34	      - VX11_OPERATOR_TOKEN=vx11-local-token
+    35	      - VX11_LOCAL_TOKEN=vx11-local-token
+    36	      - VX11_REDIS_URL=redis://:vx11-redis-local@redis:6379/0
+    37	      - VX11_CACHE_TTL_HEALTH=60
+    38	      - VX11_CACHE_ENABLED=true
+    39	      - VX11_RATE_LIMIT_ENABLED=true
+    40	      - VX11_RATE_LIMIT_USER=1000
+    41	      - VX11_RATE_LIMIT_PROTECTED=100
+    42	      - VX11_METRICS_ENABLED=true
+    43	      - VX11_METRICS_PORT=9090
+    44	      - VX11_MANIFESTATOR_ENABLED=true
+    45	      - VX11_REPO_ROOT=/app
+    46	      # P0: DeepSeek API fallback for chat (solo_madre policy)
+    47	      # NOTE: DEEPSEEK_API_KEY MUST be set from .env (never hardcode in repo)
+    48	      # See .env.example for template
+    49	      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-not-set}
+    50	      - DEEPSEEK_BASE_URL=https://api.deepseek.com/v1
+    51	    mem_limit: 512m
+    52	    depends_on:
+    53	      redis:
+    54	        condition: service_healthy
+    55	    restart: unless-stopped
+    56	    healthcheck:
+    57	      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+    58	      interval: 30s
+    59	      timeout: 5s
+    60	      retries: 3
+    61	      start_period: 60s
+    62	
+    63	  # ========== MADRE (PORT 8001) ==========
+    64	  madre:
+    65	    build:
+    66	      context: .
+    67	      dockerfile: madre/Dockerfile
+    68	    image: vx11-madre:v6.7
+    69	    container_name: vx11-madre
+    70	    ports:
+    71	      - "8001:8001"
+    72	    volumes:
+    73	      - ./build/artifacts/logs:/app/logs
+    74	      - ./data/runtime:/app/data/runtime
+    75	      - ./build/artifacts/sandbox:/app/sandbox
+    76	      - ./models:/app/models
+    77	      - /var/run/docker.sock:/var/run/docker.sock:rw
+    78	    environment:
+    79	      - ULTRA_LOW_MEMORY=true
+    80	      - LOG_LEVEL=INFO
+    81	      - PYTHONUNBUFFERED=1
+    82	      - API_TOKEN=vx11-local-token
+    83	      - VX11_GATEWAY_TOKEN=vx11-local-token
+    84	      - VX11_TENTACULO_LINK_TOKEN=vx11-local-token
+    85	      - VX11_OPERATOR_TOKEN=vx11-local-token
+    86	      - VX11_LOCAL_TOKEN=vx11-local-token
+    87	      - VX11_ALLOW_SERVICE_CONTROL=1
+    88	      - VX11_MAINTENANCE_WINDOW_ENABLED=1
+    89	    mem_limit: 512m
+    90	    depends_on:
+    91	      redis:
+    92	        condition: service_healthy
+    93	    restart: unless-stopped
+    94	    healthcheck:
+    95	      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+    96	      interval: 30s
+    97	      timeout: 5s
+    98	      retries: 3
+    99	      start_period: 60s
+   100	
+   101	  # ========== SWITCH (PORT 8002) ==========
+   102	  switch:
+   103	    profiles: ["core"]
+   104	    build:
+   105	      context: .
+   106	      dockerfile: switch/Dockerfile
+   107	    image: vx11-switch:v6.7
+   108	    container_name: vx11-switch
+   109	    ports:
+   110	      - "8002:8002"
+   111	    volumes:
+   112	      - ./build/artifacts/logs:/app/logs
+   113	      - ./data/runtime:/app/data/runtime
+   114	      - ./models:/app/models
+   115	    environment:
+   116	      - ULTRA_LOW_MEMORY=true
+   117	      - LOG_LEVEL=INFO
+   118	      - PYTHONUNBUFFERED=1
+   119	      - API_TOKEN=vx11-local-token
+   120	      - VX11_GATEWAY_TOKEN=vx11-local-token
+   121	      - VX11_TENTACULO_LINK_TOKEN=vx11-local-token
+   122	      - VX11_OPERATOR_TOKEN=vx11-local-token
+   123	      - VX11_LOCAL_TOKEN=vx11-local-token
+   124	    mem_limit: 512m
+   125	    depends_on:
+   126	      - tentaculo_link
+   127	    restart: unless-stopped
+   128	    healthcheck:
+   129	      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+   130	      interval: 30s
+   131	      timeout: 5s
+   132	      retries: 3
+   133	      start_period: 60s
+   134	
+   135	  # ========== HERMES (PORT 8003) ==========
+   136	  hermes:
+   137	    profiles: ["core"]
+   138	    build:
+   139	      context: .
+   140	      dockerfile: switch/hermes/Dockerfile
+   141	    image: vx11-hermes:v6.7
+   142	    container_name: vx11-hermes
+   143	    ports:
+   144	      - "8003:8003"
+   145	    volumes:
+   146	      - ./build/artifacts/logs:/app/logs
+   147	      - ./data/runtime:/app/data/runtime
+   148	      - ./models:/app/models
+   149	    environment:
+   150	      - ULTRA_LOW_MEMORY=true
+   151	      - LOG_LEVEL=INFO
+   152	      - PYTHONUNBUFFERED=1
+   153	      - API_TOKEN=vx11-local-token
+   154	      - VX11_GATEWAY_TOKEN=vx11-local-token
+   155	      - VX11_TENTACULO_LINK_TOKEN=vx11-local-token
+   156	      - VX11_OPERATOR_TOKEN=vx11-local-token
+   157	      - VX11_LOCAL_TOKEN=vx11-local-token
+   158	    mem_limit: 512m
+   159	    depends_on:
+   160	      - tentaculo_link
+   161	    restart: unless-stopped
+   162	    healthcheck:
+   163	      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+   164	      interval: 30s
+   165	      timeout: 5s
+   166	      retries: 3
+   167	      start_period: 60s
+   168	
+   169	  # ========== HORMIGUERO (PORT 8004) ==========
+   170	  hormiguero:
+   171	    profiles: ["core"]
+   172	    image: vx11-hormiguero:v6.7
+   173	    container_name: vx11-hormiguero
+   174	    ports:
+   175	      - "8004:8004"
+   176	    volumes:
+   177	      - ./build/artifacts/logs:/app/logs
+   178	      - ./data/runtime:/app/data/runtime
+   179	    environment:
+   180	      - ULTRA_LOW_MEMORY=true
+   181	      - LOG_LEVEL=INFO
+   182	      - PYTHONUNBUFFERED=1
+   183	      - API_TOKEN=vx11-local-token
+   184	      - VX11_GATEWAY_TOKEN=vx11-local-token
+   185	      - VX11_TENTACULO_LINK_TOKEN=vx11-local-token
+   186	      - VX11_OPERATOR_TOKEN=vx11-local-token
+   187	      - VX11_LOCAL_TOKEN=vx11-local-token
+   188	      - HORMIGUERO_TENTACULO_URL=http://tentaculo_link:8000
+   189	      - HORMIGUERO_MADRE_URL=http://madre:8001
+   190	      - HORMIGUERO_SWITCH_URL=http://switch:8002
+   191	      - HORMIGUERO_SPAWNER_URL=http://spawner:8008
+   192	      - HORMIGUERO_MANIFESTATOR_URL=http://manifestator:8005
+   193	    mem_limit: 512m
+   194	    depends_on:
+   195	      - tentaculo_link
+   196	    restart: unless-stopped
+   197	    healthcheck:
+   198	      test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
+   199	      interval: 30s
+   200	      timeout: 5s

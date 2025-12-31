@@ -1,0 +1,220 @@
+     1	"""
+     2	Power Windows Manager for VX11 Madre v7
+     3	
+     4	Gestiona ventanas (servicios temporales o indefinidos) con TTL automático.
+     5	- window_id: UUID único
+     6	- deadline: None (hold) o datetime (ttl)
+     7	- mode: "ttl" (temporal) o "hold" (indefinido)
+     8	- state: "open" | "closed" | "expired" | "error"
+     9	"""
+    10	
+    11	import json
+    12	import logging
+    13	import asyncio
+    14	from datetime import datetime, timedelta, timezone
+    15	from pathlib import Path
+    16	from typing import Optional, Set, List, Dict, Any
+    17	from uuid import uuid4
+    18	import os
+    19	
+    20	log = logging.getLogger("vx11.madre.power_windows")
+    21	
+    22	
+    23	class Window:
+    24	    """Representa una ventana de servicios."""
+    25	
+    26	    def __init__(
+    27	        self,
+    28	        window_id: str,
+    29	        services: Set[str],
+    30	        ttl_sec: Optional[int],
+    31	        mode: str,
+    32	        reason: str,
+    33	        created_at: Optional[datetime] = None,
+    34	    ):
+    35	        self.window_id = window_id
+    36	        self.services = services
+    37	        self.mode = mode  # "ttl" o "hold"
+    38	        self.reason = reason
+    39	        self.state = "open"
+    40	        self.created_at = created_at or datetime.now(timezone.utc)
+    41	
+    42	        # Deadline (None si hold)
+    43	        if mode == "ttl" and ttl_sec:
+    44	            self.deadline = self.created_at + timedelta(seconds=ttl_sec)
+    45	        else:
+    46	            self.deadline = None
+    47	
+    48	        self.closed_at: Optional[datetime] = None
+    49	        self.close_reason = ""
+    50	
+    51	    def ttl_remaining_sec(self) -> Optional[int]:
+    52	        """Retorna segundos restantes, o None si hold."""
+    53	        if self.deadline is None:
+    54	            return None
+    55	        remaining = (self.deadline - datetime.now(timezone.utc)).total_seconds()
+    56	        return max(0, int(remaining))
+    57	
+    58	    def is_expired(self) -> bool:
+    59	        """True si deadline ha pasado."""
+    60	        if self.deadline is None:
+    61	            return False
+    62	        return datetime.now(timezone.utc) >= self.deadline
+    63	
+    64	    def to_dict(self) -> Dict[str, Any]:
+    65	        """Serializa window a dict."""
+    66	        return {
+    67	            "window_id": self.window_id,
+    68	            "services": list(self.services),
+    69	            "mode": self.mode,
+    70	            "reason": self.reason,
+    71	            "state": self.state,
+    72	            "created_at": self.created_at.isoformat() + "Z",
+    73	            "deadline": self.deadline.isoformat() + "Z" if self.deadline else None,
+    74	            "closed_at": self.closed_at.isoformat() + "Z" if self.closed_at else None,
+    75	            "ttl_remaining_sec": self.ttl_remaining_sec(),
+    76	        }
+    77	
+    78	    @classmethod
+    79	    def from_dict(cls, data: Dict[str, Any]) -> "Window":
+    80	        """Deserializa window desde dict."""
+    81	        created_at = (
+    82	            datetime.fromisoformat(data["created_at"].replace("Z", "+00:00"))
+    83	            if data.get("created_at")
+    84	            else None
+    85	        )
+    86	        window = cls(
+    87	            window_id=data["window_id"],
+    88	            services=set(data.get("services", [])),
+    89	            ttl_sec=None,  # Ya calculado, deadline está en data
+    90	            mode=data.get("mode", "ttl"),
+    91	            reason=data.get("reason", ""),
+    92	            created_at=created_at,
+    93	        )
+    94	        window.state = data.get("state", "open")
+    95	        if data.get("deadline"):
+    96	            window.deadline = datetime.fromisoformat(
+    97	                data["deadline"].replace("Z", "+00:00")
+    98	            )
+    99	        if data.get("closed_at"):
+   100	            window.closed_at = datetime.fromisoformat(
+   101	                data["closed_at"].replace("Z", "+00:00")
+   102	            )
+   103	        window.close_reason = data.get("close_reason", "")
+   104	        return window
+   105	
+   106	
+   107	class WindowManager:
+   108	    """Gestiona estado de ventanas (window_id, TTL, servicios activos)."""
+   109	
+   110	    # Allowlist de servicios permitidos (sincronizado con docker-compose.yml)
+   111	    ALLOWLIST = {
+   112	        "tentaculo_link",
+   113	        "switch",
+   114	        "hermes",
+   115	        "hormiguero",
+   116	        "manifestator",
+   117	        "mcp",
+   118	        "shubniggurath",
+   119	        "spawner",
+   120	        "operator-backend",
+   121	        "operator-frontend",
+   122	    }
+   123	
+   124	    SOLO_MADRE_SERVICES = {"madre", "redis"}
+   125	
+   126	    def __init__(self, state_file: Optional[Path] = None):
+   127	        self.state_file = state_file or Path("docs/audit/madre_windows_state.json")
+   128	        self.active_window: Optional[Window] = None
+   129	        self.history: List[Dict[str, Any]] = []
+   130	        self._load_state()
+   131	
+   132	    def _load_state(self) -> None:
+   133	        """Carga estado desde archivo JSON."""
+   134	        if not self.state_file.exists():
+   135	            log.info(f"No state file found at {self.state_file}, starting fresh")
+   136	            self.active_window = None
+   137	            self.history = []
+   138	            return
+   139	
+   140	        try:
+   141	            with open(self.state_file, "r") as f:
+   142	                data = json.load(f)
+   143	                if data.get("active_window"):
+   144	                    self.active_window = Window.from_dict(data["active_window"])
+   145	                self.history = data.get("history", [])
+   146	            log.info(f"Loaded state from {self.state_file}")
+   147	        except Exception as e:
+   148	            log.error(f"Failed to load state: {e}")
+   149	            self.active_window = None
+   150	            self.history = []
+   151	
+   152	    def _save_state(self) -> None:
+   153	        """Guarda estado a archivo JSON."""
+   154	        self.state_file.parent.mkdir(parents=True, exist_ok=True)
+   155	        try:
+   156	            data = {
+   157	                "active_window": (
+   158	                    self.active_window.to_dict() if self.active_window else None
+   159	                ),
+   160	                "history": self.history,
+   161	                "last_update": datetime.now(timezone.utc).isoformat() + "Z",
+   162	            }
+   163	            with open(self.state_file, "w") as f:
+   164	                json.dump(data, f, indent=2)
+   165	            log.debug(f"Saved state to {self.state_file}")
+   166	        except Exception as e:
+   167	            log.error(f"Failed to save state: {e}")
+   168	
+   169	    def is_allowlist_valid(self, services: Set[str]) -> bool:
+   170	        """Valida que todos los servicios estén en allowlist."""
+   171	        invalid = services - self.ALLOWLIST
+   172	        if invalid:
+   173	            log.warning(f"Invalid services: {invalid}")
+   174	            return False
+   175	        return True
+   176	
+   177	    def register_window(
+   178	        self, services: Set[str], ttl_sec: Optional[int], mode: str, reason: str
+   179	    ) -> Window:
+   180	        """
+   181	        Registra una nueva ventana.
+   182	        Raises: ValueError si hay ventana activa o servicios no válidos
+   183	        """
+   184	        if self.active_window and self.active_window.state == "open":
+   185	            raise ValueError(f"Window already active: {self.active_window.window_id}")
+   186	
+   187	        if not self.is_allowlist_valid(services):
+   188	            raise ValueError(f"Services not in allowlist: {services}")
+   189	
+   190	        window_id = str(uuid4())
+   191	        window = Window(
+   192	            window_id=window_id,
+   193	            services=services,
+   194	            ttl_sec=ttl_sec,
+   195	            mode=mode,
+   196	            reason=reason,
+   197	        )
+   198	
+   199	        self.active_window = window
+   200	        self._save_state()
+   201	        log.info(
+   202	            f"Registered window {window_id}: {services}, mode={mode}, ttl={ttl_sec}s"
+   203	        )
+   204	        return window
+   205	
+   206	    def close_window(self, reason: str = "manual") -> Optional[Window]:
+   207	        """Cierra ventana activa."""
+   208	        if not self.active_window:
+   209	            log.warning("No active window to close")
+   210	            return None
+   211	
+   212	        window = self.active_window
+   213	        window.state = "closed"
+   214	        window.closed_at = datetime.now(timezone.utc)
+   215	        window.close_reason = reason
+   216	
+   217	        # Agregar a history
+   218	        self.history.append(window.to_dict())
+   219	
+   220	        self.active_window = None

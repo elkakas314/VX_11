@@ -1,0 +1,75 @@
+    _: bool = Depends(token_guard),
+):
+    response = await _call_tentaculo("GET", "/api/rails/lanes", correlation_id)
+    return JSONResponse(status_code=response.status_code, content=response.json())
+
+
+@app.get("/operator/api/rails")
+async def rails(
+    correlation_id: str = Depends(get_correlation_id),
+    _: bool = Depends(token_guard),
+):
+    response = await _call_tentaculo("GET", "/api/rails", correlation_id)
+    return JSONResponse(status_code=response.status_code, content=response.json())
+
+
+@app.get("/operator/api/healthz")
+async def healthz():
+    return {"status": "ok"}
+
+
+ALIAS_ROUTES = [
+    ("/health", ["GET"], health),
+    ("/env", ["GET"], env_status),
+    ("/status", ["GET"], operator_status),
+    ("/modules", ["GET"], modules),
+    ("/topology", ["GET"], topology),
+    ("/windows", ["GET"], windows),
+    ("/chat/window/open", ["POST"], open_window),
+    ("/chat/window/close", ["POST"], close_window),
+    ("/chat/window/status", ["GET"], window_status),
+    ("/chat", ["POST"], chat),
+    ("/events", ["GET"], events),
+    ("/events/stream", ["GET"], events_stream),
+    ("/logs/tail", ["GET"], logs_tail),
+    ("/audit/runs", ["GET"], audit_runs),
+    ("/audit/runs/{run_id}", ["GET"], audit_run_detail),
+    ("/audit", ["GET"], audit_summary),
+    ("/explorer/presets", ["GET"], explorer_presets),
+    ("/explorer/query", ["POST"], explorer_query),
+    ("/madre/plan", ["POST"], madre_plan),
+    ("/madre/execute", ["POST"], madre_execute),
+    ("/madre/cancel", ["POST"], madre_cancel),
+    ("/madre/status/{intent_id}", ["GET"], madre_status),
+    ("/manifestator/status", ["GET"], manifestator_status),
+    ("/manifestator/patchplan", ["POST"], manifestator_patchplan),
+    ("/manifestator/compare", ["POST"], manifestator_compare),
+    ("/manifestator/apply", ["POST"], manifestator_apply),
+    ("/hormiguero/status", ["GET"], hormiguero_status),
+    ("/hormiguero/scan_once", ["POST"], hormiguero_scan_once),
+    ("/metrics", ["GET"], metrics),
+    ("/scorecard", ["GET"], scorecard),
+    ("/settings", ["GET"], get_settings),
+    ("/settings", ["POST"], update_settings),
+    ("/rails/lanes", ["GET"], rails_lanes),
+    ("/rails", ["GET"], rails),
+    ("/shub/status", ["GET"], shub_status),
+    ("/shub/jobs", ["GET"], shub_jobs),
+    ("/shub/jobs/submit", ["POST"], shub_jobs_submit),
+    ("/assist/deepseek_r1", ["POST"], assist_deepseek),
+    ("/assist/deepseek_r1/status", ["GET"], assist_deepseek_status),
+]
+
+
+def _register_aliases(prefix: str, include_in_schema: bool) -> None:
+    for path, methods, handler in ALIAS_ROUTES:
+        app.add_api_route(
+            f"{prefix}{path}",
+            handler,
+            methods=methods,
+            include_in_schema=include_in_schema,
+        )
+
+
+_register_aliases("/api/v1", include_in_schema=True)
+_register_aliases("/api", include_in_schema=False)

@@ -1,0 +1,35 @@
+/workspace/VX_11/madre/routes_power.py:5:- POST /madre/power/window/open — abre ventana + inicia servicios
+/workspace/VX_11/madre/routes_power.py:6:- POST /madre/power/window/close — cierra ventana + detiene servicios
+/workspace/VX_11/madre/routes_power.py:7:- GET /madre/power/state — lee estado
+/workspace/VX_11/madre/routes_power.py:8:- POST /madre/power/policy/solo_madre/apply — aplica SOLO_MADRE
+/workspace/VX_11/madre/routes_power.py:9:- GET /madre/power/policy/solo_madre/status — chequea SOLO_MADRE activo
+/workspace/VX_11/madre/routes_power.py:12:- Uses existing /madre/power/service/{name}/start|stop endpoints
+/workspace/VX_11/madre/routes_power.py:338:    POST /madre/power/window/open
+/workspace/VX_11/madre/routes_power.py:411:    POST /madre/power/window/close
+/workspace/VX_11/madre/routes_power.py:456:    GET /madre/power/state
+/workspace/VX_11/madre/routes_power.py:484:    POST /madre/power/policy/solo_madre/apply
+/workspace/VX_11/madre/routes_power.py:531:    GET /madre/power/policy/solo_madre/status
+/workspace/VX_11/madre/power_manager.py:466:@router.get("/madre/power/services")
+/workspace/VX_11/madre/power_manager.py:472:@router.get("/madre/power/token")
+/workspace/VX_11/madre/power_manager.py:480:@router.post("/madre/power/maintenance/post_task")
+/workspace/VX_11/madre/power_manager.py:611:@router.post("/madre/power/service/{name}/start")
+/workspace/VX_11/madre/power_manager.py:624:@router.post("/madre/power/service/{name}/stop")
+/workspace/VX_11/madre/power_manager.py:637:@router.post("/madre/power/service/{name}/restart")
+/workspace/VX_11/madre/power_manager.py:650:@router.post("/madre/power/mode/idle_min")
+/workspace/VX_11/madre/power_manager.py:658:    P0-3 SECURITY: POST /madre/power/mode/idle_min
+/workspace/VX_11/madre/power_manager.py:672:@router.post("/madre/power/mode/hard_off")
+/workspace/VX_11/madre/power_manager.py:680:    P0-3 SECURITY: POST /madre/power/mode/hard_off
+/workspace/VX_11/madre/power_manager.py:692:    curl -X POST http://localhost:8001/madre/power/mode/hard_off \
+/workspace/VX_11/madre/power_manager.py:925:@router.post("/madre/power/mode")
+/workspace/VX_11/madre/power_manager.py:939:@router.post("/madre/power/service/start")
+/workspace/VX_11/madre/power_manager.py:964:@router.post("/madre/power/service/stop")
+/workspace/VX_11/madre/power_manager.py:983:@router.get("/madre/power/status")
+/workspace/VX_11/madre/power_manager.py:998:@router.post("/madre/power/policy/solo_madre/apply")
+/workspace/VX_11/madre/power_manager.py:1033:@router.get("/madre/power/policy/solo_madre/status")
+/workspace/VX_11/madre/main_legacy.py:692:@app.post("/madre/power/on/{module}")
+/workspace/VX_11/madre/main_legacy.py:698:@app.post("/madre/power/off/{module}")
+/workspace/VX_11/madre/main_legacy.py:704:@app.get("/madre/power/status")
+/workspace/VX_11/madre/main_legacy.py:710:@app.post("/madre/power/auto-decide")
+/workspace/VX_11/madre/main_legacy.py:716:@app.post("/madre/power/db_retention")
+/workspace/VX_11/madre/main.py:979:app.include_router(routes_power.router, prefix="/madre/power", tags=["power-manager"])
+/workspace/VX_11/madre/power_windows.py:250:        """Retorna estado actual para GET /madre/power/state."""

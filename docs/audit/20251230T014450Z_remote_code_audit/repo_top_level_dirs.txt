@@ -1,0 +1,17 @@
+/workspace/VX_11/archive/
+/workspace/VX_11/attic/
+/workspace/VX_11/builder/
+/workspace/VX_11/config/
+/workspace/VX_11/docs/
+/workspace/VX_11/hormiguero/
+/workspace/VX_11/madre/
+/workspace/VX_11/manifestator/
+/workspace/VX_11/mcp/
+/workspace/VX_11/operator/
+/workspace/VX_11/scripts/
+/workspace/VX_11/shubniggurath/
+/workspace/VX_11/spawner/
+/workspace/VX_11/switch/
+/workspace/VX_11/tentaculo_link/
+/workspace/VX_11/tests/
+/workspace/VX_11/tools/

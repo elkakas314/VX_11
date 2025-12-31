@@ -1,0 +1,220 @@
+     1	/**
+     2	 * API Client for VX11 Operator
+     3	 * Consumes: tentaculo_link:8000 only (via relative URL)
+     4	 * No direct calls to backend services
+     5	 * 
+     6	 * API base is configurable (VITE_VX11_API_BASE). Defaults:
+     7	 * - Dev: http://localhost:8000
+     8	 * - Prod: window.location.origin
+     9	 */
+    10	
+    11	const TOKEN =
+    12	    import.meta.env.VITE_VX11_TOKEN ||
+    13	    import.meta.env.VITE_VX11_TENTACULO_TOKEN ||
+    14	    'vx11-local-token' // In production: from auth service or config
+    15	const RAW_BASE =
+    16	    import.meta.env.VITE_VX11_API_BASE ||
+    17	    import.meta.env.VITE_VX11_API_BASE_URL ||
+    18	    ''
+    19	const DEFAULT_BASE = import.meta.env.DEV
+    20	    ? 'http://localhost:8000'
+    21	    : typeof window !== 'undefined'
+    22	      ? window.location.origin
+    23	      : 'http://localhost:8000'
+    24	
+    25	export const API_BASE = (RAW_BASE as string).trim() || DEFAULT_BASE
+    26	
+    27	export const buildApiUrl = (path: string) => new URL(path, API_BASE).toString()
+    28	
+    29	interface ApiResponse<T> {
+    30	    ok: boolean
+    31	    data?: T
+    32	    error?: string
+    33	    status: number
+    34	}
+    35	
+    36	class ApiClient {
+    37	    private backoffMs = 1000
+    38	    private maxBackoffMs = 30000
+    39	
+    40	    async request<T>(
+    41	        method: string,
+    42	        path: string,
+    43	        body?: any,
+    44	        options?: { noRetry?: boolean; timeout?: number }
+    45	    ): Promise<ApiResponse<T>> {
+    46	        const url = buildApiUrl(path)
+    47	        const timeout = options?.timeout || 5000
+    48	
+    49	        try {
+    50	            const controller = new AbortController()
+    51	            const timeoutId = setTimeout(() => controller.abort(), timeout)
+    52	
+    53	            const response = await fetch(url, {
+    54	                method,
+    55	                headers: {
+    56	                    'Content-Type': 'application/json',
+    57	                    'x-vx11-token': TOKEN,
+    58	                },
+    59	                body: body ? JSON.stringify(body) : undefined,
+    60	                signal: controller.signal,
+    61	            })
+    62	
+    63	            clearTimeout(timeoutId)
+    64	
+    65	            if (!response.ok) {
+    66	                if (
+    67	                    response.status === 404 &&
+    68	                    !options?.noRetry &&
+    69	                    path.startsWith('/operator/api/v1')
+    70	                ) {
+    71	                    const legacyPath = path.replace('/operator/api/v1', '/operator/api')
+    72	                    return this.request(method, legacyPath, body, { ...options, noRetry: true })
+    73	                }
+    74	                let errorDetail = `HTTP ${response.status}`
+    75	                try {
+    76	                    const errorJson = await response.json()
+    77	                    if (errorJson?.status === 'OFF_BY_POLICY') {
+    78	                        errorDetail = errorJson.message || 'OFF_BY_POLICY'
+    79	                        return {
+    80	                            ok: false,
+    81	                            data: errorJson,
+    82	                            error: errorDetail,
+    83	                            status: response.status,
+    84	                        }
+    85	                    }
+    86	                } catch {
+    87	                    // ignore JSON parse errors
+    88	                }
+    89	                return {
+    90	                    ok: false,
+    91	                    error: errorDetail,
+    92	                    status: response.status,
+    93	                }
+    94	            }
+    95	
+    96	            const data = await response.json()
+    97	            return {
+    98	                ok: true,
+    99	                data,
+   100	                status: response.status,
+   101	            }
+   102	        } catch (err: any) {
+   103	            console.error(`API request failed: ${method} ${path}`, err)
+   104	            return {
+   105	                ok: false,
+   106	                error: err.message || 'Unknown error',
+   107	                status: 0,
+   108	            }
+   109	        }
+   110	    }
+   111	
+   112	    // Chat endpoint (P0: via /operator/api/chat)
+   113	    async chat(message: string, sessionId?: string): Promise<ApiResponse<any>> {
+   114	        return this.request('POST', '/operator/api/v1/chat', {
+   115	            message,
+   116	            session_id: sessionId,
+   117	        })
+   118	    }
+   119	
+   120	    // Status endpoint (P0: via /operator/api/status)
+   121	    async status(): Promise<ApiResponse<any>> {
+   122	        return this.request('GET', '/operator/api/v1/status')
+   123	    }
+   124	
+   125	    // Modules endpoint (P0: via /operator/api/modules)
+   126	    async modules(): Promise<ApiResponse<any>> {
+   127	        return this.request('GET', '/operator/api/v1/modules')
+   128	    }
+   129	
+   130	    // Module detail endpoint
+   131	    async moduleDetail(name: string): Promise<ApiResponse<any>> {
+   132	        return this.request('GET', `/operator/api/v1/modules/${name}`)
+   133	    }
+   134	
+   135	    // Events endpoint (P0: via /operator/api/events)
+   136	    async events(): Promise<ApiResponse<any>> {
+   137	        return this.request('GET', '/operator/api/v1/events')
+   138	    }
+   139	
+   140	    // Scorecard endpoint (P0: via /operator/api/scorecard)
+   141	    async scorecard(): Promise<ApiResponse<any>> {
+   142	        return this.request('GET', '/operator/api/v1/scorecard')
+   143	    }
+   144	
+   145	    // Audit endpoint (P0: via /operator/api/audit)
+   146	    async audit(): Promise<ApiResponse<any>> {
+   147	        return this.request('GET', '/operator/api/v1/audit')
+   148	    }
+   149	
+   150	    // Audit detail endpoint
+   151	    async auditDetail(id: string): Promise<ApiResponse<any>> {
+   152	        return this.request('GET', `/operator/api/v1/audit/${id}`)
+   153	    }
+   154	
+   155	    // Download audit endpoint
+   156	    async downloadAudit(id: string): Promise<ApiResponse<any>> {
+   157	        return this.request('GET', `/operator/api/v1/audit/${id}/download`)
+   158	    }
+   159	
+   160	    // Settings endpoint (P0: via /operator/api/settings)
+   161	    async settings(): Promise<ApiResponse<any>> {
+   162	        return this.request('GET', '/operator/api/v1/settings')
+   163	    }
+   164	
+   165	    // Update settings endpoint
+   166	    async updateSettings(settings: any): Promise<ApiResponse<any>> {
+   167	        return this.request('POST', '/operator/api/v1/settings', settings)
+   168	    }
+   169	
+   170	    // Topology endpoint (P0: via /operator/api/topology)
+   171	    async topology(): Promise<ApiResponse<any>> {
+   172	        return this.request('GET', '/operator/api/v1/topology')
+   173	    }
+   174	
+   175	    // Power state endpoint (legacy, still available)
+   176	    async windows(): Promise<ApiResponse<any>> {
+   177	        return this.request('GET', '/operator/api/v1/windows')
+   178	    }
+   179	
+   180	    // Hormiguero status (optional, may be unavailable)
+   181	    async hormigueroStatus(): Promise<ApiResponse<any>> {
+   182	        return this.request('GET', '/operator/api/v1/hormiguero/status', undefined, { timeout: 3000 })
+   183	    }
+   184	
+   185	    // Hormiguero incidents (optional, for debug mode)
+   186	    async hormigueroIncidents(): Promise<ApiResponse<any>> {
+   187	        return this.request('GET', '/hormiguero/incidents?limit=10', undefined, { timeout: 3000 })
+   188	    }
+   189	
+   190	    // P0 UI checks - verify all endpoints are reachable
+   191	    async runP0Checks(): Promise<{
+   192	        chat_ask: boolean
+   193	        status: boolean
+   194	        windows: boolean
+   195	        hormiguero_status: boolean
+   196	        results: Record<string, any>
+   197	    }> {
+   198	        const results: Record<string, any> = {}
+   199	
+   200	        const chatResp = await this.chat('ping')
+   201	        results.chat_ask = chatResp.ok
+   202	        results.chat_ask_error = chatResp.error
+   203	
+   204	        const statusResp = await this.status()
+   205	        results.status = statusResp.ok
+   206	        results.status_error = statusResp.error
+   207	
+   208	        const windowsResp = await this.windows()
+   209	        results.windows = windowsResp.ok
+   210	        results.windows_error = windowsResp.error
+   211	
+   212	        const hormigResp = await this.hormigueroStatus()
+   213	        results.hormiguero_status = hormigResp.ok
+   214	        results.hormiguero_status_error = hormigResp.error
+   215	
+   216	        return {
+   217	            chat_ask: results.chat_ask,
+   218	            status: results.status,
+   219	            windows: results.windows,
+   220	            hormiguero_status: results.hormiguero_status,

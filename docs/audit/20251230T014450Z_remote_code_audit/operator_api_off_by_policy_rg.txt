@@ -1,0 +1,424 @@
+/workspace/VX_11/operator/frontend/vite.config.ts:11:            // Dev proxy: /operator/api/* routes to tentaculo_link:8000
+/workspace/VX_11/operator/frontend/vite.config.ts:12:            '^/operator/api': {
+/workspace/VX_11/operator/frontend/vite.config.ts:15:                rewrite: (path) => path, // Keep /operator/api intact; tentaculo_link handles it
+/workspace/VX_11/operator/frontend/__tests__/operator-endpoints.test.ts:25:    // TEST GROUP 1: /operator/api/v1/events - Event Stream
+/workspace/VX_11/operator/frontend/__tests__/operator-endpoints.test.ts:28:    describe('GET /operator/api/v1/events - Event Stream', () => {
+/workspace/VX_11/operator/frontend/__tests__/operator-endpoints.test.ts:53:            const response = await fetch(`${BASE_URL}/operator/api/v1/events`, {
+/workspace/VX_11/operator/frontend/__tests__/operator-endpoints.test.ts:86:            const response = await fetch(`${BASE_URL}/operator/api/v1/events?severity=critical`, {
+/workspace/VX_11/operator/frontend/__tests__/operator-endpoints.test.ts:117:            const response = await fetch(`${BASE_URL}/operator/api/v1/events?module=manifestator`, {
+/workspace/VX_11/operator/frontend/__tests__/operator-endpoints.test.ts:132:            const response = await fetch(`${BASE_URL}/operator/api/v1/events`)
+/workspace/VX_11/operator/frontend/__tests__/operator-endpoints.test.ts:150:            const response = await fetch(`${BASE_URL}/operator/api/v1/events`, {
+/workspace/VX_11/operator/frontend/__tests__/operator-endpoints.test.ts:161:    // TEST GROUP 2: /operator/api/v1/metrics - Metrics Timeseries
+/workspace/VX_11/operator/frontend/__tests__/operator-endpoints.test.ts:164:    describe('GET /operator/api/v1/metrics - Metrics Timeseries', () => {
+/workspace/VX_11/operator/frontend/__tests__/operator-endpoints.test.ts:187:            const response = await fetch(`${BASE_URL}/operator/api/v1/metrics?window_seconds=3600`, {
+/workspace/VX_11/operator/frontend/__tests__/operator-endpoints.test.ts:218:            const response = await fetch(`${BASE_URL}/operator/api/v1/metrics?module=redis`, {
+/workspace/VX_11/operator/frontend/__tests__/operator-endpoints.test.ts:228:    // TEST GROUP 3: /operator/api/v1/rails - Manifestator Rails + Lanes
+/workspace/VX_11/operator/frontend/__tests__/operator-endpoints.test.ts:231:    describe('GET /operator/api/v1/rails/lanes - Manifestator Lanes', () => {
+/workspace/VX_11/operator/frontend/__tests__/operator-endpoints.test.ts:263:            const response = await fetch(`${BASE_URL}/operator/api/v1/rails/lanes`, {
+/workspace/VX_11/operator/frontend/__tests__/operator-endpoints.test.ts:274:    describe('GET /operator/api/v1/rails - Rails Constraints', () => {
+/workspace/VX_11/operator/frontend/__tests__/operator-endpoints.test.ts:306:            const response = await fetch(`${BASE_URL}/operator/api/v1/rails`, {
+/workspace/VX_11/operator/frontend/__tests__/operator-endpoints.test.ts:316:    describe('GET /operator/api/v1/rails/{lane_id}/status - Lane Detail', () => {
+/workspace/VX_11/operator/frontend/__tests__/operator-endpoints.test.ts:337:            const response = await fetch(`${BASE_URL}/operator/api/v1/rails/lane_001_detect/status`, {
+/workspace/VX_11/operator/frontend/__tests__/operator-endpoints.test.ts:359:            const response = await fetch(`${BASE_URL}/operator/api/v1/rails/lane_nonexistent/status`, {
+/workspace/VX_11/operator/frontend/__tests__/operator-endpoints.test.ts:393:            const response = await fetch(`${BASE_URL}/operator/api/v1/chat/window/status`, {
+/workspace/VX_11/operator/frontend/__tests__/operator-endpoints.test.ts:430:            const response = await fetch(`${BASE_URL}/operator/api/v1/events`, {
+/workspace/VX_11/operator/frontend/__tests__/operator-endpoints.test.ts:472:            const response = await fetch(`${BASE_URL}/operator/api/v1/events?correlation_id=corr_chain_test`, {
+/workspace/VX_11/operator/frontend/__tests__/operator-endpoints.test.ts:500:            const response = await fetch(`${BASE_URL}/operator/api/v1/events`, {
+/workspace/VX_11/operator/frontend/__tests__/operator-endpoints.test.ts:513:                await fetch(`${BASE_URL}/operator/api/v1/events`, {
+/workspace/VX_11/PRODUCTION_DEPLOYMENT_BRIEF.md:67:GET  /operator/api/status               → System health + dormant services
+/workspace/VX_11/PRODUCTION_DEPLOYMENT_BRIEF.md:69:GET  /operator/api/metrics              → Performance baseline
+/workspace/VX_11/PRODUCTION_DEPLOYMENT_BRIEF.md:70:GET  /operator/api/events               → Event log
+/workspace/VX_11/PRODUCTION_DEPLOYMENT_BRIEF.md:71:GET  /operator/api/config               → Configuration
+/workspace/VX_11/PRODUCTION_DEPLOYMENT_BRIEF.md:124:  http://localhost:8000/operator/api/status | jq
+/workspace/VX_11/PRODUCTION_DEPLOYMENT_BRIEF.md:143:  http://localhost:8000/operator/api/metrics | jq > deployment_baseline_metrics.json
+/workspace/VX_11/PRODUCTION_DEPLOYMENT_BRIEF.md:173:GET /operator/api/status → Dormant services state
+/workspace/VX_11/PRODUCTION_DEPLOYMENT_BRIEF.md:174:GET /operator/api/metrics → Performance baseline
+/workspace/VX_11/operator/frontend/src/components/RailsPanel.tsx:25:                    '/operator/api/v1/rails/lanes'
+/workspace/VX_11/operator/frontend/src/components/RailsPanel.tsx:33:                    '/operator/api/v1/rails'
+/workspace/VX_11/operator/frontend/src/components/OverviewPanel.tsx:32:                }>('GET', '/operator/api/v1/events?limit=1')
+/workspace/VX_11/operator/frontend/src/components/OverviewPanel.tsx:43:                    '/operator/api/v1/rails/lanes'
+/workspace/VX_11/operator/frontend/src/components/EventsPanel.tsx:39:                `/operator/api/v1/events?${params}`
+/workspace/VX_11/operator/frontend/src/components/MetricsPanel.tsx:32:                    `/operator/api/v1/metrics?window_seconds=${windowSeconds}`
+/workspace/VX_11/operator/frontend/src/components/P0ChecksPanel.tsx:54:                            <span>/operator/api/v1/chat</span>
+/workspace/VX_11/operator/frontend/src/components/P0ChecksPanel.tsx:61:                            <span>/operator/api/v1/status</span>
+/workspace/VX_11/operator/frontend/src/components/P0ChecksPanel.tsx:68:                            <span>/operator/api/v1/windows</span>
+/workspace/VX_11/operator/frontend/src/views/ChatView.tsx:65:            const resp = await apiClient.request('POST', '/operator/api/v1/chat/window/open', {
+/workspace/VX_11/operator/frontend/src/views/ChatView.tsx:93:            const resp = await apiClient.request('POST', '/operator/api/v1/chat/window/close', {})
+/workspace/VX_11/operator/frontend/src/views/CoDevView.tsx:39:            const resp = await apiClient.request('POST', '/operator/api/v1/assist/deepseek_r1', {
+/workspace/VX_11/operator/frontend/src/App.tsx:39:            const eventsUrl = buildApiUrl('/operator/api/v1/events/stream')
+/workspace/VX_11/operator/frontend/src/services/api.ts:69:                    path.startsWith('/operator/api/v1')
+/workspace/VX_11/operator/frontend/src/services/api.ts:71:                    const legacyPath = path.replace('/operator/api/v1', '/operator/api')
+/workspace/VX_11/operator/frontend/src/services/api.ts:77:                    if (errorJson?.status === 'OFF_BY_POLICY') {
+/workspace/VX_11/operator/frontend/src/services/api.ts:78:                        errorDetail = errorJson.message || 'OFF_BY_POLICY'
+/workspace/VX_11/operator/frontend/src/services/api.ts:112:    // Chat endpoint (P0: via /operator/api/chat)
+/workspace/VX_11/operator/frontend/src/services/api.ts:114:        return this.request('POST', '/operator/api/v1/chat', {
+/workspace/VX_11/operator/frontend/src/services/api.ts:120:    // Status endpoint (P0: via /operator/api/status)
+/workspace/VX_11/operator/frontend/src/services/api.ts:122:        return this.request('GET', '/operator/api/v1/status')
+/workspace/VX_11/operator/frontend/src/services/api.ts:125:    // Modules endpoint (P0: via /operator/api/modules)
+/workspace/VX_11/operator/frontend/src/services/api.ts:127:        return this.request('GET', '/operator/api/v1/modules')
+/workspace/VX_11/operator/frontend/src/services/api.ts:132:        return this.request('GET', `/operator/api/v1/modules/${name}`)
+/workspace/VX_11/operator/frontend/src/services/api.ts:135:    // Events endpoint (P0: via /operator/api/events)
+/workspace/VX_11/operator/frontend/src/services/api.ts:137:        return this.request('GET', '/operator/api/v1/events')
+/workspace/VX_11/operator/frontend/src/services/api.ts:140:    // Scorecard endpoint (P0: via /operator/api/scorecard)
+/workspace/VX_11/operator/frontend/src/services/api.ts:142:        return this.request('GET', '/operator/api/v1/scorecard')
+/workspace/VX_11/operator/frontend/src/services/api.ts:145:    // Audit endpoint (P0: via /operator/api/audit)
+/workspace/VX_11/operator/frontend/src/services/api.ts:147:        return this.request('GET', '/operator/api/v1/audit')
+/workspace/VX_11/operator/frontend/src/services/api.ts:152:        return this.request('GET', `/operator/api/v1/audit/${id}`)
+/workspace/VX_11/operator/frontend/src/services/api.ts:157:        return this.request('GET', `/operator/api/v1/audit/${id}/download`)
+/workspace/VX_11/operator/frontend/src/services/api.ts:160:    // Settings endpoint (P0: via /operator/api/settings)
+/workspace/VX_11/operator/frontend/src/services/api.ts:162:        return this.request('GET', '/operator/api/v1/settings')
+/workspace/VX_11/operator/frontend/src/services/api.ts:167:        return this.request('POST', '/operator/api/v1/settings', settings)
+/workspace/VX_11/operator/frontend/src/services/api.ts:170:    // Topology endpoint (P0: via /operator/api/topology)
+/workspace/VX_11/operator/frontend/src/services/api.ts:172:        return this.request('GET', '/operator/api/v1/topology')
+/workspace/VX_11/operator/frontend/src/services/api.ts:177:        return this.request('GET', '/operator/api/v1/windows')
+/workspace/VX_11/operator/frontend/src/services/api.ts:182:        return this.request('GET', '/operator/api/v1/hormiguero/status', undefined, { timeout: 3000 })
+/workspace/VX_11/operator/backend/main.py:82:    correlation_id = request.headers.get("X-Correlation-Id") or str(uuid.uuid4())
+/workspace/VX_11/operator/backend/main.py:85:    response.headers["X-Correlation-Id"] = correlation_id
+/workspace/VX_11/operator/backend/main.py:121:        "status": "OFF_BY_POLICY",
+/workspace/VX_11/operator/backend/main.py:134:        "status": "OFF_BY_POLICY",
+/workspace/VX_11/operator/backend/main.py:237:    headers = {TOKEN_HEADER: VX11_TOKEN, "X-Correlation-Id": correlation_id}
+/workspace/VX_11/operator/backend/main.py:275:@app.get("/operator/api/health")
+/workspace/VX_11/operator/backend/main.py:285:@app.get("/operator/api/env")
+/workspace/VX_11/operator/backend/main.py:300:@app.get("/operator/api/status")
+/workspace/VX_11/operator/backend/main.py:317:@app.get("/operator/api/modules")
+/workspace/VX_11/operator/backend/main.py:337:            "status": "UP" if name in allowed else "OFF_BY_POLICY",
+/workspace/VX_11/operator/backend/main.py:351:@app.get("/operator/api/topology")
+/workspace/VX_11/operator/backend/main.py:363:        return "OFF_BY_POLICY"
+/workspace/VX_11/operator/backend/main.py:383:@app.get("/operator/api/windows")
+/workspace/VX_11/operator/backend/main.py:392:@app.post("/operator/api/chat/window/open")
+/workspace/VX_11/operator/backend/main.py:415:@app.post("/operator/api/chat/window/close")
+/workspace/VX_11/operator/backend/main.py:434:@app.get("/operator/api/chat/window/status")
+/workspace/VX_11/operator/backend/main.py:443:@app.post("/operator/api/chat")
+/workspace/VX_11/operator/backend/main.py:473:@app.get("/operator/api/events")
+/workspace/VX_11/operator/backend/main.py:485:@app.get("/operator/api/events/stream")
+/workspace/VX_11/operator/backend/main.py:543:@app.get("/operator/api/logs/tail")
+/workspace/VX_11/operator/backend/main.py:557:@app.get("/operator/api/audit/runs")
+/workspace/VX_11/operator/backend/main.py:573:@app.get("/operator/api/audit/runs/{run_id}")
+/workspace/VX_11/operator/backend/main.py:585:@app.get("/operator/api/explorer/presets")
+/workspace/VX_11/operator/backend/main.py:607:@app.post("/operator/api/explorer/query")
+/workspace/VX_11/operator/backend/main.py:637:@app.post("/operator/api/madre/plan")
+/workspace/VX_11/operator/backend/main.py:658:@app.post("/operator/api/madre/execute")
+/workspace/VX_11/operator/backend/main.py:679:@app.post("/operator/api/madre/cancel")
+/workspace/VX_11/operator/backend/main.py:700:@app.get("/operator/api/madre/status/{intent_id}")
+/workspace/VX_11/operator/backend/main.py:716:@app.get("/operator/api/hormiguero/status")
+/workspace/VX_11/operator/backend/main.py:730:@app.post("/operator/api/hormiguero/scan/once")
+/workspace/VX_11/operator/backend/main.py:769:@app.get("/operator/api/manifestator/status")
+/workspace/VX_11/operator/backend/main.py:788:@app.post("/operator/api/manifestator/patchplan")
+/workspace/VX_11/operator/backend/main.py:810:@app.post("/operator/api/manifestator/compare")
+/workspace/VX_11/operator/backend/main.py:835:@app.post("/operator/api/manifestator/apply")
+/workspace/VX_11/operator/backend/main.py:856:@app.get("/operator/api/shub/status")
+/workspace/VX_11/operator/backend/main.py:868:@app.get("/operator/api/shub/jobs")
+/workspace/VX_11/operator/backend/main.py:880:@app.post("/operator/api/shub/jobs/submit")
+/workspace/VX_11/operator/backend/main.py:894:@app.post("/operator/api/assist/deepseek_r1")
+/workspace/VX_11/operator/backend/main.py:908:@app.get("/operator/api/assist/deepseek_r1/status")
+/workspace/VX_11/operator/backend/main.py:920:@app.get("/operator/api/metrics")
+/workspace/VX_11/operator/backend/main.py:935:@app.get("/operator/api/scorecard")
+/workspace/VX_11/operator/backend/main.py:953:@app.get("/operator/api/audit")
+/workspace/VX_11/operator/backend/main.py:964:@app.get("/operator/api/settings")
+/workspace/VX_11/operator/backend/main.py:972:@app.post("/operator/api/settings")
+/workspace/VX_11/operator/backend/main.py:997:@app.get("/operator/api/rails/lanes")
+/workspace/VX_11/operator/backend/main.py:1006:@app.get("/operator/api/rails")
+/workspace/VX_11/operator/backend/main.py:1015:@app.get("/operator/api/healthz")
+/workspace/VX_11/operator/backend/main.py:1073:_register_aliases("/api/v1", include_in_schema=True)
+/workspace/VX_11/operator/backend/Dockerfile:38:    CMD curl -fsS http://localhost:8011/operator/api/health || exit 1
+/workspace/VX_11/FINAL_DELIVERY_SUMMARY_20251229.md:84:curl -H "x-vx11-token: vx11-local-token" http://localhost:8000/operator/api/status
+/workspace/VX_11/FINAL_DELIVERY_SUMMARY_20251229.md:95:**GET /operator/api/status** → 200 OK
+/workspace/VX_11/FINAL_DELIVERY_SUMMARY_20251229.md:106:**POST /operator/api/chat** → 200 OK
+/workspace/VX_11/FINAL_DELIVERY_SUMMARY_20251229.md:116:**GET /operator/api/events** → 200 OK
+/workspace/VX_11/FINAL_DELIVERY_SUMMARY_20251229.md:209:3. Test endpoints at http://localhost:8000/operator/api/status
+/workspace/VX_11/OPERATOR_CLOSEOUT_20251229.md:12:✅ Fix operator API endpoints to be at `/operator/api/*` paths
+/workspace/VX_11/OPERATOR_CLOSEOUT_20251229.md:32:   GET /operator/api/status → 200 ✅
+/workspace/VX_11/OPERATOR_CLOSEOUT_20251229.md:33:   POST /operator/api/chat → 200 ✅
+/workspace/VX_11/OPERATOR_CLOSEOUT_20251229.md:34:   GET /operator/api/events → 200 ✅
+/workspace/VX_11/OPERATOR_CLOSEOUT_20251229.md:35:   GET /operator/api/metrics → 200 ✅
+/workspace/VX_11/OPERATOR_CLOSEOUT_20251229.md:36:   GET /operator/api/settings → 200 ✅
+/workspace/VX_11/OPERATOR_CLOSEOUT_20251229.md:37:   GET /operator/api/audit/runs → 200 ✅
+/workspace/VX_11/OPERATOR_CLOSEOUT_20251229.md:40:   GET /operator/api/status (no token) → 401 ✅
+/workspace/VX_11/OPERATOR_CLOSEOUT_20251229.md:135:  Routes now accessible at /operator/api/* as specified:
+/workspace/VX_11/OPERATOR_CLOSEOUT_20251229.md:136:  - GET /operator/api/status (200 OK)
+/workspace/VX_11/OPERATOR_CLOSEOUT_20251229.md:137:  - GET /operator/api/events (200, feature flag aware)
+/workspace/VX_11/OPERATOR_CLOSEOUT_20251229.md:138:  - GET /operator/api/settings (200, feature flag aware)
+/workspace/VX_11/OPERATOR_CLOSEOUT_20251229.md:139:  - GET /operator/api/audit/runs (200, feature flag aware)
+/workspace/VX_11/OPERATOR_CLOSEOUT_20251229.md:140:  - GET /operator/api/metrics (200 OK)
+/workspace/VX_11/OPERATOR_CLOSEOUT_20251229.md:141:  - POST /operator/api/chat (200 OK, session tracking)
+/workspace/VX_11/OPERATOR_CLOSEOUT_20251229.md:158:| /operator/api/status | GET | 200 | Required | Policy status |
+/workspace/VX_11/OPERATOR_CLOSEOUT_20251229.md:159:| /operator/api/chat | POST | 200 | Required | LLM response |
+/workspace/VX_11/OPERATOR_CLOSEOUT_20251229.md:160:| /operator/api/events | GET | 200 | Required | Feature flag aware |
+/workspace/VX_11/OPERATOR_CLOSEOUT_20251229.md:161:| /operator/api/metrics | GET | 200 | Required | Empty (no data) |
+/workspace/VX_11/OPERATOR_CLOSEOUT_20251229.md:162:| /operator/api/settings | GET | 200 | Required | Feature flag aware |
+/workspace/VX_11/OPERATOR_CLOSEOUT_20251229.md:163:| /operator/api/audit/runs | GET | 200 | Required | Feature flag aware |
+/workspace/VX_11/OPERATOR_CLOSEOUT_20251229.md:220:VX11 operator API routes are now correctly accessible at `/operator/api/*` paths with proper authentication and policy enforcement. Service is stable, all gates passed, commit pushed to remote.
+/workspace/VX_11/OPERATOR_P11_P1_HARDENING_COMPLETE.md:37:    3. Rate Limiting — No rate limiting on /operator/api/chat (TASK C fixes)
+/workspace/VX_11/OPERATOR_P11_P1_HARDENING_COMPLETE.md:76:### Changes Made to /operator/api/chat (main_v7.py)
+/workspace/VX_11/OPERATOR_P11_P1_HARDENING_COMPLETE.md:161:- ✅ /operator/api/chat endpoint working (switch → DeepSeek → degraded)
+/workspace/VX_11/FINAL_CLOSURE_SUMMARY_FASES_7_11.md:103:- GET /operator/api/status → health + dormant_services
+/workspace/VX_11/FINAL_CLOSURE_SUMMARY_FASES_7_11.md:104:- GET /operator/api/config → configuration
+/workspace/VX_11/FINAL_CLOSURE_SUMMARY_FASES_7_11.md:105:- GET /operator/api/metrics → performance
+/workspace/VX_11/FINAL_CLOSURE_SUMMARY_FASES_7_11.md:106:- GET /operator/api/events → event log
+/workspace/VX_11/FINAL_CLOSURE_SUMMARY_FASES_7_11.md:107:- POST /operator/api/chat → chat (switch-first, madre fallback)
+/workspace/VX_11/OPERATOR_SUPERPACK_v7.0.1_DELIVERY.md:39:GET    /operator/api/map                  ✅ Implemented
+/workspace/VX_11/tests/test_operator_chat_e2e_phase8.py:71:                f"{self.TENTACULO_URL}/operator/api/chat",
+/workspace/VX_11/tests/test_operator_chat_e2e_phase8.py:81:            log.info("✓ Auth guard enforced for tentaculo /operator/api/chat")
+/workspace/VX_11/tests/test_operator_chat_e2e_phase8.py:95:                f"{self.TENTACULO_URL}/operator/api/chat",
+/workspace/VX_11/tests/test_operator_chat_e2e_phase8.py:129:                f"{self.OPERATOR_URL}/operator/api/chat",
+/workspace/VX_11/tests/test_operator_chat_e2e_phase8.py:168:                f"{self.OPERATOR_URL}/operator/api/chat",
+/workspace/VX_11/tests/test_operator_chat_e2e_phase8.py:216:                f"{self.OPERATOR_URL}/operator/api/chat",
+/workspace/VX_11/tests/test_operator_chat_e2e_phase8.py:317:                f"{self.OPERATOR_URL}/operator/api/chat",
+/workspace/VX_11/tests/test_operator_chat_e2e_phase8.py:330:                f"{self.TENTACULO_URL}/operator/api/chat",
+/workspace/VX_11/tests/test_operator_chat_e2e_phase8.py:389:                    f"{self.OPERATOR_URL}/operator/api/chat",
+/workspace/VX_11/PRODUCTION_CLOSURE_COMPLETE.md:26:- ✅ Enhanced `/operator/api/status` with `dormant_services` array
+/workspace/VX_11/PRODUCTION_CLOSURE_COMPLETE.md:73:| `/operator/api/status` | ✅ UPDATED | Includes dormant_services |
+/workspace/VX_11/PRODUCTION_CLOSURE_COMPLETE.md:74:| `/operator/api/chat` | ✅ WORKING | DeepSeek + provider registry |
+/workspace/VX_11/PRODUCTION_CLOSURE_COMPLETE.md:75:| `/operator/api/events` | ✅ WORKING | SSE stream (heartbeat 30s) |
+/workspace/VX_11/PRODUCTION_CLOSURE_COMPLETE.md:76:| `/operator/api/metrics` | ✅ WORKING | Performance stats |
+/workspace/VX_11/PRODUCTION_CLOSURE_COMPLETE.md:120:  - [ ] Check /operator/api/metrics for baseline
+/workspace/VX_11/PRODUCTION_CLOSURE_COMPLETE.md:121:  - [ ] Monitor /operator/api/events for anomalies
+/workspace/VX_11/PRODUCTION_CLOSURE_COMPLETE.md:166:2. Enhanced monitoring dashboard (via /operator/api/metrics)
+/workspace/VX_11/tests/test_operator_api_phase_4_e2e.py:38:        response = client.get("/operator/api/status", headers={"x-vx11-token": "test"})
+/workspace/VX_11/VALIDATION_REPORT_INDEPENDENT.md:148:├── Modified: /operator/api/status         +63 lines (dormant_services)
+/workspace/VX_11/VALIDATION_REPORT_INDEPENDENT.md:257:curl -H "x-vx11-token: <TOKEN>" http://tentaculo:8000/operator/api/metrics
+/workspace/VX_11/switch/hermes/models_catalog.json:68:            "base_url": "https://openrouter.ai/api/v1",
+/workspace/VX_11/AUDIT_PROMPTS_IMPLEMENTATION_STATUS.md:13:| **Backend P0 Chat** | ✅ COMPLETO | /operator/api/chat funciona + DeepSeek fallback |
+/workspace/VX_11/AUDIT_PROMPTS_IMPLEMENTATION_STATUS.md:15:| **API Endpoints** | ⚠️ PARCIAL | /operator/ui + /operator/api/chat ✅, /health ❌ |
+/workspace/VX_11/AUDIT_PROMPTS_IMPLEMENTATION_STATUS.md:185:### 4. ❌ /operator/api/health Endpoint Faltante
+/workspace/VX_11/AUDIT_PROMPTS_IMPLEMENTATION_STATUS.md:210:# Implementar /operator/api/health endpoint
+/workspace/VX_11/AUDIT_PROMPTS_IMPLEMENTATION_STATUS.md:250:- Endpoints /operator/ui + /operator/api/chat
+/workspace/VX_11/AUDIT_PROMPTS_IMPLEMENTATION_STATUS.md:257:- /operator/api/health endpoint
+/workspace/VX_11/OPERATOR_UI_ARCHITECTURE_PHASE4.json:435:                    "endpoint": "GET /api/status (tentaculo_link:8000 via /operator/api/status)",
+/workspace/VX_11/OPERATOR_UI_ARCHITECTURE_PHASE4.json:449:                    "endpoint": "GET /api/modules (tentaculo_link:8000 via /operator/api/modules)",
+/workspace/VX_11/OPERATOR_UI_ARCHITECTURE_PHASE4.json:464:                    "endpoint": "GET /api/metrics (tentaculo_link:8000 via /operator/api/metrics)",
+/workspace/VX_11/OPERATOR_UI_ARCHITECTURE_PHASE4.json:475:                    "endpoint": "GET /api/events?limit=10 (tentaculo_link:8000 via /operator/api/events)",
+/workspace/VX_11/OPERATOR_UI_ARCHITECTURE_PHASE4.json:487:                    "endpoint": "GET /api/events?filters=... (tentaculo_link:8000 via /operator/api/events)",
+/workspace/VX_11/OPERATOR_UI_ARCHITECTURE_PHASE4.json:506:                    "endpoint": "GET /api/metrics?window=24h&metrics=cpu,memory,db_size (tentaculo_link:8000 via /operator/api/metrics)",
+/workspace/VX_11/OPERATOR_UI_ARCHITECTURE_PHASE4.json:522:                    "endpoint": "GET /api/rails/lanes (tentaculo_link:8000 via /operator/api/rails/lanes)",
+/workspace/VX_11/OPERATOR_UI_ARCHITECTURE_PHASE4.json:539:                    "endpoint": "GET /api/rails/lane/{lane_id} (tentaculo_link:8000 via /operator/api/rails/lane/{lane_id})",
+/workspace/VX_11/OPERATOR_UI_ARCHITECTURE_PHASE4.json:556:                    "endpoint": "GET /api/fs/list?path=/docs/audit (tentaculo_link:8000 via /operator/api/fs/list)",
+/workspace/VX_11/OPERATOR_UI_PHASE4_COMPLETE.md:138:- **All requests** → `tentaculo_link:8000` (via `/operator/api/*` paths)
+/workspace/VX_11/OPERATOR_UI_PHASE4_COMPLETE.md:427:    - VITE_VX11_API_BASE_URL=/operator/api
+/workspace/VX_11/PRODUCTION_READINESS_PHASE_8_11.md:88:GET  /operator/api/status          → System health + dormant services
+/workspace/VX_11/PRODUCTION_READINESS_PHASE_8_11.md:89:GET  /operator/api/config          → Configuration
+/workspace/VX_11/PRODUCTION_READINESS_PHASE_8_11.md:90:GET  /operator/api/metrics         → Performance metrics
+/workspace/VX_11/PRODUCTION_READINESS_PHASE_8_11.md:91:GET  /operator/api/events          → Event log
+/workspace/VX_11/PRODUCTION_READINESS_PHASE_8_11.md:92:POST /operator/api/chat            → Chat (switch-first, madre fallback)
+/workspace/VX_11/PRODUCTION_READINESS_PHASE_8_11.md:164:  http://localhost:8000/operator/api/metrics | jq > deployment_baseline.json
+/workspace/VX_11/PRODUCTION_READINESS_PHASE_8_11.md:216:GET /operator/api/status
+/workspace/VX_11/PRODUCTION_READINESS_PHASE_8_11.md:217:GET /operator/api/metrics
+/workspace/VX_11/FASE_8_CODE_DELIVERY.txt:21:   ├─ Replaced stub /operator/api/chat with real implementation:
+/workspace/VX_11/FASE_8_CODE_DELIVERY.txt:22:   │  ├─ @app.post("/operator/api/chat", response_model=ChatResponse)
+/workspace/VX_11/FASE_8_CODE_DELIVERY.txt:81:   - Line 204-269: Real /operator/api/chat implementation
+/workspace/VX_11/FASE_8_CODE_DELIVERY.txt:158:  - /operator/api/chat returned hardcoded response
+/workspace/VX_11/OPERATOR_CHAT_QUICKREF.md:10:POST http://localhost:8000/operator/api/chat
+/workspace/VX_11/OPERATOR_CHAT_QUICKREF.md:93:  http://localhost:8000/operator/api/chat
+/workspace/VX_11/OPERATOR_CHAT_QUICKREF.md:227:url = "http://localhost:8000/operator/api/chat"
+/workspace/VX_11/test_entrypoint_proxy.sh:3:# Purpose: Validate that tentaculo_link correctly proxies /operator/api/* to operator-backend:8011
+/workspace/VX_11/test_entrypoint_proxy.sh:81:RESPONSE=$(curl -s -w "\n%{http_code}" "$ENTRYPOINT/operator/api/../health" || echo "error")
+/workspace/VX_11/test_entrypoint_proxy.sh:87:    log_pass "tentaculo_link:8000 /operator/api/... responds with HTTP $HTTP_CODE"
+/workspace/VX_11/test_entrypoint_proxy.sh:94:# ============ TEST 3: /operator/api/modules via proxy ============
+/workspace/VX_11/test_entrypoint_proxy.sh:96:log_test "TEST 3: GET /operator/api/modules via tentaculo_link proxy"
+/workspace/VX_11/test_entrypoint_proxy.sh:98:PROXY_RESPONSE=$(curl -s -w "\n%{http_code}" "$ENTRYPOINT/operator/api/modules" 2>&1)
+/workspace/VX_11/test_entrypoint_proxy.sh:115:    log_fail "Proxy /operator/api/modules returns HTTP $HTTP_CODE"
+/workspace/VX_11/test_entrypoint_proxy.sh:125:PROXY=$(curl -s "$ENTRYPOINT/operator/api/modules" 2>&1 | jq '.data.modules | length' 2>/dev/null || echo "0")
+/workspace/VX_11/test_entrypoint_proxy.sh:141:# ============ TEST 5: /operator/api/topology via proxy ============
+/workspace/VX_11/test_entrypoint_proxy.sh:143:log_test "TEST 5: GET /operator/api/topology via proxy"
+/workspace/VX_11/test_entrypoint_proxy.sh:145:PROXY_TOPO=$(curl -s "$ENTRYPOINT/operator/api/topology" 2>&1)
+/workspace/VX_11/test_entrypoint_proxy.sh:165:    -w "\n%{http_code}" "$ENTRYPOINT/operator/api/modules" 2>&1)
+/workspace/VX_11/OPERATOR_UI_PHASE4_DATA_FLOWS.md:9:│  ENTRYPOINT: tentáculo_link:8000 (http://localhost:8000/operator/api/*)   │
+/workspace/VX_11/OPERATOR_UI_PHASE4_DATA_FLOWS.md:17:    │ (relative URLs: /operator/api/*)
+/workspace/VX_11/OPERATOR_UI_PHASE4_DATA_FLOWS.md:21:│  ├─ GET /operator/api/status                                             │
+/workspace/VX_11/OPERATOR_UI_PHASE4_DATA_FLOWS.md:22:│  ├─ GET /operator/api/modules                                            │
+/workspace/VX_11/OPERATOR_UI_PHASE4_DATA_FLOWS.md:23:│  ├─ GET /operator/api/metrics                                            │
+/workspace/VX_11/OPERATOR_UI_PHASE4_DATA_FLOWS.md:24:│  ├─ GET /operator/api/events                                             │
+/workspace/VX_11/OPERATOR_UI_PHASE4_DATA_FLOWS.md:25:│  ├─ GET /operator/api/events/stream (SSE)                                │
+/workspace/VX_11/OPERATOR_UI_PHASE4_DATA_FLOWS.md:26:│  ├─ GET /operator/api/rails/lanes                                        │
+/workspace/VX_11/OPERATOR_UI_PHASE4_DATA_FLOWS.md:27:│  ├─ GET /operator/api/rails/lane/{lane_id}                               │
+/workspace/VX_11/OPERATOR_UI_PHASE4_DATA_FLOWS.md:28:│  └─ GET /operator/api/fs/list                                            │
+/workspace/VX_11/OPERATOR_UI_PHASE4_DATA_FLOWS.md:52:│ GET /operator/api/status                    │
+/workspace/VX_11/OPERATOR_UI_PHASE4_DATA_FLOWS.md:96:    │   GET /operator/api/modules,
+/workspace/VX_11/OPERATOR_UI_PHASE4_DATA_FLOWS.md:97:    │   GET /operator/api/metrics,
+/workspace/VX_11/OPERATOR_UI_PHASE4_DATA_FLOWS.md:98:    │   GET /operator/api/events?limit=10,
+/workspace/VX_11/OPERATOR_UI_PHASE4_DATA_FLOWS.md:99:    │   GET /operator/api/rails/lanes?limit=5
+/workspace/VX_11/OPERATOR_UI_PHASE4_DATA_FLOWS.md:134:    ├─→ Try: new EventSource('/operator/api/events/stream')
+/workspace/VX_11/OPERATOR_UI_PHASE4_DATA_FLOWS.md:149:        │   GET /operator/api/events?limit=50
+/workspace/VX_11/OPERATOR_UI_PHASE4_DATA_FLOWS.md:190:    GET /operator/api/metrics?
+/workspace/VX_11/OPERATOR_UI_PHASE4_DATA_FLOWS.md:230:    GET /operator/api/rails/lanes
+/workspace/VX_11/OPERATOR_UI_PHASE4_DATA_FLOWS.md:264:    GET /operator/api/rails/lane/lane-001
+/workspace/VX_11/OPERATOR_UI_PHASE4_DATA_FLOWS.md:303:    GET /operator/api/fs/list?path=/docs/audit
+/workspace/VX_11/OPERATOR_UI_PHASE4_DATA_FLOWS.md:343:    GET /operator/api/fs/list?path=/docs/audit/codex_canonical_closure_20251218T223452Z
+/workspace/VX_11/QUICK_STATUS_PROMPTS.txt:43:   └─ Faltante: ❌ 4 vistas + /operator/api/health endpoint
+/workspace/VX_11/QUICK_STATUS_PROMPTS.txt:78:✅ Chat Endpoint:           POST /operator/api/chat
+/workspace/VX_11/QUICK_STATUS_PROMPTS.txt:100:✅ tentaculo_link/main_v7.py — /operator/api/chat ✓, /operator/ui ✓
+/workspace/VX_11/QUICK_STATUS_PROMPTS.txt:110:  2. Implementar /operator/api/health endpoint
+/workspace/VX_11/docs/CANONICAL_FS_VX11.json:1117:    "tentaculo_link/api/v1_gateway.py",
+/workspace/VX_11/docs/shubjson.txt:1580:      "health_check_endpoint": "/madre/api/v1/shub/status"
+/workspace/VX_11/docs/shubjson.txt:1620:      "madre/api/v1/shub.py → endpoints para control de ventanas",
+/workspace/VX_11/docs/shubjson.txt:1657:        "sse_endpoint": "/operator/api/v1/events/shub",
+/workspace/VX_11/docs/shubjson.txt:2200:- `madre/api/v1/shub.py` - Endpoints para control de ventanas
+/workspace/VX_11/docs/shubjson.txt:3498:    madre/api/v1/shub.py
+/workspace/VX_11/docs/shubjson.txt:3506:  echo "    - madre/api/v1/shub.py"
+/workspace/VX_11/docs/shubjson.txt:3567:curl -s http://localhost:8001/madre/api/v1/shub/status | grep -q '"mode":"solo_madre"' || {
+/workspace/VX_11/docs/shubjson.txt:3573:curl -X POST http://localhost:8002/operator/api/v1/shub/control 2>/dev/null | grep -q "405\|404\|403" || {
+/workspace/VX_11/docs/diagrams.txt:298:  - path: /api/v1/windows/open
+/workspace/VX_11/docs/diagrams.txt:311:  - path: /api/v1/windows/close
+/workspace/VX_11/docs/diagrams.txt:318:  - path: /api/v1/windows/hold
+/workspace/VX_11/docs/diagrams.txt:325:  - path: /api/v1/windows/status
+/workspace/VX_11/docs/diagrams.txt:333:  - path: /api/v1/tests/execute
+/workspace/VX_11/docs/diagrams.txt:341:  - path: /api/v1/tests/results/{test_id}
+/workspace/VX_11/docs/diagrams.txt:346:  - path: /api/v1/system/solo_madre
+/workspace/VX_11/docs/diagrams.txt:371:          path: "/api/v1/windows/close"
+/workspace/VX_11/docs/PROMPT_9R_TEMPLATE.md:12:Eres el **implementador quirúrgico de VX11 Operator (frontend)** + su integración con `/operator/api/*` en tentaculo_link.
+/workspace/VX_11/docs/PROMPT_9R_TEMPLATE.md:24:2. **Runtime default**: policy **"solo_madre"** (madre+redis+tentaculo_link). Lo demás = OFF_BY_POLICY.
+/workspace/VX_11/docs/PROMPT_9R_TEMPLATE.md:35:- **API backend**: `tentaculo_link/main_v7.py` (prefijo `/operator/api/*`)
+/workspace/VX_11/docs/PROMPT_9R_TEMPLATE.md:95:- Limitaciones: OFF_BY_POLICY no es error, es estado esperado"""
+/workspace/VX_11/docs/PROMPT_9R_TEMPLATE.md:174:- ✅ Chat usable aunque esté degraded (OFF_BY_POLICY ≠ error)
+/workspace/VX_11/docs/PROMPT_9R_TEMPLATE.md:199:- Frontend **SOLO** llama a `/operator/api/*` (nada directo a 8001/8002)
+/workspace/VX_11/docs/PROMPT_9R_TEMPLATE.md:201:- Shapes estables, siempre 200 OK (OFF_BY_POLICY como estado válido)
+/workspace/VX_11/docs/PROMPT_9R_TEMPLATE.md:211:  http://localhost:8000/operator/api/status \
+/workspace/VX_11/docs/PROMPT_9R_TEMPLATE.md:212:  http://localhost:8000/operator/api/modules \
+/workspace/VX_11/docs/PROMPT_9R_TEMPLATE.md:213:  http://localhost:8000/operator/api/chat \
+/workspace/VX_11/docs/PROMPT_9R_TEMPLATE.md:214:  http://localhost:8000/operator/api/events \
+/workspace/VX_11/docs/PROMPT_9R_TEMPLATE.md:215:  http://localhost:8000/operator/api/scorecard \
+/workspace/VX_11/docs/PROMPT_9R_TEMPLATE.md:216:  http://localhost:8000/operator/api/topology
+/workspace/VX_11/docs/PROMPT_9R_TEMPLATE.md:261:curl -s http://localhost:8000/operator/api/status | jq . > docs/audit/<ts>_OPERATOR_P9R_EVIDENCE/api_checks.json
+/workspace/VX_11/docs/inbox/20251228T234445Z_inputs/unzipped/shubjson.txt:1580:      "health_check_endpoint": "/madre/api/v1/shub/status"
+/workspace/VX_11/docs/inbox/20251228T234445Z_inputs/unzipped/shubjson.txt:1620:      "madre/api/v1/shub.py → endpoints para control de ventanas",
+/workspace/VX_11/docs/inbox/20251228T234445Z_inputs/unzipped/shubjson.txt:1657:        "sse_endpoint": "/operator/api/v1/events/shub",
+/workspace/VX_11/docs/inbox/20251228T234445Z_inputs/unzipped/shubjson.txt:2200:- `madre/api/v1/shub.py` - Endpoints para control de ventanas
+/workspace/VX_11/docs/inbox/20251228T234445Z_inputs/unzipped/shubjson.txt:3498:    madre/api/v1/shub.py
+/workspace/VX_11/docs/inbox/20251228T234445Z_inputs/unzipped/shubjson.txt:3506:  echo "    - madre/api/v1/shub.py"
+/workspace/VX_11/docs/inbox/20251228T234445Z_inputs/unzipped/shubjson.txt:3567:curl -s http://localhost:8001/madre/api/v1/shub/status | grep -q '"mode":"solo_madre"' || {
+/workspace/VX_11/docs/inbox/20251228T234445Z_inputs/unzipped/shubjson.txt:3573:curl -X POST http://localhost:8002/operator/api/v1/shub/control 2>/dev/null | grep -q "405\|404\|403" || {
+/workspace/VX_11/docs/inbox/20251228T234445Z_inputs/unzipped/diagrams.txt:298:  - path: /api/v1/windows/open
+/workspace/VX_11/docs/inbox/20251228T234445Z_inputs/unzipped/diagrams.txt:311:  - path: /api/v1/windows/close
+/workspace/VX_11/docs/inbox/20251228T234445Z_inputs/unzipped/diagrams.txt:318:  - path: /api/v1/windows/hold
+/workspace/VX_11/docs/inbox/20251228T234445Z_inputs/unzipped/diagrams.txt:325:  - path: /api/v1/windows/status
+/workspace/VX_11/docs/inbox/20251228T234445Z_inputs/unzipped/diagrams.txt:333:  - path: /api/v1/tests/execute
+/workspace/VX_11/docs/inbox/20251228T234445Z_inputs/unzipped/diagrams.txt:341:  - path: /api/v1/tests/results/{test_id}
+/workspace/VX_11/docs/inbox/20251228T234445Z_inputs/unzipped/diagrams.txt:346:  - path: /api/v1/system/solo_madre
+/workspace/VX_11/docs/inbox/20251228T234445Z_inputs/unzipped/diagrams.txt:371:          path: "/api/v1/windows/close"
+/workspace/VX_11/docs/inbox/20251228T234445Z_inputs/unzipped/hormiguero_manifetsaator.txt:36:  - rutas/API: `/api/v1/inee/*` (register/heartbeat/submit_intents/windows/status)
+/workspace/VX_11/docs/inbox/20251228T234445Z_inputs/unzipped/hormiguero_manifetsaator.txt:502:#### 1.2 Registro Inicial (POST `/api/v1/inee/colonies/register`)
+/workspace/VX_11/docs/inbox/20251228T234445Z_inputs/unzipped/hormiguero_manifetsaator.txt:3235:POST /api/v1/inee/windows/request
+/workspace/VX_11/docs/inbox/20251228T234445Z_inputs/unzipped/hormiguero_manifetsaator.txt:3244:POST /api/v1/operator/windows/approve
+/workspace/VX_11/docs/inbox/20251228T234445Z_inputs/unzipped/hormiguero_manifetsaator.txt:3253:GET /api/v1/inee/windows/status
+/workspace/VX_11/docs/inbox/20251228T234445Z_inputs/unzipped/hormiguero_manifetsaator.txt:3256:POST /api/v1/inee/windows/close
+/workspace/VX_11/docs/inbox/20251228T234445Z_inputs/unzipped/hormiguero_manifetsaator.txt:3263:POST /api/v1/inee/windows/extend
+/workspace/VX_11/docs/inbox/20251228T234445Z_inputs/unzipped/operatorjson.txt:254:            "behavior": "Show OK/OFF_BY_POLICY/DEGRADED/UNKNOWN; click -> module detail"
+/workspace/VX_11/docs/inbox/20251228T234445Z_inputs/unzipped/operatorjson.txt:477:                "status": "OK|OFF_BY_POLICY|DEGRADED|RESTARTING|UNKNOWN",
+/workspace/VX_11/docs/inbox/20251228T234445Z_inputs/unzipped/operatorjson.txt:797:      "UI works in solo_madre: shows OFF_BY_POLICY correctly.",
+/workspace/VX_11/attic/import_map.json:605:      "tentaculo_link/api/v1_gateway.py": [
+/workspace/VX_11/OPERATOR_P11_P1_BASELINE_FINDINGS.md:18:3. **Rate Limiting** — HIGH — No rate limiting on /operator/api/chat
+/workspace/VX_11/OPERATOR_P11_P1_BASELINE_FINDINGS.md:33:| C | main_v7.py | Rate limit + cache in /operator/api/chat | Prevent spam + reduce costs |
+/workspace/VX_11/FASE_8_INTEGRATION_REFERENCE.txt:74:  @app.post("/operator/api/chat", response_model=ChatResponse)
+/workspace/VX_11/FASE_8_INTEGRATION_REFERENCE.txt:158:         http://localhost:8011/operator/api/chat \
+/workspace/VX_11/FASE_8_INTEGRATION_REFERENCE.txt:181:Error: "401 Unauthorized" on /operator/api/chat
+/workspace/VX_11/FASE_8_INTEGRATION_REFERENCE.txt:200:  @app.post("/operator/api/chat")
+/workspace/VX_11/FASE_8_INTEGRATION_REFERENCE.txt:212:  @app.post("/operator/api/chat", response_model=ChatResponse)
+/workspace/VX_11/docs/hormiguero_manifetsaator.txt:36:  - rutas/API: `/api/v1/inee/*` (register/heartbeat/submit_intents/windows/status)
+/workspace/VX_11/docs/hormiguero_manifetsaator.txt:502:#### 1.2 Registro Inicial (POST `/api/v1/inee/colonies/register`)
+/workspace/VX_11/docs/hormiguero_manifetsaator.txt:3235:POST /api/v1/inee/windows/request
+/workspace/VX_11/docs/hormiguero_manifetsaator.txt:3244:POST /api/v1/operator/windows/approve
+/workspace/VX_11/docs/hormiguero_manifetsaator.txt:3253:GET /api/v1/inee/windows/status
+/workspace/VX_11/docs/hormiguero_manifetsaator.txt:3256:POST /api/v1/inee/windows/close
+/workspace/VX_11/docs/hormiguero_manifetsaator.txt:3263:POST /api/v1/inee/windows/extend
+/workspace/VX_11/docs/canon/INDEX.json:304:                    "path": "/api/v1/inee/colonies/register",
+/workspace/VX_11/docs/canon/INDEX.json:309:                    "path": "/api/v1/inee/colonies",
+/workspace/VX_11/docs/canon/INDEX.json:314:                    "path": "/api/v1/inee/intents/submit",
+/workspace/VX_11/docs/operatorjson.txt:254:            "behavior": "Show OK/OFF_BY_POLICY/DEGRADED/UNKNOWN; click -> module detail"
+/workspace/VX_11/docs/operatorjson.txt:477:                "status": "OK|OFF_BY_POLICY|DEGRADED|RESTARTING|UNKNOWN",
+/workspace/VX_11/docs/operatorjson.txt:797:      "UI works in solo_madre: shows OFF_BY_POLICY correctly.",
+/workspace/VX_11/docs/canon/VX11_OPERATOR_SUPERPACK_CANONICAL_v7.2.0.json:13:        "Operator DOWN is not an ERROR (it's OFF_BY_POLICY in SOLO_MADRE)",
+/workspace/VX_11/docs/canon/VX11_OPERATOR_SUPERPACK_CANONICAL_v7.2.0.json:45:                "If operator_backend is DOWN in SOLO_MADRE: requests return degraded=true + OFF_BY_POLICY (not an error)"
+/workspace/VX_11/docs/canon/VX11_OPERATOR_SUPERPACK_CANONICAL_v7.2.0.json:81:                "Test: curl http://localhost:8000/operator/api/status | jq .data.status (should be 'operational' or 'degraded', not offline)",
+/workspace/VX_11/docs/canon/VX11_OPERATOR_SUPERPACK_CANONICAL_v7.2.0.json:84:                "Post-window test must show degraded=true or OFF_BY_POLICY for operator endpoints"
+/workspace/VX_11/docs/canon/VX11_OPERATOR_SUPERPACK_CANONICAL_v7.2.0.json:219:            "GET /operator/api/status": {
+/workspace/VX_11/docs/canon/VX11_OPERATOR_SUPERPACK_CANONICAL_v7.2.0.json:239:            "GET /operator/api/modules": {
+/workspace/VX_11/docs/canon/VX11_OPERATOR_SUPERPACK_CANONICAL_v7.2.0.json:257:                                "reason": "OFF_BY_POLICY"
+/workspace/VX_11/docs/canon/VX11_OPERATOR_SUPERPACK_CANONICAL_v7.2.0.json:265:            "POST /operator/api/chat": {
+/workspace/VX_11/docs/canon/VX11_OPERATOR_SUPERPACK_CANONICAL_v7.2.0.json:291:            "GET /operator/api/topology": {
+/workspace/VX_11/docs/canon/VX11_OPERATOR_SUPERPACK_CANONICAL_v7.2.0.json:342:            "GET /operator/api/percentages": {
+/workspace/VX_11/docs/canon/VX11_OPERATOR_SUPERPACK_CANONICAL_v7.2.0.json:360:            "GET /operator/api/scorecard": {
+/workspace/VX_11/docs/canon/VX11_OPERATOR_SUPERPACK_CANONICAL_v7.2.0.json:381:            "GET /operator/api/audit": {
+/workspace/VX_11/docs/canon/VX11_OPERATOR_SUPERPACK_CANONICAL_v7.2.0.json:405:            "GET /operator/api/audit/{run_id}": {
+/workspace/VX_11/docs/canon/VX11_OPERATOR_SUPERPACK_CANONICAL_v7.2.0.json:427:            "GET /operator/api/audit/{run_id}/download": {
+/workspace/VX_11/docs/canon/VX11_OPERATOR_SUPERPACK_CANONICAL_v7.2.0.json:438:            "GET /operator/api/explorer/fs": {
+/workspace/VX_11/docs/canon/VX11_OPERATOR_SUPERPACK_CANONICAL_v7.2.0.json:466:            "GET /operator/api/explorer/db": {
+/workspace/VX_11/docs/canon/VX11_OPERATOR_SUPERPACK_CANONICAL_v7.2.0.json:497:            "GET /operator/api/settings": {
+/workspace/VX_11/docs/canon/VX11_OPERATOR_SUPERPACK_CANONICAL_v7.2.0.json:511:            "POST /operator/api/settings": {
+/workspace/VX_11/docs/canon/VX11_OPERATOR_SUPERPACK_CANONICAL_v7.2.0.json:531:            "POST /operator/api/module/{name}/restart": {
+/workspace/VX_11/docs/canon/VX11_OPERATOR_SUPERPACK_CANONICAL_v7.2.0.json:572:            "curl http://localhost:8000/operator/api/status → { ok: true, data: { status: 'operational|degraded' } }",
+/workspace/VX_11/docs/canon/VX11_OPERATOR_SUPERPACK_CANONICAL_v7.2.0.json:573:            "curl http://localhost:8000/operator/api/modules → { ok: true, data: { modules: [...] } }",
+/workspace/VX_11/docs/canon/VX11_OPERATOR_SUPERPACK_CANONICAL_v7.2.0.json:574:            "curl http://localhost:8000/operator/api/topology → { ok: true, data: { nodes: [...], edges: [...] } }",
+/workspace/VX_11/docs/canon/VX11_OPERATOR_SUPERPACK_CANONICAL_v7.2.0.json:577:            "curl http://localhost:8000/operator/api/status → { degraded: true, errors: ['operator_backend unreachable'] } or 503"
+/workspace/VX_11/docs/canon/VX11_OPERATOR_SUPERPACK_CANONICAL_v7.2.0.json:591:            "fix_v7_2_0": "Operator DOWN returns degraded=true + OFF_BY_POLICY (not an error); UX banner explains"
+/workspace/VX_11/docs/canon/VX11_INEE_OPTIONAL_CANONICAL_v1.0.0.json:28:            "description": "Enable external INEE API in tentaculo_link (mounts /api/v1/inee/* routes)",
+/workspace/VX_11/docs/canon/VX11_INEE_OPTIONAL_CANONICAL_v1.0.0.json:146:            "prefix": "/api/v1/inee/",
+/workspace/VX_11/docs/canon/VX11_OPERATOR_SUPERPACK_CANONICAL_v7.0.0.json:345:                        "behavior": "Show OK/OFF_BY_POLICY/DEGRADED/UNKNOWN; click -> module detail"
+/workspace/VX_11/docs/canon/VX11_OPERATOR_SUPERPACK_CANONICAL_v7.0.0.json:680:                                "status": "OK|OFF_BY_POLICY|DEGRADED|RESTARTING|UNKNOWN",
+/workspace/VX_11/docs/canon/VX11_OPERATOR_SUPERPACK_CANONICAL_v7.0.0.json:1269:            "UI works in solo_madre: shows OFF_BY_POLICY correctly.",
+/workspace/VX_11/tentaculo_link/inee_remote_routes.py:5:- POST /api/v1/inee/intents/submit
+/workspace/VX_11/tentaculo_link/inee_remote_routes.py:6:- POST /api/v1/inee/register/colonies
+/workspace/VX_11/tentaculo_link/inee_remote_routes.py:7:- GET /api/v1/inee/heartbeat
+/workspace/VX_11/tentaculo_link/inee_remote_routes.py:44:router = APIRouter(prefix="/api/v1/inee", tags=["inee-remote"])
+/workspace/VX_11/OPERATOR_UI_PHASE4_IMPLEMENTATION_GUIDE.md:367:        eventSource = new EventSource('/operator/api/events/stream');
+/workspace/VX_11/OPERATOR_UI_PHASE4_IMPLEMENTATION_GUIDE.md:391:        const resp = await fetch('/operator/api/events?limit=50');
+/workspace/VX_11/OPERATOR_UI_PHASE4_IMPLEMENTATION_GUIDE.md:840:1. **Entrypoint**: All calls go through `/operator/api/*` (proxied via tentaculo_link:8000)
+/workspace/VX_11/tentaculo_link/main_v7.py:188:    if request.url.path.startswith("/operator/api"):
+/workspace/VX_11/tentaculo_link/main_v7.py:189:        correlation_id = request.headers.get("X-Correlation-Id") or str(uuid.uuid4())
+/workspace/VX_11/tentaculo_link/main_v7.py:199:        if request_path.startswith("/operator/api/v1"):
+/workspace/VX_11/tentaculo_link/main_v7.py:200:            upstream_path = request_path.replace("/operator/api/v1", "/api/v1", 1)
+/workspace/VX_11/tentaculo_link/main_v7.py:202:            upstream_path = request_path.replace("/operator/api", "/api/v1", 1)
+/workspace/VX_11/tentaculo_link/main_v7.py:205:        headers["X-Correlation-Id"] = correlation_id
+/workspace/VX_11/tentaculo_link/main_v7.py:223:                                headers={"X-Correlation-Id": correlation_id},
+/workspace/VX_11/tentaculo_link/main_v7.py:231:                            headers={"X-Correlation-Id": correlation_id},
+/workspace/VX_11/tentaculo_link/main_v7.py:246:                    "status": "OFF_BY_POLICY",
+/workspace/VX_11/tentaculo_link/main_v7.py:252:                headers={"X-Correlation-Id": correlation_id},
+/workspace/VX_11/tentaculo_link/main_v7.py:264:                    headers={"X-Correlation-Id": correlation_id},
+/workspace/VX_11/tentaculo_link/main_v7.py:273:            headers={"X-Correlation-Id": correlation_id},
+/workspace/VX_11/tentaculo_link/main_v7.py:2015:@app.get("/operator/api/status", tags=["operator-api-p0"])
+/workspace/VX_11/tentaculo_link/main_v7.py:2020:    Returns current policy + core service health + OFF_BY_POLICY state.
+/workspace/VX_11/tentaculo_link/main_v7.py:2035:            "switch": {"status": "OFF_BY_POLICY", "reason": "solo_madre policy"},
+/workspace/VX_11/tentaculo_link/main_v7.py:2036:            "hermes": {"status": "OFF_BY_POLICY", "reason": "solo_madre policy"},
+/workspace/VX_11/tentaculo_link/main_v7.py:2037:            "hormiguero": {"status": "OFF_BY_POLICY", "reason": "solo_madre policy"},
+/workspace/VX_11/tentaculo_link/main_v7.py:2038:            "spawner": {"status": "OFF_BY_POLICY", "reason": "solo_madre policy"},
+/workspace/VX_11/tentaculo_link/main_v7.py:2051:@app.get("/operator/api/modules", tags=["operator-api-p0"])
+/workspace/VX_11/tentaculo_link/main_v7.py:2055:    OFF_BY_POLICY modules shown as inactive (not error).
+/workspace/VX_11/tentaculo_link/main_v7.py:2074:    # Optional (OFF_BY_POLICY in solo_madre)
+/workspace/VX_11/tentaculo_link/main_v7.py:2077:            "status": "OFF_BY_POLICY",
+/workspace/VX_11/tentaculo_link/main_v7.py:2099:@app.post("/operator/api/chat", tags=["operator-api-p0"])
+/workspace/VX_11/tentaculo_link/main_v7.py:2396:@app.get("/operator/api/status", tags=["operator-api-p0"])
+/workspace/VX_11/tentaculo_link/main_v7.py:2579:@app.get("/operator/api/events", tags=["operator-api-p0"])
+/workspace/VX_11/tentaculo_link/main_v7.py:2591:    - GET /operator/api/events?follow=true
+/workspace/VX_11/tentaculo_link/main_v7.py:2704:@app.get("/operator/api/metrics", tags=["operator-api-p0"])
+/workspace/VX_11/tentaculo_link/main_v7.py:2726:                "by_endpoint": {"/operator/api/chat": 120, ...},
+/workspace/VX_11/tentaculo_link/main_v7.py:2755:                "/operator/api/chat": 120,
+/workspace/VX_11/tentaculo_link/main_v7.py:2756:                "/operator/api/status": 85,
+/workspace/VX_11/tentaculo_link/main_v7.py:2757:                "/operator/api/events": 40,
+/workspace/VX_11/tentaculo_link/main_v7.py:2984:@app.post("/operator/api/assist/deepseek_r1", tags=["operator-api-codev"])
+/workspace/VX_11/tentaculo_link/main_v7.py:3112:@app.get("/operator/api/assist/deepseek_r1/status", tags=["operator-api-codev"])
+/workspace/VX_11/tentaculo_link/main_v7.py:3165:@app.post("/operator/api/chat/window/open", tags=["operator-api-powerwindows"])
+/workspace/VX_11/tentaculo_link/main_v7.py:3175:    POST /operator/api/chat/window/open
+/workspace/VX_11/tentaculo_link/main_v7.py:3282:@app.post("/operator/api/chat/window/close", tags=["operator-api-powerwindows"])
+/workspace/VX_11/tentaculo_link/main_v7.py:3354:@app.get("/operator/api/chat/window/status", tags=["operator-api-powerwindows"])
+/workspace/VX_11/tentaculo_link/main_v7.py:3411:@app.get("/operator/api/events", tags=["operator-api-p0"])
+/workspace/VX_11/tentaculo_link/main_v7.py:3427:@app.get("/operator/api/scorecard", tags=["operator-api-p0"])
+/workspace/VX_11/tentaculo_link/main_v7.py:3461:@app.get("/operator/api/health", tags=["operator-api-p0"])
+/workspace/VX_11/tentaculo_link/main_v7.py:3488:@app.get("/operator/api/topology", tags=["operator-api-p0"])
+/workspace/VX_11/tentaculo_link/main_v7.py:3522:                    "status": "OFF_BY_POLICY",
+/workspace/VX_11/tentaculo_link/main_v7.py:3529:                    "status": "OFF_BY_POLICY",
+/workspace/VX_11/tentaculo_link/main_v7.py:3536:                    "status": "OFF_BY_POLICY",
+/workspace/VX_11/tentaculo_link/main_v7.py:3543:                    "status": "OFF_BY_POLICY",
+/workspace/VX_11/tentaculo_link/main_v7.py:3554:        "policy_note": "solo_madre: Only core services up. Optional services OFF_BY_POLICY (not an error).",
+/workspace/VX_11/tentaculo_link/main_v7.py:3558:@app.get("/operator/api/audit", tags=["operator-api-p0"])
+/workspace/VX_11/tentaculo_link/main_v7.py:3571:@app.get("/operator/api/audit/{run_id}", tags=["operator-api-p0"])
+/workspace/VX_11/tentaculo_link/main_v7.py:3583:@app.get("/operator/api/audit/{run_id}/download", tags=["operator-api-p0"])
+/workspace/VX_11/tentaculo_link/main_v7.py:3595:@app.get("/operator/api/settings", tags=["operator-api-p0"])
+/workspace/VX_11/tentaculo_link/main_v7.py:3609:@app.post("/operator/api/settings", tags=["operator-api-p0"])
+/workspace/VX_11/tentaculo_link/main_v7.py:3623:    "/operator/api/{path:path}",
+/workspace/VX_11/tentaculo_link/main_v7.py:3629:    Fallback for unmatched /operator/api/* paths.
+/workspace/VX_11/tentaculo_link/main_v7.py:3636:            "path": f"/operator/api/{path}",
+/workspace/VX_11/tentaculo_link/main_v7.py:3638:                "GET  /operator/api/status",
+/workspace/VX_11/tentaculo_link/main_v7.py:3639:                "GET  /operator/api/modules",
+/workspace/VX_11/tentaculo_link/main_v7.py:3640:                "POST /operator/api/chat",
+/workspace/VX_11/tentaculo_link/main_v7.py:3641:                "GET  /operator/api/events",
+/workspace/VX_11/tentaculo_link/main_v7.py:3642:                "GET  /operator/api/scorecard",
+/workspace/VX_11/tentaculo_link/main_v7.py:3643:                "GET  /operator/api/topology",
