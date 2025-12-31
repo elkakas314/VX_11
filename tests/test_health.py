@@ -13,15 +13,15 @@ from tests._vx11_base import vx11_base_url, vx11_auth_headers
 
 @pytest.mark.p0
 @pytest.mark.health
-def test_p0_4_madre_health_endpoint(madre_port):
+def test_p0_4_madre_health_endpoint():
     """
     P0.4: Verify madre health via frontdoor
     Expected: HTTP 200 from /health (frontdoor), no direct /madre/health path on single-entrypoint
-    Note: /madre/health is only accessible via direct madre:8001, not through frontdoor proxy.
+    Note: /madre/health is proxied through frontdoor, never direct madre:8001 access.
     """
     try:
         headers = vx11_auth_headers()
-        # Test frontdoor health instead (madre is proxied as /madre/health on internal routes)
+        # Test frontdoor health (single entrypoint)
         resp = requests.get(vx11_base_url() + "/health", headers=headers, timeout=5)
         assert resp.status_code == 200, f"Expected 200, got {resp.status_code}"
 

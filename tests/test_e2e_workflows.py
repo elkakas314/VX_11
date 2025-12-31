@@ -4,6 +4,9 @@ E2E Tests: End-to-End Integration
 
 Tests for complete workflows and resource measurement.
 Markers: @pytest.mark.e2e, @pytest.mark.integration, @pytest.mark.performance
+
+NOTE: All tests use frontdoor (tentaculo_link:8000) as the single entrypoint.
+No direct access to internal ports (madre:8001, etc.).
 """
 
 import json
@@ -13,7 +16,7 @@ import pytest
 import requests
 import subprocess
 import time
-from tests._vx11_base import vx11_base_url
+from tests._vx11_base import vx11_base_url, vx11_auth_headers
 
 
 @pytest.mark.e2e
@@ -72,15 +75,12 @@ def test_e2e_1_full_workflow_boot_scale_policy_ondemand(madre_port, docker_avail
     ), f"Step 3: Expected at least 2 containers after starting"
 
     # Step 4: Re-apply solo_madre policy
+    headers = vx11_auth_headers()
     response = requests.post(
-        vx11_base_url() + "/madre/power/policy/solo_madre/apply",
+        vx11_base_url() + "/operator/power/policy/solo_madre/apply",
+        headers=headers,
         timeout=10,
     )
-        response = requests.post(
-            vx11_base_url() + "/operator/power/policy/solo_madre/apply",
-            headers=headers,
-            timeout=10,
-        )
     assert response.status_code == 200, "Failed to apply solo_madre policy"
 
     time.sleep(2)
