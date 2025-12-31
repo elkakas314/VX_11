@@ -1,0 +1,6 @@
+# deepseek_enhanced list - files aligned with VX11 and enhanced by DeepSeek R1
+tests/conftest.py
+tests/utils/operator_backend.py
+tests/test_operator_auth_canonical.py
+tests/test_shell_tests_deprecated.py
+tests/__init__.py
