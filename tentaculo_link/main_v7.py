@@ -3235,6 +3235,7 @@ async def operator_api_assist_deepseek_r1_status(_: bool = Depends(token_guard))
 
 
 @app.post("/operator/api/chat/window/open", tags=["operator-api-powerwindows"])
+@app.post("/operator/api/window/open", tags=["operator-api-powerwindows"], include_in_schema=False)
 async def operator_api_chat_window_open(
     req: PowerWindowOpenRequest, _: bool = Depends(token_guard)
 ):
@@ -3360,6 +3361,7 @@ async def operator_api_chat_window_open(
 
 
 @app.post("/operator/api/chat/window/close", tags=["operator-api-powerwindows"])
+@app.post("/operator/api/window/close", tags=["operator-api-powerwindows"], include_in_schema=False)
 async def operator_api_chat_window_close(_: bool = Depends(token_guard)):
     """
     FASE 3: Close active Power Window (manual).
@@ -3440,6 +3442,7 @@ async def operator_api_chat_window_close(_: bool = Depends(token_guard)):
 
 
 @app.get("/operator/api/chat/window/status", tags=["operator-api-powerwindows"])
+@app.get("/operator/api/window/status", tags=["operator-api-powerwindows"], include_in_schema=False)
 async def operator_api_chat_window_status(_: bool = Depends(token_guard)):
     """
     FASE 3: Get active Power Window status.

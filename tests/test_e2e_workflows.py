@@ -1,4 +1,5 @@
 from tests._vx11_base import vx11_base_url, vx11_auth_headers
+
 """
 E2E Tests: End-to-End Integration
 
@@ -191,11 +192,11 @@ def test_e2e_2_resource_measurement_idle_vs_full(
     # Step 2: Start services
     services_to_start = ["spawner", "hermes"]
     for svc in services_to_start:
-            requests.post(
-                vx11_base_url() + f"/operator/power/service/{svc}/start",
-                headers=headers,
-                timeout=10,
-            )
+        requests.post(
+            vx11_base_url() + f"/operator/power/service/{svc}/start",
+            headers=headers,
+            timeout=10,
+        )
 
     time.sleep(3)
 

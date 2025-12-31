@@ -47,6 +47,8 @@ services:
       - vx11-test
     environment:
       - VX11_MODE=test
+      - VX11_TENTACULO_LINK_TOKEN=vx11-test-token
+      - VX11_TOKEN=vx11-test-token
       - VX11_SOLO_MADRE=0
       - VX11_WINDOW_SERVICES=tentaculo_link,switch,spawner,operator-backend,operator-frontend
       - REDIS_URL=redis://redis-test:6379

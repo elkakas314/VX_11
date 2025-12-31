@@ -75,7 +75,9 @@ def _extract_violations_from_ast(src: str, relpath: str):
 
     def call_is_http_client(call: ast.Call) -> bool:
         # requests.get(...)
-        if isinstance(call.func, ast.Attribute) and isinstance(call.func.value, ast.Name):
+        if isinstance(call.func, ast.Attribute) and isinstance(
+            call.func.value, ast.Name
+        ):
             base = call.func.value.id
             meth = call.func.attr
             for client, methods in HTTP_CALL_NAMES:
@@ -107,7 +109,9 @@ def _extract_violations_from_ast(src: str, relpath: str):
                         break
             if bad:
                 lineno = getattr(node, "lineno", 0)
-                violations.append((relpath, lineno, "Hardcoded internal port in HTTP call"))
+                violations.append(
+                    (relpath, lineno, "Hardcoded internal port in HTTP call")
+                )
     return violations
 
 
