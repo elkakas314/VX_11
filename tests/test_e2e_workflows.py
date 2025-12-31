@@ -98,15 +98,10 @@ def test_e2e_1_full_workflow_boot_scale_policy_ondemand(madre_port, docker_avail
 
     # Step 6: Start switch on-demand
     response = requests.post(
-        vx11_base_url() + "/madre/power/service/start",
-        json={"service": "switch"},
+        vx11_base_url() + "/operator/power/service/switch/start",
+        headers=headers,
         timeout=10,
     )
-        response = requests.post(
-            vx11_base_url() + "/operator/power/service/switch/start",
-            headers=headers,
-            timeout=10,
-        )
     assert response.status_code == 200, "Failed to start switch"
 
     time.sleep(2)
@@ -122,20 +117,16 @@ def test_e2e_1_full_workflow_boot_scale_policy_ondemand(madre_port, docker_avail
 
     # Step 8: Stop switch
     response = requests.post(
-        vx11_base_url() + "/madre/power/service/stop",
-        json={"service": "switch"},
+        vx11_base_url() + "/operator/power/service/switch/stop",
+        headers=headers,
         timeout=10,
     )
-        response = requests.post(
-            vx11_base_url() + "/operator/power/service/switch/stop",
-            headers=headers,
-            timeout=10,
-        )
-        response = requests.get(
-            vx11_base_url() + "/operator/power/policy/solo_madre/status",
-            headers=headers,
-            timeout=10,
-        )
+
+    response = requests.get(
+        vx11_base_url() + "/operator/power/policy/solo_madre/status",
+        headers=headers,
+        timeout=10,
+    )
     assert response.status_code == 200, "Failed to stop switch"
 
     time.sleep(1)
@@ -153,7 +144,8 @@ def test_e2e_1_full_workflow_boot_scale_policy_ondemand(madre_port, docker_avail
 
     # Verify solo_madre policy still active
     response = requests.get(
-        vx11_base_url() + "/madre/power/policy/solo_madre/status",
+        vx11_base_url() + "/operator/power/policy/solo_madre/status",
+        headers=headers,
         timeout=10,
     )
     assert response.status_code == 200, "Failed to check policy status"
@@ -234,14 +226,10 @@ def test_e2e_2_resource_measurement_idle_vs_full(
 
     # Step 7: Clean up - return to solo_madre
     response = requests.post(
-        f"http://localhost:{madre_port}/madre/power/policy/solo_madre/apply",
+        vx11_base_url() + "/operator/power/policy/solo_madre/apply",
+        headers=headers,
         timeout=10,
     )
-        response = requests.post(
-            vx11_base_url() + "/operator/power/policy/solo_madre/apply",
-            headers=headers,
-            timeout=10,
-        )
     assert response.status_code == 200, "Failed to cleanup: return to solo_madre"
 
 
