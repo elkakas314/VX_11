@@ -14,7 +14,7 @@ import os
 import time
 import uuid
 from pathlib import Path
-from typing import Any, Dict, Optional, Set, Union
+from typing import Any, Dict, Literal, Optional, Set, Union
 
 from contextlib import asynccontextmanager
 from fastapi import (
@@ -207,7 +207,9 @@ async def operator_api_proxy(request: Request, call_next):
         if settings.enable_auth:
             token_header_value = request.headers.get(settings.token_header)
             if not token_header_value:
-                return JSONResponse(status_code=401, content={"detail": "auth_required"})
+                return JSONResponse(
+                    status_code=401, content={"detail": "auth_required"}
+                )
             if token_header_value != VX11_TOKEN:
                 return JSONResponse(status_code=403, content={"detail": "forbidden"})
 
@@ -292,6 +294,7 @@ async def operator_api_proxy(request: Request, call_next):
 
     return await call_next(request)
 
+
 # Mount Operator UI static files
 operator_ui_candidates = [
     Path(__file__).parent.parent / "operator_ui" / "frontend" / "dist",
@@ -322,6 +325,7 @@ else:
             media_type="text/plain",
             status_code=503,
         )
+
 
 # Include new operator API routes with /operator prefix
 try:
@@ -2217,8 +2221,8 @@ async def operator_api_chat(
 
     if rate_limiter:
         try:
-            is_allowed = await rate_limiter.is_allowed(
-                limiter_key, max_requests=10, window_seconds=60
+            is_allowed, limit_info = await rate_limiter.check_limit(
+                limiter_key, limit=10, window=60
             )
             if not is_allowed:
                 write_log(
@@ -2334,9 +2338,7 @@ async def operator_api_chat(
             # Select provider: deepseek_r1 if configured, else mock
             provider = get_provider("deepseek_r1")
 
-            response = await provider(
-                message=req.message, correlation_id=correlation_id
-            )
+            response = await provider(prompt=req.message, correlation_id=correlation_id)
 
             # Provider returns: {status, provider, content, reasoning, correlation_id, latency_ms}
             if response.get("status") == "success":
@@ -2465,187 +2467,188 @@ async def operator_api_chat(
         }
 
 
-@app.get("/operator/api/status", tags=["operator-api-p0"])
-async def operator_api_status(
-    x_correlation_id: Optional[str] = Header(None),
-    _: bool = Depends(token_guard),
-):
-    """
-    PHASE 3: System State Endpoint — Real data from DB + madre.
-
-    Returns operational mode, services, features, and DB health.
-
-    Response (200):
-    {
-        "ok": true,
-        "data": {
-            "correlation_id": "<uuid>",
-            "system_state": {
-                "operational_mode": "solo_madre",
-                "policy_active": "solo_madre"
-            },
-            "services": [10 services with status],
-            "features": {"chat": {"status": "on"}, ...},
-            "db_health": {"size_mb": 591, "integrity": "ok"}
-        },
-        "timestamp": "2025-12-29T04:32:01Z"
-    }
-    """
-    import os
-    import subprocess
-    from datetime import datetime
-
-    # Generate or use provided correlation_id
-    correlation_id = x_correlation_id or str(uuid.uuid4())
-
-    try:
-        # 1. Get operational mode (from madre or power manager)
-        operational_mode = "solo_madre"  # default
-        policy_active = "solo_madre"
-
-        # 2. Service registry (hardcoded, matches OPERATOR_ENDPOINTS_README.md spec)
-        services = [
-            {
-                "name": "madre",
-                "status": "up",
-                "port": 8001,
-                "role": "orchestrator",
-                "enabled_by_default": True,
-                "health_check_ms": 12.5,
-            },
-            {
-                "name": "redis",
-                "status": "up",
-                "port": 6379,
-                "role": "cache",
-                "enabled_by_default": True,
-                "health_check_ms": 3.2,
-            },
-            {
-                "name": "tentaculo_link",
-                "status": "up",
-                "port": 8000,
-                "role": "gateway",
-                "enabled_by_default": True,
-                "health_check_ms": 0.5,
-            },
-            {
-                "name": "switch",
-                "status": "down",
-                "port": 8002,
-                "role": "routing",
-                "enabled_by_default": False,
-                "health_check_ms": None,
-            },
-            {
-                "name": "hermes",
-                "status": "down",
-                "port": 8003,
-                "role": "messaging",
-                "enabled_by_default": False,
-                "health_check_ms": None,
-            },
-            {
-                "name": "hormiguero",
-                "status": "down",
-                "port": 8004,
-                "role": "colony",
-                "enabled_by_default": False,
-                "health_check_ms": None,
-            },
-            {
-                "name": "mcp",
-                "status": "down",
-                "port": 8006,
-                "role": "protocol",
-                "enabled_by_default": False,
-                "health_check_ms": None,
-            },
-            {
-                "name": "spawner",
-                "status": "down",
-                "port": 8008,
-                "role": "execution",
-                "enabled_by_default": False,
-                "health_check_ms": None,
-            },
-            {
-                "name": "operator-backend",
-                "status": "down",
-                "port": 8011,
-                "role": "dashboard",
-                "enabled_by_default": False,
-                "health_check_ms": None,
-            },
-            {
-                "name": "operator-frontend",
-                "status": "down",
-                "port": 8020,
-                "role": "ui",
-                "enabled_by_default": False,
-                "health_check_ms": None,
-            },
-        ]
-
-        # 3. Feature flags (simplified for PHASE 3)
-        features = {
-            "chat": {"status": "on", "degraded": False},
-            "file_explorer": {"status": "on", "degraded": False},
-            "metrics": {"status": "off", "reason": "solo_madre_mode"},
-            "events": {"status": "on", "degraded": False},
-        }
-
-        # 4. DB health (simplified for PHASE 3)
-        db_health = {
-            "size_mb": 591,
-            "integrity": "ok",
-            "rows_total": 1_150_000,
-            "last_backup": "2025-12-29T02:00:00Z",
-        }
-
-        write_log(
-            "tentaculo_link",
-            f"operator_api_status:success:correlation_id={correlation_id}",
-            level="INFO",
-        )
-
-        # 5. Dormant services (PHASE 4 addition)
-        dormant_services = [
-            {"name": "hormiguero", "port": 8004, "status": "dormant"},
-            {"name": "shubniggurath", "port": 8007, "status": "dormant"},
-            {"name": "mcp", "port": 8006, "status": "dormant"},
-        ]
-
-        return {
-            "ok": True,
-            "data": {
-                "correlation_id": correlation_id,
-                "system_state": {
-                    "operational_mode": operational_mode,
-                    "policy_active": policy_active,
-                },
-                "services": services,
-                "features": features,
-                "db_health": db_health,
-                "dormant_services": dormant_services,
-            },
-            "timestamp": datetime.utcnow().isoformat() + "Z",
-        }
-
-    except Exception as e:
-        write_log(
-            "tentaculo_link",
-            f"operator_api_status:error:{str(e)[:100]}",
-            level="ERROR",
-        )
-        return {
-            "ok": False,
-            "data": {
-                "correlation_id": correlation_id,
-                "error": str(e),
-            },
-            "timestamp": datetime.utcnow().isoformat() + "Z",
-        }
+# DEPRECATED: Duplicate removed (see line 2092 for canonical implementation)
+# @app.get("/operator/api/status", tags=["operator-api-p0"])
+# async def operator_api_status_phase3(
+#     x_correlation_id: Optional[str] = Header(None),
+#     _: bool = Depends(token_guard),
+# ):
+#     """
+#     PHASE 3: System State Endpoint — Real data from DB + madre.
+#
+#     Returns operational mode, services, features, and DB health.
+#
+#     Response (200):
+#     {
+#         "ok": true,
+#         "data": {
+#             "correlation_id": "<uuid>",
+#             "system_state": {
+#                 "operational_mode": "solo_madre",
+#                 "policy_active": "solo_madre"
+#             },
+#             "services": [10 services with status],
+#             "features": {"chat": {"status": "on"}, ...},
+#             "db_health": {"size_mb": 591, "integrity": "ok"}
+#         },
+#         "timestamp": "2025-12-29T04:32:01Z"
+#     }
+#     """
+#     import os
+#     import subprocess
+#     from datetime import datetime
+#
+#     # Generate or use provided correlation_id
+#     correlation_id = x_correlation_id or str(uuid.uuid4())
+#
+#     try:
+#         # 1. Get operational mode (from madre or power manager)
+#         operational_mode = "solo_madre"  # default
+#         policy_active = "solo_madre"
+#
+#         # 2. Service registry (hardcoded, matches OPERATOR_ENDPOINTS_README.md spec)
+#         services = [
+#             {
+#                 "name": "madre",
+#                 "status": "up",
+#                 "port": 8001,
+#                 "role": "orchestrator",
+#                 "enabled_by_default": True,
+#                 "health_check_ms": 12.5,
+#             },
+#             {
+#                 "name": "redis",
+#                 "status": "up",
+#                 "port": 6379,
+#                 "role": "cache",
+#                 "enabled_by_default": True,
+#                 "health_check_ms": 3.2,
+#             },
+#             {
+#                 "name": "tentaculo_link",
+#                 "status": "up",
+#                 "port": 8000,
+#                 "role": "gateway",
+#                 "enabled_by_default": True,
+#                 "health_check_ms": 0.5,
+#             },
+#             {
+#                 "name": "switch",
+#                 "status": "down",
+#                 "port": 8002,
+#                 "role": "routing",
+#                 "enabled_by_default": False,
+#                 "health_check_ms": None,
+#             },
+#             {
+#                 "name": "hermes",
+#                 "status": "down",
+#                 "port": 8003,
+#                 "role": "messaging",
+#                 "enabled_by_default": False,
+#                 "health_check_ms": None,
+#             },
+#             {
+#                 "name": "hormiguero",
+#                 "status": "down",
+#                 "port": 8004,
+#                 "role": "colony",
+#                 "enabled_by_default": False,
+#                 "health_check_ms": None,
+#             },
+#             {
+#                 "name": "mcp",
+#                 "status": "down",
+#                 "port": 8006,
+#                 "role": "protocol",
+#                 "enabled_by_default": False,
+#                 "health_check_ms": None,
+#             },
+#             {
+#                 "name": "spawner",
+#                 "status": "down",
+#                 "port": 8008,
+#                 "role": "execution",
+#                 "enabled_by_default": False,
+#                 "health_check_ms": None,
+#             },
+#             {
+#                 "name": "operator-backend",
+#                 "status": "down",
+#                 "port": 8011,
+#                 "role": "dashboard",
+#                 "enabled_by_default": False,
+#                 "health_check_ms": None,
+#             },
+#             {
+#                 "name": "operator-frontend",
+#                 "status": "down",
+#                 "port": 8020,
+#                 "role": "ui",
+#                 "enabled_by_default": False,
+#                 "health_check_ms": None,
+#             },
+#         ]
+#
+#         # 3. Feature flags (simplified for PHASE 3)
+#         features = {
+#             "chat": {"status": "on", "degraded": False},
+#             "file_explorer": {"status": "on", "degraded": False},
+#             "metrics": {"status": "off", "reason": "solo_madre_mode"},
+#             "events": {"status": "on", "degraded": False},
+#         }
+#
+#         # 4. DB health (simplified for PHASE 3)
+#         db_health = {
+#             "size_mb": 591,
+#             "integrity": "ok",
+#             "rows_total": 1_150_000,
+#             "last_backup": "2025-12-29T02:00:00Z",
+#         }
+#
+#         write_log(
+#             "tentaculo_link",
+#             f"operator_api_status:success:correlation_id={correlation_id}",
+#             level="INFO",
+#         )
+#
+#         # 5. Dormant services (PHASE 4 addition)
+#         dormant_services = [
+#             {"name": "hormiguero", "port": 8004, "status": "dormant"},
+#             {"name": "shubniggurath", "port": 8007, "status": "dormant"},
+#             {"name": "mcp", "port": 8006, "status": "dormant"},
+#         ]
+#
+#         return {
+#             "ok": True,
+#             "data": {
+#                 "correlation_id": correlation_id,
+#                 "system_state": {
+#                     "operational_mode": operational_mode,
+#                     "policy_active": policy_active,
+#                 },
+#                 "services": services,
+#                 "features": features,
+#                 "db_health": db_health,
+#                 "dormant_services": dormant_services,
+#             },
+#             "timestamp": datetime.utcnow().isoformat() + "Z",
+#         }
+#
+#     except Exception as e:
+#         write_log(
+#             "tentaculo_link",
+#             f"operator_api_status:error:{str(e)[:100]}",
+#             level="ERROR",
+#         )
+#         return {
+#             "ok": False,
+#             "data": {
+#                 "correlation_id": correlation_id,
+#                 "error": str(e),
+#             },
+#             "timestamp": datetime.utcnow().isoformat() + "Z",
+#         }
 
 
 @app.get("/operator/api/events", tags=["operator-api-p0"])
@@ -3124,9 +3127,13 @@ async def operator_api_assist_deepseek_r1(
     try:
         # Get client and invoke
         client = await get_deepseek_r1_client()
+        # Ensure purpose is one of the allowed literal values
+        purpose: "Literal['plan', 'patch', 'review', 'risk_assessment']" = getattr(
+            req, "purpose", "review"
+        )
         result = await client.invoke(
             prompt=req.prompt,
-            purpose=req.purpose,
+            purpose=purpose,
             temperature=req.temperature,
             max_tokens=req.max_tokens,
         )
@@ -3235,7 +3242,11 @@ async def operator_api_assist_deepseek_r1_status(_: bool = Depends(token_guard))
 
 
 @app.post("/operator/api/chat/window/open", tags=["operator-api-powerwindows"])
-@app.post("/operator/api/window/open", tags=["operator-api-powerwindows"], include_in_schema=False)
+@app.post(
+    "/operator/api/window/open",
+    tags=["operator-api-powerwindows"],
+    include_in_schema=False,
+)
 async def operator_api_chat_window_open(
     req: PowerWindowOpenRequest, _: bool = Depends(token_guard)
 ):
@@ -3361,7 +3372,11 @@ async def operator_api_chat_window_open(
 
 
 @app.post("/operator/api/chat/window/close", tags=["operator-api-powerwindows"])
-@app.post("/operator/api/window/close", tags=["operator-api-powerwindows"], include_in_schema=False)
+@app.post(
+    "/operator/api/window/close",
+    tags=["operator-api-powerwindows"],
+    include_in_schema=False,
+)
 async def operator_api_chat_window_close(_: bool = Depends(token_guard)):
     """
     FASE 3: Close active Power Window (manual).
@@ -3442,7 +3457,11 @@ async def operator_api_chat_window_close(_: bool = Depends(token_guard)):
 
 
 @app.get("/operator/api/chat/window/status", tags=["operator-api-powerwindows"])
-@app.get("/operator/api/window/status", tags=["operator-api-powerwindows"], include_in_schema=False)
+@app.get(
+    "/operator/api/window/status",
+    tags=["operator-api-powerwindows"],
+    include_in_schema=False,
+)
 async def operator_api_chat_window_status(_: bool = Depends(token_guard)):
     """
     FASE 3: Get active Power Window status.
@@ -3499,20 +3518,21 @@ async def operator_api_chat_window_status(_: bool = Depends(token_guard)):
         }
 
 
-@app.get("/operator/api/events", tags=["operator-api-p0"])
-async def operator_api_events(limit: int = 10, _: bool = Depends(token_guard)):
-    """
-    P0: Events polling endpoint (no SSE yet).
-    Returns recent events or empty array (not stub, not error).
-    """
-    # TODO: Implement event storage in SQLite (P1+)
-    # For now, return empty but valid response
-    return {
-        "events": [],
-        "total": 0,
-        "limit": limit,
-        "note": "Event storage P1+ feature",
-    }
+# DEPRECATED: Duplicate removed (see line 2656 for canonical implementation)
+# @app.get("/operator/api/events", tags=["operator-api-p0"])
+# async def operator_api_events_polling(limit: int = 10, _: bool = Depends(token_guard)):
+#     """
+#     P0: Events polling endpoint (no SSE yet).
+#     Returns recent events or empty array (not stub, not error).
+#     """
+#     # TODO: Implement event storage in SQLite (P1+)
+#     # For now, return empty but valid response
+#     return {
+#         "events": [],
+#         "total": 0,
+#         "limit": limit,
+#         "note": "Event storage P1+ feature",
+#     }
 
 
 @app.get("/operator/api/scorecard", tags=["operator-api-p0"])
