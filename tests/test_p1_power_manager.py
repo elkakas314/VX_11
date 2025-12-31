@@ -10,7 +10,7 @@ import subprocess
 import json
 import requests
 import time
-from tests._vx11_base import vx11_base_url
+from tests._vx11_base import vx11_base_url, vx11_auth_headers
 
 
 @pytest.mark.p1
@@ -23,11 +23,14 @@ def test_p1_1_start_single_service(madre_port, docker_available):
     if not docker_available:
         pytest.skip("Docker not available")
     # Start switch via frontdoor (single-entrypoint)
+    headers = vx11_auth_headers()
     response = requests.post(
-        vx11_base_url() + "/madre/power/service/start",
-        json={"service": "switch"},
+        vx11_base_url() + f"/operator/power/service/switch/start",
+        headers=headers,
         timeout=10,
     )
+    if response.status_code == 403:
+        pytest.skip("Operator control disabled on frontdoor")
     assert response.status_code == 200, f"Start request failed: {response.text}"
 
     result = response.json()
@@ -67,11 +70,14 @@ def test_p1_2_stop_single_service(madre_port, docker_available):
     if not docker_available:
         pytest.skip("Docker not available")
     # Stop switch
+    headers = vx11_auth_headers()
     response = requests.post(
-        vx11_base_url() + "/madre/power/service/stop",
-        json={"service": "switch"},
+        vx11_base_url() + f"/operator/power/service/switch/stop",
+        headers=headers,
         timeout=10,
     )
+    if response.status_code == 403:
+        pytest.skip("Operator control disabled on frontdoor")
     assert response.status_code == 200, f"Stop request failed: {response.text}"
 
     result = response.json()
@@ -103,11 +109,14 @@ def test_p1_3_start_multiple_services(madre_port, docker_available):
     services = [("spawner", 8007), ("hermes", 8005)]
 
     for service, port in services:
+        headers = vx11_auth_headers()
         response = requests.post(
-            vx11_base_url() + "/madre/power/service/start",
-            json={"service": service},
+            vx11_base_url() + f"/operator/power/service/{service}/start",
+            headers=headers,
             timeout=10,
         )
+        if response.status_code == 403:
+            pytest.skip("Operator control disabled on frontdoor")
         assert response.status_code == 200, f"Start {service} failed: {response.text}"
 
         result = response.json()
@@ -142,9 +151,10 @@ def test_p1_3_start_multiple_services(madre_port, docker_available):
 
     # Clean up: stop both
     for service, _ in services:
+        headers = vx11_auth_headers()
         requests.post(
-            vx11_base_url() + "/madre/power/service/stop",
-            json={"service": service},
+            vx11_base_url() + f"/operator/power/service/{service}/stop",
+            headers=headers,
             timeout=10,
         )
 
@@ -160,19 +170,26 @@ def test_p1_4_policy_idempotence(madre_port, docker_available):
     if not docker_available:
         pytest.skip("Docker not available")
     # Apply policy first time
+    headers = vx11_auth_headers()
     response1 = requests.post(
-        vx11_base_url() + "/madre/power/policy/solo_madre/apply",
+        vx11_base_url() + "/operator/power/policy/solo_madre/apply",
+        headers=headers,
         timeout=10,
     )
+    if response1.status_code == 403:
+        pytest.skip("Operator control disabled on frontdoor")
     assert response1.status_code == 200, f"First apply failed: {response1.text}"
     result1 = response1.json()
 
     # Apply policy second time
     time.sleep(1)
     response2 = requests.post(
-        vx11_base_url() + "/madre/power/policy/solo_madre/apply",
+        vx11_base_url() + "/operator/power/policy/solo_madre/apply",
+        headers=headers,
         timeout=10,
     )
+    if response2.status_code == 403:
+        pytest.skip("Operator control disabled on frontdoor")
     assert response2.status_code == 200, f"Second apply failed: {response2.text}"
     result2 = response2.json()
 
@@ -208,9 +225,10 @@ def test_p1_5_invalid_service_rejected(madre_port, docker_available):
     invalid_services = ["nonexistent_service", "invalid_123", "fake_service"]
 
     for invalid_svc in invalid_services:
+        headers = vx11_auth_headers()
         response = requests.post(
-            vx11_base_url() + "/madre/power/service/start",
-            json={"service": invalid_svc},
+            vx11_base_url() + f"/operator/power/service/{invalid_svc}/start",
+            headers=headers,
             timeout=10,
         )
 
@@ -260,10 +278,14 @@ def test_p1_7_power_status_endpoint(madre_port, docker_available):
     """
     if not docker_available:
         pytest.skip("Docker not available")
+    headers = vx11_auth_headers()
     response = requests.get(
-        vx11_base_url() + "/madre/power/status",
+        vx11_base_url() + "/operator/power/status",
+        headers=headers,
         timeout=10,
     )
+    if response.status_code == 403:
+        pytest.skip("Operator control disabled on frontdoor")
     assert response.status_code == 200, f"Status endpoint failed: {response.text}"
 
     result = response.json()

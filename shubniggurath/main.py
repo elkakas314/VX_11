@@ -364,7 +364,7 @@ async def shub_execute(payload: Dict[str, Any]):
 # For any unmatched path: return 404 with canonical error.
 
 
-@app.post("/shub/execute")
+@app.post("/shub/execute_v2")
 async def shub_execute_legacy(request: Request):
     """
     Legacy /shub/execute endpoint (deprecated).

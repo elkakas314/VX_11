@@ -6,7 +6,7 @@ import pytest
 import requests
 import os
 import time
-from tests._vx11_base import vx11_base_url
+from tests._vx11_base import vx11_base_url, vx11_auth_headers
 
 MADRE_URL = os.getenv("VX11_MADRE_URL", vx11_base_url())
 SERVICES = ["tentaculo_link", "switch", "hermes", "hormiguero", "spawner"]
@@ -20,9 +20,10 @@ def test_madre_service_start_requires_env():
 
     # Try to start a service - should fail with 403
     try:
+        headers = vx11_auth_headers()
         response = requests.post(
-            vx11_base_url() + "/madre/power/service/start",
-            json={"service": "hermes"},
+            vx11_base_url() + f"/operator/power/service/hermes/start",
+            headers=headers,
             timeout=TIMEOUT,
         )
         # If it's enabled in the environment, we expect success or different error
@@ -39,8 +40,9 @@ def test_madre_service_start_requires_env():
 def test_madre_service_status():
     """Test that Madre reports service status"""
     try:
+        headers = vx11_auth_headers()
         response = requests.get(
-            vx11_base_url() + "/madre/power/status", timeout=TIMEOUT
+            vx11_base_url() + "/madre/power/status", headers=headers, timeout=TIMEOUT
         )
         assert (
             response.status_code == 200
@@ -55,7 +57,10 @@ def test_madre_service_status():
 def test_madre_health():
     """Test Madre health endpoint"""
     try:
-        response = requests.get(vx11_base_url() + "/madre/health", timeout=TIMEOUT)
+        headers = vx11_auth_headers()
+        response = requests.get(
+            vx11_base_url() + "/madre/health", headers=headers, timeout=TIMEOUT
+        )
         assert (
             response.status_code == 200
         ), f"Madre health check failed: {response.status_code}"
@@ -76,7 +81,8 @@ def test_core_services_responsive():
             else:
                 url = vx11_base_url() + f"/{service}/health"
 
-            response = requests.get(url, timeout=2)
+            headers = vx11_auth_headers()
+            response = requests.get(url, headers=headers, timeout=2)
             assert (
                 response.status_code == 200
             ), f"{service} health check returned {response.status_code}"

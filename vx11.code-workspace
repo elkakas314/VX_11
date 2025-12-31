@@ -31,7 +31,7 @@
             "**/node_modules": true,
             ".vscode": true
         },
-        "github.copilot.nextEditSuggestions.enabled": true
+        "github.copilot.nextEditSuggestions.enabled": false
     },
     "extensions": {
         "recommendations": [

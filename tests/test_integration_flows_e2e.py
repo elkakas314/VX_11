@@ -11,7 +11,7 @@ import sqlite3
 import json
 import time
 from pathlib import Path
-from tests._vx11_base import vx11_base_url
+from tests._vx11_base import vx11_base_url, vx11_auth_headers
 
 # Only run if VX11_INTEGRATION=1
 pytestmark = pytest.mark.skipif(
@@ -63,28 +63,36 @@ class TestFlowA:
         # This is a health check test (no DB impact expected for routing only)
         import requests
 
+        headers = vx11_auth_headers()
+
         # Tentaculo health (frontdoor)
-        resp = requests.get(vx11_base_url() + "/health", timeout=7)
+        resp = requests.get(vx11_base_url() + "/health", headers=headers, timeout=7)
         assert resp.status_code == 200
         data = resp.json()
         assert data["status"] == "ok"
         assert data["module"] == "tentaculo_link"
 
         # Switch health via frontdoor
-        resp = requests.get(vx11_base_url() + "/switch/health", timeout=7)
+        resp = requests.get(
+            vx11_base_url() + "/switch/health", headers=headers, timeout=7
+        )
         assert resp.status_code == 200
         data = resp.json()
         assert data["status"] == "ok"
         assert data["module"] == "switch"
 
         # Hermes health via frontdoor
-        resp = requests.get(vx11_base_url() + "/hermes/health", timeout=7)
+        resp = requests.get(
+            vx11_base_url() + "/hermes/health", headers=headers, timeout=7
+        )
         assert resp.status_code == 200
         data = resp.json()
         assert data["status"] == "ok"
 
         # Madre health via frontdoor
-        resp = requests.get(vx11_base_url() + "/madre/health", timeout=7)
+        resp = requests.get(
+            vx11_base_url() + "/madre/health", headers=headers, timeout=7
+        )
         assert resp.status_code == 200
         data = resp.json()
         assert data["status"] == "ok"

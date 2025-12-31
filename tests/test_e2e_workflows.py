@@ -1,3 +1,4 @@
+from tests._vx11_base import vx11_base_url, vx11_auth_headers
 """
 E2E Tests: End-to-End Integration
 
@@ -48,9 +49,10 @@ def test_e2e_1_full_workflow_boot_scale_policy_ondemand(madre_port, docker_avail
     # Step 2: Start multiple services
     services_to_start = ["spawner", "hermes"]
     for svc in services_to_start:
+        headers = vx11_auth_headers()
         response = requests.post(
-            vx11_base_url() + "/madre/power/service/start",
-            json={"service": svc},
+            vx11_base_url() + f"/operator/power/service/{svc}/start",
+            headers=headers,
             timeout=10,
         )
         assert response.status_code == 200, f"Failed to start {svc}"
@@ -74,6 +76,11 @@ def test_e2e_1_full_workflow_boot_scale_policy_ondemand(madre_port, docker_avail
         vx11_base_url() + "/madre/power/policy/solo_madre/apply",
         timeout=10,
     )
+        response = requests.post(
+            vx11_base_url() + "/operator/power/policy/solo_madre/apply",
+            headers=headers,
+            timeout=10,
+        )
     assert response.status_code == 200, "Failed to apply solo_madre policy"
 
     time.sleep(2)
@@ -95,6 +102,11 @@ def test_e2e_1_full_workflow_boot_scale_policy_ondemand(madre_port, docker_avail
         json={"service": "switch"},
         timeout=10,
     )
+        response = requests.post(
+            vx11_base_url() + "/operator/power/service/switch/start",
+            headers=headers,
+            timeout=10,
+        )
     assert response.status_code == 200, "Failed to start switch"
 
     time.sleep(2)
@@ -114,6 +126,16 @@ def test_e2e_1_full_workflow_boot_scale_policy_ondemand(madre_port, docker_avail
         json={"service": "switch"},
         timeout=10,
     )
+        response = requests.post(
+            vx11_base_url() + "/operator/power/service/switch/stop",
+            headers=headers,
+            timeout=10,
+        )
+        response = requests.get(
+            vx11_base_url() + "/operator/power/policy/solo_madre/status",
+            headers=headers,
+            timeout=10,
+        )
     assert response.status_code == 200, "Failed to stop switch"
 
     time.sleep(1)
@@ -177,11 +199,11 @@ def test_e2e_2_resource_measurement_idle_vs_full(
     # Step 2: Start services
     services_to_start = ["spawner", "hermes"]
     for svc in services_to_start:
-        requests.post(
-            f"http://localhost:{madre_port}/madre/power/service/start",
-            json={"service": svc},
-            timeout=10,
-        )
+            requests.post(
+                vx11_base_url() + f"/operator/power/service/{svc}/start",
+                headers=headers,
+                timeout=10,
+            )
 
     time.sleep(3)
 
@@ -215,6 +237,11 @@ def test_e2e_2_resource_measurement_idle_vs_full(
         f"http://localhost:{madre_port}/madre/power/policy/solo_madre/apply",
         timeout=10,
     )
+        response = requests.post(
+            vx11_base_url() + "/operator/power/policy/solo_madre/apply",
+            headers=headers,
+            timeout=10,
+        )
     assert response.status_code == 200, "Failed to cleanup: return to solo_madre"
 
 
