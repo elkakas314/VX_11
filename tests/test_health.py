@@ -7,6 +7,7 @@ Markers: @pytest.mark.p0, @pytest.mark.health
 
 import pytest
 import requests
+import os
 
 
 @pytest.mark.p0
@@ -45,3 +46,26 @@ def test_p0_4_redis_connectivity(redis_port):
 
     if result != 0:
         pytest.skip(f"Redis not accessible on port {redis_port}")
+
+
+@pytest.mark.integration
+def test_health_endpoints_integration():
+    """
+    Integration test: check additional module health endpoints (mcp, spawner).
+    Skips if `VX11_INTEGRATION` is not enabled.
+    """
+    if os.getenv("VX11_INTEGRATION", "0") != "1":
+        pytest.skip("Integration tests disabled. Set VX11_INTEGRATION=1 to run.")
+
+    BASES = {
+        "mcp": "http://127.0.0.1:8006/health",
+        "spawner": "http://127.0.0.1:8008/health",
+    }
+
+    for name, url in BASES.items():
+        try:
+            r = requests.get(url, timeout=5)
+        except requests.RequestException:
+            pytest.skip(f"{name} health endpoint not reachable")
+        assert r.status_code == 200, f"{name} devolvió {r.status_code}"
+        assert r.json().get("status") == "ok"

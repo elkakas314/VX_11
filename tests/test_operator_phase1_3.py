@@ -3,6 +3,14 @@ Operator backend P0/P1 behavior tests aligned to current API.
 """
 
 import pytest
+
+# DEPRECATION: Replaced by later phase/production suites (phase5/phase8).
+pytest.skip(
+    "DEPRECATED: replace with tests/test_operator_production_phase5.py or phase8 suites.",
+    allow_module_level=True,
+)
+
+import pytest
 from fastapi.testclient import TestClient
 
 from tests.utils.operator_backend import load_operator_backend
@@ -56,7 +64,9 @@ def test_settings_read_only_by_default(client):
 
 
 def test_settings_update_blocked_by_policy(client):
-    response = client.post("/operator/api/settings", json={"chat": {"temperature": 0.9}})
+    response = client.post(
+        "/operator/api/settings", json={"chat": {"temperature": 0.9}}
+    )
     assert response.status_code == 403
     data = response.json()
     assert data["status"] == "OFF_BY_POLICY"
@@ -75,7 +85,9 @@ def test_settings_update_allowed_when_window_active(client, monkeypatch):
 
     monkeypatch.setattr(module, "_get_window_status", active_window)
 
-    response = client.post("/operator/api/settings", json={"chat": {"temperature": 0.4}})
+    response = client.post(
+        "/operator/api/settings", json={"chat": {"temperature": 0.4}}
+    )
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "ok"

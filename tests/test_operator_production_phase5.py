@@ -1,21 +1,19 @@
-"""Production Phase 5: Operator Backend Tests
-Minimal but comprehensive coverage for production readiness.
-All tests use mocks/patches - NO real localhost connections.
+"""Production Phase 5: Operator Backend Tests [DEPRECATED]
+
+DEPRECATED: Replaced by tests/test_operator_auth_canonical.py
+Use test_operator_auth_canonical.py for all auth policy testing.
+
+This module is marked for eventual removal; keep for reference only.
 """
 
 import pytest
-import json
-import asyncio
 import os
-from unittest.mock import AsyncMock, MagicMock, patch, ANY
-from datetime import datetime
-from httpx import Response
 
-if not os.getenv("VX11_PHASE5_E2E"):
-    pytest.skip(
-        "VX11_PHASE5_E2E not set; skipping production-phase integration tests",
-        allow_module_level=True,
-    )
+# Mark entire module as deprecated
+pytest.skip(
+    "DEPRECATED: Use tests/test_operator_auth_canonical.py instead",
+    allow_module_level=True,
+)
 
 # Test fixtures
 
