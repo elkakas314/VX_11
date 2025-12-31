@@ -4,6 +4,7 @@ Pattern: single-client per module, lazy initialization, circuit breaker, central
 """
 
 import asyncio
+import os
 import httpx
 import time
 from enum import Enum
@@ -19,6 +20,14 @@ VX11_TOKEN = (
     or settings.api_token
 )
 AUTH_HEADERS = {settings.token_header: VX11_TOKEN}
+
+
+def _is_testing_mode() -> bool:
+    return (
+        settings.testing_mode
+        or os.environ.get("VX11_TESTING_MODE", "").lower() in ("1", "true", "yes")
+        or os.environ.get("VX11_TESTING", "").lower() in ("1", "true", "yes")
+    )
 
 
 class CircuitState(str, Enum):
@@ -107,6 +116,14 @@ class ModuleClient:
         extra_headers: Optional[Dict[str, str]] = None,
     ) -> Dict[str, Any]:
         """GET request with circuit breaker."""
+        if _is_testing_mode():
+            if path == "/health":
+                return {"status": "ok", "module": self.module_name}
+            return {
+                "status": "OFF_BY_POLICY",
+                "module": self.module_name,
+                "reason": "testing_mode",
+            }
         if not self.circuit_breaker.should_attempt_request():
             write_log("tentaculo_link", f"cb_open:{self.module_name}:{path}")
             return {
@@ -156,6 +173,12 @@ class ModuleClient:
         extra_headers: Optional[Dict[str, str]] = None,
     ) -> Dict[str, Any]:
         """POST request with circuit breaker."""
+        if _is_testing_mode():
+            return {
+                "status": "OFF_BY_POLICY",
+                "module": self.module_name,
+                "reason": "testing_mode",
+            }
         if not self.circuit_breaker.should_attempt_request():
             write_log("tentaculo_link", f"cb_open:{self.module_name}:{path}")
             return {

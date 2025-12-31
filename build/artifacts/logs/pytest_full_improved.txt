@@ -1,0 +1,209 @@
+============================= test session starts ==============================
+platform linux -- Python 3.10.12, pytest-7.4.3, pluggy-1.6.0 -- /home/elkakas314/vx11/.venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /home/elkakas314/vx11
+configfile: pytest.ini
+plugins: cov-4.1.0, asyncio-0.21.1, mock-3.15.1, anyio-3.7.1, timeout-2.4.0
+asyncio: mode=auto
+timeout: 15.0s
+timeout method: signal
+timeout func_only: False
+collecting ... collected 512 items / 8 errors
+Collected 512 tests.
+
+==================================== ERRORS ====================================
+_______________ ERROR collecting tests/test_shub_autonomy_e2e.py _______________
+ImportError while importing test module '/home/elkakas314/vx11/tests/test_shub_autonomy_e2e.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+.venv/lib/python3.10/site-packages/_pytest/python.py:617: in _importtestmodule
+    mod = import_path(self.path, mode=importmode, root=self.config.rootpath)
+.venv/lib/python3.10/site-packages/_pytest/pathlib.py:567: in import_path
+    importlib.import_module(module_name)
+/usr/lib/python3.10/importlib/__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+<frozen importlib._bootstrap>:1050: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1027: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1006: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:688: in _load_unlocked
+    ???
+.venv/lib/python3.10/site-packages/_pytest/assertion/rewrite.py:186: in exec_module
+    exec(co, module.__dict__)
+tests/test_shub_autonomy_e2e.py:19: in <module>
+    from shubniggurath.api.madre_shub_handler import ShubMadreHandler
+E   ModuleNotFoundError: No module named 'shubniggurath.api'; 'shubniggurath' is not a package
+___________________ ERROR collecting tests/test_shub_core.py ___________________
+ImportError while importing test module '/home/elkakas314/vx11/tests/test_shub_core.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+.venv/lib/python3.10/site-packages/_pytest/python.py:617: in _importtestmodule
+    mod = import_path(self.path, mode=importmode, root=self.config.rootpath)
+.venv/lib/python3.10/site-packages/_pytest/pathlib.py:567: in import_path
+    importlib.import_module(module_name)
+/usr/lib/python3.10/importlib/__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+<frozen importlib._bootstrap>:1050: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1027: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1006: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:688: in _load_unlocked
+    ???
+.venv/lib/python3.10/site-packages/_pytest/assertion/rewrite.py:186: in exec_module
+    exec(co, module.__dict__)
+tests/test_shub_core.py:18: in <module>
+    from shubniggurath.integrations.reaper_rpc import REAPERController
+E   ModuleNotFoundError: No module named 'shubniggurath.integrations'; 'shubniggurath' is not a package
+___________________ ERROR collecting tests/test_shub_dsp.py ____________________
+ImportError while importing test module '/home/elkakas314/vx11/tests/test_shub_dsp.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+.venv/lib/python3.10/site-packages/_pytest/python.py:617: in _importtestmodule
+    mod = import_path(self.path, mode=importmode, root=self.config.rootpath)
+.venv/lib/python3.10/site-packages/_pytest/pathlib.py:567: in import_path
+    importlib.import_module(module_name)
+/usr/lib/python3.10/importlib/__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+<frozen importlib._bootstrap>:1050: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1027: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1006: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:688: in _load_unlocked
+    ???
+.venv/lib/python3.10/site-packages/_pytest/assertion/rewrite.py:186: in exec_module
+    exec(co, module.__dict__)
+tests/test_shub_dsp.py:18: in <module>
+    from shubniggurath.core.dsp_pipeline_full import DSPPipelineFull
+E   ModuleNotFoundError: No module named 'shubniggurath.core'; 'shubniggurath' is not a package
+__________________ ERROR collecting tests/test_shub_mode_c.py __________________
+ImportError while importing test module '/home/elkakas314/vx11/tests/test_shub_mode_c.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+.venv/lib/python3.10/site-packages/_pytest/python.py:617: in _importtestmodule
+    mod = import_path(self.path, mode=importmode, root=self.config.rootpath)
+.venv/lib/python3.10/site-packages/_pytest/pathlib.py:567: in import_path
+    importlib.import_module(module_name)
+/usr/lib/python3.10/importlib/__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+<frozen importlib._bootstrap>:1050: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1027: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1006: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:688: in _load_unlocked
+    ???
+.venv/lib/python3.10/site-packages/_pytest/assertion/rewrite.py:186: in exec_module
+    exec(co, module.__dict__)
+tests/test_shub_mode_c.py:5: in <module>
+    from shubniggurath.dsp_pipeline import analyze_audio
+E   ModuleNotFoundError: No module named 'shubniggurath.dsp_pipeline'; 'shubniggurath' is not a package
+___________________ ERROR collecting tests/test_shub_pro.py ____________________
+ImportError while importing test module '/home/elkakas314/vx11/tests/test_shub_pro.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+.venv/lib/python3.10/site-packages/_pytest/python.py:617: in _importtestmodule
+    mod = import_path(self.path, mode=importmode, root=self.config.rootpath)
+.venv/lib/python3.10/site-packages/_pytest/pathlib.py:567: in import_path
+    importlib.import_module(module_name)
+/usr/lib/python3.10/importlib/__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+<frozen importlib._bootstrap>:1050: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1027: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1006: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:688: in _load_unlocked
+    ???
+.venv/lib/python3.10/site-packages/_pytest/assertion/rewrite.py:186: in exec_module
+    exec(co, module.__dict__)
+tests/test_shub_pro.py:15: in <module>
+    from shubniggurath.pro.dsp_engine import DSPEngine, AudioAnalysisResult
+E   ModuleNotFoundError: No module named 'shubniggurath.pro'; 'shubniggurath' is not a package
+__________________ ERROR collecting tests/test_shub_pro_io.py __________________
+ImportError while importing test module '/home/elkakas314/vx11/tests/test_shub_pro_io.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+.venv/lib/python3.10/site-packages/_pytest/python.py:617: in _importtestmodule
+    mod = import_path(self.path, mode=importmode, root=self.config.rootpath)
+.venv/lib/python3.10/site-packages/_pytest/pathlib.py:567: in import_path
+    importlib.import_module(module_name)
+/usr/lib/python3.10/importlib/__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+<frozen importlib._bootstrap>:1050: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1027: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1006: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:688: in _load_unlocked
+    ???
+.venv/lib/python3.10/site-packages/_pytest/assertion/rewrite.py:186: in exec_module
+    exec(co, module.__dict__)
+tests/test_shub_pro_io.py:4: in <module>
+    from shubniggurath.pro.audio_io import load_audio, save_wav
+E   ModuleNotFoundError: No module named 'shubniggurath.pro'; 'shubniggurath' is not a package
+________________ ERROR collecting tests/test_shub_pro_simple.py ________________
+ImportError while importing test module '/home/elkakas314/vx11/tests/test_shub_pro_simple.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+.venv/lib/python3.10/site-packages/_pytest/python.py:617: in _importtestmodule
+    mod = import_path(self.path, mode=importmode, root=self.config.rootpath)
+.venv/lib/python3.10/site-packages/_pytest/pathlib.py:567: in import_path
+    importlib.import_module(module_name)
+/usr/lib/python3.10/importlib/__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+<frozen importlib._bootstrap>:1050: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1027: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1006: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:688: in _load_unlocked
+    ???
+.venv/lib/python3.10/site-packages/_pytest/assertion/rewrite.py:186: in exec_module
+    exec(co, module.__dict__)
+tests/test_shub_pro_simple.py:9: in <module>
+    from shubniggurath.pro.dsp_fx import (
+E   ModuleNotFoundError: No module named 'shubniggurath.pro'; 'shubniggurath' is not a package
+_____________ ERROR collecting tests/test_shubniggurath_phase1.py ______________
+ImportError while importing test module '/home/elkakas314/vx11/tests/test_shubniggurath_phase1.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+.venv/lib/python3.10/site-packages/_pytest/python.py:617: in _importtestmodule
+    mod = import_path(self.path, mode=importmode, root=self.config.rootpath)
+.venv/lib/python3.10/site-packages/_pytest/pathlib.py:567: in import_path
+    importlib.import_module(module_name)
+/usr/lib/python3.10/importlib/__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+<frozen importlib._bootstrap>:1050: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1027: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1006: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:688: in _load_unlocked
+    ???
+.venv/lib/python3.10/site-packages/_pytest/assertion/rewrite.py:186: in exec_module
+    exec(co, module.__dict__)
+tests/test_shubniggurath_phase1.py:13: in <module>
+    from shubniggurath.engines import EngineRegistry
+E   ModuleNotFoundError: No module named 'shubniggurath.engines'; 'shubniggurath' is not a package
+=========================== short test summary info ============================
+ERROR tests/test_shub_autonomy_e2e.py
+ERROR tests/test_shub_core.py
+ERROR tests/test_shub_dsp.py
+ERROR tests/test_shub_mode_c.py
+ERROR tests/test_shub_pro.py
+ERROR tests/test_shub_pro_io.py
+ERROR tests/test_shub_pro_simple.py
+ERROR tests/test_shubniggurath_phase1.py
+!!!!!!!!!!!!!!!!!!! Interrupted: 8 errors during collection !!!!!!!!!!!!!!!!!!!!
+======================== 8 warnings, 8 errors in 6.47s =========================

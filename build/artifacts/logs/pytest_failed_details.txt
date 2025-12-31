@@ -1,0 +1,452 @@
+============================= test session starts ==============================
+platform linux -- Python 3.10.12, pytest-7.4.3, pluggy-1.6.0
+rootdir: /home/elkakas314/vx11
+configfile: pytest.ini
+testpaths: tests
+plugins: cov-7.0.0, asyncio-0.21.1, anyio-3.7.1
+asyncio: mode=auto
+collected 199 items / 135 deselected / 64 selected
+run-last-failure: rerun previous 64 failures (skipped 63 files)
+Collected 64 tests.
+
+tests/test_dynamic_optimization.py FProgress: 1/64 tests (1%)                                     [  1%]
+tests/test_health_smoke.py FProgress: 2/64 tests (3%)                                             [  3%]
+tests/test_madre_orchestration.py FProgress: 3/64 tests (4%)                                      [  4%]
+tests/test_madre_spawner_v7.py FProgress: 4/64 tests (6%)FProgress: 5/64 tests (7%)FProgress: 6/64 tests (9%)FProgress: 7/64 tests (10%)FProgress: 8/64 tests (12%)FProgress: 9/64 tests (14%)FProgress: 10/64 tests (15%)FProgress: 11/64 tests (17%)FProgress: 12/64 tests (18%)FProgress: 13/64 tests (20%)FProgress: 14/64 tests (21%)FProgress: 15/64 tests (23%)FProgress: 16/64 tests (25%)                             [ 25%]
+tests/test_mcp_action.py FProgress: 17/64 tests (26%)                                               [ 26%]
+tests/test_modes_transition.py FProgress: 18/64 tests (28%)FProgress: 19/64 tests (29%)FProgress: 20/64 tests (31%)FProgress: 21/64 tests (32%)FProgress: 22/64 tests (34%)                                     [ 34%]
+tests/test_operator_browser_v7.py FProgress: 23/64 tests (35%)FProgress: 24/64 tests (37%)FProgress: 25/64 tests (39%)FProgress: 26/64 tests (40%)FProgress: 27/64 tests (42%)FProgress: 28/64 tests (43%)                                 [ 43%]
+tests/test_operator_version_core.py FProgress: 29/64 tests (45%)                                    [ 45%]
+tests/test_shub_autonomy_e2e.py FProgress: 30/64 tests (46%)FProgress: 31/64 tests (48%)FProgress: 32/64 tests (50%)FProgress: 33/64 tests (51%)FProgress: 34/64 tests (53%)FProgress: 35/64 tests (54%)                                   [ 54%]
+tests/test_shub_core.py FProgress: 36/64 tests (56%)                                                [ 56%]
+tests/test_shub_dsp.py FProgress: 37/64 tests (57%)FProgress: 38/64 tests (59%)FProgress: 39/64 tests (60%)FProgress: 40/64 tests (62%)FProgress: 41/64 tests (64%)FProgress: 42/64 tests (65%)                                            [ 65%]
+tests/test_shub_mode_c.py FProgress: 43/64 tests (67%)                                              [ 67%]
+tests/test_shub_modes.py FProgress: 44/64 tests (68%)                                               [ 68%]
+tests/test_shub_pro.py FProgress: 45/64 tests (70%)FProgress: 46/64 tests (71%)FProgress: 47/64 tests (73%)FProgress: 48/64 tests (75%)FProgress: 49/64 tests (76%)FProgress: 50/64 tests (78%)FProgress: 51/64 tests (79%)FProgress: 52/64 tests (81%)FProgress: 53/64 tests (82%)FProgress: 54/64 tests (84%)                                        [ 84%]
+tests/test_shubniggurath_complete_suite.py FProgress: 55/64 tests (85%)FProgress: 56/64 tests (87%)                            [ 87%]
+tests/test_spawner_endpoints.py FProgress: 57/64 tests (89%)FProgress: 58/64 tests (90%)FProgress: 59/64 tests (92%)FProgress: 60/64 tests (93%)FProgress: 61/64 tests (95%)                                    [ 95%]
+tests/test_tentaculo_link.py FProgress: 62/64 tests (96%)                                           [ 96%]
+tests/test_v2_advanced.py FProgress: 63/64 tests (98%)FProgress: 64/64 tests (100%)
+                                             [100%]
+
+=================================== FAILURES ===================================
+__________ TestAdaptiveModesIntegration.test_eco_vs_critical_profiles __________
+tests/test_dynamic_optimization.py:171: in test_eco_vs_critical_profiles
+    assert critical["timeout_ms"] > eco["timeout_ms"]
+E   assert 200 > 2000
+____________________________ test_hormiguero_health ____________________________
+tests/test_health_smoke.py:46: in test_hormiguero_health
+    from hormiguero.main import app, VX11_TOKEN, settings
+E   ImportError: cannot import name 'VX11_TOKEN' from 'hormiguero.main' (/home/elkakas314/vx11/hormiguero/main.py)
+______________________________ test_madre_status _______________________________
+tests/test_madre_orchestration.py:58: in test_madre_status
+    assert data["madre"] == "ok"
+E   KeyError: 'madre'
+____________ TestIntentProcessing.test_intent_creates_daughter_task ____________
+tests/test_madre_spawner_v7.py:148: in test_intent_creates_daughter_task
+    assert task is not None
+E   assert None is not None
+__________ TestIntentProcessing.test_intent_short_task_classification __________
+tests/test_madre_spawner_v7.py:171: in test_intent_short_task_classification
+    assert task.task_type == "short"
+E   AttributeError: 'NoneType' object has no attribute 'task_type'
+__________ TestIntentProcessing.test_intent_long_task_higher_retries ___________
+tests/test_madre_spawner_v7.py:192: in test_intent_long_task_higher_retries
+    assert task.max_retries == 5
+E   AttributeError: 'NoneType' object has no attribute 'max_retries'
+___________ TestTaskListing.test_list_active_tasks_default_statuses ____________
+tests/test_madre_spawner_v7.py:216: in test_list_active_tasks_default_statuses
+    assert data["count"] == 3
+E   assert 67 == 3
+___________ TestTaskListing.test_list_active_tasks_filter_by_status ____________
+tests/test_madre_spawner_v7.py:237: in test_list_active_tasks_filter_by_status
+    assert data["count"] == 1
+E   assert 0 == 1
+___________ TestTaskListing.test_list_active_hijas_default_statuses ____________
+tests/test_madre_spawner_v7.py:268: in test_list_active_hijas_default_statuses
+    assert data["count"] == 2
+E   assert 34 == 2
+___________ TestTaskListing.test_list_active_hijas_filter_by_status ____________
+tests/test_madre_spawner_v7.py:298: in test_list_active_hijas_filter_by_status
+    assert data["count"] == 2
+E   assert 66 == 2
+_______ TestTaskStatus.test_task_full_status_with_daughters_and_attempts _______
+tests/test_madre_spawner_v7.py:346: in test_task_full_status_with_daughters_and_attempts
+    assert data["task"]["status"] == "running"
+E   AssertionError: assert 'cancelled' == 'running'
+E     - running
+E     + cancelled
+_____________ TestTaskCancellation.test_cancel_task_and_daughters ______________
+tests/test_madre_spawner_v7.py:397: in test_cancel_task_and_daughters
+    assert updated_task.status == "cancelled"
+E   AssertionError: assert 'running' == 'cancelled'
+E     - cancelled
+E     + running
+_______ TestSchedulerAndTTL.test_scheduler_pending_to_spawned_transition _______
+tests/test_madre_spawner_v7.py:429: in test_scheduler_pending_to_spawned_transition
+    await _daughters_scheduler.__wrapped__(db_session)
+E   AttributeError: 'function' object has no attribute '__wrapped__'
+_________ TestErrorHandling.test_spawner_spawn_missing_parent_task_id __________
+tests/test_madre_spawner_v7.py:766: in test_spawner_spawn_missing_parent_task_id
+    assert response.status_code in [400, 422]
+E   assert 404 in [400, 422]
+E    +  where 404 = <Response [404 Not Found]>.status_code
+_______________ TestPriorityMap.test_intent_priority_assignment ________________
+tests/test_madre_spawner_v7.py:815: in test_intent_priority_assignment
+    assert task.priority == 0  # shub = highest priority
+E   AttributeError: 'NoneType' object has no attribute 'priority'
+_______________ TestIntentLogging.test_intent_creates_audit_log ________________
+tests/test_madre_spawner_v7.py:840: in test_intent_creates_audit_log
+    assert log is not None
+E   assert None is not None
+________________________________ test_mcp_ping _________________________________
+tests/test_mcp_action.py:8: in test_mcp_ping
+    assert r.status_code == 200
+E   assert 404 == 200
+E    +  where 404 = <Response [404 Not Found]>.status_code
+_____________ TestHormigueroWorkerScaling.test_hormiguero_scale_up _____________
+tests/test_modes_transition.py:120: in test_hormiguero_scale_up
+    assert response.status_code == 200
+E   assert 404 == 200
+E    +  where 404 = <Response [404 Not Found]>.status_code
+____________ TestHormigueroWorkerScaling.test_hormiguero_scale_down ____________
+tests/test_modes_transition.py:132: in test_hormiguero_scale_down
+    assert response.status_code == 200
+E   assert 404 == 200
+E    +  where 404 = <Response [404 Not Found]>.status_code
+___________ TestHormigueroWorkerScaling.test_hormiguero_get_metrics ____________
+tests/test_modes_transition.py:143: in test_hormiguero_get_metrics
+    assert response.status_code == 200
+E   assert 404 == 200
+E    +  where 404 = <Response [404 Not Found]>.status_code
+____________ TestMetricsEndpoints.test_hormiguero_metrics_endpoints ____________
+tests/test_modes_transition.py:207: in test_hormiguero_metrics_endpoints
+    assert response.status_code == 200
+E   assert 404 == 200
+E    +  where 404 = <Response [404 Not Found]>.status_code
+____________ TestModeProfileStructure.test_mode_progression_values _____________
+tests/test_modes_transition.py:255: in test_mode_progression_values
+    assert profile["timeout_ms"] >= prev_timeout
+E   assert 1000 >= 2000
+___________________ TestBrowserClientStub.test_stub_navigate ___________________
+tests/test_operator_browser_v7.py:70: in test_stub_navigate
+    assert result["title"] == "Page Title (stub)"
+E   AssertionError: assert 'Mock Page - ...//example.com' == 'Page Title (stub)'
+E     - Page Title (stub)
+E     + Mock Page - https://example.com
+_________ TestBrowserClientPlaywright.test_playwright_navigate_success _________
+/usr/lib/python3.10/unittest/mock.py:1248: in _dot_lookup
+    return getattr(thing, comp)
+E   AttributeError: module 'operator_local.backend' has no attribute 'browser'
+
+During handling of the above exception, another exception occurred:
+tests/test_operator_browser_v7.py:104: in test_playwright_navigate_success
+    with patch("operator.backend.browser.async_playwright") as mock_pw:
+/usr/lib/python3.10/unittest/mock.py:1431: in __enter__
+    self.target = self.getter()
+/usr/lib/python3.10/unittest/mock.py:1618: in <lambda>
+    getter = lambda: _importer(target)
+/usr/lib/python3.10/unittest/mock.py:1261: in _importer
+    thing = _dot_lookup(thing, comp, import_path)
+/usr/lib/python3.10/unittest/mock.py:1250: in _dot_lookup
+    __import__(import_path)
+E   ModuleNotFoundError: No module named 'operator.backend.browser'
+_________ TestBrowserClientPlaywright.test_playwright_navigate_timeout _________
+tests/test_operator_browser_v7.py:131: in test_playwright_navigate_timeout
+    from playwright.async_api import TimeoutError as PlaywrightTimeoutError
+E   ModuleNotFoundError: No module named 'playwright'
+____________ TestBrowserClientPlaywright.test_playwright_execute_js ____________
+/usr/lib/python3.10/unittest/mock.py:1248: in _dot_lookup
+    return getattr(thing, comp)
+E   AttributeError: module 'operator_local.backend' has no attribute 'browser'
+
+During handling of the above exception, another exception occurred:
+tests/test_operator_browser_v7.py:160: in test_playwright_execute_js
+    with patch("operator.backend.browser.async_playwright") as mock_pw:
+/usr/lib/python3.10/unittest/mock.py:1431: in __enter__
+    self.target = self.getter()
+/usr/lib/python3.10/unittest/mock.py:1618: in <lambda>
+    getter = lambda: _importer(target)
+/usr/lib/python3.10/unittest/mock.py:1261: in _importer
+    thing = _dot_lookup(thing, comp, import_path)
+/usr/lib/python3.10/unittest/mock.py:1250: in _dot_lookup
+    __import__(import_path)
+E   ModuleNotFoundError: No module named 'operator.backend.browser'
+___________________ TestBrowserClientError.test_unknown_impl ___________________
+tests/test_operator_browser_v7.py:214: in test_unknown_impl
+    assert result["status"] == "error"
+E   AssertionError: assert 'ok' == 'error'
+E     - error
+E     + ok
+____________ TestBrowserClientError.test_playwright_error_handling _____________
+/usr/lib/python3.10/unittest/mock.py:1248: in _dot_lookup
+    return getattr(thing, comp)
+E   AttributeError: module 'operator_local.backend' has no attribute 'browser'
+
+During handling of the above exception, another exception occurred:
+tests/test_operator_browser_v7.py:222: in test_playwright_error_handling
+    with patch("operator.backend.browser.async_playwright") as mock_pw:
+/usr/lib/python3.10/unittest/mock.py:1431: in __enter__
+    self.target = self.getter()
+/usr/lib/python3.10/unittest/mock.py:1618: in <lambda>
+    getter = lambda: _importer(target)
+/usr/lib/python3.10/unittest/mock.py:1261: in _importer
+    thing = _dot_lookup(thing, comp, import_path)
+/usr/lib/python3.10/unittest/mock.py:1250: in _dot_lookup
+    __import__(import_path)
+E   ModuleNotFoundError: No module named 'operator.backend.browser'
+_______________________ test_ui_status_includes_version ________________________
+tests/test_operator_version_core.py:23: in test_ui_status_includes_version
+    assert data.get("version") == "7.1-core"
+E   AssertionError: assert None == '7.1-core'
+E    +  where None = <built-in method get of dict object at 0x7666bb11c180>('version')
+E    +    where <built-in method get of dict object at 0x7666bb11c180> = {'modules': {'switch': {'status': 'ok'}, 'tentaculo_link': {'status': 'ok'}}, 'status': 'ok'}.get
+__________ TestAudioBatchEngineAutonomy.test_batch_engine_enqueue_job __________
+tests/test_shub_autonomy_e2e.py:288: in test_batch_engine_enqueue_job
+    result = await engine.enqueue_job(
+E   TypeError: AudioBatchEngine.enqueue_job() got an unexpected keyword argument 'name'
+__________ TestAudioBatchEngineAutonomy.test_batch_engine_get_status ___________
+tests/test_shub_autonomy_e2e.py:304: in test_batch_engine_get_status
+    enqueue_result = await engine.enqueue_job(
+E   TypeError: AudioBatchEngine.enqueue_job() got an unexpected keyword argument 'name'
+______ TestVirtualEngineerAutonomy.test_virtual_engineer_decide_priority _______
+tests/test_shub_autonomy_e2e.py:343: in test_virtual_engineer_decide_priority
+    assert 1 <= priority <= 10
+E   TypeError: '<=' not supported between instances of 'int' and 'coroutine'
+____ TestVirtualEngineerAutonomy.test_virtual_engineer_decide_master_style _____
+tests/test_shub_autonomy_e2e.py:358: in test_virtual_engineer_decide_master_style
+    assert isinstance(style, str)
+E   assert False
+E    +  where False = isinstance(<coroutine object VirtualEngineer.decide_master_style at 0x7666bb0c3450>, str)
+_____________ TestShubAutonomyE2E.test_e2e_workflow_madre_to_shub ______________
+tests/test_shub_autonomy_e2e.py:384: in test_e2e_workflow_madre_to_shub
+    assert batch_result["status"] == "ok"
+E   AssertionError: assert 'error' == 'ok'
+E     - ok
+E     + error
+------------------------------ Captured log call -------------------------------
+ERROR    vx11.shub.madre_handler:madre_shub_handler.py:229 [MADRE] Error encolando batch: AudioBatchEngine.enqueue_job() got an unexpected keyword argument 'name'
+Traceback (most recent call last):
+  File "/home/elkakas314/vx11/shubniggurath/api/madre_shub_handler.py", line 212, in handle_batch_task
+    job_id = self.batch_engine.enqueue_job(
+TypeError: AudioBatchEngine.enqueue_job() got an unexpected keyword argument 'name'
+____ TestShubAutonomyE2E.test_e2e_workflow_batch_with_issues_to_hormiguero _____
+tests/test_shub_autonomy_e2e.py:424: in test_e2e_workflow_batch_with_issues_to_hormiguero
+    enqueue_result = await engine.enqueue_job(
+E   TypeError: AudioBatchEngine.enqueue_job() got an unexpected keyword argument 'name'
+__________ TestIntegrationShubCanonical.test_http_only_communication ___________
+tests/test_shub_core.py:262: in test_http_only_communication
+    assert forbidden not in imp, f"Found forbidden import in {file_path}: {imp}"
+E   AssertionError: Found forbidden import in shubniggurath/core/audio_batch_engine.py: hormiguero.shub_audio_pheromones
+E   assert 'hormiguero' not in 'hormiguero....o_pheromones'
+E     'hormiguero' is contained here:
+E       hormiguero.shub_audio_pheromones
+E     ? ++++++++++
+______________ TestDSPPipeline.test_run_full_pipeline_quick_mode _______________
+tests/test_shub_dsp.py:60: in test_run_full_pipeline_quick_mode
+    assert result['status'] == 'success'
+E   AssertionError: assert 'error' == 'success'
+E     - success
+E     + error
+________________ TestDSPPipeline.test_run_full_pipeline_mode_c _________________
+tests/test_shub_dsp.py:77: in test_run_full_pipeline_mode_c
+    assert result['status'] == 'success'
+E   AssertionError: assert 'error' == 'success'
+E     - success
+E     + error
+________________ TestDSPPipeline.test_audio_analysis_structure _________________
+tests/test_shub_dsp.py:91: in test_audio_analysis_structure
+    analysis = result['audio_analysis']
+E   KeyError: 'audio_analysis'
+___________________ TestDSPPipeline.test_fx_chain_generation ___________________
+tests/test_shub_dsp.py:113: in test_fx_chain_generation
+    fx_chain = result['fx_chain']
+E   KeyError: 'fx_chain'
+________________ TestDSPPipeline.test_reaper_preset_generation _________________
+tests/test_shub_dsp.py:130: in test_reaper_preset_generation
+    preset = result['reaper_preset']
+E   KeyError: 'reaper_preset'
+_______ TestDSPEngineIntegration.test_audio_analysis_dataclass_creation ________
+tests/test_shub_dsp.py:158: in test_audio_analysis_dataclass_creation
+    analysis = AudioAnalysis(
+E   TypeError: AudioAnalysis.__init__() missing 3 required positional arguments: 'duration', 'sample_rate', and 'channels'
+_____________________________ test_mode_c_endpoint _____________________________
+tests/test_shub_mode_c.py:36: in test_mode_c_endpoint
+    assert r.status_code == 200, r.text
+E   AssertionError: {"detail":"Not Found"}
+E   assert 404 == 200
+E    +  where 404 = <Response [404 Not Found]>.status_code
+___________________________ test_shub_execute_modes ____________________________
+tests/test_shub_modes.py:12: in test_shub_execute_modes
+    assert data.get("status") == "ok"
+E   AssertionError: assert 'stub' == 'ok'
+E     - ok
+E     + stub
+______________________ TestDSPEngine.test_analyze_levels _______________________
+tests/test_shub_pro.py:128: in test_analyze_levels
+    assert -5 < result.rms_db < -1
+E   AttributeError: 'AudioAnalysisResult' object has no attribute 'rms_db'. Did you mean: 'rms_dbfs'?
+_____________________ TestDSPEngine.test_analyze_dynamics ______________________
+tests/test_shub_pro.py:144: in test_analyze_dynamics
+    assert result.dynamic_range_db > 5
+E   AttributeError: 'AudioAnalysisResult' object has no attribute 'dynamic_range_db'. Did you mean: 'dynamic_range'?
+______________________ TestDSPEngine.test_detect_clipping ______________________
+tests/test_shub_pro.py:156: in test_detect_clipping
+    assert "clipping" in result.issues
+E   AssertionError: assert 'clipping' in [{'samples': 48000, 'severity': 1.0, 'type': 'clipping'}, {'offset': 1.5, 'severity': 1.0, 'type': 'dc_offset'}, {'noise_dbfs': 3.5218251811136247, 'severity': 1.0, 'type': 'high_noise_floor'}]
+E    +  where [{'samples': 48000, 'severity': 1.0, 'type': 'clipping'}, {'offset': 1.5, 'severity': 1.0, 'type': 'dc_offset'}, {'noise_dbfs': 3.5218251811136247, 'severity': 1.0, 'type': 'high_noise_floor'}] = AudioAnalysisResult(duration=1.0, sample_rate=48000, channels=1, peak_dbfs=3.521825075149536, rms_dbfs=3.5218250751495...nsiderar normalización'}, {'area': 'quality', 'severity': 'warning', 'message': 'Se detectaron 3 problemas de audio'}]).issues
+_____________________ TestDSPEngine.test_detect_dc_offset ______________________
+tests/test_shub_pro.py:167: in test_detect_dc_offset
+    assert "dc_offset" in result.issues
+E   AssertionError: assert 'dc_offset' in [{'offset': 0.30000001192092896, 'severity': 1.0, 'type': 'dc_offset'}, {'noise_dbfs': -10.457574560460515, 'severity': 1.0, 'type': 'high_noise_floor'}]
+E    +  where [{'offset': 0.30000001192092896, 'severity': 1.0, 'type': 'dc_offset'}, {'noise_dbfs': -10.457574560460515, 'severity': 1.0, 'type': 'high_noise_floor'}] = AudioAnalysisResult(duration=1.0, sample_rate=48000, channels=1, peak_dbfs=-10.457574129104614, rms_dbfs=-10.457572937...60515}], recommendations=[{'area': 'quality', 'severity': 'warning', 'message': 'Se detectaron 2 problemas de audio'}]).issues
+_____________________ TestModeCPipeline.test_batch_process _____________________
+tests/test_shub_pro.py:317: in test_batch_process
+    assert result["success"]
+E   assert False
+______________ TestVirtualEngineer.test_rule_based_recommendation ______________
+tests/test_shub_pro.py:348: in test_rule_based_recommendation
+    analysis = AudioAnalysisResult(
+E   TypeError: AudioAnalysisResult.__init__() got an unexpected keyword argument 'peak_db'
+________________ TestVirtualEngineer.test_suggest_genre_preset _________________
+tests/test_shub_pro.py:373: in test_suggest_genre_preset
+    analysis = AudioAnalysisResult(
+E   TypeError: AudioAnalysisResult.__init__() got an unexpected keyword argument 'peak_db'
+______________________ TestShubCoreInit.test_db_init_step ______________________
+tests/test_shub_pro.py:409: in test_db_init_step
+    assert result["success"]
+E   assert False
+_________________ TestIntegration.test_full_pipeline_workflow __________________
+shubniggurath/pro/dsp_pipeline_full.py:120: in run_pipeline
+    job = ShubJob(
+../.local/lib/python3.10/site-packages/sqlalchemy/orm/state.py:566: in _initialize_instance
+    with util.safe_reraise():
+../.local/lib/python3.10/site-packages/sqlalchemy/util/langhelpers.py:146: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+../.local/lib/python3.10/site-packages/sqlalchemy/orm/state.py:564: in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+../.local/lib/python3.10/site-packages/sqlalchemy/orm/decl_base.py:2142: in _declarative_constructor
+    raise TypeError(
+E   TypeError: 'uuid' is an invalid keyword argument for ShubJob
+
+During handling of the above exception, another exception occurred:
+tests/test_shub_pro.py:463: in test_full_pipeline_workflow
+    result = await pipeline.run_pipeline(config)
+shubniggurath/pro/dsp_pipeline_full.py:223: in run_pipeline
+    job.status = JobStatus.FAILED.value
+E   UnboundLocalError: local variable 'job' referenced before assignment
+_____________________ TestIntegration.test_mode_c_with_fx ______________________
+tests/test_shub_pro.py:479: in test_mode_c_with_fx
+    assert result["success"]
+E   assert False
+________ TestShubCoreInitialization.test_initializer_creates_components ________
+tests/test_shubniggurath_complete_suite.py:15: in test_initializer_creates_components
+    from shubniggurath.core import ShubCoreInitializer
+E   ImportError: cannot import name 'ShubCoreInitializer' from 'shubniggurath.core' (/home/elkakas314/vx11/shubniggurath/core/__init__.py)
+______________________ TestDSPEngine.test_audio_analysis _______________________
+tests/test_shubniggurath_complete_suite.py:35: in test_audio_analysis
+    from shubniggurath.core import DSPEngine
+E   ImportError: cannot import name 'DSPEngine' from 'shubniggurath.core' (/home/elkakas314/vx11/shubniggurath/core/__init__.py)
+_____________________________ test_spawner_health ______________________________
+tests/test_spawner_endpoints.py:25: in test_spawner_health
+    assert data["module"] == "spawner"
+E   KeyError: 'module'
+___________________________ test_spawner_spawn_echo ____________________________
+tests/test_spawner_endpoints.py:41: in test_spawner_spawn_echo
+    assert resp.status_code == 200
+E   assert 401 == 200
+E    +  where 401 = <Response [401 Unauthorized]>.status_code
+______________________________ test_spawner_list _______________________________
+tests/test_spawner_endpoints.py:56: in test_spawner_list
+    assert resp.status_code == 200
+E   assert 404 == 200
+E    +  where 404 = <Response [404 Not Found]>.status_code
+____________________________ test_spawner_get_spawn ____________________________
+tests/test_spawner_endpoints.py:74: in test_spawner_get_spawn
+    spawn_id = spawn_resp.json()["id"]
+E   KeyError: 'id'
+______________________________ test_spawner_stop _______________________________
+tests/test_spawner_endpoints.py:97: in test_spawner_stop
+    spawn_id = spawn_resp.json()["id"]
+E   KeyError: 'id'
+_________________________ test_event_ingest_with_token _________________________
+tests/test_tentaculo_link.py:48: in test_event_ingest_with_token
+    assert resp.status_code == 200
+E   assert 404 == 200
+E    +  where 404 = <Response [404 Not Found]>.status_code
+_____________________________ test_mcp_chat_basic ______________________________
+tests/test_v2_advanced.py:108: in test_mcp_chat_basic
+    assert resp.status_code == 200
+E   assert 404 == 200
+E    +  where 404 = <Response [404 Not Found]>.status_code
+___________________________ test_mcp_session_history ___________________________
+tests/test_v2_advanced.py:124: in test_mcp_session_history
+    assert resp1.status_code == 200
+E   assert 404 == 200
+E    +  where 404 = <Response [404 Not Found]>.status_code
+=========================== short test summary info ============================
+FAILED tests/test_dynamic_optimization.py::TestAdaptiveModesIntegration::test_eco_vs_critical_profiles
+FAILED tests/test_health_smoke.py::test_hormiguero_health - ImportError: cann...
+FAILED tests/test_madre_orchestration.py::test_madre_status - KeyError: 'madre'
+FAILED tests/test_madre_spawner_v7.py::TestIntentProcessing::test_intent_creates_daughter_task
+FAILED tests/test_madre_spawner_v7.py::TestIntentProcessing::test_intent_short_task_classification
+FAILED tests/test_madre_spawner_v7.py::TestIntentProcessing::test_intent_long_task_higher_retries
+FAILED tests/test_madre_spawner_v7.py::TestTaskListing::test_list_active_tasks_default_statuses
+FAILED tests/test_madre_spawner_v7.py::TestTaskListing::test_list_active_tasks_filter_by_status
+FAILED tests/test_madre_spawner_v7.py::TestTaskListing::test_list_active_hijas_default_statuses
+FAILED tests/test_madre_spawner_v7.py::TestTaskListing::test_list_active_hijas_filter_by_status
+FAILED tests/test_madre_spawner_v7.py::TestTaskStatus::test_task_full_status_with_daughters_and_attempts
+FAILED tests/test_madre_spawner_v7.py::TestTaskCancellation::test_cancel_task_and_daughters
+FAILED tests/test_madre_spawner_v7.py::TestSchedulerAndTTL::test_scheduler_pending_to_spawned_transition
+FAILED tests/test_madre_spawner_v7.py::TestErrorHandling::test_spawner_spawn_missing_parent_task_id
+FAILED tests/test_madre_spawner_v7.py::TestPriorityMap::test_intent_priority_assignment
+FAILED tests/test_madre_spawner_v7.py::TestIntentLogging::test_intent_creates_audit_log
+FAILED tests/test_mcp_action.py::test_mcp_ping - assert 404 == 200
+FAILED tests/test_modes_transition.py::TestHormigueroWorkerScaling::test_hormiguero_scale_up
+FAILED tests/test_modes_transition.py::TestHormigueroWorkerScaling::test_hormiguero_scale_down
+FAILED tests/test_modes_transition.py::TestHormigueroWorkerScaling::test_hormiguero_get_metrics
+FAILED tests/test_modes_transition.py::TestMetricsEndpoints::test_hormiguero_metrics_endpoints
+FAILED tests/test_modes_transition.py::TestModeProfileStructure::test_mode_progression_values
+FAILED tests/test_operator_browser_v7.py::TestBrowserClientStub::test_stub_navigate
+FAILED tests/test_operator_browser_v7.py::TestBrowserClientPlaywright::test_playwright_navigate_success
+FAILED tests/test_operator_browser_v7.py::TestBrowserClientPlaywright::test_playwright_navigate_timeout
+FAILED tests/test_operator_browser_v7.py::TestBrowserClientPlaywright::test_playwright_execute_js
+FAILED tests/test_operator_browser_v7.py::TestBrowserClientError::test_unknown_impl
+FAILED tests/test_operator_browser_v7.py::TestBrowserClientError::test_playwright_error_handling
+FAILED tests/test_operator_version_core.py::test_ui_status_includes_version
+FAILED tests/test_shub_autonomy_e2e.py::TestAudioBatchEngineAutonomy::test_batch_engine_enqueue_job
+FAILED tests/test_shub_autonomy_e2e.py::TestAudioBatchEngineAutonomy::test_batch_engine_get_status
+FAILED tests/test_shub_autonomy_e2e.py::TestVirtualEngineerAutonomy::test_virtual_engineer_decide_priority
+FAILED tests/test_shub_autonomy_e2e.py::TestVirtualEngineerAutonomy::test_virtual_engineer_decide_master_style
+FAILED tests/test_shub_autonomy_e2e.py::TestShubAutonomyE2E::test_e2e_workflow_madre_to_shub
+FAILED tests/test_shub_autonomy_e2e.py::TestShubAutonomyE2E::test_e2e_workflow_batch_with_issues_to_hormiguero
+FAILED tests/test_shub_core.py::TestIntegrationShubCanonical::test_http_only_communication
+FAILED tests/test_shub_dsp.py::TestDSPPipeline::test_run_full_pipeline_quick_mode
+FAILED tests/test_shub_dsp.py::TestDSPPipeline::test_run_full_pipeline_mode_c
+FAILED tests/test_shub_dsp.py::TestDSPPipeline::test_audio_analysis_structure
+FAILED tests/test_shub_dsp.py::TestDSPPipeline::test_fx_chain_generation - Ke...
+FAILED tests/test_shub_dsp.py::TestDSPPipeline::test_reaper_preset_generation
+FAILED tests/test_shub_dsp.py::TestDSPEngineIntegration::test_audio_analysis_dataclass_creation
+FAILED tests/test_shub_mode_c.py::test_mode_c_endpoint - AssertionError: {"de...
+FAILED tests/test_shub_modes.py::test_shub_execute_modes - AssertionError: as...
+FAILED tests/test_shub_pro.py::TestDSPEngine::test_analyze_levels - Attribute...
+FAILED tests/test_shub_pro.py::TestDSPEngine::test_analyze_dynamics - Attribu...
+FAILED tests/test_shub_pro.py::TestDSPEngine::test_detect_clipping - Assertio...
+FAILED tests/test_shub_pro.py::TestDSPEngine::test_detect_dc_offset - Asserti...
+FAILED tests/test_shub_pro.py::TestModeCPipeline::test_batch_process - assert...
+FAILED tests/test_shub_pro.py::TestVirtualEngineer::test_rule_based_recommendation
+FAILED tests/test_shub_pro.py::TestVirtualEngineer::test_suggest_genre_preset
+FAILED tests/test_shub_pro.py::TestShubCoreInit::test_db_init_step - assert F...
+FAILED tests/test_shub_pro.py::TestIntegration::test_full_pipeline_workflow
+FAILED tests/test_shub_pro.py::TestIntegration::test_mode_c_with_fx - assert ...
+FAILED tests/test_shubniggurath_complete_suite.py::TestShubCoreInitialization::test_initializer_creates_components
+FAILED tests/test_shubniggurath_complete_suite.py::TestDSPEngine::test_audio_analysis
+FAILED tests/test_spawner_endpoints.py::test_spawner_health - KeyError: 'module'
+FAILED tests/test_spawner_endpoints.py::test_spawner_spawn_echo - assert 401 ...
+FAILED tests/test_spawner_endpoints.py::test_spawner_list - assert 404 == 200
+FAILED tests/test_spawner_endpoints.py::test_spawner_get_spawn - KeyError: 'id'
+FAILED tests/test_spawner_endpoints.py::test_spawner_stop - KeyError: 'id'
+FAILED tests/test_tentaculo_link.py::test_event_ingest_with_token - assert 40...
+FAILED tests/test_v2_advanced.py::test_mcp_chat_basic - assert 404 == 200
+FAILED tests/test_v2_advanced.py::test_mcp_session_history - assert 404 == 200
+=============== 64 failed, 135 deselected, 17 warnings in 20.90s ===============

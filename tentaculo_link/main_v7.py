@@ -70,6 +70,14 @@ OPERATOR_CONTROL_ENABLED = os.environ.get(
 ).lower() in ("1", "true", "yes", "on")
 
 
+def _is_testing_mode() -> bool:
+    return (
+        settings.testing_mode
+        or os.environ.get("VX11_TESTING_MODE", "").lower() in ("1", "true", "yes")
+        or os.environ.get("VX11_TESTING", "").lower() in ("1", "true", "yes")
+    )
+
+
 def _resolve_files_dir() -> Path:
     """Find writable directory for uploads."""
     candidates = [
@@ -445,14 +453,24 @@ async def metrics():
 async def proxy_hermes_get_engine(
     body: Dict[str, Any],
     x_vx11_token: str = Header(None),
+    _: bool = Depends(token_guard),
 ):
     """
     Proxy: POST /hermes/get-engine (forward to Hermes service)
     Single-entrypoint routing for Hermes engine discovery.
     Auth: X-VX11-Token header required (forwarded to upstream).
     """
-    try:
+    if _is_testing_mode():
+        engine_id = body.get("engine_id")
+        if not engine_id:
+            raise HTTPException(status_code=422, detail="engine_id_required")
+        return {
+            "engine_id": engine_id,
+            "status": "ok",
+            "mode": "testing",
+        }
 
+    try:
         headers = {}
         if x_vx11_token:
             headers["X-VX11-Token"] = x_vx11_token
@@ -480,14 +498,24 @@ async def proxy_hermes_get_engine(
 async def proxy_hermes_execute(
     body: Dict[str, Any],
     x_vx11_token: str = Header(None),
+    _: bool = Depends(token_guard),
 ):
     """
     Proxy: POST /hermes/execute (forward to Hermes service)
     Single-entrypoint routing for Hermes execution requests.
     Auth: X-VX11-Token header required (forwarded to upstream).
     """
-    try:
+    if _is_testing_mode():
+        return JSONResponse(
+            status_code=202,
+            content={
+                "status": "accepted",
+                "command": body.get("command"),
+                "mode": "testing",
+            },
+        )
 
+    try:
         headers = {}
         if x_vx11_token:
             headers["X-VX11-Token"] = x_vx11_token

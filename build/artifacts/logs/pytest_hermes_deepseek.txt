@@ -1,0 +1,28 @@
+Collected 12 tests.
+.Progress: 1/12 tests (8%)FProgress: 2/12 tests (16%).Progress: 3/12 tests (25%)FProgress: 4/12 tests (33%).Progress: 5/12 tests (41%).Progress: 6/12 tests (50%).Progress: 7/12 tests (58%)FProgress: 8/12 tests (66%).Progress: 9/12 tests (75%).Progress: 10/12 tests (83%).Progress: 11/12 tests (91%)FProgress: 12/12 tests (100%)
+                                                             [100%]
+=================================== FAILURES ===================================
+_______________________ test_hermes_execute_prunes_limit _______________________
+tests/test_switch_hermes_flow.py:65: in test_hermes_execute_prunes_limit
+    assert count <= 30
+E   assert 31 <= 30
+__________________________ test_shub_execute_contract __________________________
+tests/test_switch_hermes_flow.py:92: in test_shub_execute_contract
+    assert resp.status_code == 200
+E   assert 404 == 200
+E    +  where 404 = <Response [404 Not Found]>.status_code
+__________________________ test_best_models_filtering __________________________
+tests/test_switch_hermes_shub_pipeline.py:38: in test_best_models_filtering
+    assert any(item["name"] == name for item in models)
+E   assert False
+E    +  where False = any(<generator object test_best_models_filtering.<locals>.<genexpr> at 0x718596befca0>)
+_______________ test_auto_fallback_to_local_when_no_deepseek_key _______________
+tests/test_switch_deepseek.py:18: in test_auto_fallback_to_local_when_no_deepseek_key
+    monkeypatch.setattr(switch_main, "DEEPSEEK_API_KEY", None)
+E   AttributeError: <module 'switch.main' from '/home/elkakas314/vx11/switch/main.py'> has no attribute 'DEEPSEEK_API_KEY'
+=========================== short test summary info ============================
+FAILED tests/test_switch_hermes_flow.py::test_hermes_execute_prunes_limit - a...
+FAILED tests/test_switch_hermes_flow.py::test_shub_execute_contract - assert ...
+FAILED tests/test_switch_hermes_shub_pipeline.py::test_best_models_filtering
+FAILED tests/test_switch_deepseek.py::test_auto_fallback_to_local_when_no_deepseek_key
+4 failed, 8 passed, 9 warnings in 5.61s

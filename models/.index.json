@@ -1,0 +1,352 @@
+{
+  "hermes__m15.bin": {
+    "model_path": "hermes/m15.bin",
+    "model_name": "m15",
+    "task": "text-generation",
+    "format": "pytorch",
+    "size_mb": 0.0,
+    "sha256_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "created_at": "2025-12-15T11:16:43.443587",
+    "is_valid": false
+  },
+  "hermes__m16.bin": {
+    "model_path": "hermes/m16.bin",
+    "model_name": "m16",
+    "task": "text-generation",
+    "format": "pytorch",
+    "size_mb": 0.0,
+    "sha256_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "created_at": "2025-12-15T11:16:43.443725",
+    "is_valid": false
+  },
+  "hermes__m24.bin": {
+    "model_path": "hermes/m24.bin",
+    "model_name": "m24",
+    "task": "text-generation",
+    "format": "pytorch",
+    "size_mb": 0.0,
+    "sha256_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "created_at": "2025-12-15T11:16:43.443812",
+    "is_valid": false
+  },
+  "hermes__m25.bin": {
+    "model_path": "hermes/m25.bin",
+    "model_name": "m25",
+    "task": "text-generation",
+    "format": "pytorch",
+    "size_mb": 0.0,
+    "sha256_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "created_at": "2025-12-15T11:16:43.443893",
+    "is_valid": false
+  },
+  "hermes__m17.bin": {
+    "model_path": "hermes/m17.bin",
+    "model_name": "m17",
+    "task": "text-generation",
+    "format": "pytorch",
+    "size_mb": 0.0,
+    "sha256_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "created_at": "2025-12-15T11:16:43.443970",
+    "is_valid": false
+  },
+  "hermes__m8.bin": {
+    "model_path": "hermes/m8.bin",
+    "model_name": "m8",
+    "task": "text-generation",
+    "format": "pytorch",
+    "size_mb": 0.0,
+    "sha256_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "created_at": "2025-12-15T11:16:43.444058",
+    "is_valid": false
+  },
+  "hermes__m18.bin": {
+    "model_path": "hermes/m18.bin",
+    "model_name": "m18",
+    "task": "text-generation",
+    "format": "pytorch",
+    "size_mb": 0.0,
+    "sha256_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "created_at": "2025-12-15T11:16:43.444143",
+    "is_valid": false
+  },
+  "hermes__m26.bin": {
+    "model_path": "hermes/m26.bin",
+    "model_name": "m26",
+    "task": "text-generation",
+    "format": "pytorch",
+    "size_mb": 0.0,
+    "sha256_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "created_at": "2025-12-15T11:16:43.444222",
+    "is_valid": false
+  },
+  "hermes__m3.bin": {
+    "model_path": "hermes/m3.bin",
+    "model_name": "m3",
+    "task": "text-generation",
+    "format": "pytorch",
+    "size_mb": 0.0,
+    "sha256_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "created_at": "2025-12-15T11:16:43.444300",
+    "is_valid": true
+  },
+  "hermes__m7.bin": {
+    "model_path": "hermes/m7.bin",
+    "model_name": "m7",
+    "task": "text-generation",
+    "format": "pytorch",
+    "size_mb": 0.0,
+    "sha256_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "created_at": "2025-12-15T11:16:43.444381",
+    "is_valid": false
+  },
+  "hermes__m5.bin": {
+    "model_path": "hermes/m5.bin",
+    "model_name": "m5",
+    "task": "text-generation",
+    "format": "pytorch",
+    "size_mb": 0.0,
+    "sha256_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "created_at": "2025-12-15T11:16:43.444485",
+    "is_valid": false
+  },
+  "hermes__m12.bin": {
+    "model_path": "hermes/m12.bin",
+    "model_name": "m12",
+    "task": "text-generation",
+    "format": "pytorch",
+    "size_mb": 0.0,
+    "sha256_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "created_at": "2025-12-15T11:16:43.444571",
+    "is_valid": false
+  },
+  "hermes__m23.bin": {
+    "model_path": "hermes/m23.bin",
+    "model_name": "m23",
+    "task": "text-generation",
+    "format": "pytorch",
+    "size_mb": 0.0,
+    "sha256_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "created_at": "2025-12-15T11:16:43.444657",
+    "is_valid": false
+  },
+  "hermes__m19.bin": {
+    "model_path": "hermes/m19.bin",
+    "model_name": "m19",
+    "task": "text-generation",
+    "format": "pytorch",
+    "size_mb": 0.0,
+    "sha256_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "created_at": "2025-12-15T11:16:43.444733",
+    "is_valid": false
+  },
+  "hermes__m21.bin": {
+    "model_path": "hermes/m21.bin",
+    "model_name": "m21",
+    "task": "text-generation",
+    "format": "pytorch",
+    "size_mb": 0.0,
+    "sha256_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "created_at": "2025-12-15T11:16:43.444807",
+    "is_valid": false
+  },
+  "hermes__m29.bin": {
+    "model_path": "hermes/m29.bin",
+    "model_name": "m29",
+    "task": "text-generation",
+    "format": "pytorch",
+    "size_mb": 0.0,
+    "sha256_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "created_at": "2025-12-15T11:16:43.444882",
+    "is_valid": false
+  },
+  "hermes__m14.bin": {
+    "model_path": "hermes/m14.bin",
+    "model_name": "m14",
+    "task": "text-generation",
+    "format": "pytorch",
+    "size_mb": 0.0,
+    "sha256_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "created_at": "2025-12-15T11:16:43.444957",
+    "is_valid": false
+  },
+  "hermes__m11.bin": {
+    "model_path": "hermes/m11.bin",
+    "model_name": "m11",
+    "task": "text-generation",
+    "format": "pytorch",
+    "size_mb": 0.0,
+    "sha256_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "created_at": "2025-12-15T11:16:43.445031",
+    "is_valid": false
+  },
+  "hermes__m4.bin": {
+    "model_path": "hermes/m4.bin",
+    "model_name": "m4",
+    "task": "text-generation",
+    "format": "pytorch",
+    "size_mb": 0.0,
+    "sha256_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "created_at": "2025-12-15T11:16:43.445105",
+    "is_valid": false
+  },
+  "hermes__m0.bin": {
+    "model_path": "hermes/m0.bin",
+    "model_name": "m0",
+    "task": "text-generation",
+    "format": "pytorch",
+    "size_mb": 0.0,
+    "sha256_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "created_at": "2025-12-15T11:16:43.445179",
+    "is_valid": true
+  },
+  "hermes__m28.bin": {
+    "model_path": "hermes/m28.bin",
+    "model_name": "m28",
+    "task": "text-generation",
+    "format": "pytorch",
+    "size_mb": 0.0,
+    "sha256_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "created_at": "2025-12-15T11:16:43.445253",
+    "is_valid": false
+  },
+  "hermes__m31.bin": {
+    "model_path": "hermes/m31.bin",
+    "model_name": "m31",
+    "task": "text-generation",
+    "format": "pytorch",
+    "size_mb": 0.0,
+    "sha256_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "created_at": "2025-12-15T11:16:43.445327",
+    "is_valid": false
+  },
+  "hermes__m9.bin": {
+    "model_path": "hermes/m9.bin",
+    "model_name": "m9",
+    "task": "text-generation",
+    "format": "pytorch",
+    "size_mb": 0.0,
+    "sha256_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "created_at": "2025-12-15T11:16:43.445401",
+    "is_valid": false
+  },
+  "hermes__m1.bin": {
+    "model_path": "hermes/m1.bin",
+    "model_name": "m1",
+    "task": "text-generation",
+    "format": "pytorch",
+    "size_mb": 0.0,
+    "sha256_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "created_at": "2025-12-15T11:16:43.445486",
+    "is_valid": true
+  },
+  "hermes__m30.bin": {
+    "model_path": "hermes/m30.bin",
+    "model_name": "m30",
+    "task": "text-generation",
+    "format": "pytorch",
+    "size_mb": 0.0,
+    "sha256_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "created_at": "2025-12-15T11:16:43.445570",
+    "is_valid": false
+  },
+  "hermes__m33.bin": {
+    "model_path": "hermes/m33.bin",
+    "model_name": "m33",
+    "task": "text-generation",
+    "format": "pytorch",
+    "size_mb": 0.0,
+    "sha256_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "created_at": "2025-12-15T11:16:43.445653",
+    "is_valid": false
+  },
+  "hermes__m27.bin": {
+    "model_path": "hermes/m27.bin",
+    "model_name": "m27",
+    "task": "text-generation",
+    "format": "pytorch",
+    "size_mb": 0.0,
+    "sha256_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "created_at": "2025-12-15T11:16:43.445728",
+    "is_valid": false
+  },
+  "hermes__m2.bin": {
+    "model_path": "hermes/m2.bin",
+    "model_name": "m2",
+    "task": "text-generation",
+    "format": "pytorch",
+    "size_mb": 0.0,
+    "sha256_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "created_at": "2025-12-15T11:16:43.445808",
+    "is_valid": true
+  },
+  "hermes__m13.bin": {
+    "model_path": "hermes/m13.bin",
+    "model_name": "m13",
+    "task": "text-generation",
+    "format": "pytorch",
+    "size_mb": 0.0,
+    "sha256_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "created_at": "2025-12-15T11:16:43.445884",
+    "is_valid": false
+  },
+  "hermes__m22.bin": {
+    "model_path": "hermes/m22.bin",
+    "model_name": "m22",
+    "task": "text-generation",
+    "format": "pytorch",
+    "size_mb": 0.0,
+    "sha256_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "created_at": "2025-12-15T11:16:43.445958",
+    "is_valid": false
+  },
+  "hermes__m6.bin": {
+    "model_path": "hermes/m6.bin",
+    "model_name": "m6",
+    "task": "text-generation",
+    "format": "pytorch",
+    "size_mb": 0.0,
+    "sha256_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "created_at": "2025-12-15T11:16:43.446032",
+    "is_valid": false
+  },
+  "hermes__m10.bin": {
+    "model_path": "hermes/m10.bin",
+    "model_name": "m10",
+    "task": "text-generation",
+    "format": "pytorch",
+    "size_mb": 0.0,
+    "sha256_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "created_at": "2025-12-15T11:16:43.446106",
+    "is_valid": false
+  },
+  "hermes__m20.bin": {
+    "model_path": "hermes/m20.bin",
+    "model_name": "m20",
+    "task": "text-generation",
+    "format": "pytorch",
+    "size_mb": 0.0,
+    "sha256_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "created_at": "2025-12-15T11:16:43.446180",
+    "is_valid": false
+  },
+  "hermes__m34.bin": {
+    "model_path": "hermes/m34.bin",
+    "model_name": "m34",
+    "task": "text-generation",
+    "format": "pytorch",
+    "size_mb": 0.0,
+    "sha256_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "created_at": "2025-12-15T11:16:43.446253",
+    "is_valid": false
+  },
+  "hermes__m32.bin": {
+    "model_path": "hermes/m32.bin",
+    "model_name": "m32",
+    "task": "text-generation",
+    "format": "pytorch",
+    "size_mb": 0.0,
+    "sha256_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "created_at": "2025-12-15T11:16:43.446327",
+    "is_valid": false
+  }
+}

@@ -14,11 +14,13 @@ import time
 
 @pytest.mark.p1
 @pytest.mark.power_manager
-def test_p1_1_start_single_service(madre_port):
+def test_p1_1_start_single_service(madre_port, docker_available):
     """
     P1.1: Start single service (switch) via Power Manager API
     Expected: Service starts, port 8002 listening (or service starts but has import errors)
     """
+    if not docker_available:
+        pytest.skip("Docker not available")
     # Start switch
     response = requests.post(
         f"http://localhost:{madre_port}/madre/power/service/start",
@@ -56,11 +58,13 @@ def test_p1_1_start_single_service(madre_port):
 
 @pytest.mark.p1
 @pytest.mark.power_manager
-def test_p1_2_stop_single_service(madre_port):
+def test_p1_2_stop_single_service(madre_port, docker_available):
     """
     P1.2: Stop single service (switch) via Power Manager API
     Expected: Service stops, port 8002 not listening
     """
+    if not docker_available:
+        pytest.skip("Docker not available")
     # Stop switch
     response = requests.post(
         f"http://localhost:{madre_port}/madre/power/service/stop",
@@ -88,11 +92,13 @@ def test_p1_2_stop_single_service(madre_port):
 
 @pytest.mark.p1
 @pytest.mark.power_manager
-def test_p1_3_start_multiple_services(madre_port):
+def test_p1_3_start_multiple_services(madre_port, docker_available):
     """
     P1.3: Start multiple services (spawner, hermes) via Power Manager API
     Expected: Both services start, ports 8007 + 8005 listening
     """
+    if not docker_available:
+        pytest.skip("Docker not available")
     services = [("spawner", 8007), ("hermes", 8005)]
 
     for service, port in services:
@@ -145,11 +151,13 @@ def test_p1_3_start_multiple_services(madre_port):
 @pytest.mark.p1
 @pytest.mark.power_manager
 @pytest.mark.idempotence
-def test_p1_4_policy_idempotence(madre_port):
+def test_p1_4_policy_idempotence(madre_port, docker_available):
     """
     P1.4: Verify solo_madre policy is idempotent
     Expected: Re-applying policy returns same result
     """
+    if not docker_available:
+        pytest.skip("Docker not available")
     # Apply policy first time
     response1 = requests.post(
         f"http://localhost:{madre_port}/madre/power/policy/solo_madre/apply",
@@ -189,11 +197,13 @@ def test_p1_4_policy_idempotence(madre_port):
 @pytest.mark.p1
 @pytest.mark.power_manager
 @pytest.mark.security
-def test_p1_5_invalid_service_rejected(madre_port):
+def test_p1_5_invalid_service_rejected(madre_port, docker_available):
     """
     P1.5: Verify invalid service names are rejected
     Expected: Start/stop of non-existent service fails
     """
+    if not docker_available:
+        pytest.skip("Docker not available")
     invalid_services = ["nonexistent_service", "invalid_123", "fake_service"]
 
     for invalid_svc in invalid_services:
@@ -242,11 +252,13 @@ def test_p1_6_canonical_specs_validated(db_connection):
 
 @pytest.mark.p1
 @pytest.mark.power_manager
-def test_p1_7_power_status_endpoint(madre_port):
+def test_p1_7_power_status_endpoint(madre_port, docker_available):
     """
     P1.7: Verify power status endpoint returns current state
     Expected: GET /madre/power/status returns running services
     """
+    if not docker_available:
+        pytest.skip("Docker not available")
     response = requests.get(
         f"http://localhost:{madre_port}/madre/power/status",
         timeout=10,

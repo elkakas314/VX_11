@@ -1,0 +1,120 @@
+============================= test session starts ==============================
+platform linux -- Python 3.10.12, pytest-7.4.3, pluggy-1.6.0
+rootdir: /home/elkakas314/vx11
+configfile: pytest.ini
+plugins: cov-4.1.0, asyncio-0.21.1, mock-3.15.1, anyio-3.7.1, timeout-2.4.0
+asyncio: mode=auto
+timeout: 15.0s
+timeout method: signal
+timeout func_only: False
+collected 171 items
+Collected 171 tests.
+
+tests/test_shub_api.py .Progress: 1/171 tests (0%).Progress: 2/171 tests (1%).Progress: 3/171 tests (1%).Progress: 4/171 tests (2%).Progress: 5/171 tests (2%).Progress: 6/171 tests (3%).Progress: 7/171 tests (4%).Progress: 8/171 tests (4%).Progress: 9/171 tests (5%).Progress: 10/171 tests (5%).Progress: 11/171 tests (6%).Progress: 12/171 tests (7%).Progress: 13/171 tests (7%).Progress: 14/171 tests (8%).Progress: 15/171 tests (8%).Progress: 16/171 tests (9%).Progress: 17/171 tests (9%).Progress: 18/171 tests (10%).Progress: 19/171 tests (11%)                               [ 11%]
+tests/test_shub_autonomy_e2e.py .Progress: 20/171 tests (11%).Progress: 21/171 tests (12%).Progress: 22/171 tests (12%).Progress: 23/171 tests (13%).Progress: 24/171 tests (14%).Progress: 25/171 tests (14%).Progress: 26/171 tests (15%).Progress: 27/171 tests (15%).Progress: 28/171 tests (16%).Progress: 29/171 tests (16%).Progress: 30/171 tests (17%).Progress: 31/171 tests (18%).Progress: 32/171 tests (18%).Progress: 33/171 tests (19%).Progress: 34/171 tests (19%).Progress: 35/171 tests (20%).Progress: 36/171 tests (21%).Progress: 37/171 tests (21%).Progress: 38/171 tests (22%).Progress: 39/171 tests (22%).Progress: 40/171 tests (23%).Progress: 41/171 tests (23%).Progress: 42/171 tests (24%).Progress: 43/171 tests (25%).Progress: 44/171 tests (25%).Progress: 45/171 tests (26%).Progress: 46/171 tests (26%).Progress: 47/171 tests (27%)             [ 27%]
+tests/test_shub_core.py .Progress: 48/171 tests (28%).Progress: 49/171 tests (28%).Progress: 50/171 tests (29%).Progress: 51/171 tests (29%).Progress: 52/171 tests (30%).Progress: 53/171 tests (30%).Progress: 54/171 tests (31%).Progress: 55/171 tests (32%).Progress: 56/171 tests (32%).Progress: 57/171 tests (33%).Progress: 58/171 tests (33%).Progress: 59/171 tests (34%).Progress: 60/171 tests (35%).Progress: 61/171 tests (35%).Progress: 62/171 tests (36%)                                  [ 36%]
+tests/test_shub_dsp.py .Progress: 63/171 tests (36%).Progress: 64/171 tests (37%).Progress: 65/171 tests (38%).Progress: 66/171 tests (38%).Progress: 67/171 tests (39%).Progress: 68/171 tests (39%).Progress: 69/171 tests (40%).Progress: 70/171 tests (40%).Progress: 71/171 tests (41%).Progress: 72/171 tests (42%)                                        [ 42%]
+tests/test_shub_mode_c.py .Progress: 73/171 tests (42%)FProgress: 74/171 tests (43%)                                             [ 43%]
+tests/test_shub_modes.py FProgress: 75/171 tests (43%)                                               [ 43%]
+tests/test_shubniggurath_complete_suite.py FProgress: 76/171 tests (44%)FProgress: 77/171 tests (45%).Progress: 78/171 tests (45%).Progress: 79/171 tests (46%).Progress: 80/171 tests (46%).Progress: 81/171 tests (47%).Progress: 82/171 tests (47%).Progress: 83/171 tests (48%).Progress: 84/171 tests (49%).Progress: 85/171 tests (49%).Progress: 86/171 tests (50%).Progress: 87/171 tests (50%).Progress: 88/171 tests (51%).Progress: 89/171 tests (52%)                [ 52%]
+tests/test_shubniggurath_phase1.py .Progress: 90/171 tests (52%)FProgress: 91/171 tests (53%).Progress: 92/171 tests (53%).Progress: 93/171 tests (54%)                                  [ 54%]
+tests/test_shubniggurath_phase2.py .Progress: 94/171 tests (54%).Progress: 95/171 tests (55%).Progress: 96/171 tests (56%).Progress: 97/171 tests (56%)                                  [ 56%]
+tests/test_shubniggurath_phase3.py .Progress: 98/171 tests (57%).Progress: 99/171 tests (57%).Progress: 100/171 tests (58%).Progress: 101/171 tests (59%)                                  [ 59%]
+tests/test_shubniggurath_phase5.py .Progress: 102/171 tests (59%).Progress: 103/171 tests (60%).Progress: 104/171 tests (60%).Progress: 105/171 tests (61%)                                  [ 61%]
+tests/test_shubniggurath_phase6.py .Progress: 106/171 tests (61%).Progress: 107/171 tests (62%).Progress: 108/171 tests (63%).Progress: 109/171 tests (63%)                                  [ 63%]
+tests/test_shubniggurath_phase7.py .Progress: 110/171 tests (64%).Progress: 111/171 tests (64%).Progress: 112/171 tests (65%)                                   [ 65%]
+tests/test_shubniggurath_phase8.py .Progress: 113/171 tests (66%).Progress: 114/171 tests (66%)                                    [ 66%]
+tests/test_shub_pro_api.py .Progress: 115/171 tests (67%)                                             [ 67%]
+tests/test_shub_pro_io.py .Progress: 116/171 tests (67%)                                              [ 67%]
+tests/test_shub_pro.py sProgress: 117/171 tests (68%)FProgress: 118/171 tests (69%)FProgress: 119/171 tests (69%)FProgress: 120/171 tests (70%)FProgress: 121/171 tests (70%).Progress: 122/171 tests (71%).Progress: 123/171 tests (71%).Progress: 124/171 tests (72%).Progress: 125/171 tests (73%).Progress: 126/171 tests (73%).Progress: 127/171 tests (74%).Progress: 128/171 tests (74%).Progress: 129/171 tests (75%).Progress: 130/171 tests (76%)FProgress: 131/171 tests (76%).Progress: 132/171 tests (77%).Progress: 133/171 tests (77%)FProgress: 134/171 tests (78%)FProgress: 135/171 tests (78%).Progress: 136/171 tests (79%)FProgress: 137/171 tests (80%).Progress: 138/171 tests (80%).Progress: 139/171 tests (81%).Progress: 140/171 tests (81%).Progress: 141/171 tests (82%)FProgress: 142/171 tests (83%)                        [ 83%]
+tests/test_shub_pro_simple.py .Progress: 143/171 tests (83%).Progress: 144/171 tests (84%).Progress: 145/171 tests (84%).Progress: 146/171 tests (85%).Progress: 147/171 tests (85%).Progress: 148/171 tests (86%).Progress: 149/171 tests (87%).Progress: 150/171 tests (87%).Progress: 151/171 tests (88%).Progress: 152/171 tests (88%).Progress: 153/171 tests (89%).Progress: 154/171 tests (90%).Progress: 155/171 tests (90%).Progress: 156/171 tests (91%).Progress: 157/171 tests (91%).Progress: 158/171 tests (92%).Progress: 159/171 tests (92%).Progress: 160/171 tests (93%).Progress: 161/171 tests (94%).Progress: 162/171 tests (94%).Progress: 163/171 tests (95%).Progress: 164/171 tests (95%).Progress: 165/171 tests (96%).Progress: 166/171 tests (97%).Progress: 167/171 tests (97%).Progress: 168/171 tests (98%).Progress: 169/171 tests (98%).Progress: 170/171 tests (99%).Progress: 171/171 tests (100%)
+              [100%]
+
+=================================== FAILURES ===================================
+_____________________________ test_mode_c_endpoint _____________________________
+tests/test_shub_mode_c.py:36: in test_mode_c_endpoint
+    assert r.status_code == 200, r.text
+E   AssertionError: {"detail":"Not Found"}
+E   assert 404 == 200
+E    +  where 404 = <Response [404 Not Found]>.status_code
+___________________________ test_shub_execute_modes ____________________________
+tests/test_shub_modes.py:11: in test_shub_execute_modes
+    assert resp.status_code == 200
+E   assert 404 == 200
+E    +  where 404 = <Response [404 Not Found]>.status_code
+________ TestShubCoreInitialization.test_initializer_creates_components ________
+tests/test_shubniggurath_complete_suite.py:23: in test_initializer_creates_components
+    status = await initializer.initialize()
+shubniggurath/engines_paso8.py:703: in initialize
+    return await self.initialize_all()
+shubniggurath/engines_paso8.py:688: in initialize_all
+    await self.initialize_dsp()
+shubniggurath/engines_paso8.py:677: in initialize_dsp
+    sample_rate=self.config['samplerate'],
+E   KeyError: 'samplerate'
+------------------------------ Captured log call -------------------------------
+ERROR    vx11.shub.engines:engines_paso8.py:698 Error en initialize_all: 'samplerate'
+______________________ TestDSPEngine.test_audio_analysis _______________________
+tests/test_shubniggurath_complete_suite.py:43: in test_audio_analysis
+    assert -50 < result.true_peak_dbfs < 0
+E   assert 0.0 < 0
+E    +  where 0.0 = <shubniggurath.core.dsp_engine.AudioAnalysisResult object at 0x79f129bc4af0>.true_peak_dbfs
+_______________________________ test_dsp_engine ________________________________
+tests/test_shubniggurath_phase1.py:44: in test_dsp_engine
+    assert result.bpm > 0
+E   TypeError: '>' not supported between instances of 'NoneType' and 'int'
+______________________ TestDSPEngine.test_analyze_levels _______________________
+tests/test_shub_pro.py:128: in test_analyze_levels
+    assert -5 < result.rms_db < -1
+E   AttributeError: 'AudioAnalysisResult' object has no attribute 'rms_db'. Did you mean: 'rms_dbfs'?
+_____________________ TestDSPEngine.test_analyze_dynamics ______________________
+tests/test_shub_pro.py:144: in test_analyze_dynamics
+    assert result.dynamic_range_db > 5
+E   AttributeError: 'AudioAnalysisResult' object has no attribute 'dynamic_range_db'. Did you mean: 'dynamic_range'?
+______________________ TestDSPEngine.test_detect_clipping ______________________
+tests/test_shub_pro.py:156: in test_detect_clipping
+    assert "clipping" in result.issues
+E   AssertionError: assert 'clipping' in [{'samples': 48000, 'severity': 1.0, 'type': 'clipping'}, {'offset': 1.5, 'severity': 1.0, 'type': 'dc_offset'}, {'noise_dbfs': 3.5218251811136247, 'severity': 1.0, 'type': 'high_noise_floor'}]
+E    +  where [{'samples': 48000, 'severity': 1.0, 'type': 'clipping'}, {'offset': 1.5, 'severity': 1.0, 'type': 'dc_offset'}, {'noise_dbfs': 3.5218251811136247, 'severity': 1.0, 'type': 'high_noise_floor'}] = AudioAnalysisResult(duration=1.0, sample_rate=48000, channels=1, peak_dbfs=3.521825075149536, rms_dbfs=3.5218250751495...nsiderar normalización'}, {'area': 'quality', 'severity': 'warning', 'message': 'Se detectaron 3 problemas de audio'}]).issues
+_____________________ TestDSPEngine.test_detect_dc_offset ______________________
+tests/test_shub_pro.py:167: in test_detect_dc_offset
+    assert "dc_offset" in result.issues
+E   AssertionError: assert 'dc_offset' in [{'offset': 0.30000001192092896, 'severity': 1.0, 'type': 'dc_offset'}, {'noise_dbfs': -10.457574560460515, 'severity': 1.0, 'type': 'high_noise_floor'}]
+E    +  where [{'offset': 0.30000001192092896, 'severity': 1.0, 'type': 'dc_offset'}, {'noise_dbfs': -10.457574560460515, 'severity': 1.0, 'type': 'high_noise_floor'}] = AudioAnalysisResult(duration=1.0, sample_rate=48000, channels=1, peak_dbfs=-10.457574129104614, rms_dbfs=-10.457572937...60515}], recommendations=[{'area': 'quality', 'severity': 'warning', 'message': 'Se detectaron 2 problemas de audio'}]).issues
+_____________________ TestModeCPipeline.test_batch_process _____________________
+tests/test_shub_pro.py:317: in test_batch_process
+    assert result["success"]
+E   assert False
+______________ TestVirtualEngineer.test_rule_based_recommendation ______________
+tests/test_shub_pro.py:348: in test_rule_based_recommendation
+    analysis = AudioAnalysisResult(
+E   TypeError: AudioAnalysisResult.__init__() got an unexpected keyword argument 'peak_db'
+________________ TestVirtualEngineer.test_suggest_genre_preset _________________
+tests/test_shub_pro.py:373: in test_suggest_genre_preset
+    analysis = AudioAnalysisResult(
+E   TypeError: AudioAnalysisResult.__init__() got an unexpected keyword argument 'peak_db'
+______________________ TestShubCoreInit.test_db_init_step ______________________
+tests/test_shub_pro.py:409: in test_db_init_step
+    assert result["success"]
+E   assert False
+_____________________ TestIntegration.test_mode_c_with_fx ______________________
+tests/test_shub_pro.py:479: in test_mode_c_with_fx
+    assert result["success"]
+E   assert False
+=========================== short test summary info ============================
+SKIPPED [1] tests/test_shub_pro.py:119: Requiere librosa para análisis completo
+FAILED tests/test_shub_mode_c.py::test_mode_c_endpoint - AssertionError: {"de...
+FAILED tests/test_shub_modes.py::test_shub_execute_modes - assert 404 == 200
+FAILED tests/test_shubniggurath_complete_suite.py::TestShubCoreInitialization::test_initializer_creates_components
+FAILED tests/test_shubniggurath_complete_suite.py::TestDSPEngine::test_audio_analysis
+FAILED tests/test_shubniggurath_phase1.py::test_dsp_engine - TypeError: '>' n...
+FAILED tests/test_shub_pro.py::TestDSPEngine::test_analyze_levels - Attribute...
+FAILED tests/test_shub_pro.py::TestDSPEngine::test_analyze_dynamics - Attribu...
+FAILED tests/test_shub_pro.py::TestDSPEngine::test_detect_clipping - Assertio...
+FAILED tests/test_shub_pro.py::TestDSPEngine::test_detect_dc_offset - Asserti...
+FAILED tests/test_shub_pro.py::TestModeCPipeline::test_batch_process - assert...
+FAILED tests/test_shub_pro.py::TestVirtualEngineer::test_rule_based_recommendation
+FAILED tests/test_shub_pro.py::TestVirtualEngineer::test_suggest_genre_preset
+FAILED tests/test_shub_pro.py::TestShubCoreInit::test_db_init_step - assert F...
+FAILED tests/test_shub_pro.py::TestIntegration::test_mode_c_with_fx - assert ...
+=========== 14 failed, 156 passed, 1 skipped, 25 warnings in 55.00s ============

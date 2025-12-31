@@ -44,6 +44,10 @@ data/
 build/
 models/
 forensic/
+!build/
+!models/
+!build/.gitkeep
+!models/.gitkeep
 
 # Audit runs (keep canonical schema/map + evidence trails)
 docs/audit/**

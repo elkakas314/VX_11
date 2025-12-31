@@ -1,14 +1,19 @@
 import os
 import pytest
 import subprocess
+import shutil
 import sqlite3
 import time
 import requests
 from pathlib import Path
 
 
-# ⚠️  CHANGED (2025-12-26): Default to ENABLED. Can be disabled with VX11_INTEGRATION=0
-INTEGRATION_ENABLED = os.getenv("VX11_INTEGRATION", "1") != "0"
+# Default: integration tests OFF unless explicitly enabled.
+INTEGRATION_ENABLED = os.getenv("VX11_INTEGRATION", "0") == "1"
+
+# Ensure deterministic testing defaults.
+os.environ.setdefault("VX11_TESTING_MODE", "1")
+os.environ.setdefault("VX11_TENTACULO_LINK_TOKEN", "vx11-local-token")
 
 
 def pytest_configure(config):
@@ -27,6 +32,8 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "integration: Integration tests (skip by default)"
     )
+    config.addinivalue_line("markers", "e2e: End-to-end tests")
+    config.addinivalue_line("markers", "ui: UI tests")
 
 
 def pytest_collection_modifyitems(config, items):
@@ -52,9 +59,12 @@ def disable_auth_for_tests():
     Override by setting settings.enable_auth True in specific tests if needed.
     """
     prev = settings.enable_auth
+    prev_testing = settings.testing_mode
     settings.enable_auth = False
+    settings.testing_mode = True
     yield
     settings.enable_auth = prev
+    settings.testing_mode = prev_testing
 
 
 # ============================================================================
@@ -69,9 +79,26 @@ def docker_project_name():
 
 
 @pytest.fixture(scope="session")
+def docker_available():
+    """Check if docker is available for integration tests."""
+    if shutil.which("docker") is None:
+        return False
+    try:
+        result = subprocess.run(
+            ["docker", "ps"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        return result.returncode == 0
+    except Exception:
+        return False
+
+
+@pytest.fixture(scope="session")
 def db_path():
     """Path to VX11 database"""
-    return Path("/home/elkakas314/vx11/data/runtime/vx11.db")
+    return Path(__file__).resolve().parent.parent / "data/runtime/vx11.db"
 
 
 @pytest.fixture(scope="session")

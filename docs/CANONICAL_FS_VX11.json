@@ -376,6 +376,8 @@
     "attic/spawner/ephemeral_v2.py",
     "attic/spawner/main.py",
     "attic/test.rest",
+    "attic/test_e2e_hardening.py",
+    "attic/test_events_infinite_stream.py",
     "attic/tests_legacy/test_cardinality_counter.py",
     "attic/tests_legacy/test_copilot_operator.py",
     "attic/tests_legacy/test_correlation_tracker.py",

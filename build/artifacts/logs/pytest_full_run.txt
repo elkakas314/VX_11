@@ -1,0 +1,485 @@
+============================= test session starts ==============================
+platform linux -- Python 3.10.12, pytest-7.4.3, pluggy-1.6.0
+rootdir: /home/elkakas314/vx11
+configfile: pytest.ini
+testpaths: tests
+plugins: cov-7.0.0, asyncio-0.21.1, anyio-3.7.1
+asyncio: mode=auto
+collected 657 items
+Collected 657 tests.
+
+tests/test_all_healthchecks.py .Progress: 1/657 tests (0%)                                         [  0%]
+tests/test_cardinality_counter.py .Progress: 2/657 tests (0%).Progress: 3/657 tests (0%).Progress: 4/657 tests (0%).Progress: 5/657 tests (0%).Progress: 6/657 tests (0%).Progress: 7/657 tests (1%).Progress: 8/657 tests (1%).Progress: 9/657 tests (1%).Progress: 10/657 tests (1%).Progress: 11/657 tests (1%).Progress: 12/657 tests (1%)                            [  1%]
+tests/test_cli_concentrator_selection.py .Progress: 13/657 tests (1%).Progress: 14/657 tests (2%).Progress: 15/657 tests (2%).Progress: 16/657 tests (2%).Progress: 17/657 tests (2%)                           [  2%]
+tests/test_cli_usage_db_writes.py .Progress: 18/657 tests (2%).Progress: 19/657 tests (2%).Progress: 20/657 tests (3%).Progress: 21/657 tests (3%)                                   [  3%]
+tests/test_context7_v7.py .Progress: 22/657 tests (3%).Progress: 23/657 tests (3%).Progress: 24/657 tests (3%).Progress: 25/657 tests (3%).Progress: 26/657 tests (3%).Progress: 27/657 tests (4%).Progress: 28/657 tests (4%).Progress: 29/657 tests (4%).Progress: 30/657 tests (4%)                                      [  4%]
+tests/test_copilot_operator.py .Progress: 31/657 tests (4%).Progress: 32/657 tests (4%).Progress: 33/657 tests (5%).Progress: 34/657 tests (5%).Progress: 35/657 tests (5%).Progress: 36/657 tests (5%).Progress: 37/657 tests (5%).Progress: 38/657 tests (5%).Progress: 39/657 tests (5%).Progress: 40/657 tests (6%).Progress: 41/657 tests (6%).Progress: 42/657 tests (6%).Progress: 43/657 tests (6%).Progress: 44/657 tests (6%).Progress: 45/657 tests (6%).Progress: 46/657 tests (7%).Progress: 47/657 tests (7%).Progress: 48/657 tests (7%).Progress: 49/657 tests (7%).Progress: 50/657 tests (7%).Progress: 51/657 tests (7%).Progress: 52/657 tests (7%).Progress: 53/657 tests (8%).Progress: 54/657 tests (8%).Progress: 55/657 tests (8%).Progress: 56/657 tests (8%).Progress: 57/657 tests (8%).Progress: 58/657 tests (8%).Progress: 59/657 tests (8%).Progress: 60/657 tests (9%).Progress: 61/657 tests (9%).Progress: 62/657 tests (9%).Progress: 63/657 tests (9%).Progress: 64/657 tests (9%).Progress: 65/657 tests (9%).Progress: 66/657 tests (10%).Progress: 67/657 tests (10%).Progress: 68/657 tests (10%).Progress: 69/657 tests (10%).Progress: 70/657 tests (10%)  [ 10%]
+tests/test_correlation_tracker.py .Progress: 71/657 tests (10%).Progress: 72/657 tests (10%).Progress: 73/657 tests (11%).Progress: 74/657 tests (11%).Progress: 75/657 tests (11%).Progress: 76/657 tests (11%).Progress: 77/657 tests (11%).Progress: 78/657 tests (11%).Progress: 79/657 tests (12%).Progress: 80/657 tests (12%)                             [ 12%]
+tests/test_db_schema.py .Progress: 81/657 tests (12%).Progress: 82/657 tests (12%).Progress: 83/657 tests (12%).Progress: 84/657 tests (12%).Progress: 85/657 tests (12%)                                            [ 12%]
+tests/test_dynamic_optimization.py .Progress: 86/657 tests (13%).Progress: 87/657 tests (13%).Progress: 88/657 tests (13%).Progress: 89/657 tests (13%).Progress: 90/657 tests (13%).Progress: 91/657 tests (13%).Progress: 92/657 tests (14%).Progress: 93/657 tests (14%).Progress: 94/657 tests (14%).Progress: 95/657 tests (14%).Progress: 96/657 tests (14%).Progress: 97/657 tests (14%).Progress: 98/657 tests (14%).Progress: 99/657 tests (15%)FProgress: 100/657 tests (15%).Progress: 101/657 tests (15%).Progress: 102/657 tests (15%).Progress: 103/657 tests (15%)                    [ 15%]
+tests/test_event_validation.py .Progress: 104/657 tests (15%).Progress: 105/657 tests (15%).Progress: 106/657 tests (16%).Progress: 107/657 tests (16%).Progress: 108/657 tests (16%).Progress: 109/657 tests (16%).Progress: 110/657 tests (16%).Progress: 111/657 tests (16%).Progress: 112/657 tests (17%).Progress: 113/657 tests (17%).Progress: 114/657 tests (17%).Progress: 115/657 tests (17%).Progress: 116/657 tests (17%).Progress: 117/657 tests (17%).Progress: 118/657 tests (17%).Progress: 119/657 tests (18%).Progress: 120/657 tests (18%).Progress: 121/657 tests (18%).Progress: 122/657 tests (18%).Progress: 123/657 tests (18%).Progress: 124/657 tests (18%).Progress: 125/657 tests (19%).Progress: 126/657 tests (19%).Progress: 127/657 tests (19%).Progress: 128/657 tests (19%).Progress: 129/657 tests (19%).Progress: 130/657 tests (19%).Progress: 131/657 tests (19%).Progress: 132/657 tests (20%).Progress: 133/657 tests (20%).Progress: 134/657 tests (20%)           [ 20%]
+tests/test_fluzo_scoring_influence.py .Progress: 135/657 tests (20%).Progress: 136/657 tests (20%).Progress: 137/657 tests (20%).Progress: 138/657 tests (21%).Progress: 139/657 tests (21%)                              [ 21%]
+tests/test_forensics_rotate.py .Progress: 140/657 tests (21%)                                         [ 21%]
+tests/test_ga_router_tokens.py .Progress: 141/657 tests (21%)                                         [ 21%]
+tests/test_gateway_v7.py .Progress: 142/657 tests (21%).Progress: 143/657 tests (21%).Progress: 144/657 tests (21%).Progress: 145/657 tests (22%).Progress: 146/657 tests (22%).Progress: 147/657 tests (22%).Progress: 148/657 tests (22%).Progress: 149/657 tests (22%).Progress: 150/657 tests (22%).Progress: 151/657 tests (22%).Progress: 152/657 tests (23%)                                     [ 23%]
+tests/test_health_endpoints.py .Progress: 153/657 tests (23%)                                         [ 23%]
+tests/test_health_smoke.py .Progress: 154/657 tests (23%).Progress: 155/657 tests (23%).Progress: 156/657 tests (23%).Progress: 157/657 tests (23%).Progress: 158/657 tests (24%).Progress: 159/657 tests (24%).Progress: 160/657 tests (24%).Progress: 161/657 tests (24%).Progress: 162/657 tests (24%)                                     [ 24%]
+tests/test_hermes_cli_detection.py .Progress: 163/657 tests (24%)                                     [ 24%]
+tests/test_hermes_cli_registry_module.py .Progress: 164/657 tests (24%)                               [ 24%]
+tests/test_hermes_discovery_apply.py .Progress: 165/657 tests (25%)                                   [ 25%]
+tests/test_hermes_registry_db.py .Progress: 166/657 tests (25%)                                       [ 25%]
+tests/test_hermes_waveform.py .Progress: 167/657 tests (25%)                                          [ 25%]
+tests/test_hormiguero.py .Progress: 168/657 tests (25%)                                               [ 25%]
+tests/test_hormiguero_queen.py .Progress: 169/657 tests (25%)                                         [ 25%]
+tests/test_hormiguero_v7.py .Progress: 170/657 tests (25%).Progress: 171/657 tests (26%).Progress: 172/657 tests (26%).Progress: 173/657 tests (26%).Progress: 174/657 tests (26%).Progress: 175/657 tests (26%).Progress: 176/657 tests (26%).Progress: 177/657 tests (26%).Progress: 178/657 tests (27%).Progress: 179/657 tests (27%).Progress: 180/657 tests (27%).Progress: 181/657 tests (27%).Progress: 182/657 tests (27%).Progress: 183/657 tests (27%).Progress: 184/657 tests (28%).Progress: 185/657 tests (28%).Progress: 186/657 tests (28%).Progress: 187/657 tests (28%)                           [ 28%]
+tests/test_leonidas_permissions.py .Progress: 188/657 tests (28%).Progress: 189/657 tests (28%)                                    [ 28%]
+tests/test_madre_fluzo_integration.py .Progress: 190/657 tests (28%).Progress: 191/657 tests (29%).Progress: 192/657 tests (29%).Progress: 193/657 tests (29%).Progress: 194/657 tests (29%).Progress: 195/657 tests (29%).Progress: 196/657 tests (29%)                            [ 29%]
+tests/test_madre_orchestration.py .Progress: 197/657 tests (29%).Progress: 198/657 tests (30%)FProgress: 199/657 tests (30%)sProgress: 200/657 tests (30%)                                   [ 30%]
+tests/test_madre_spawner_v7.py FProgress: 201/657 tests (30%)FProgress: 202/657 tests (30%)FProgress: 203/657 tests (30%)FProgress: 204/657 tests (31%)FProgress: 205/657 tests (31%)FProgress: 206/657 tests (31%)FProgress: 207/657 tests (31%)FProgress: 208/657 tests (31%).Progress: 209/657 tests (31%)FProgress: 210/657 tests (31%)FProgress: 211/657 tests (32%).Progress: 212/657 tests (32%).Progress: 213/657 tests (32%).Progress: 214/657 tests (32%).Progress: 215/657 tests (32%).Progress: 216/657 tests (32%).Progress: 217/657 tests (33%).Progress: 218/657 tests (33%).Progress: 219/657 tests (33%).Progress: 220/657 tests (33%).Progress: 221/657 tests (33%)FProgress: 222/657 tests (33%).Progress: 223/657 tests (33%).Progress: 224/657 tests (34%).Progress: 225/657 tests (34%)FProgress: 226/657 tests (34%)FProgress: 227/657 tests (34%)               [ 34%]
+tests/test_madre_spawner_v7_simple.py .Progress: 228/657 tests (34%).Progress: 229/657 tests (34%).Progress: 230/657 tests (35%).Progress: 231/657 tests (35%).Progress: 232/657 tests (35%).Progress: 233/657 tests (35%).Progress: 234/657 tests (35%).Progress: 235/657 tests (35%).Progress: 236/657 tests (35%).Progress: 237/657 tests (36%).Progress: 238/657 tests (36%).Progress: 239/657 tests (36%).Progress: 240/657 tests (36%).Progress: 241/657 tests (36%)                     [ 36%]
+tests/test_madre_states.py .Progress: 242/657 tests (36%)                                             [ 36%]
+tests/test_manifestator_drift.py .Progress: 243/657 tests (36%)                                       [ 36%]
+tests/test_mcp_action.py FProgress: 244/657 tests (37%)                                               [ 37%]
+tests/test_mcp_switch_integration.py ss                                  [ 37%]
+tests/test_modes_transition.py .Progress: 245/657 tests (37%).Progress: 246/657 tests (37%).Progress: 247/657 tests (37%).Progress: 248/657 tests (37%).Progress: 249/657 tests (37%).Progress: 250/657 tests (38%).Progress: 251/657 tests (38%)FProgress: 252/657 tests (38%)FProgress: 253/657 tests (38%)FProgress: 254/657 tests (38%).Progress: 255/657 tests (38%).Progress: 256/657 tests (38%).Progress: 257/657 tests (39%).Progress: 258/657 tests (39%).Progress: 259/657 tests (39%)FProgress: 260/657 tests (39%).Progress: 261/657 tests (39%).Progress: 262/657 tests (39%).Progress: 263/657 tests (40%)FProgress: 264/657 tests (40%).Progress: 265/657 tests (40%)                     [ 40%]
+tests/test_operator_backend_v7.py .Progress: 266/657 tests (40%).Progress: 267/657 tests (40%).Progress: 268/657 tests (40%).Progress: 269/657 tests (40%).Progress: 270/657 tests (41%).Progress: 271/657 tests (41%).Progress: 272/657 tests (41%).Progress: 273/657 tests (41%).Progress: 274/657 tests (41%).Progress: 275/657 tests (41%).Progress: 276/657 tests (42%).Progress: 277/657 tests (42%).Progress: 278/657 tests (42%).Progress: 279/657 tests (42%)                         [ 42%]
+tests/test_operator_browser_v7.py .Progress: 280/657 tests (42%).Progress: 281/657 tests (42%).Progress: 282/657 tests (42%).Progress: 283/657 tests (43%).Progress: 284/657 tests (43%)FProgress: 285/657 tests (43%).Progress: 286/657 tests (43%).Progress: 287/657 tests (43%).Progress: 288/657 tests (43%).Progress: 289/657 tests (43%)FProgress: 290/657 tests (44%)FProgress: 291/657 tests (44%).Progress: 292/657 tests (44%)FProgress: 293/657 tests (44%).Progress: 294/657 tests (44%)                        [ 45%]
+tests/test_operator_db_schema_v7.py .Progress: 295/657 tests (44%).Progress: 296/657 tests (45%).Progress: 297/657 tests (45%).Progress: 298/657 tests (45%).Progress: 299/657 tests (45%)                                [ 45%]
+tests/test_operator_intents.py .Progress: 300/657 tests (45%).Progress: 301/657 tests (45%)                                        [ 46%]
+tests/test_operator_shub_phase4.py .Progress: 302/657 tests (45%).Progress: 303/657 tests (46%).Progress: 304/657 tests (46%)                                   [ 46%]
+tests/test_operator_switch_hermes_flow.py .Progress: 305/657 tests (46%).Progress: 306/657 tests (46%)                             [ 46%]
+tests/test_operator_ui_status_events.py .Progress: 307/657 tests (46%).Progress: 308/657 tests (46%)                               [ 47%]
+tests/test_operator_version_core.py FProgress: 309/657 tests (47%)                                    [ 47%]
+tests/test_paso7_integration.py .Progress: 310/657 tests (47%).Progress: 311/657 tests (47%).Progress: 312/657 tests (47%).Progress: 313/657 tests (47%).Progress: 314/657 tests (47%).Progress: 315/657 tests (47%).Progress: 316/657 tests (48%).Progress: 317/657 tests (48%).Progress: 318/657 tests (48%).Progress: 319/657 tests (48%).Progress: 320/657 tests (48%).Progress: 321/657 tests (48%).Progress: 322/657 tests (49%).Progress: 323/657 tests (49%).Progress: 324/657 tests (49%).Progress: 325/657 tests (49%).Progress: 326/657 tests (49%).Progress: 327/657 tests (49%).Progress: 328/657 tests (49%).Progress: 329/657 tests (50%).Progress: 330/657 tests (50%).Progress: 331/657 tests (50%).Progress: 332/657 tests (50%).Progress: 333/657 tests (50%).Progress: 334/657 tests (50%).Progress: 335/657 tests (50%).Progress: 336/657 tests (51%).Progress: 337/657 tests (51%).Progress: 338/657 tests (51%).Progress: 339/657 tests (51%).Progress: 340/657 tests (51%).Progress: 341/657 tests (51%).Progress: 342/657 tests (52%).Progress: 343/657 tests (52%).Progress: 344/657 tests (52%).Progress: 345/657 tests (52%).Progress: 346/657 tests (52%).Progress: 347/657 tests (52%)   [ 53%]
+tests/test_phase12_fases2_10.py ssssssssssssss                           [ 55%]
+tests/test_pnp_and_integration.py .Progress: 348/657 tests (52%).Progress: 349/657 tests (53%).Progress: 350/657 tests (53%).Progress: 351/657 tests (53%).Progress: 352/657 tests (53%).Progress: 353/657 tests (53%).Progress: 354/657 tests (53%).Progress: 355/657 tests (54%).Progress: 356/657 tests (54%).Progress: 357/657 tests (54%).Progress: 358/657 tests (54%).Progress: 359/657 tests (54%).Progress: 360/657 tests (54%).Progress: 361/657 tests (54%).Progress: 362/657 tests (55%).Progress: 363/657 tests (55%).Progress: 364/657 tests (55%).Progress: 365/657 tests (55%).Progress: 366/657 tests (55%).Progress: 367/657 tests (55%).Progress: 368/657 tests (56%).Progress: 369/657 tests (56%).Progress: 370/657 tests (56%).Progress: 371/657 tests (56%).Progress: 372/657 tests (56%).Progress: 373/657 tests (56%)             [ 59%]
+tests/test_pnp_and_switch_integration.py .Progress: 374/657 tests (56%).Progress: 375/657 tests (57%).Progress: 376/657 tests (57%).Progress: 377/657 tests (57%).Progress: 378/657 tests (57%).Progress: 379/657 tests (57%).Progress: 380/657 tests (57%).Progress: 381/657 tests (57%).Progress: 382/657 tests (58%).Progress: 383/657 tests (58%).Progress: 384/657 tests (58%).Progress: 385/657 tests (58%).Progress: 386/657 tests (58%).Progress: 387/657 tests (58%).Progress: 388/657 tests (59%).Progress: 389/657 tests (59%).Progress: 390/657 tests (59%).Progress: 391/657 tests (59%).Progress: 392/657 tests (59%).Progress: 393/657 tests (59%).Progress: 394/657 tests (59%).Progress: 395/657 tests (60%)          [ 62%]
+tests/test_reina_logic_v7.py .Progress: 396/657 tests (60%).Progress: 397/657 tests (60%).Progress: 398/657 tests (60%).Progress: 399/657 tests (60%).Progress: 400/657 tests (60%).Progress: 401/657 tests (61%).Progress: 402/657 tests (61%).Progress: 403/657 tests (61%).Progress: 404/657 tests (61%).Progress: 405/657 tests (61%).Progress: 406/657 tests (61%).Progress: 407/657 tests (61%)                                [ 64%]
+tests/test_routingresult_compat.py .Progress: 408/657 tests (62%)                                     [ 64%]
+tests/test_shub_api.py .Progress: 409/657 tests (62%).Progress: 410/657 tests (62%).Progress: 411/657 tests (62%).Progress: 412/657 tests (62%).Progress: 413/657 tests (62%).Progress: 414/657 tests (63%).Progress: 415/657 tests (63%).Progress: 416/657 tests (63%).Progress: 417/657 tests (63%).Progress: 418/657 tests (63%).Progress: 419/657 tests (63%).Progress: 420/657 tests (63%).Progress: 421/657 tests (64%).Progress: 422/657 tests (64%).Progress: 423/657 tests (64%).Progress: 424/657 tests (64%).Progress: 425/657 tests (64%).Progress: 426/657 tests (64%).Progress: 427/657 tests (64%)                               [ 67%]
+tests/test_shub_autonomy_e2e.py .Progress: 428/657 tests (65%).Progress: 429/657 tests (65%).Progress: 430/657 tests (65%).Progress: 431/657 tests (65%).Progress: 432/657 tests (65%).Progress: 433/657 tests (65%).Progress: 434/657 tests (66%).Progress: 435/657 tests (66%).Progress: 436/657 tests (66%).Progress: 437/657 tests (66%).Progress: 438/657 tests (66%).Progress: 439/657 tests (66%).Progress: 440/657 tests (66%).Progress: 441/657 tests (67%).Progress: 442/657 tests (67%).Progress: 443/657 tests (67%).Progress: 444/657 tests (67%).Progress: 445/657 tests (67%)FProgress: 446/657 tests (67%)FProgress: 447/657 tests (68%).Progress: 448/657 tests (68%)FProgress: 449/657 tests (68%)FProgress: 450/657 tests (68%)FProgress: 451/657 tests (68%).Progress: 452/657 tests (68%)FProgress: 453/657 tests (68%).Progress: 454/657 tests (69%).Progress: 455/657 tests (69%)             [ 71%]
+tests/test_shub_core.py .Progress: 456/657 tests (69%).Progress: 457/657 tests (69%).Progress: 458/657 tests (69%).Progress: 459/657 tests (69%).Progress: 460/657 tests (70%).Progress: 461/657 tests (70%).Progress: 462/657 tests (70%).Progress: 463/657 tests (70%).Progress: 464/657 tests (70%).Progress: 465/657 tests (70%).Progress: 466/657 tests (70%).Progress: 467/657 tests (71%).Progress: 468/657 tests (71%).Progress: 469/657 tests (71%)FProgress: 470/657 tests (71%)                                  [ 73%]
+tests/test_shub_dsp.py .Progress: 471/657 tests (71%)FProgress: 472/657 tests (71%)FProgress: 473/657 tests (71%)FProgress: 474/657 tests (72%)FProgress: 475/657 tests (72%)FProgress: 476/657 tests (72%).Progress: 477/657 tests (72%)FProgress: 478/657 tests (72%).Progress: 479/657 tests (72%).Progress: 480/657 tests (73%)                                        [ 75%]
+tests/test_shub_mode_c.py .Progress: 481/657 tests (73%)FProgress: 482/657 tests (73%)                                             [ 75%]
+tests/test_shub_modes.py FProgress: 483/657 tests (73%)                                               [ 75%]
+tests/test_shub_pro.py sProgress: 484/657 tests (73%)FProgress: 485/657 tests (73%)FProgress: 486/657 tests (73%)FProgress: 487/657 tests (74%)FProgress: 488/657 tests (74%).Progress: 489/657 tests (74%).Progress: 490/657 tests (74%).Progress: 491/657 tests (74%).Progress: 492/657 tests (74%).Progress: 493/657 tests (75%).Progress: 494/657 tests (75%).Progress: 495/657 tests (75%).Progress: 496/657 tests (75%).Progress: 497/657 tests (75%)FProgress: 498/657 tests (75%).Progress: 499/657 tests (75%).Progress: 500/657 tests (76%)FProgress: 501/657 tests (76%)FProgress: 502/657 tests (76%).Progress: 503/657 tests (76%)FProgress: 504/657 tests (76%).Progress: 505/657 tests (76%).Progress: 506/657 tests (77%).Progress: 507/657 tests (77%)FProgress: 508/657 tests (77%)FProgress: 509/657 tests (77%)                        [ 79%]
+tests/test_shub_pro_api.py .Progress: 510/657 tests (77%)                                             [ 80%]
+tests/test_shub_pro_io.py .Progress: 511/657 tests (77%)                                              [ 80%]
+tests/test_shub_pro_simple.py .Progress: 512/657 tests (77%).Progress: 513/657 tests (78%).Progress: 514/657 tests (78%).Progress: 515/657 tests (78%).Progress: 516/657 tests (78%).Progress: 517/657 tests (78%).Progress: 518/657 tests (78%).Progress: 519/657 tests (78%).Progress: 520/657 tests (79%).Progress: 521/657 tests (79%).Progress: 522/657 tests (79%).Progress: 523/657 tests (79%).Progress: 524/657 tests (79%).Progress: 525/657 tests (79%).Progress: 526/657 tests (80%).Progress: 527/657 tests (80%).Progress: 528/657 tests (80%).Progress: 529/657 tests (80%).Progress: 530/657 tests (80%).Progress: 531/657 tests (80%).Progress: 532/657 tests (80%).Progress: 533/657 tests (81%).Progress: 534/657 tests (81%).Progress: 535/657 tests (81%).Progress: 536/657 tests (81%).Progress: 537/657 tests (81%).Progress: 538/657 tests (81%).Progress: 539/657 tests (82%).Progress: 540/657 tests (82%)              [ 84%]
+tests/test_shubniggurath_complete_suite.py FProgress: 541/657 tests (82%)FProgress: 542/657 tests (82%).Progress: 543/657 tests (82%).Progress: 544/657 tests (82%).Progress: 545/657 tests (82%).Progress: 546/657 tests (83%).Progress: 547/657 tests (83%).Progress: 548/657 tests (83%).Progress: 549/657 tests (83%).Progress: 550/657 tests (83%).Progress: 551/657 tests (83%).Progress: 552/657 tests (84%).Progress: 553/657 tests (84%).Progress: 554/657 tests (84%)                [ 86%]
+tests/test_shubniggurath_phase1.py ss.Progress: 555/657 tests (84%).Progress: 556/657 tests (84%)                                  [ 87%]
+tests/test_shubniggurath_phase2.py .Progress: 557/657 tests (84%).Progress: 558/657 tests (84%).Progress: 559/657 tests (85%).Progress: 560/657 tests (85%)                                  [ 87%]
+tests/test_shubniggurath_phase3.py .Progress: 561/657 tests (85%).Progress: 562/657 tests (85%).Progress: 563/657 tests (85%).Progress: 564/657 tests (85%)                                  [ 88%]
+tests/test_shubniggurath_phase5.py .Progress: 565/657 tests (85%).Progress: 566/657 tests (86%).Progress: 567/657 tests (86%).Progress: 568/657 tests (86%)                                  [ 89%]
+tests/test_shubniggurath_phase6.py .Progress: 569/657 tests (86%).Progress: 570/657 tests (86%).Progress: 571/657 tests (86%).Progress: 572/657 tests (87%)                                  [ 89%]
+tests/test_shubniggurath_phase7.py .Progress: 573/657 tests (87%).Progress: 574/657 tests (87%).Progress: 575/657 tests (87%)                                   [ 90%]
+tests/test_shubniggurath_phase8.py .Progress: 576/657 tests (87%).Progress: 577/657 tests (87%)                                    [ 90%]
+tests/test_spawner_endpoints.py FProgress: 578/657 tests (87%)FProgress: 579/657 tests (88%)FProgress: 580/657 tests (88%)FProgress: 581/657 tests (88%)FProgress: 582/657 tests (88%)                                    [ 91%]
+tests/test_switch_auto.py .Progress: 583/657 tests (88%)                                              [ 91%]
+tests/test_switch_chat_and_breaker.py .Progress: 584/657 tests (88%).Progress: 585/657 tests (89%)                                 [ 91%]
+tests/test_switch_deepseek.py .Progress: 586/657 tests (89%).Progress: 587/657 tests (89%)                                         [ 92%]
+tests/test_switch_deepseek_staging.py .Progress: 588/657 tests (89%)                                  [ 92%]
+tests/test_switch_hermes_flow.py .Progress: 589/657 tests (89%).Progress: 590/657 tests (89%).Progress: 591/657 tests (89%).Progress: 592/657 tests (90%)                                    [ 92%]
+tests/test_switch_hermes_shub_pipeline.py .Progress: 593/657 tests (90%).Progress: 594/657 tests (90%).Progress: 595/657 tests (90%).Progress: 596/657 tests (90%).Progress: 597/657 tests (90%)                          [ 93%]
+tests/test_switch_hermes_v7.py .Progress: 598/657 tests (91%).Progress: 599/657 tests (91%).Progress: 600/657 tests (91%).Progress: 601/657 tests (91%).Progress: 602/657 tests (91%).Progress: 603/657 tests (91%).Progress: 604/657 tests (91%).Progress: 605/657 tests (92%).Progress: 606/657 tests (92%).Progress: 607/657 tests (92%).Progress: 608/657 tests (92%).Progress: 609/657 tests (92%).Progress: 610/657 tests (92%)                             [ 95%]
+tests/test_switch_integration_v7.py .Progress: 611/657 tests (92%).Progress: 612/657 tests (93%).Progress: 613/657 tests (93%).Progress: 614/657 tests (93%).Progress: 615/657 tests (93%).Progress: 616/657 tests (93%).Progress: 617/657 tests (93%).Progress: 618/657 tests (94%)                             [ 96%]
+tests/test_switch_local.py .Progress: 619/657 tests (94%)                                             [ 96%]
+tests/test_switch_multiauto.py .Progress: 620/657 tests (94%).Progress: 621/657 tests (94%)                                        [ 97%]
+tests/test_switch_providers.py .Progress: 622/657 tests (94%).Progress: 623/657 tests (94%)                                        [ 97%]
+tests/test_switch_queue_consumer.py .Progress: 624/657 tests (94%)                                    [ 97%]
+tests/test_switch_registry_enqueue.py .Progress: 625/657 tests (95%)                                  [ 97%]
+tests/test_switch_scoring_breaker.py .Progress: 626/657 tests (95%).Progress: 627/657 tests (95%)                                  [ 98%]
+tests/test_tentaculo_link.py .Progress: 628/657 tests (95%).Progress: 629/657 tests (95%).Progress: 630/657 tests (95%)FProgress: 631/657 tests (96%)                                        [ 98%]
+tests/test_v2_advanced.py .Progress: 632/657 tests (96%).Progress: 633/657 tests (96%).Progress: 634/657 tests (96%).Progress: 635/657 tests (96%).Progress: 636/657 tests (96%).Progress: 637/657 tests (96%)FProgress: 638/657 tests (97%)FProgress: 639/657 tests (97%)                                       [100%]
+
+=================================== FAILURES ===================================
+__________ TestAdaptiveModesIntegration.test_eco_vs_critical_profiles __________
+tests/test_dynamic_optimization.py:171: in test_eco_vs_critical_profiles
+    assert critical["timeout_ms"] > eco["timeout_ms"]
+E   assert 200 > 2000
+______________________________ test_madre_status _______________________________
+tests/test_madre_orchestration.py:58: in test_madre_status
+    assert data["madre"] == "ok"
+E   KeyError: 'madre'
+____________ TestIntentProcessing.test_intent_creates_daughter_task ____________
+tests/test_madre_spawner_v7.py:148: in test_intent_creates_daughter_task
+    assert task is not None
+E   assert None is not None
+__________ TestIntentProcessing.test_intent_short_task_classification __________
+tests/test_madre_spawner_v7.py:171: in test_intent_short_task_classification
+    assert task.task_type == "short"
+E   AttributeError: 'NoneType' object has no attribute 'task_type'
+__________ TestIntentProcessing.test_intent_long_task_higher_retries ___________
+tests/test_madre_spawner_v7.py:192: in test_intent_long_task_higher_retries
+    assert task.max_retries == 5
+E   AttributeError: 'NoneType' object has no attribute 'max_retries'
+___________ TestTaskListing.test_list_active_tasks_default_statuses ____________
+tests/test_madre_spawner_v7.py:216: in test_list_active_tasks_default_statuses
+    assert data["count"] == 3
+E   assert 72 == 3
+___________ TestTaskListing.test_list_active_tasks_filter_by_status ____________
+tests/test_madre_spawner_v7.py:237: in test_list_active_tasks_filter_by_status
+    assert data["count"] == 1
+E   assert 0 == 1
+___________ TestTaskListing.test_list_active_hijas_default_statuses ____________
+tests/test_madre_spawner_v7.py:268: in test_list_active_hijas_default_statuses
+    assert data["count"] == 2
+E   assert 40 == 2
+___________ TestTaskListing.test_list_active_hijas_filter_by_status ____________
+tests/test_madre_spawner_v7.py:298: in test_list_active_hijas_filter_by_status
+    assert data["count"] == 2
+E   assert 74 == 2
+_______ TestTaskStatus.test_task_full_status_with_daughters_and_attempts _______
+tests/test_madre_spawner_v7.py:346: in test_task_full_status_with_daughters_and_attempts
+    assert data["task"]["status"] == "running"
+E   AssertionError: assert 'cancelled' == 'running'
+E     - running
+E     + cancelled
+_____________ TestTaskCancellation.test_cancel_task_and_daughters ______________
+tests/test_madre_spawner_v7.py:397: in test_cancel_task_and_daughters
+    assert updated_task.status == "cancelled"
+E   AssertionError: assert 'running' == 'cancelled'
+E     - cancelled
+E     + running
+_______ TestSchedulerAndTTL.test_scheduler_pending_to_spawned_transition _______
+tests/test_madre_spawner_v7.py:429: in test_scheduler_pending_to_spawned_transition
+    await _daughters_scheduler.__wrapped__(db_session)
+E   AttributeError: 'function' object has no attribute '__wrapped__'
+_________ TestErrorHandling.test_spawner_spawn_missing_parent_task_id __________
+tests/test_madre_spawner_v7.py:766: in test_spawner_spawn_missing_parent_task_id
+    assert response.status_code in [400, 422]
+E   assert 404 in [400, 422]
+E    +  where 404 = <Response [404 Not Found]>.status_code
+_______________ TestPriorityMap.test_intent_priority_assignment ________________
+tests/test_madre_spawner_v7.py:815: in test_intent_priority_assignment
+    assert task.priority == 0  # shub = highest priority
+E   AttributeError: 'NoneType' object has no attribute 'priority'
+_______________ TestIntentLogging.test_intent_creates_audit_log ________________
+tests/test_madre_spawner_v7.py:840: in test_intent_creates_audit_log
+    assert log is not None
+E   assert None is not None
+________________________________ test_mcp_ping _________________________________
+tests/test_mcp_action.py:8: in test_mcp_ping
+    assert r.status_code == 200
+E   assert 404 == 200
+E    +  where 404 = <Response [404 Not Found]>.status_code
+_____________ TestHormigueroWorkerScaling.test_hormiguero_scale_up _____________
+tests/test_modes_transition.py:120: in test_hormiguero_scale_up
+    assert response.status_code == 200
+E   assert 404 == 200
+E    +  where 404 = <Response [404 Not Found]>.status_code
+____________ TestHormigueroWorkerScaling.test_hormiguero_scale_down ____________
+tests/test_modes_transition.py:132: in test_hormiguero_scale_down
+    assert response.status_code == 200
+E   assert 404 == 200
+E    +  where 404 = <Response [404 Not Found]>.status_code
+___________ TestHormigueroWorkerScaling.test_hormiguero_get_metrics ____________
+tests/test_modes_transition.py:143: in test_hormiguero_get_metrics
+    assert response.status_code == 200
+E   assert 404 == 200
+E    +  where 404 = <Response [404 Not Found]>.status_code
+____________ TestMetricsEndpoints.test_hormiguero_metrics_endpoints ____________
+tests/test_modes_transition.py:207: in test_hormiguero_metrics_endpoints
+    assert response.status_code == 200
+E   assert 404 == 200
+E    +  where 404 = <Response [404 Not Found]>.status_code
+____________ TestModeProfileStructure.test_mode_progression_values _____________
+tests/test_modes_transition.py:255: in test_mode_progression_values
+    assert profile["timeout_ms"] >= prev_timeout
+E   assert 1000 >= 2000
+___________________ TestBrowserClientStub.test_stub_navigate ___________________
+tests/test_operator_browser_v7.py:74: in test_stub_navigate
+    assert result["title"] == "Page Title (stub)"
+E   AssertionError: assert 'Mock Page - ...//example.com' == 'Page Title (stub)'
+E     - Page Title (stub)
+E     + Mock Page - https://example.com
+_________ TestBrowserClientPlaywright.test_playwright_navigate_timeout _________
+tests/test_operator_browser_v7.py:156: in test_playwright_navigate_timeout
+    assert result["status"] == "timeout"
+E   AssertionError: assert 'error' == 'timeout'
+E     - timeout
+E     + error
+____________ TestBrowserClientPlaywright.test_playwright_execute_js ____________
+tests/test_operator_browser_v7.py:181: in test_playwright_execute_js
+    assert result["status"] == "ok"
+E   AssertionError: assert 'error' == 'ok'
+E     - ok
+E     + error
+___________________ TestBrowserClientError.test_unknown_impl ___________________
+tests/test_operator_browser_v7.py:218: in test_unknown_impl
+    assert result["status"] == "error"
+E   AssertionError: assert 'ok' == 'error'
+E     - error
+E     + ok
+_______________________ test_ui_status_includes_version ________________________
+tests/test_operator_version_core.py:23: in test_ui_status_includes_version
+    assert data.get("version") == "7.1-core"
+E   AssertionError: assert None == '7.1-core'
+E    +  where None = <built-in method get of dict object at 0x7fd0508c6e40>('version')
+E    +    where <built-in method get of dict object at 0x7fd0508c6e40> = {'modules': {'switch': {'status': 'ok'}, 'tentaculo_link': {'status': 'ok'}}, 'status': 'ok'}.get
+__________ TestAudioBatchEngineAutonomy.test_batch_engine_enqueue_job __________
+tests/test_shub_autonomy_e2e.py:288: in test_batch_engine_enqueue_job
+    result = await engine.enqueue_job(
+E   TypeError: AudioBatchEngine.enqueue_job() got an unexpected keyword argument 'name'
+__________ TestAudioBatchEngineAutonomy.test_batch_engine_get_status ___________
+tests/test_shub_autonomy_e2e.py:304: in test_batch_engine_get_status
+    enqueue_result = await engine.enqueue_job(
+E   TypeError: AudioBatchEngine.enqueue_job() got an unexpected keyword argument 'name'
+______ TestVirtualEngineerAutonomy.test_virtual_engineer_decide_priority _______
+tests/test_shub_autonomy_e2e.py:343: in test_virtual_engineer_decide_priority
+    assert 1 <= priority <= 10
+E   TypeError: '<=' not supported between instances of 'int' and 'coroutine'
+____ TestVirtualEngineerAutonomy.test_virtual_engineer_decide_master_style _____
+tests/test_shub_autonomy_e2e.py:358: in test_virtual_engineer_decide_master_style
+    assert isinstance(style, str)
+E   assert False
+E    +  where False = isinstance(<coroutine object VirtualEngineer.decide_master_style at 0x7fd0508480b0>, str)
+_____________ TestShubAutonomyE2E.test_e2e_workflow_madre_to_shub ______________
+tests/test_shub_autonomy_e2e.py:384: in test_e2e_workflow_madre_to_shub
+    assert batch_result["status"] == "ok"
+E   AssertionError: assert 'error' == 'ok'
+E     - ok
+E     + error
+------------------------------ Captured log call -------------------------------
+ERROR    vx11.shub.madre_handler:madre_shub_handler.py:229 [MADRE] Error encolando batch: AudioBatchEngine.enqueue_job() got an unexpected keyword argument 'name'
+Traceback (most recent call last):
+  File "/home/elkakas314/vx11/shubniggurath/api/madre_shub_handler.py", line 212, in handle_batch_task
+    job_id = self.batch_engine.enqueue_job(
+TypeError: AudioBatchEngine.enqueue_job() got an unexpected keyword argument 'name'
+____ TestShubAutonomyE2E.test_e2e_workflow_batch_with_issues_to_hormiguero _____
+tests/test_shub_autonomy_e2e.py:424: in test_e2e_workflow_batch_with_issues_to_hormiguero
+    enqueue_result = await engine.enqueue_job(
+E   TypeError: AudioBatchEngine.enqueue_job() got an unexpected keyword argument 'name'
+__________ TestIntegrationShubCanonical.test_http_only_communication ___________
+tests/test_shub_core.py:262: in test_http_only_communication
+    assert forbidden not in imp, f"Found forbidden import in {file_path}: {imp}"
+E   AssertionError: Found forbidden import in shubniggurath/core/audio_batch_engine.py: hormiguero.shub_audio_pheromones
+E   assert 'hormiguero' not in 'hormiguero....o_pheromones'
+E     'hormiguero' is contained here:
+E       hormiguero.shub_audio_pheromones
+E     ? ++++++++++
+______________ TestDSPPipeline.test_run_full_pipeline_quick_mode _______________
+tests/test_shub_dsp.py:60: in test_run_full_pipeline_quick_mode
+    assert result['status'] == 'success'
+E   AssertionError: assert 'error' == 'success'
+E     - success
+E     + error
+________________ TestDSPPipeline.test_run_full_pipeline_mode_c _________________
+tests/test_shub_dsp.py:77: in test_run_full_pipeline_mode_c
+    assert result['status'] == 'success'
+E   AssertionError: assert 'error' == 'success'
+E     - success
+E     + error
+________________ TestDSPPipeline.test_audio_analysis_structure _________________
+tests/test_shub_dsp.py:91: in test_audio_analysis_structure
+    analysis = result['audio_analysis']
+E   KeyError: 'audio_analysis'
+___________________ TestDSPPipeline.test_fx_chain_generation ___________________
+tests/test_shub_dsp.py:113: in test_fx_chain_generation
+    fx_chain = result['fx_chain']
+E   KeyError: 'fx_chain'
+________________ TestDSPPipeline.test_reaper_preset_generation _________________
+tests/test_shub_dsp.py:130: in test_reaper_preset_generation
+    preset = result['reaper_preset']
+E   KeyError: 'reaper_preset'
+_______ TestDSPEngineIntegration.test_audio_analysis_dataclass_creation ________
+tests/test_shub_dsp.py:158: in test_audio_analysis_dataclass_creation
+    analysis = AudioAnalysis(
+E   TypeError: AudioAnalysis.__init__() missing 3 required positional arguments: 'duration', 'sample_rate', and 'channels'
+_____________________________ test_mode_c_endpoint _____________________________
+tests/test_shub_mode_c.py:36: in test_mode_c_endpoint
+    assert r.status_code == 200, r.text
+E   AssertionError: {"detail":"Not Found"}
+E   assert 404 == 200
+E    +  where 404 = <Response [404 Not Found]>.status_code
+___________________________ test_shub_execute_modes ____________________________
+tests/test_shub_modes.py:12: in test_shub_execute_modes
+    assert data.get("status") == "ok"
+E   AssertionError: assert 'stub' == 'ok'
+E     - ok
+E     + stub
+______________________ TestDSPEngine.test_analyze_levels _______________________
+tests/test_shub_pro.py:128: in test_analyze_levels
+    assert -5 < result.rms_db < -1
+E   AttributeError: 'AudioAnalysisResult' object has no attribute 'rms_db'. Did you mean: 'rms_dbfs'?
+_____________________ TestDSPEngine.test_analyze_dynamics ______________________
+tests/test_shub_pro.py:144: in test_analyze_dynamics
+    assert result.dynamic_range_db > 5
+E   AttributeError: 'AudioAnalysisResult' object has no attribute 'dynamic_range_db'. Did you mean: 'dynamic_range'?
+______________________ TestDSPEngine.test_detect_clipping ______________________
+tests/test_shub_pro.py:156: in test_detect_clipping
+    assert "clipping" in result.issues
+E   AssertionError: assert 'clipping' in [{'samples': 48000, 'severity': 1.0, 'type': 'clipping'}, {'offset': 1.5, 'severity': 1.0, 'type': 'dc_offset'}, {'noise_dbfs': 3.5218251811136247, 'severity': 1.0, 'type': 'high_noise_floor'}]
+E    +  where [{'samples': 48000, 'severity': 1.0, 'type': 'clipping'}, {'offset': 1.5, 'severity': 1.0, 'type': 'dc_offset'}, {'noise_dbfs': 3.5218251811136247, 'severity': 1.0, 'type': 'high_noise_floor'}] = AudioAnalysisResult(duration=1.0, sample_rate=48000, channels=1, peak_dbfs=3.521825075149536, rms_dbfs=3.5218250751495...nsiderar normalización'}, {'area': 'quality', 'severity': 'warning', 'message': 'Se detectaron 3 problemas de audio'}]).issues
+_____________________ TestDSPEngine.test_detect_dc_offset ______________________
+tests/test_shub_pro.py:167: in test_detect_dc_offset
+    assert "dc_offset" in result.issues
+E   AssertionError: assert 'dc_offset' in [{'offset': 0.30000001192092896, 'severity': 1.0, 'type': 'dc_offset'}, {'noise_dbfs': -10.457574560460515, 'severity': 1.0, 'type': 'high_noise_floor'}]
+E    +  where [{'offset': 0.30000001192092896, 'severity': 1.0, 'type': 'dc_offset'}, {'noise_dbfs': -10.457574560460515, 'severity': 1.0, 'type': 'high_noise_floor'}] = AudioAnalysisResult(duration=1.0, sample_rate=48000, channels=1, peak_dbfs=-10.457574129104614, rms_dbfs=-10.457572937...60515}], recommendations=[{'area': 'quality', 'severity': 'warning', 'message': 'Se detectaron 2 problemas de audio'}]).issues
+_____________________ TestModeCPipeline.test_batch_process _____________________
+tests/test_shub_pro.py:317: in test_batch_process
+    assert result["success"]
+E   assert False
+______________ TestVirtualEngineer.test_rule_based_recommendation ______________
+tests/test_shub_pro.py:348: in test_rule_based_recommendation
+    analysis = AudioAnalysisResult(
+E   TypeError: AudioAnalysisResult.__init__() got an unexpected keyword argument 'peak_db'
+________________ TestVirtualEngineer.test_suggest_genre_preset _________________
+tests/test_shub_pro.py:373: in test_suggest_genre_preset
+    analysis = AudioAnalysisResult(
+E   TypeError: AudioAnalysisResult.__init__() got an unexpected keyword argument 'peak_db'
+______________________ TestShubCoreInit.test_db_init_step ______________________
+tests/test_shub_pro.py:409: in test_db_init_step
+    assert result["success"]
+E   assert False
+_________________ TestIntegration.test_full_pipeline_workflow __________________
+shubniggurath/pro/dsp_pipeline_full.py:120: in run_pipeline
+    job = ShubJob(
+../.local/lib/python3.10/site-packages/sqlalchemy/orm/state.py:566: in _initialize_instance
+    with util.safe_reraise():
+../.local/lib/python3.10/site-packages/sqlalchemy/util/langhelpers.py:146: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+../.local/lib/python3.10/site-packages/sqlalchemy/orm/state.py:564: in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+../.local/lib/python3.10/site-packages/sqlalchemy/orm/decl_base.py:2142: in _declarative_constructor
+    raise TypeError(
+E   TypeError: 'uuid' is an invalid keyword argument for ShubJob
+
+During handling of the above exception, another exception occurred:
+tests/test_shub_pro.py:463: in test_full_pipeline_workflow
+    result = await pipeline.run_pipeline(config)
+shubniggurath/pro/dsp_pipeline_full.py:223: in run_pipeline
+    job.status = JobStatus.FAILED.value
+E   UnboundLocalError: local variable 'job' referenced before assignment
+_____________________ TestIntegration.test_mode_c_with_fx ______________________
+tests/test_shub_pro.py:479: in test_mode_c_with_fx
+    assert result["success"]
+E   assert False
+________ TestShubCoreInitialization.test_initializer_creates_components ________
+tests/test_shubniggurath_complete_suite.py:15: in test_initializer_creates_components
+    from shubniggurath.core import ShubCoreInitializer
+E   ImportError: cannot import name 'ShubCoreInitializer' from 'shubniggurath.core' (/home/elkakas314/vx11/shubniggurath/core/__init__.py)
+______________________ TestDSPEngine.test_audio_analysis _______________________
+tests/test_shubniggurath_complete_suite.py:35: in test_audio_analysis
+    from shubniggurath.core import DSPEngine
+E   ImportError: cannot import name 'DSPEngine' from 'shubniggurath.core' (/home/elkakas314/vx11/shubniggurath/core/__init__.py)
+_____________________________ test_spawner_health ______________________________
+tests/test_spawner_endpoints.py:25: in test_spawner_health
+    assert data["module"] == "spawner"
+E   KeyError: 'module'
+___________________________ test_spawner_spawn_echo ____________________________
+tests/test_spawner_endpoints.py:41: in test_spawner_spawn_echo
+    assert resp.status_code == 200
+E   assert 401 == 200
+E    +  where 401 = <Response [401 Unauthorized]>.status_code
+______________________________ test_spawner_list _______________________________
+tests/test_spawner_endpoints.py:56: in test_spawner_list
+    assert resp.status_code == 200
+E   assert 404 == 200
+E    +  where 404 = <Response [404 Not Found]>.status_code
+____________________________ test_spawner_get_spawn ____________________________
+tests/test_spawner_endpoints.py:74: in test_spawner_get_spawn
+    spawn_id = spawn_resp.json()["id"]
+E   KeyError: 'id'
+______________________________ test_spawner_stop _______________________________
+tests/test_spawner_endpoints.py:97: in test_spawner_stop
+    spawn_id = spawn_resp.json()["id"]
+E   KeyError: 'id'
+_________________________ test_event_ingest_with_token _________________________
+tests/test_tentaculo_link.py:48: in test_event_ingest_with_token
+    assert resp.status_code == 200
+E   assert 404 == 200
+E    +  where 404 = <Response [404 Not Found]>.status_code
+_____________________________ test_mcp_chat_basic ______________________________
+tests/test_v2_advanced.py:108: in test_mcp_chat_basic
+    assert resp.status_code == 200
+E   assert 404 == 200
+E    +  where 404 = <Response [404 Not Found]>.status_code
+___________________________ test_mcp_session_history ___________________________
+tests/test_v2_advanced.py:124: in test_mcp_session_history
+    assert resp1.status_code == 200
+E   assert 404 == 200
+E    +  where 404 = <Response [404 Not Found]>.status_code
+=========================== short test summary info ============================
+SKIPPED [1] tests/test_madre_orchestration.py:71: Madre endpoints not available (service may not have new routes)
+SKIPPED [1] tests/test_mcp_switch_integration.py:13: integration tests require running services
+SKIPPED [1] tests/test_mcp_switch_integration.py:27: integration tests require running services
+SKIPPED [1] tests/test_phase12_fases2_10.py:31: integration tests require running services
+SKIPPED [1] tests/test_phase12_fases2_10.py:57: integration tests require running services
+SKIPPED [1] tests/test_phase12_fases2_10.py:79: integration tests require running services
+SKIPPED [1] tests/test_phase12_fases2_10.py:94: integration tests require running services
+SKIPPED [1] tests/test_phase12_fases2_10.py:108: integration tests require running services
+SKIPPED [1] tests/test_phase12_fases2_10.py:123: integration tests require running services
+SKIPPED [1] tests/test_phase12_fases2_10.py:136: integration tests require running services
+SKIPPED [1] tests/test_phase12_fases2_10.py:157: integration tests require running services
+SKIPPED [1] tests/test_phase12_fases2_10.py:175: integration tests require running services
+SKIPPED [1] tests/test_phase12_fases2_10.py:190: integration tests require running services
+SKIPPED [1] tests/test_phase12_fases2_10.py:212: integration tests require running services
+SKIPPED [1] tests/test_phase12_fases2_10.py:226: integration tests require running services
+SKIPPED [1] tests/test_phase12_fases2_10.py:236: integration tests require running services
+SKIPPED [1] tests/test_phase12_fases2_10.py:253: integration tests require running services
+SKIPPED [1] tests/test_shub_pro.py:119: Requiere librosa para análisis completo
+SKIPPED [1] tests/test_shubniggurath_phase1.py:16: ShubCoreInitializer not available
+SKIPPED [1] tests/test_shubniggurath_phase1.py:32: DSPEngine not available
+FAILED tests/test_dynamic_optimization.py::TestAdaptiveModesIntegration::test_eco_vs_critical_profiles
+FAILED tests/test_madre_orchestration.py::test_madre_status - KeyError: 'madre'
+FAILED tests/test_madre_spawner_v7.py::TestIntentProcessing::test_intent_creates_daughter_task
+FAILED tests/test_madre_spawner_v7.py::TestIntentProcessing::test_intent_short_task_classification
+FAILED tests/test_madre_spawner_v7.py::TestIntentProcessing::test_intent_long_task_higher_retries
+FAILED tests/test_madre_spawner_v7.py::TestTaskListing::test_list_active_tasks_default_statuses
+FAILED tests/test_madre_spawner_v7.py::TestTaskListing::test_list_active_tasks_filter_by_status
+FAILED tests/test_madre_spawner_v7.py::TestTaskListing::test_list_active_hijas_default_statuses
+FAILED tests/test_madre_spawner_v7.py::TestTaskListing::test_list_active_hijas_filter_by_status
+FAILED tests/test_madre_spawner_v7.py::TestTaskStatus::test_task_full_status_with_daughters_and_attempts
+FAILED tests/test_madre_spawner_v7.py::TestTaskCancellation::test_cancel_task_and_daughters
+FAILED tests/test_madre_spawner_v7.py::TestSchedulerAndTTL::test_scheduler_pending_to_spawned_transition
+FAILED tests/test_madre_spawner_v7.py::TestErrorHandling::test_spawner_spawn_missing_parent_task_id
+FAILED tests/test_madre_spawner_v7.py::TestPriorityMap::test_intent_priority_assignment
+FAILED tests/test_madre_spawner_v7.py::TestIntentLogging::test_intent_creates_audit_log
+FAILED tests/test_mcp_action.py::test_mcp_ping - assert 404 == 200
+FAILED tests/test_modes_transition.py::TestHormigueroWorkerScaling::test_hormiguero_scale_up
+FAILED tests/test_modes_transition.py::TestHormigueroWorkerScaling::test_hormiguero_scale_down
+FAILED tests/test_modes_transition.py::TestHormigueroWorkerScaling::test_hormiguero_get_metrics
+FAILED tests/test_modes_transition.py::TestMetricsEndpoints::test_hormiguero_metrics_endpoints
+FAILED tests/test_modes_transition.py::TestModeProfileStructure::test_mode_progression_values
+FAILED tests/test_operator_browser_v7.py::TestBrowserClientStub::test_stub_navigate
+FAILED tests/test_operator_browser_v7.py::TestBrowserClientPlaywright::test_playwright_navigate_timeout
+FAILED tests/test_operator_browser_v7.py::TestBrowserClientPlaywright::test_playwright_execute_js
+FAILED tests/test_operator_browser_v7.py::TestBrowserClientError::test_unknown_impl
+FAILED tests/test_operator_version_core.py::test_ui_status_includes_version
+FAILED tests/test_shub_autonomy_e2e.py::TestAudioBatchEngineAutonomy::test_batch_engine_enqueue_job
+FAILED tests/test_shub_autonomy_e2e.py::TestAudioBatchEngineAutonomy::test_batch_engine_get_status
+FAILED tests/test_shub_autonomy_e2e.py::TestVirtualEngineerAutonomy::test_virtual_engineer_decide_priority
+FAILED tests/test_shub_autonomy_e2e.py::TestVirtualEngineerAutonomy::test_virtual_engineer_decide_master_style
+FAILED tests/test_shub_autonomy_e2e.py::TestShubAutonomyE2E::test_e2e_workflow_madre_to_shub
+FAILED tests/test_shub_autonomy_e2e.py::TestShubAutonomyE2E::test_e2e_workflow_batch_with_issues_to_hormiguero
+FAILED tests/test_shub_core.py::TestIntegrationShubCanonical::test_http_only_communication
+FAILED tests/test_shub_dsp.py::TestDSPPipeline::test_run_full_pipeline_quick_mode
+FAILED tests/test_shub_dsp.py::TestDSPPipeline::test_run_full_pipeline_mode_c
+FAILED tests/test_shub_dsp.py::TestDSPPipeline::test_audio_analysis_structure
+FAILED tests/test_shub_dsp.py::TestDSPPipeline::test_fx_chain_generation - Ke...
+FAILED tests/test_shub_dsp.py::TestDSPPipeline::test_reaper_preset_generation
+FAILED tests/test_shub_dsp.py::TestDSPEngineIntegration::test_audio_analysis_dataclass_creation
+FAILED tests/test_shub_mode_c.py::test_mode_c_endpoint - AssertionError: {"de...
+FAILED tests/test_shub_modes.py::test_shub_execute_modes - AssertionError: as...
+FAILED tests/test_shub_pro.py::TestDSPEngine::test_analyze_levels - Attribute...
+FAILED tests/test_shub_pro.py::TestDSPEngine::test_analyze_dynamics - Attribu...
+FAILED tests/test_shub_pro.py::TestDSPEngine::test_detect_clipping - Assertio...
+FAILED tests/test_shub_pro.py::TestDSPEngine::test_detect_dc_offset - Asserti...
+FAILED tests/test_shub_pro.py::TestModeCPipeline::test_batch_process - assert...
+FAILED tests/test_shub_pro.py::TestVirtualEngineer::test_rule_based_recommendation
+FAILED tests/test_shub_pro.py::TestVirtualEngineer::test_suggest_genre_preset
+FAILED tests/test_shub_pro.py::TestShubCoreInit::test_db_init_step - assert F...
+FAILED tests/test_shub_pro.py::TestIntegration::test_full_pipeline_workflow
+FAILED tests/test_shub_pro.py::TestIntegration::test_mode_c_with_fx - assert ...
+FAILED tests/test_shubniggurath_complete_suite.py::TestShubCoreInitialization::test_initializer_creates_components
+FAILED tests/test_shubniggurath_complete_suite.py::TestDSPEngine::test_audio_analysis
+FAILED tests/test_spawner_endpoints.py::test_spawner_health - KeyError: 'module'
+FAILED tests/test_spawner_endpoints.py::test_spawner_spawn_echo - assert 401 ...
+FAILED tests/test_spawner_endpoints.py::test_spawner_list - assert 404 == 200
+FAILED tests/test_spawner_endpoints.py::test_spawner_get_spawn - KeyError: 'id'
+FAILED tests/test_spawner_endpoints.py::test_spawner_stop - KeyError: 'id'
+FAILED tests/test_tentaculo_link.py::test_event_ingest_with_token - assert 40...
+FAILED tests/test_v2_advanced.py::test_mcp_chat_basic - assert 404 == 200
+FAILED tests/test_v2_advanced.py::test_mcp_session_history - assert 404 == 200
+===== 61 failed, 576 passed, 20 skipped, 36 warnings in 160.04s (0:02:40) ======

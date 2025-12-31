@@ -1,0 +1,286 @@
+============================= test session starts ==============================
+platform linux -- Python 3.10.12, pytest-7.4.3, pluggy-1.6.0 -- /home/elkakas314/vx11/.venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /home/elkakas314/vx11
+configfile: pytest.ini
+plugins: cov-4.1.0, asyncio-0.21.1, mock-3.15.1, anyio-3.7.1, timeout-2.4.0
+asyncio: mode=auto
+timeout: 15.0s
+timeout method: signal
+timeout func_only: False
+collecting ... collected 171 items
+Collected 171 tests.
+
+tests/test_shub_api.py::TestHealthEndpoint::test_health_check_success PASSED [  0%]Progress: 1/171 tests (0%)
+tests/test_shub_api.py::TestHealthEndpoint::test_health_check_structure PASSED [  1%]Progress: 2/171 tests (1%)
+tests/test_shub_api.py::TestReadinessEndpoint::test_ready_check_success PASSED [  1%]Progress: 3/171 tests (1%)
+tests/test_shub_api.py::TestAnalyzeEndpoint::test_analyze_requires_auth PASSED [  2%]Progress: 4/171 tests (2%)
+tests/test_shub_api.py::TestAnalyzeEndpoint::test_analyze_with_valid_token PASSED [  2%]Progress: 5/171 tests (2%)
+tests/test_shub_api.py::TestAnalyzeEndpoint::test_analyze_response_structure PASSED [  3%]Progress: 6/171 tests (3%)
+tests/test_shub_api.py::TestMasteringEndpoint::test_mastering_requires_auth PASSED [  4%]Progress: 7/171 tests (4%)
+tests/test_shub_api.py::TestMasteringEndpoint::test_mastering_with_token PASSED [  4%]Progress: 8/171 tests (4%)
+tests/test_shub_api.py::TestBatchEndpoints::test_batch_submit_requires_auth PASSED [  5%]Progress: 9/171 tests (5%)
+tests/test_shub_api.py::TestBatchEndpoints::test_batch_submit_with_token PASSED [  5%]Progress: 10/171 tests (5%)
+tests/test_shub_api.py::TestBatchEndpoints::test_batch_status_requires_batch_id PASSED [  6%]Progress: 11/171 tests (6%)
+tests/test_shub_api.py::TestREAPEREndpoints::test_reaper_projects_requires_auth PASSED [  7%]Progress: 12/171 tests (7%)
+tests/test_shub_api.py::TestREAPEREndpoints::test_reaper_projects_with_token PASSED [  7%]Progress: 13/171 tests (7%)
+tests/test_shub_api.py::TestErrorHandling::test_invalid_token_returns_401 PASSED [  8%]Progress: 14/171 tests (8%)
+tests/test_shub_api.py::TestErrorHandling::test_malformed_json_returns_422 PASSED [  8%]Progress: 15/171 tests (8%)
+tests/test_shub_api.py::TestErrorHandling::test_missing_required_fields PASSED [  9%]Progress: 16/171 tests (9%)
+tests/test_shub_api.py::TestCORSHeaders::test_cors_headers_present PASSED [  9%]Progress: 17/171 tests (9%)
+tests/test_shub_api.py::TestMainModuleIntegration::test_app_has_lifespan PASSED [ 10%]Progress: 18/171 tests (10%)
+tests/test_shub_api.py::TestMainModuleIntegration::test_app_has_endpoints PASSED [ 11%]Progress: 19/171 tests (11%)
+tests/test_shub_autonomy_e2e.py::TestMadreShubHandlerAutonomy::test_madre_handler_initialization PASSED [ 11%]Progress: 20/171 tests (11%)
+tests/test_shub_autonomy_e2e.py::TestMadreShubHandlerAutonomy::test_madre_handler_analyze_task PASSED [ 12%]Progress: 21/171 tests (12%)
+tests/test_shub_autonomy_e2e.py::TestMadreShubHandlerAutonomy::test_madre_handler_batch_task PASSED [ 12%]Progress: 22/171 tests (12%)
+tests/test_shub_autonomy_e2e.py::TestSwitchShubForwarderAutonomy::test_forwarder_initialization PASSED [ 13%]Progress: 23/171 tests (13%)
+tests/test_shub_autonomy_e2e.py::TestSwitchShubForwarderAutonomy::test_forwarder_routing_decision_analyze PASSED [ 14%]Progress: 24/171 tests (14%)
+tests/test_shub_autonomy_e2e.py::TestSwitchShubForwarderAutonomy::test_forwarder_routing_decision_mastering PASSED [ 14%]Progress: 25/171 tests (14%)
+tests/test_shub_autonomy_e2e.py::TestSwitchShubForwarderAutonomy::test_forwarder_routing_decision_batch PASSED [ 15%]Progress: 26/171 tests (15%)
+tests/test_shub_autonomy_e2e.py::TestSwitchShubForwarderAutonomy::test_forwarder_routing_decision_skip PASSED [ 15%]Progress: 27/171 tests (15%)
+tests/test_shub_autonomy_e2e.py::TestHermesShubRegistrarAutonomy::test_registrar_initialization PASSED [ 16%]Progress: 28/171 tests (16%)
+tests/test_shub_autonomy_e2e.py::TestHermesShubRegistrarAutonomy::test_registrar_register_shub PASSED [ 16%]Progress: 29/171 tests (16%)
+tests/test_shub_autonomy_e2e.py::TestHermesShubRegistrarAutonomy::test_registrar_update_metrics PASSED [ 17%]Progress: 30/171 tests (17%)
+tests/test_shub_autonomy_e2e.py::TestHormigueroShubPheromonesAutonomy::test_pheromones_initialization PASSED [ 18%]Progress: 31/171 tests (18%)
+tests/test_shub_autonomy_e2e.py::TestHormigueroShubPheromonesAutonomy::test_deposit_audio_scan_pheromone PASSED [ 18%]Progress: 32/171 tests (18%)
+tests/test_shub_autonomy_e2e.py::TestHormigueroShubPheromonesAutonomy::test_deposit_batch_fix_pheromone PASSED [ 19%]Progress: 33/171 tests (19%)
+tests/test_shub_autonomy_e2e.py::TestHormigueroShubPheromonesAutonomy::test_deposit_mastering_pheromone PASSED [ 19%]Progress: 34/171 tests (19%)
+tests/test_shub_autonomy_e2e.py::TestHormigueroShubPheromonesAutonomy::test_get_all_active_pheromones PASSED [ 20%]Progress: 35/171 tests (20%)
+tests/test_shub_autonomy_e2e.py::TestHormigueroShubPheromonesAutonomy::test_batch_reporter_report_issues PASSED [ 21%]Progress: 36/171 tests (21%)
+tests/test_shub_autonomy_e2e.py::TestAudioBatchEngineAutonomy::test_batch_engine_initialization PASSED [ 21%]Progress: 37/171 tests (21%)
+tests/test_shub_autonomy_e2e.py::TestAudioBatchEngineAutonomy::test_batch_engine_enqueue_job PASSED [ 22%]Progress: 38/171 tests (22%)
+tests/test_shub_autonomy_e2e.py::TestAudioBatchEngineAutonomy::test_batch_engine_get_status PASSED [ 22%]Progress: 39/171 tests (22%)
+tests/test_shub_autonomy_e2e.py::TestVirtualEngineerAutonomy::test_virtual_engineer_initialization PASSED [ 23%]Progress: 40/171 tests (23%)
+tests/test_shub_autonomy_e2e.py::TestVirtualEngineerAutonomy::test_virtual_engineer_decide_priority PASSED [ 23%]Progress: 41/171 tests (23%)
+tests/test_shub_autonomy_e2e.py::TestVirtualEngineerAutonomy::test_virtual_engineer_decide_master_style PASSED [ 24%]Progress: 42/171 tests (24%)
+tests/test_shub_autonomy_e2e.py::TestShubAutonomyE2E::test_e2e_workflow_madre_to_shub PASSED [ 25%]Progress: 43/171 tests (25%)
+tests/test_shub_autonomy_e2e.py::TestShubAutonomyE2E::test_e2e_workflow_switch_to_shub_to_madre PASSED [ 25%]Progress: 44/171 tests (25%)
+tests/test_shub_autonomy_e2e.py::TestShubAutonomyE2E::test_e2e_workflow_batch_with_issues_to_hormiguero PASSED [ 26%]Progress: 45/171 tests (26%)
+tests/test_shub_autonomy_e2e.py::TestVX11Integrity::test_no_import_cycles PASSED [ 26%]Progress: 46/171 tests (26%)
+tests/test_shub_autonomy_e2e.py::TestVX11Integrity::test_vx11_modules_intact PASSED [ 27%]Progress: 47/171 tests (27%)
+tests/test_shub_core.py::TestREAPERController::test_reaper_controller_initialization PASSED [ 28%]Progress: 48/171 tests (28%)
+tests/test_shub_core.py::TestREAPERController::test_reaper_12_methods_exist PASSED [ 28%]Progress: 49/171 tests (28%)
+tests/test_shub_core.py::TestREAPERController::test_reaper_http_call_error_handling PASSED [ 29%]Progress: 50/171 tests (29%)
+tests/test_shub_core.py::TestREAPERController::test_reaper_cleanup PASSED [ 29%]Progress: 51/171 tests (29%)
+tests/test_shub_core.py::TestVX11Bridge::test_vx11_bridge_initialization PASSED [ 30%]Progress: 52/171 tests (30%)
+tests/test_shub_core.py::TestVX11Bridge::test_vx11_bridge_9_methods_exist PASSED [ 30%]Progress: 53/171 tests (30%)
+tests/test_shub_core.py::TestVX11Bridge::test_http_client_initialization PASSED [ 31%]Progress: 54/171 tests (31%)
+tests/test_shub_core.py::TestAudioBatchEngine::test_batch_engine_initialization PASSED [ 32%]Progress: 55/171 tests (32%)
+tests/test_shub_core.py::TestAudioBatchEngine::test_batch_job_dataclass_creation PASSED [ 32%]Progress: 56/171 tests (32%)
+tests/test_shub_core.py::TestAudioBatchEngine::test_batch_engine_methods_exist PASSED [ 33%]Progress: 57/171 tests (33%)
+tests/test_shub_core.py::TestVirtualEngineer::test_virtual_engineer_initialization PASSED [ 33%]Progress: 58/171 tests (33%)
+tests/test_shub_core.py::TestVirtualEngineer::test_virtual_engineer_5_methods_exist PASSED [ 34%]Progress: 59/171 tests (34%)
+tests/test_shub_core.py::TestVirtualEngineer::test_complexity_score_calculation PASSED [ 35%]Progress: 60/171 tests (35%)
+tests/test_shub_core.py::TestIntegrationShubCanonical::test_all_modules_importable PASSED [ 35%]Progress: 61/171 tests (35%)
+tests/test_shub_core.py::TestIntegrationShubCanonical::test_http_only_communication PASSED [ 36%]Progress: 62/171 tests (36%)
+tests/test_shub_dsp.py::TestDSPPipeline::test_pipeline_initialization PASSED [ 36%]Progress: 63/171 tests (36%)
+tests/test_shub_dsp.py::TestDSPPipeline::test_run_full_pipeline_quick_mode PASSED [ 37%]Progress: 64/171 tests (37%)
+tests/test_shub_dsp.py::TestDSPPipeline::test_run_full_pipeline_mode_c PASSED [ 38%]Progress: 65/171 tests (38%)
+tests/test_shub_dsp.py::TestDSPPipeline::test_audio_analysis_structure PASSED [ 38%]Progress: 66/171 tests (38%)
+tests/test_shub_dsp.py::TestDSPPipeline::test_fx_chain_generation PASSED [ 39%]Progress: 67/171 tests (39%)
+tests/test_shub_dsp.py::TestDSPPipeline::test_reaper_preset_generation PASSED [ 39%]Progress: 68/171 tests (39%)
+tests/test_shub_dsp.py::TestDSPPipeline::test_error_handling_invalid_audio PASSED [ 40%]Progress: 69/171 tests (40%)
+tests/test_shub_dsp.py::TestDSPEngineIntegration::test_audio_analysis_dataclass_creation PASSED [ 40%]Progress: 70/171 tests (40%)
+tests/test_shub_dsp.py::TestDSPEngineIntegration::test_fx_chain_dataclass_creation PASSED [ 41%]Progress: 71/171 tests (41%)
+tests/test_shub_dsp.py::TestDSPEngineIntegration::test_reaper_preset_dataclass_creation PASSED [ 42%]Progress: 72/171 tests (42%)
+tests/test_shub_mode_c.py::test_analyze_audio PASSED                     [ 42%]Progress: 73/171 tests (42%)
+tests/test_shub_mode_c.py::test_mode_c_endpoint FAILED                   [ 43%]Progress: 74/171 tests (43%)
+tests/test_shub_modes.py::test_shub_execute_modes FAILED                 [ 43%]Progress: 75/171 tests (43%)
+tests/test_shubniggurath_complete_suite.py::TestShubCoreInitialization::test_initializer_creates_components FAILED [ 44%]Progress: 76/171 tests (44%)
+tests/test_shubniggurath_complete_suite.py::TestDSPEngine::test_audio_analysis FAILED [ 45%]Progress: 77/171 tests (45%)
+tests/test_shubniggurath_complete_suite.py::TestEngineRegistry::test_all_10_engines_registered PASSED [ 45%]Progress: 78/171 tests (45%)
+tests/test_shubniggurath_complete_suite.py::TestEngineRegistry::test_engine_processing PASSED [ 46%]Progress: 79/171 tests (46%)
+tests/test_shubniggurath_complete_suite.py::TestVX11Integration::test_switch_audio_router PASSED [ 46%]Progress: 80/171 tests (46%)
+tests/test_shubniggurath_complete_suite.py::TestVX11Integration::test_hermes_shub_provider PASSED [ 47%]Progress: 81/171 tests (47%)
+tests/test_shubniggurath_complete_suite.py::TestVX11Integration::test_madre_orchestration PASSED [ 47%]Progress: 82/171 tests (47%)
+tests/test_shubniggurath_complete_suite.py::TestMCPIntegration::test_mcp_audio_command PASSED [ 48%]Progress: 83/171 tests (48%)
+tests/test_shubniggurath_complete_suite.py::TestDatabaseModels::test_tenant_model PASSED [ 49%]Progress: 84/171 tests (49%)
+tests/test_shubniggurath_complete_suite.py::TestOperatorShubDashboard::test_dashboard_endpoint PASSED [ 49%]Progress: 85/171 tests (49%)
+tests/test_shubniggurath_complete_suite.py::TestOperatorShubDashboard::test_engines_health_endpoint PASSED [ 50%]Progress: 86/171 tests (50%)
+tests/test_shubniggurath_complete_suite.py::TestManifestatorDrift::test_drift_detector PASSED [ 50%]Progress: 87/171 tests (50%)
+tests/test_shubniggurath_complete_suite.py::TestBidirectionalSync::test_asset_sync PASSED [ 51%]Progress: 88/171 tests (51%)
+tests/test_shubniggurath_complete_suite.py::TestEndToEnd::test_full_audio_pipeline PASSED [ 52%]Progress: 89/171 tests (52%)
+tests/test_shubniggurath_phase1.py::test_shub_initialization PASSED      [ 52%]Progress: 90/171 tests (52%)
+tests/test_shubniggurath_phase1.py::test_dsp_engine FAILED               [ 53%]Progress: 91/171 tests (53%)
+tests/test_shubniggurath_phase1.py::test_engine_registry PASSED          [ 53%]Progress: 92/171 tests (53%)
+tests/test_shubniggurath_phase1.py::test_analyzer_engine PASSED          [ 54%]Progress: 93/171 tests (54%)
+tests/test_shubniggurath_phase2.py::test_switch_audio_routing PASSED     [ 54%]Progress: 94/171 tests (54%)
+tests/test_shubniggurath_phase2.py::test_quality_check PASSED            [ 55%]Progress: 95/171 tests (55%)
+tests/test_shubniggurath_phase2.py::test_hermes_shub_provider PASSED     [ 56%]Progress: 96/171 tests (56%)
+tests/test_shubniggurath_phase2.py::test_hermes_eq_generation PASSED     [ 56%]Progress: 97/171 tests (56%)
+tests/test_shubniggurath_phase3.py::test_audio_pipeline_creation PASSED  [ 57%]Progress: 98/171 tests (57%)
+tests/test_shubniggurath_phase3.py::test_pipeline_execution PASSED       [ 57%]Progress: 99/171 tests (57%)
+tests/test_shubniggurath_phase3.py::test_madre_orchestrator PASSED       [ 58%]Progress: 100/171 tests (58%)
+tests/test_shubniggurath_phase3.py::test_pipeline_execution_via_orchestrator PASSED [ 59%]Progress: 101/171 tests (59%)
+tests/test_shubniggurath_phase5.py::test_bidirectional_sync PASSED       [ 59%]Progress: 102/171 tests (59%)
+tests/test_shubniggurath_phase5.py::test_analysis_sync_to_vx11 PASSED    [ 60%]Progress: 103/171 tests (60%)
+tests/test_shubniggurath_phase5.py::test_sync_log PASSED                 [ 60%]Progress: 104/171 tests (60%)
+tests/test_shubniggurath_phase5.py::test_sync_scheduler PASSED           [ 61%]Progress: 105/171 tests (61%)
+tests/test_shubniggurath_phase6.py::test_drift_detector_initialization PASSED [ 61%]Progress: 106/171 tests (61%)
+tests/test_shubniggurath_phase6.py::test_drift_report_generation PASSED  [ 62%]Progress: 107/171 tests (62%)
+tests/test_shubniggurath_phase6.py::test_manifestator_bridge PASSED      [ 63%]Progress: 108/171 tests (63%)
+tests/test_shubniggurath_phase6.py::test_drift_report PASSED             [ 63%]Progress: 109/171 tests (63%)
+tests/test_shubniggurath_phase7.py::test_mcp_shub_bridge PASSED          [ 64%]Progress: 110/171 tests (64%)
+tests/test_shubniggurath_phase7.py::test_hormiguero_shub_integration PASSED [ 64%]Progress: 111/171 tests (64%)
+tests/test_shubniggurath_phase7.py::test_tentaculo_shub_gateway PASSED   [ 65%]Progress: 112/171 tests (65%)
+tests/test_shubniggurath_phase8.py::test_deepseek_provider_initialization PASSED [ 66%]Progress: 113/171 tests (66%)
+tests/test_shubniggurath_phase8.py::test_deepseek_without_key PASSED     [ 66%]Progress: 114/171 tests (66%)
+tests/test_shub_pro_api.py::test_pipeline_endpoint PASSED                [ 67%]Progress: 115/171 tests (67%)
+tests/test_shub_pro_io.py::test_audio_io_and_dsp PASSED                  [ 67%]Progress: 116/171 tests (67%)
+tests/test_shub_pro.py::TestDSPEngine::test_analyze_audio_basic SKIPPED  [ 68%]Progress: 117/171 tests (68%)
+tests/test_shub_pro.py::TestDSPEngine::test_analyze_levels FAILED        [ 69%]Progress: 118/171 tests (69%)
+tests/test_shub_pro.py::TestDSPEngine::test_analyze_dynamics FAILED      [ 69%]Progress: 119/171 tests (69%)
+tests/test_shub_pro.py::TestDSPEngine::test_detect_clipping FAILED       [ 70%]Progress: 120/171 tests (70%)
+tests/test_shub_pro.py::TestDSPEngine::test_detect_dc_offset FAILED      [ 70%]Progress: 121/171 tests (70%)
+tests/test_shub_pro.py::TestEffects::test_gain_effect PASSED             [ 71%]Progress: 122/171 tests (71%)
+tests/test_shub_pro.py::TestEffects::test_limiter_effect PASSED          [ 71%]Progress: 123/171 tests (71%)
+tests/test_shub_pro.py::TestEffects::test_distortion_effect PASSED       [ 72%]Progress: 124/171 tests (72%)
+tests/test_shub_pro.py::TestEffects::test_fx_chain_add_effects PASSED    [ 73%]Progress: 125/171 tests (73%)
+tests/test_shub_pro.py::TestEffects::test_fx_chain_preset_save_load PASSED [ 73%]Progress: 126/171 tests (73%)
+tests/test_shub_pro.py::TestModeCPipeline::test_mode_c_batch_creation PASSED [ 74%]Progress: 127/171 tests (74%)
+tests/test_shub_pro.py::TestModeCPipeline::test_mode_c_realtime_creation PASSED [ 74%]Progress: 128/171 tests (74%)
+tests/test_shub_pro.py::TestModeCPipeline::test_stream_buffer PASSED     [ 75%]Progress: 129/171 tests (75%)
+tests/test_shub_pro.py::TestModeCPipeline::test_process_chunk PASSED     [ 76%]Progress: 130/171 tests (76%)
+tests/test_shub_pro.py::TestModeCPipeline::test_batch_process FAILED     [ 76%]Progress: 131/171 tests (76%)
+tests/test_shub_pro.py::TestModeCPipeline::test_mode_c_stats PASSED      [ 77%]Progress: 132/171 tests (77%)
+tests/test_shub_pro.py::TestVirtualEngineer::test_get_available_presets PASSED [ 77%]Progress: 133/171 tests (77%)
+tests/test_shub_pro.py::TestVirtualEngineer::test_rule_based_recommendation FAILED [ 78%]Progress: 134/171 tests (78%)
+tests/test_shub_pro.py::TestVirtualEngineer::test_suggest_genre_preset FAILED [ 78%]Progress: 135/171 tests (78%)
+tests/test_shub_pro.py::TestShubCoreInit::test_initializer_creation PASSED [ 79%]Progress: 136/171 tests (79%)
+tests/test_shub_pro.py::TestShubCoreInit::test_db_init_step FAILED       [ 80%]Progress: 137/171 tests (80%)
+tests/test_shub_pro.py::TestShubCoreInit::test_dsp_init_step PASSED      [ 80%]Progress: 138/171 tests (80%)
+tests/test_shub_pro.py::TestShubCoreInit::test_fx_init_step PASSED       [ 81%]Progress: 139/171 tests (81%)
+tests/test_shub_pro.py::TestShubCoreInit::test_get_health_status PASSED  [ 81%]Progress: 140/171 tests (81%)
+tests/test_shub_pro.py::TestIntegration::test_full_pipeline_workflow FAILED [ 82%]Progress: 141/171 tests (82%)
+tests/test_shub_pro.py::TestIntegration::test_mode_c_with_fx FAILED      [ 83%]Progress: 142/171 tests (83%)
+tests/test_shub_pro_simple.py::TestEffectsSimple::test_gain_effect_positive PASSED [ 83%]Progress: 143/171 tests (83%)
+tests/test_shub_pro_simple.py::TestEffectsSimple::test_gain_effect_negative PASSED [ 84%]Progress: 144/171 tests (84%)
+tests/test_shub_pro_simple.py::TestEffectsSimple::test_limiter_effect PASSED [ 84%]Progress: 145/171 tests (84%)
+tests/test_shub_pro_simple.py::TestEffectsSimple::test_distortion_effect PASSED [ 85%]Progress: 146/171 tests (85%)
+tests/test_shub_pro_simple.py::TestEffectsSimple::test_fx_chain_empty PASSED [ 85%]Progress: 147/171 tests (85%)
+tests/test_shub_pro_simple.py::TestEffectsSimple::test_fx_chain_single_effect PASSED [ 86%]Progress: 148/171 tests (86%)
+tests/test_shub_pro_simple.py::TestEffectsSimple::test_fx_chain_cascade PASSED [ 87%]Progress: 149/171 tests (87%)
+tests/test_shub_pro_simple.py::TestEffectsSimple::test_fx_chain_preset_save PASSED [ 87%]Progress: 150/171 tests (87%)
+tests/test_shub_pro_simple.py::TestEffectsSimple::test_fx_chain_preset_load PASSED [ 88%]Progress: 151/171 tests (88%)
+tests/test_shub_pro_simple.py::TestEffectsSimple::test_effect_disabled PASSED [ 88%]Progress: 152/171 tests (88%)
+tests/test_shub_pro_simple.py::TestModeCSimple::test_mode_c_batch_config PASSED [ 89%]Progress: 153/171 tests (89%)
+tests/test_shub_pro_simple.py::TestModeCSimple::test_mode_c_streaming_config PASSED [ 90%]Progress: 154/171 tests (90%)
+tests/test_shub_pro_simple.py::TestModeCSimple::test_mode_c_realtime_config PASSED [ 90%]Progress: 155/171 tests (90%)
+tests/test_shub_pro_simple.py::TestModeCSimple::test_stream_buffer_push_pop PASSED [ 91%]Progress: 156/171 tests (91%)
+tests/test_shub_pro_simple.py::TestModeCSimple::test_stream_buffer_peek PASSED [ 91%]Progress: 157/171 tests (91%)
+tests/test_shub_pro_simple.py::TestModeCSimple::test_mode_c_stats PASSED [ 92%]Progress: 158/171 tests (92%)
+tests/test_shub_pro_simple.py::TestVirtualEngineerSimple::test_get_available_presets PASSED [ 92%]Progress: 159/171 tests (92%)
+tests/test_shub_pro_simple.py::TestVirtualEngineerSimple::test_get_preset_recommendation PASSED [ 93%]Progress: 160/171 tests (93%)
+tests/test_shub_pro_simple.py::TestShubCoreInitSimple::test_initializer_creation PASSED [ 94%]Progress: 161/171 tests (94%)
+tests/test_shub_pro_simple.py::TestShubCoreInitSimple::test_dsp_init PASSED [ 94%]Progress: 162/171 tests (94%)
+tests/test_shub_pro_simple.py::TestShubCoreInitSimple::test_fx_init PASSED [ 95%]Progress: 163/171 tests (95%)
+tests/test_shub_pro_simple.py::TestShubCoreInitSimple::test_health_status PASSED [ 95%]Progress: 164/171 tests (95%)
+tests/test_shub_pro_simple.py::TestImports::test_import_dsp_engine PASSED [ 96%]Progress: 165/171 tests (96%)
+tests/test_shub_pro_simple.py::TestImports::test_import_dsp_fx PASSED    [ 97%]Progress: 166/171 tests (97%)
+tests/test_shub_pro_simple.py::TestImports::test_import_dsp_pipeline PASSED [ 97%]Progress: 167/171 tests (97%)
+tests/test_shub_pro_simple.py::TestImports::test_import_mode_c PASSED    [ 98%]Progress: 168/171 tests (98%)
+tests/test_shub_pro_simple.py::TestImports::test_import_virtual_engineer PASSED [ 98%]Progress: 169/171 tests (98%)
+tests/test_shub_pro_simple.py::TestImports::test_import_core_init PASSED [ 99%]Progress: 170/171 tests (99%)
+tests/test_shub_pro_simple.py::TestImports::test_import_shub_db PASSED   [100%]Progress: 171/171 tests (100%)
+
+
+=================================== FAILURES ===================================
+_____________________________ test_mode_c_endpoint _____________________________
+tests/test_shub_mode_c.py:36: in test_mode_c_endpoint
+    assert r.status_code == 200, r.text
+E   AssertionError: {"detail":"Not Found"}
+E   assert 404 == 200
+E    +  where 404 = <Response [404 Not Found]>.status_code
+___________________________ test_shub_execute_modes ____________________________
+tests/test_shub_modes.py:11: in test_shub_execute_modes
+    assert resp.status_code == 200
+E   assert 404 == 200
+E    +  where 404 = <Response [404 Not Found]>.status_code
+________ TestShubCoreInitialization.test_initializer_creates_components ________
+tests/test_shubniggurath_complete_suite.py:23: in test_initializer_creates_components
+    status = await initializer.initialize()
+E   AttributeError: 'ShubCoreInitializer' object has no attribute 'initialize'. Did you mean: 'initialize_all'?
+______________________ TestDSPEngine.test_audio_analysis _______________________
+tests/test_shubniggurath_complete_suite.py:43: in test_audio_analysis
+    assert -50 < result.true_peak_dbfs < 0
+E   assert 0.0 < 0
+E    +  where 0.0 = <shubniggurath.core.dsp_engine.AudioAnalysisResult object at 0x76cddfed24a0>.true_peak_dbfs
+_______________________________ test_dsp_engine ________________________________
+tests/test_shubniggurath_phase1.py:44: in test_dsp_engine
+    assert result.bpm > 0
+E   TypeError: '>' not supported between instances of 'NoneType' and 'int'
+______________________ TestDSPEngine.test_analyze_levels _______________________
+tests/test_shub_pro.py:128: in test_analyze_levels
+    assert -5 < result.rms_db < -1
+E   AttributeError: 'AudioAnalysisResult' object has no attribute 'rms_db'. Did you mean: 'rms_dbfs'?
+_____________________ TestDSPEngine.test_analyze_dynamics ______________________
+tests/test_shub_pro.py:144: in test_analyze_dynamics
+    assert result.dynamic_range_db > 5
+E   AttributeError: 'AudioAnalysisResult' object has no attribute 'dynamic_range_db'. Did you mean: 'dynamic_range'?
+______________________ TestDSPEngine.test_detect_clipping ______________________
+tests/test_shub_pro.py:156: in test_detect_clipping
+    assert "clipping" in result.issues
+E   AssertionError: assert 'clipping' in [{'samples': 48000, 'severity': 1.0, 'type': 'clipping'}, {'offset': 1.5, 'severity': 1.0, 'type': 'dc_offset'}, {'noise_dbfs': 3.5218251811136247, 'severity': 1.0, 'type': 'high_noise_floor'}]
+E    +  where [{'samples': 48000, 'severity': 1.0, 'type': 'clipping'}, {'offset': 1.5, 'severity': 1.0, 'type': 'dc_offset'}, {'noise_dbfs': 3.5218251811136247, 'severity': 1.0, 'type': 'high_noise_floor'}] = AudioAnalysisResult(duration=1.0, sample_rate=48000, channels=1, peak_dbfs=3.521825075149536, rms_dbfs=3.521825075149536, lufs_integrated=-19.478174924850464, lufs_range=0.0, true_peak_dbfs=3.521825075149536, spectral_centroid=254.47894546509968, spectral_rolloff=11.71875, spectral_flux=0.0, zero_crossing_rate=0.0, spectral_flatness=0.0, mfcc=[-406.98095703125, 14.69660472869873, 10.434751510620117, 10.3787841796875, 10.137539863586426, 10.046936988830566, 9.912185668945312, 9.875603675842285, 9.778252601623535, 9.737324714660645, 9.690911293029785, 9.646470069885254, 9.6139554977417], chroma=[0.7723692059516907, 0.812187671661377, 0.8797047138214111, 0.9358747601509094, 0.9763773679733276, 0.9974151849746704, 0.9967434406280518, 0.9993009567260742, 0.9878650307655334, 0.9559581875801086, 0.9068021774291992, 0.8438985347747803], spectral_contrast=[90.18198819749618, 12.971936895368886, 12.975037694296248, 12.97663089411916, 12.977017009308248, 12.97327943274979, 13.01315608116986], dynamic_range=0.0, crest_factor=0.0, transients_count=1, transients=[0.032], clipping_samples=48000, dc_offset=1.5, noise_floor_dbfs=3.5218251811136247, phase_correlation=0.0, estimated_bpm=119.68085106382979, estimated_key=None, key_confidence=None, harmonic_complexity=0.5, percussiveness=0.3, instrument_class=None, genre_predicted=None, mood_predicted=None, issues=[{'type': 'clipping', 'severity': 1.0, 'samples': 48000}, {'type': 'dc_offset', 'severity': 1.0, 'offset': 1.5}, {'type': 'high_noise_floor', 'severity': 1.0, 'noise_dbfs': 3.5218251811136247}], recommendations=[{'area': 'levels', 'severity': 'warning', 'message': 'Peak muy alto; considerar normalización'}, {'area': 'quality', 'severity': 'warning', 'message': 'Se detectaron 3 problemas de audio'}]).issues
+_____________________ TestDSPEngine.test_detect_dc_offset ______________________
+tests/test_shub_pro.py:167: in test_detect_dc_offset
+    assert "dc_offset" in result.issues
+E   AssertionError: assert 'dc_offset' in [{'offset': 0.30000001192092896, 'severity': 1.0, 'type': 'dc_offset'}, {'noise_dbfs': -10.457574560460515, 'severity': 1.0, 'type': 'high_noise_floor'}]
+E    +  where [{'offset': 0.30000001192092896, 'severity': 1.0, 'type': 'dc_offset'}, {'noise_dbfs': -10.457574560460515, 'severity': 1.0, 'type': 'high_noise_floor'}] = AudioAnalysisResult(duration=1.0, sample_rate=48000, channels=1, peak_dbfs=-10.457574129104614, rms_dbfs=-10.457572937011719, lufs_integrated=-33.45757293701172, lufs_range=0.0, true_peak_dbfs=-10.45757532119751, spectral_centroid=254.4789611061525, spectral_rolloff=11.71875, spectral_flux=0.0, zero_crossing_rate=0.0, spectral_flatness=0.0, mfcc=[-565.139892578125, 14.69660472869873, 10.434751510620117, 10.378785133361816, 10.137539863586426, 10.046936988830566, 9.912185668945312, 9.875603675842285, 9.778252601623535, 9.737324714660645, 9.690911293029785, 9.646470069885254, 9.6139554977417], chroma=[0.7723692059516907, 0.812187671661377, 0.8797047138214111, 0.935874879360199, 0.9763786792755127, 0.9974152445793152, 0.9967434406280518, 0.9993009567260742, 0.987865149974823, 0.9559584259986877, 0.9068021774291992, 0.8438985347747803], spectral_contrast=[90.18198813329731, 12.971936841445293, 12.975037631773162, 12.976630839487985, 12.977016955046269, 12.973279380542428, 13.013156016320982], dynamic_range=0.0, crest_factor=-1.0354387569577739e-06, transients_count=1, transients=[0.032], clipping_samples=0, dc_offset=0.30000001192092896, noise_floor_dbfs=-10.457574560460515, phase_correlation=0.0, estimated_bpm=119.68085106382979, estimated_key=None, key_confidence=None, harmonic_complexity=0.5, percussiveness=0.3, instrument_class=None, genre_predicted=None, mood_predicted=None, issues=[{'type': 'dc_offset', 'severity': 1.0, 'offset': 0.30000001192092896}, {'type': 'high_noise_floor', 'severity': 1.0, 'noise_dbfs': -10.457574560460515}], recommendations=[{'area': 'quality', 'severity': 'warning', 'message': 'Se detectaron 2 problemas de audio'}]).issues
+_____________________ TestModeCPipeline.test_batch_process _____________________
+tests/test_shub_pro.py:317: in test_batch_process
+    assert result["success"]
+E   assert False
+______________ TestVirtualEngineer.test_rule_based_recommendation ______________
+tests/test_shub_pro.py:348: in test_rule_based_recommendation
+    analysis = AudioAnalysisResult(
+E   TypeError: AudioAnalysisResult.__init__() got an unexpected keyword argument 'peak_db'
+________________ TestVirtualEngineer.test_suggest_genre_preset _________________
+tests/test_shub_pro.py:373: in test_suggest_genre_preset
+    analysis = AudioAnalysisResult(
+E   TypeError: AudioAnalysisResult.__init__() got an unexpected keyword argument 'peak_db'
+______________________ TestShubCoreInit.test_db_init_step ______________________
+tests/test_shub_pro.py:409: in test_db_init_step
+    assert result["success"]
+E   assert False
+_________________ TestIntegration.test_full_pipeline_workflow __________________
+shubniggurath/pro/dsp_pipeline_full.py:120: in run_pipeline
+    job = ShubJob(
+.venv/lib/python3.10/site-packages/sqlalchemy/orm/state.py:566: in _initialize_instance
+    with util.safe_reraise():
+.venv/lib/python3.10/site-packages/sqlalchemy/util/langhelpers.py:146: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+.venv/lib/python3.10/site-packages/sqlalchemy/orm/state.py:564: in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+.venv/lib/python3.10/site-packages/sqlalchemy/orm/decl_base.py:2142: in _declarative_constructor
+    raise TypeError(
+E   TypeError: 'uuid' is an invalid keyword argument for ShubJob
+
+During handling of the above exception, another exception occurred:
+tests/test_shub_pro.py:463: in test_full_pipeline_workflow
+    result = await pipeline.run_pipeline(config)
+shubniggurath/pro/dsp_pipeline_full.py:223: in run_pipeline
+    job.status = JobStatus.FAILED.value
+E   UnboundLocalError: local variable 'job' referenced before assignment
+_____________________ TestIntegration.test_mode_c_with_fx ______________________
+tests/test_shub_pro.py:479: in test_mode_c_with_fx
+    assert result["success"]
+E   assert False
+=========================== short test summary info ============================
+SKIPPED [1] tests/test_shub_pro.py:119: Requiere librosa para análisis completo
+FAILED tests/test_shub_mode_c.py::test_mode_c_endpoint - AssertionError: {"de...
+FAILED tests/test_shub_modes.py::test_shub_execute_modes - assert 404 == 200
+FAILED tests/test_shubniggurath_complete_suite.py::TestShubCoreInitialization::test_initializer_creates_components
+FAILED tests/test_shubniggurath_complete_suite.py::TestDSPEngine::test_audio_analysis
+FAILED tests/test_shubniggurath_phase1.py::test_dsp_engine - TypeError: '>' n...
+FAILED tests/test_shub_pro.py::TestDSPEngine::test_analyze_levels - Attribute...
+FAILED tests/test_shub_pro.py::TestDSPEngine::test_analyze_dynamics - Attribu...
+FAILED tests/test_shub_pro.py::TestDSPEngine::test_detect_clipping - Assertio...
+FAILED tests/test_shub_pro.py::TestDSPEngine::test_detect_dc_offset - Asserti...
+FAILED tests/test_shub_pro.py::TestModeCPipeline::test_batch_process - assert...
+FAILED tests/test_shub_pro.py::TestVirtualEngineer::test_rule_based_recommendation
+FAILED tests/test_shub_pro.py::TestVirtualEngineer::test_suggest_genre_preset
+FAILED tests/test_shub_pro.py::TestShubCoreInit::test_db_init_step - assert F...
+FAILED tests/test_shub_pro.py::TestIntegration::test_full_pipeline_workflow
+FAILED tests/test_shub_pro.py::TestIntegration::test_mode_c_with_fx - assert ...
+=========== 15 failed, 155 passed, 1 skipped, 25 warnings in 53.46s ============

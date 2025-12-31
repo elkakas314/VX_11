@@ -5,17 +5,18 @@ Tests for complete workflows and resource measurement.
 Markers: @pytest.mark.e2e, @pytest.mark.integration, @pytest.mark.performance
 """
 
-import pytest
-import subprocess
-import time
-import requests
 import json
 from pathlib import Path
+
+import pytest
+import requests
+import subprocess
+import time
 
 
 @pytest.mark.e2e
 @pytest.mark.integration
-def test_e2e_1_full_workflow_boot_scale_policy_ondemand(madre_port):
+def test_e2e_1_full_workflow_boot_scale_policy_ondemand(madre_port, docker_available):
     """
     E2E.1: Full workflow - boot, scale, policy, on-demand
     Expected: System transitions through all states cleanly
@@ -32,6 +33,8 @@ def test_e2e_1_full_workflow_boot_scale_policy_ondemand(madre_port):
     9. Verify back to solo_madre state
     """
 
+    if not docker_available:
+        pytest.skip("Docker not available")
     # Step 1: Verify initial solo_madre state
     output = subprocess.check_output(
         "docker ps --format '{{.Names}}'",
@@ -137,7 +140,9 @@ def test_e2e_1_full_workflow_boot_scale_policy_ondemand(madre_port):
 
 @pytest.mark.e2e
 @pytest.mark.performance
-def test_e2e_2_resource_measurement_idle_vs_full(madre_port, db_connection):
+def test_e2e_2_resource_measurement_idle_vs_full(
+    madre_port, db_connection, docker_available
+):
     """
     E2E.2: Resource measurement - idle state vs full stack
     Expected: Record baseline metrics for idle and active states
@@ -156,6 +161,8 @@ def test_e2e_2_resource_measurement_idle_vs_full(madre_port, db_connection):
     3. Compare and report
     """
 
+    if not docker_available:
+        pytest.skip("Docker not available")
     results = {
         "idle": {},
         "active": {},
@@ -193,7 +200,7 @@ def test_e2e_2_resource_measurement_idle_vs_full(madre_port, db_connection):
     ), f"Active ({active_count}) should have >= idle ({idle_count}) containers"
 
     # Step 6: Save results for analysis
-    outdir = Path("/home/elkakas314/vx11/docs/audit")
+    outdir = Path(__file__).resolve().parent.parent / "docs/audit"
     outdir.mkdir(parents=True, exist_ok=True)
 
     results_file = outdir / "e2e_resource_measurement.json"
