@@ -11,6 +11,7 @@ import sqlite3
 import json
 import time
 from pathlib import Path
+from tests._vx11_base import vx11_base_url
 
 # Only run if VX11_INTEGRATION=1
 pytestmark = pytest.mark.skipif(
@@ -62,28 +63,28 @@ class TestFlowA:
         # This is a health check test (no DB impact expected for routing only)
         import requests
 
-        # Tentaculo health
-        resp = requests.get("http://localhost:8000/health", timeout=7)
+        # Tentaculo health (frontdoor)
+        resp = requests.get(vx11_base_url() + "/health", timeout=7)
         assert resp.status_code == 200
         data = resp.json()
         assert data["status"] == "ok"
         assert data["module"] == "tentaculo_link"
 
-        # Switch health
-        resp = requests.get("http://localhost:8002/health", timeout=7)
+        # Switch health via frontdoor
+        resp = requests.get(vx11_base_url() + "/switch/health", timeout=7)
         assert resp.status_code == 200
         data = resp.json()
         assert data["status"] == "ok"
         assert data["module"] == "switch"
 
-        # Hermes health
-        resp = requests.get("http://localhost:8003/health", timeout=7)
+        # Hermes health via frontdoor
+        resp = requests.get(vx11_base_url() + "/hermes/health", timeout=7)
         assert resp.status_code == 200
         data = resp.json()
         assert data["status"] == "ok"
 
-        # Madre health
-        resp = requests.get("http://localhost:8001/health", timeout=7)
+        # Madre health via frontdoor
+        resp = requests.get(vx11_base_url() + "/madre/health", timeout=7)
         assert resp.status_code == 200
         data = resp.json()
         assert data["status"] == "ok"
@@ -112,7 +113,7 @@ class TestFlowB:
         # Trigger Flow B: call madre endpoint to spawn daughter
         try:
             resp = requests.post(
-                "http://localhost:8001/spawn_daughter",
+                vx11_base_url() + "/madre/spawn_daughter",
                 json={"task": "test_autonomous_action"},
                 timeout=7,
             )
@@ -150,13 +151,13 @@ class TestFlowC:
         import requests
 
         # Hormiguero health
-        resp = requests.get("http://localhost:8004/health", timeout=7)
+        resp = requests.get(vx11_base_url() + "/hormiguero/health", timeout=7)
         assert resp.status_code == 200
         data = resp.json()
         assert data.get("status") in ["ok", "healthy"]
-        
+
         # Manifestator health
-        resp = requests.get("http://localhost:8005/health", timeout=7)
+        resp = requests.get(vx11_base_url() + "/manifestator/health", timeout=7)
         assert resp.status_code == 200
         data = resp.json()
         assert data.get("status") in ["ok", "healthy"]
@@ -173,22 +174,28 @@ class TestAutonomyMetrics:
         """
         import requests
 
-        services = {
-            "tentaculo_link": 8000,
-            "madre": 8001,
-            "switch": 8002,
-            "hermes": 8003,
-            "hormiguero": 8004,
-            "mcp": 8006,
-            "shubniggurath": 8007,
-            "spawner": 8008,
-            "operator-backend": 8011,
-        }
+        services = [
+            "tentaculo_link",
+            "madre",
+            "switch",
+            "hermes",
+            "hormiguero",
+            "mcp",
+            "shubniggurath",
+            "spawner",
+            "operator-backend",
+        ]
 
         healthy_count = 0
-        for service, port in services.items():
+        for service in services:
             try:
-                resp = requests.get(f"http://localhost:{port}/health", timeout=7)
+                # Query each service via the single entrypoint
+                if service == "tentaculo_link":
+                    url = vx11_base_url() + "/health"
+                else:
+                    url = vx11_base_url() + f"/{service}/health"
+
+                resp = requests.get(url, timeout=7)
                 if resp.status_code == 200:
                     healthy_count += 1
             except:

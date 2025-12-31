@@ -1,0 +1,234 @@
+============================= test session starts ==============================
+platform linux -- Python 3.10.12, pytest-7.4.3, pluggy-1.6.0
+rootdir: /home/elkakas314/vx11
+configfile: pytest.ini
+testpaths: tests
+plugins: cov-7.0.0, asyncio-0.21.1, anyio-3.7.1
+asyncio: mode=auto
+collected 335 items / 308 deselected / 3 skipped / 27 selected
+
+tests/test_e2e_workflows.py sF                                           [  7%]
+tests/test_integration_flows_e2e.py ssss                                 [ 22%]
+tests/test_madre_power_manager_phase4.py .sss                            [ 37%]
+tests/test_operator_chat_e2e_phase8.py .FFFFFF                           [ 62%]
+tests/test_p1_power_manager.py FFFF..F                                   [ 88%]
+tests/test_power_manager.py .FF                                          [100%]
+
+=================================== FAILURES ===================================
+_________________ test_e2e_2_resource_measurement_idle_vs_full _________________
+/usr/lib/python3/dist-packages/urllib3/connection.py:169: in _new_conn
+    conn = connection.create_connection(
+/usr/lib/python3/dist-packages/urllib3/util/connection.py:96: in create_connection
+    raise err
+/usr/lib/python3/dist-packages/urllib3/util/connection.py:86: in create_connection
+    sock.connect(sa)
+E   ConnectionRefusedError: [Errno 111] Connection refused
+
+During handling of the above exception, another exception occurred:
+/usr/lib/python3/dist-packages/urllib3/connectionpool.py:700: in urlopen
+    httplib_response = self._make_request(
+/usr/lib/python3/dist-packages/urllib3/connectionpool.py:395: in _make_request
+    conn.request(method, url, **httplib_request_kw)
+/usr/lib/python3/dist-packages/urllib3/connection.py:234: in request
+    super(HTTPConnection, self).request(method, url, body=body, headers=headers)
+/usr/lib/python3.10/http/client.py:1283: in request
+    self._send_request(method, url, body, headers, encode_chunked)
+/usr/lib/python3.10/http/client.py:1329: in _send_request
+    self.endheaders(body, encode_chunked=encode_chunked)
+/usr/lib/python3.10/http/client.py:1278: in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+/usr/lib/python3.10/http/client.py:1038: in _send_output
+    self.send(msg)
+/usr/lib/python3.10/http/client.py:976: in send
+    self.connect()
+/usr/lib/python3/dist-packages/urllib3/connection.py:200: in connect
+    conn = self._new_conn()
+/usr/lib/python3/dist-packages/urllib3/connection.py:181: in _new_conn
+    raise NewConnectionError(
+E   urllib3.exceptions.NewConnectionError: <urllib3.connection.HTTPConnection object at 0x7c4a076c2770>: Failed to establish a new connection: [Errno 111] Connection refused
+
+During handling of the above exception, another exception occurred:
+/usr/lib/python3/dist-packages/requests/adapters.py:439: in send
+    resp = conn.urlopen(
+/usr/lib/python3/dist-packages/urllib3/connectionpool.py:756: in urlopen
+    retries = retries.increment(
+/usr/lib/python3/dist-packages/urllib3/util/retry.py:576: in increment
+    raise MaxRetryError(_pool, url, error or ResponseError(cause))
+E   urllib3.exceptions.MaxRetryError: HTTPConnectionPool(host='localhost', port=8001): Max retries exceeded with url: /madre/power/service/start (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7c4a076c2770>: Failed to establish a new connection: [Errno 111] Connection refused'))
+
+During handling of the above exception, another exception occurred:
+tests/test_e2e_workflows.py:180: in test_e2e_2_resource_measurement_idle_vs_full
+    requests.post(
+/usr/lib/python3/dist-packages/requests/api.py:119: in post
+    return request('post', url, data=data, json=json, **kwargs)
+/usr/lib/python3/dist-packages/requests/api.py:61: in request
+    return session.request(method=method, url=url, **kwargs)
+/usr/lib/python3/dist-packages/requests/sessions.py:544: in request
+    resp = self.send(prep, **send_kwargs)
+/usr/lib/python3/dist-packages/requests/sessions.py:657: in send
+    r = adapter.send(request, **kwargs)
+/usr/lib/python3/dist-packages/requests/adapters.py:516: in send
+    raise ConnectionError(e, request=request)
+E   requests.exceptions.ConnectionError: HTTPConnectionPool(host='localhost', port=8001): Max retries exceeded with url: /madre/power/service/start (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7c4a076c2770>: Failed to establish a new connection: [Errno 111] Connection refused'))
+----------------------------- Captured stderr call -----------------------------
+failed to execute template: template: :1:13: executing "" at <.MemoryUsage>: can't evaluate field MemoryUsage in type *formatter.ContainerContext
+________ TestOperatorChatE2E.test_01b_chat_through_tentaculo_with_token ________
+tests/test_operator_chat_e2e_phase8.py:107: in test_01b_chat_through_tentaculo_with_token
+    assert (
+E   AssertionError: Expected 200, got 403: {"error":"forbidden","status_code":403}
+E   assert 403 == 200
+E    +  where 403 = <Response [403 Forbidden]>.status_code
+____ TestOperatorChatE2E.test_02_chat_fallback_to_madre_when_switch_offline ____
+tests/test_operator_chat_e2e_phase8.py:141: in test_02_chat_fallback_to_madre_when_switch_offline
+    assert (
+E   AssertionError: Expected 200 (fallback), got 403: {"error":"forbidden","status_code":403}
+E   assert 403 == 200
+E    +  where 403 = <Response [403 Forbidden]>.status_code
+______ TestOperatorChatE2E.test_03_correlation_id_propagation_full_chain _______
+tests/test_operator_chat_e2e_phase8.py:179: in test_03_correlation_id_propagation_full_chain
+    assert resp.status_code == 200, f"Request failed: {resp.status_code}"
+E   AssertionError: Request failed: 403
+E   assert 403 == 200
+E    +  where 403 = <Response [403 Forbidden]>.status_code
+____________ TestOperatorChatE2E.test_04_response_schema_validation ____________
+tests/test_operator_chat_e2e_phase8.py:227: in test_04_response_schema_validation
+    assert resp.status_code == 200, f"Request failed: {resp.status_code}"
+E   AssertionError: Request failed: 403
+E   assert 403 == 200
+E    +  where 403 = <Response [403 Forbidden]>.status_code
+__________ TestOperatorChatE2E.test_05_full_e2e_chat_flow_integration __________
+tests/test_operator_chat_e2e_phase8.py:328: in test_05_full_e2e_chat_flow_integration
+    assert (
+E   AssertionError: Direct request failed: 403
+E   assert 403 == 200
+E    +  where 403 = <Response [403 Forbidden]>.status_code
+______________ TestOperatorChatStress.test_chat_stress_sequential ______________
+../.local/lib/python3.10/site-packages/httpcore/_exceptions.py:10: in map_exceptions
+    yield
+../.local/lib/python3.10/site-packages/httpcore/_backends/sync.py:212: in connect_tcp
+    sock = socket.create_connection(
+/usr/lib/python3.10/socket.py:845: in create_connection
+    raise err
+/usr/lib/python3.10/socket.py:833: in create_connection
+    sock.connect(sa)
+E   ConnectionRefusedError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+../.local/lib/python3.10/site-packages/httpx/_transports/default.py:66: in map_httpcore_exceptions
+    yield
+../.local/lib/python3.10/site-packages/httpx/_transports/default.py:228: in handle_request
+    resp = self._pool.handle_request(req)
+../.local/lib/python3.10/site-packages/httpcore/_sync/connection_pool.py:262: in handle_request
+    raise exc
+../.local/lib/python3.10/site-packages/httpcore/_sync/connection_pool.py:245: in handle_request
+    response = connection.handle_request(request)
+../.local/lib/python3.10/site-packages/httpcore/_sync/connection.py:99: in handle_request
+    raise exc
+../.local/lib/python3.10/site-packages/httpcore/_sync/connection.py:76: in handle_request
+    stream = self._connect(request)
+../.local/lib/python3.10/site-packages/httpcore/_sync/connection.py:124: in _connect
+    stream = self._network_backend.connect_tcp(**kwargs)
+../.local/lib/python3.10/site-packages/httpcore/_backends/sync.py:211: in connect_tcp
+    with map_exceptions(exc_map):
+/usr/lib/python3.10/contextlib.py:153: in __exit__
+    self.gen.throw(typ, value, traceback)
+../.local/lib/python3.10/site-packages/httpcore/_exceptions.py:14: in map_exceptions
+    raise to_exc(exc) from exc
+E   httpcore.ConnectError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+tests/test_operator_chat_e2e_phase8.py:394: in test_chat_stress_sequential
+    resp = client.post(
+../.local/lib/python3.10/site-packages/httpx/_client.py:1132: in post
+    return self.request(
+../.local/lib/python3.10/site-packages/httpx/_client.py:814: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+../.local/lib/python3.10/site-packages/httpx/_client.py:901: in send
+    response = self._send_handling_auth(
+../.local/lib/python3.10/site-packages/httpx/_client.py:929: in _send_handling_auth
+    response = self._send_handling_redirects(
+../.local/lib/python3.10/site-packages/httpx/_client.py:966: in _send_handling_redirects
+    response = self._send_single_request(request)
+../.local/lib/python3.10/site-packages/httpx/_client.py:1002: in _send_single_request
+    response = transport.handle_request(request)
+../.local/lib/python3.10/site-packages/httpx/_transports/default.py:227: in handle_request
+    with map_httpcore_exceptions():
+/usr/lib/python3.10/contextlib.py:153: in __exit__
+    self.gen.throw(typ, value, traceback)
+../.local/lib/python3.10/site-packages/httpx/_transports/default.py:83: in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+E   httpx.ConnectError: [Errno 111] Connection refused
+________________________ test_p1_1_start_single_service ________________________
+tests/test_p1_power_manager.py:31: in test_p1_1_start_single_service
+    assert response.status_code == 200, f"Start request failed: {response.text}"
+E   AssertionError: Start request failed: {"detail":"Not Found"}
+E   assert 404 == 200
+E    +  where 404 = <Response [404]>.status_code
+________________________ test_p1_2_stop_single_service _________________________
+tests/test_p1_power_manager.py:75: in test_p1_2_stop_single_service
+    assert response.status_code == 200, f"Stop request failed: {response.text}"
+E   AssertionError: Stop request failed: {"detail":"Not Found"}
+E   assert 404 == 200
+E    +  where 404 = <Response [404]>.status_code
+______________________ test_p1_3_start_multiple_services _______________________
+tests/test_p1_power_manager.py:111: in test_p1_3_start_multiple_services
+    assert response.status_code == 200, f"Start {service} failed: {response.text}"
+E   AssertionError: Start spawner failed: {"detail":"Not Found"}
+E   assert 404 == 200
+E    +  where 404 = <Response [404]>.status_code
+_________________________ test_p1_4_policy_idempotence _________________________
+tests/test_p1_power_manager.py:167: in test_p1_4_policy_idempotence
+    assert response1.status_code == 200, f"First apply failed: {response1.text}"
+E   AssertionError: First apply failed: {"detail":"Not Found"}
+E   assert 404 == 200
+E    +  where 404 = <Response [404]>.status_code
+_______________________ test_p1_7_power_status_endpoint ________________________
+tests/test_p1_power_manager.py:267: in test_p1_7_power_status_endpoint
+    assert response.status_code == 200, f"Status endpoint failed: {response.text}"
+E   AssertionError: Status endpoint failed: {"detail":"Not Found"}
+E   assert 404 == 200
+E    +  where 404 = <Response [404]>.status_code
+______________________ test_p0_2_solo_madre_policy_state _______________________
+tests/test_power_manager.py:52: in test_p0_2_solo_madre_policy_state
+    assert (
+E   AssertionError: Expected 2 containers, got 7: ['vx11-madre-test', 'vx11-operator-backend-test', 'vx11-operator-frontend-test', 'vx11-redis', 'vx11-redis-test', 'vx11-switch-test', 'vx11-tentaculo-link-test']
+E   assert 7 == 2
+E    +  where 7 = len(['vx11-madre-test', 'vx11-operator-backend-test', 'vx11-operator-frontend-test', 'vx11-redis', 'vx11-redis-test', 'vx11-switch-test', ...])
+_______________________ test_p0_3_poder_ports_listening ________________________
+tests/test_power_manager.py:91: in test_p0_3_poder_ports_listening
+    assert result == 0, "Port 6379 (redis) not listening"
+E   AssertionError: Port 6379 (redis) not listening
+E   assert 111 == 0
+=========================== short test summary info ============================
+SKIPPED [1] tests/test_health_endpoints.py:10: Integration tests disabled. Set VX11_INTEGRATION=1 to run.
+SKIPPED [1] tests/test_operator_phase1_3.py:8: DEPRECATED: replace with tests/test_operator_production_phase5.py or phase8 suites.
+SKIPPED [1] tests/test_operator_production_phase5.py:13: DEPRECATED: Use tests/test_operator_auth_canonical.py instead
+SKIPPED [1] tests/test_e2e_workflows.py:18: Integration tests skipped by default. Set VX11_INTEGRATION=1 to run.
+SKIPPED [1] tests/test_integration_flows_e2e.py:57: Set VX11_INTEGRATION=1 to run integration tests
+SKIPPED [1] tests/test_integration_flows_e2e.py:96: Set VX11_INTEGRATION=1 to run integration tests
+SKIPPED [1] tests/test_integration_flows_e2e.py:145: Set VX11_INTEGRATION=1 to run integration tests
+SKIPPED [1] tests/test_integration_flows_e2e.py:169: Set VX11_INTEGRATION=1 to run integration tests
+SKIPPED [1] tests/test_madre_power_manager_phase4.py:52: Madre service status not available: Status check failed: 404
+assert 404 == 200
+ +  where 404 = <Response [404]>.status_code
+SKIPPED [1] tests/test_madre_power_manager_phase4.py:65: Madre health check failed: Madre health check failed: 404
+assert 404 == 200
+ +  where 404 = <Response [404]>.status_code
+SKIPPED [1] tests/test_madre_power_manager_phase4.py:86: switch not available: switch health check returned 404
+assert 404 == 200
+ +  where 404 = <Response [404]>.status_code
+FAILED tests/test_e2e_workflows.py::test_e2e_2_resource_measurement_idle_vs_full
+FAILED tests/test_operator_chat_e2e_phase8.py::TestOperatorChatE2E::test_01b_chat_through_tentaculo_with_token
+FAILED tests/test_operator_chat_e2e_phase8.py::TestOperatorChatE2E::test_02_chat_fallback_to_madre_when_switch_offline
+FAILED tests/test_operator_chat_e2e_phase8.py::TestOperatorChatE2E::test_03_correlation_id_propagation_full_chain
+FAILED tests/test_operator_chat_e2e_phase8.py::TestOperatorChatE2E::test_04_response_schema_validation
+FAILED tests/test_operator_chat_e2e_phase8.py::TestOperatorChatE2E::test_05_full_e2e_chat_flow_integration
+FAILED tests/test_operator_chat_e2e_phase8.py::TestOperatorChatStress::test_chat_stress_sequential
+FAILED tests/test_p1_power_manager.py::test_p1_1_start_single_service - Asser...
+FAILED tests/test_p1_power_manager.py::test_p1_2_stop_single_service - Assert...
+FAILED tests/test_p1_power_manager.py::test_p1_3_start_multiple_services - As...
+FAILED tests/test_p1_power_manager.py::test_p1_4_policy_idempotence - Asserti...
+FAILED tests/test_p1_power_manager.py::test_p1_7_power_status_endpoint - Asse...
+FAILED tests/test_power_manager.py::test_p0_2_solo_madre_policy_state - Asser...
+FAILED tests/test_power_manager.py::test_p0_3_poder_ports_listening - Asserti...
+===== 14 failed, 5 passed, 11 skipped, 308 deselected, 7 warnings in 4.50s =====

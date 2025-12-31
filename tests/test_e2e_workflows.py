@@ -12,6 +12,7 @@ import pytest
 import requests
 import subprocess
 import time
+from tests._vx11_base import vx11_base_url
 
 
 @pytest.mark.e2e
@@ -48,7 +49,7 @@ def test_e2e_1_full_workflow_boot_scale_policy_ondemand(madre_port, docker_avail
     services_to_start = ["spawner", "hermes"]
     for svc in services_to_start:
         response = requests.post(
-            f"http://localhost:{madre_port}/madre/power/service/start",
+            vx11_base_url() + "/madre/power/service/start",
             json={"service": svc},
             timeout=10,
         )
@@ -70,7 +71,7 @@ def test_e2e_1_full_workflow_boot_scale_policy_ondemand(madre_port, docker_avail
 
     # Step 4: Re-apply solo_madre policy
     response = requests.post(
-        f"http://localhost:{madre_port}/madre/power/policy/solo_madre/apply",
+        vx11_base_url() + "/madre/power/policy/solo_madre/apply",
         timeout=10,
     )
     assert response.status_code == 200, "Failed to apply solo_madre policy"
@@ -90,7 +91,7 @@ def test_e2e_1_full_workflow_boot_scale_policy_ondemand(madre_port, docker_avail
 
     # Step 6: Start switch on-demand
     response = requests.post(
-        f"http://localhost:{madre_port}/madre/power/service/start",
+        vx11_base_url() + "/madre/power/service/start",
         json={"service": "switch"},
         timeout=10,
     )
@@ -109,7 +110,7 @@ def test_e2e_1_full_workflow_boot_scale_policy_ondemand(madre_port, docker_avail
 
     # Step 8: Stop switch
     response = requests.post(
-        f"http://localhost:{madre_port}/madre/power/service/stop",
+        vx11_base_url() + "/madre/power/service/stop",
         json={"service": "switch"},
         timeout=10,
     )
@@ -130,7 +131,7 @@ def test_e2e_1_full_workflow_boot_scale_policy_ondemand(madre_port, docker_avail
 
     # Verify solo_madre policy still active
     response = requests.get(
-        f"http://localhost:{madre_port}/madre/power/policy/solo_madre/status",
+        vx11_base_url() + "/madre/power/policy/solo_madre/status",
         timeout=10,
     )
     assert response.status_code == 200, "Failed to check policy status"

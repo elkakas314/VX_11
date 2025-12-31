@@ -37,15 +37,22 @@ def pytest_configure(config):
 
 
 def pytest_collection_modifyitems(config, items):
-    """Skip tests marked as 'integration' unless VX11_INTEGRATION=1."""
+    """Skip tests marked as 'integration' unless VX11_INTEGRATION=1.
+
+    This enforces gating by `VX11_INTEGRATION` only. Do NOT add global
+    autouse skips for specific services (madre) — tests should be fixed
+    to use the single-entrypoint (`VX11_API_BASE`) instead.
+    """
     if INTEGRATION_ENABLED:
         return
-    skip = pytest.mark.skip(
+
+    skip_integration = pytest.mark.skip(
         reason="Integration tests skipped by default. Set VX11_INTEGRATION=1 to run."
     )
+
     for item in list(items):
         if "integration" in item.keywords:
-            item.add_marker(skip)
+            item.add_marker(skip_integration)
 
 
 import pytest

@@ -5,11 +5,14 @@ import os
 import logging
 from typing import Dict, Any, Optional
 from datetime import datetime
+from tests._vx11_base import vx11_base_url
 
 log = logging.getLogger("vx11.operator.e2e")
 
 if not os.getenv("VX11_E2E"):
-    pytest.skip("VX11_E2E not set; skipping live integration tests", allow_module_level=True)
+    pytest.skip(
+        "VX11_E2E not set; skipping live integration tests", allow_module_level=True
+    )
 
 
 class TestOperatorChatE2E:
@@ -25,10 +28,10 @@ class TestOperatorChatE2E:
     All tests pass even if switch service is NOT running (SOLO_MADRE mode).
     """
 
-    OPERATOR_URL = os.getenv("VX11_OPERATOR_URL", "http://localhost:8011")
-    TENTACULO_URL = os.getenv("VX11_TENTACULO_URL", "http://localhost:8000")
-    MADRE_URL = os.getenv("VX11_MADRE_URL", "http://localhost:8001")
-    SWITCH_URL = os.getenv("VX11_SWITCH_URL", "http://localhost:8002")
+    OPERATOR_URL = os.getenv("VX11_OPERATOR_URL", vx11_base_url())
+    TENTACULO_URL = os.getenv("VX11_TENTACULO_URL", vx11_base_url())
+    MADRE_URL = os.getenv("VX11_MADRE_URL", vx11_base_url())
+    SWITCH_URL = os.getenv("VX11_SWITCH_URL", vx11_base_url())
     TOKEN = os.getenv(
         "VX11_TOKEN", os.getenv("VX11_TENTACULO_LINK_TOKEN", "test-token-vx11")
     )

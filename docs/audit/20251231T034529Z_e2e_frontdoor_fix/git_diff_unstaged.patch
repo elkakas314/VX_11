@@ -1,0 +1,200 @@
+diff --git a/tests/conftest.py b/tests/conftest.py
+index 088c82e..04e933a 100644
+--- a/tests/conftest.py
++++ b/tests/conftest.py
+@@ -37,15 +37,22 @@ def pytest_configure(config):
+ 
+ 
+ def pytest_collection_modifyitems(config, items):
+-    """Skip tests marked as 'integration' unless VX11_INTEGRATION=1."""
++    """Skip tests marked as 'integration' unless VX11_INTEGRATION=1.
++
++    This enforces gating by `VX11_INTEGRATION` only. Do NOT add global
++    autouse skips for specific services (madre) — tests should be fixed
++    to use the single-entrypoint (`VX11_API_BASE`) instead.
++    """
+     if INTEGRATION_ENABLED:
+         return
+-    skip = pytest.mark.skip(
++
++    skip_integration = pytest.mark.skip(
+         reason="Integration tests skipped by default. Set VX11_INTEGRATION=1 to run."
+     )
++
+     for item in list(items):
+         if "integration" in item.keywords:
+-            item.add_marker(skip)
++            item.add_marker(skip_integration)
+ 
+ 
+ import pytest
+diff --git a/tests/test_e2e_workflows.py b/tests/test_e2e_workflows.py
+index 20549b3..943c288 100644
+--- a/tests/test_e2e_workflows.py
++++ b/tests/test_e2e_workflows.py
+@@ -12,6 +12,7 @@ import pytest
+ import requests
+ import subprocess
+ import time
++from tests._vx11_base import vx11_base_url
+ 
+ 
+ @pytest.mark.e2e
+@@ -48,7 +49,7 @@ def test_e2e_1_full_workflow_boot_scale_policy_ondemand(madre_port, docker_avail
+     services_to_start = ["spawner", "hermes"]
+     for svc in services_to_start:
+         response = requests.post(
+-            f"http://localhost:{madre_port}/madre/power/service/start",
++            vx11_base_url() + "/madre/power/service/start",
+             json={"service": svc},
+             timeout=10,
+         )
+@@ -70,7 +71,7 @@ def test_e2e_1_full_workflow_boot_scale_policy_ondemand(madre_port, docker_avail
+ 
+     # Step 4: Re-apply solo_madre policy
+     response = requests.post(
+-        f"http://localhost:{madre_port}/madre/power/policy/solo_madre/apply",
++        vx11_base_url() + "/madre/power/policy/solo_madre/apply",
+         timeout=10,
+     )
+     assert response.status_code == 200, "Failed to apply solo_madre policy"
+@@ -90,7 +91,7 @@ def test_e2e_1_full_workflow_boot_scale_policy_ondemand(madre_port, docker_avail
+ 
+     # Step 6: Start switch on-demand
+     response = requests.post(
+-        f"http://localhost:{madre_port}/madre/power/service/start",
++        vx11_base_url() + "/madre/power/service/start",
+         json={"service": "switch"},
+         timeout=10,
+     )
+@@ -109,7 +110,7 @@ def test_e2e_1_full_workflow_boot_scale_policy_ondemand(madre_port, docker_avail
+ 
+     # Step 8: Stop switch
+     response = requests.post(
+-        f"http://localhost:{madre_port}/madre/power/service/stop",
++        vx11_base_url() + "/madre/power/service/stop",
+         json={"service": "switch"},
+         timeout=10,
+     )
+@@ -130,7 +131,7 @@ def test_e2e_1_full_workflow_boot_scale_policy_ondemand(madre_port, docker_avail
+ 
+     # Verify solo_madre policy still active
+     response = requests.get(
+-        f"http://localhost:{madre_port}/madre/power/policy/solo_madre/status",
++        vx11_base_url() + "/madre/power/policy/solo_madre/status",
+         timeout=10,
+     )
+     assert response.status_code == 200, "Failed to check policy status"
+diff --git a/tests/test_integration_flows_e2e.py b/tests/test_integration_flows_e2e.py
+index 92f7d92..73f0e29 100644
+--- a/tests/test_integration_flows_e2e.py
++++ b/tests/test_integration_flows_e2e.py
+@@ -11,6 +11,7 @@ import sqlite3
+ import json
+ import time
+ from pathlib import Path
++from tests._vx11_base import vx11_base_url
+ 
+ # Only run if VX11_INTEGRATION=1
+ pytestmark = pytest.mark.skipif(
+@@ -62,28 +63,28 @@ class TestFlowA:
+         # This is a health check test (no DB impact expected for routing only)
+         import requests
+ 
+-        # Tentaculo health
+-        resp = requests.get("http://localhost:8000/health", timeout=7)
++        # Tentaculo health (frontdoor)
++        resp = requests.get(vx11_base_url() + "/health", timeout=7)
+         assert resp.status_code == 200
+         data = resp.json()
+         assert data["status"] == "ok"
+         assert data["module"] == "tentaculo_link"
+ 
+-        # Switch health
+-        resp = requests.get("http://localhost:8002/health", timeout=7)
++        # Switch health via frontdoor
++        resp = requests.get(vx11_base_url() + "/switch/health", timeout=7)
+         assert resp.status_code == 200
+         data = resp.json()
+         assert data["status"] == "ok"
+         assert data["module"] == "switch"
+ 
+-        # Hermes health
+-        resp = requests.get("http://localhost:8003/health", timeout=7)
++        # Hermes health via frontdoor
++        resp = requests.get(vx11_base_url() + "/hermes/health", timeout=7)
+         assert resp.status_code == 200
+         data = resp.json()
+         assert data["status"] == "ok"
+ 
+-        # Madre health
+-        resp = requests.get("http://localhost:8001/health", timeout=7)
++        # Madre health via frontdoor
++        resp = requests.get(vx11_base_url() + "/madre/health", timeout=7)
+         assert resp.status_code == 200
+         data = resp.json()
+         assert data["status"] == "ok"
+@@ -112,7 +113,7 @@ class TestFlowB:
+         # Trigger Flow B: call madre endpoint to spawn daughter
+         try:
+             resp = requests.post(
+-                "http://localhost:8001/spawn_daughter",
++                vx11_base_url() + "/madre/spawn_daughter",
+                 json={"task": "test_autonomous_action"},
+                 timeout=7,
+             )
+@@ -150,13 +151,13 @@ class TestFlowC:
+         import requests
+ 
+         # Hormiguero health
+-        resp = requests.get("http://localhost:8004/health", timeout=7)
++        resp = requests.get(vx11_base_url() + "/hormiguero/health", timeout=7)
+         assert resp.status_code == 200
+         data = resp.json()
+         assert data.get("status") in ["ok", "healthy"]
+-        
++
+         # Manifestator health
+-        resp = requests.get("http://localhost:8005/health", timeout=7)
++        resp = requests.get(vx11_base_url() + "/manifestator/health", timeout=7)
+         assert resp.status_code == 200
+         data = resp.json()
+         assert data.get("status") in ["ok", "healthy"]
+@@ -173,22 +174,28 @@ class TestAutonomyMetrics:
+         """
+         import requests
+ 
+-        services = {
+-            "tentaculo_link": 8000,
+-            "madre": 8001,
+-            "switch": 8002,
+-            "hermes": 8003,
+-            "hormiguero": 8004,
+-            "mcp": 8006,
+-            "shubniggurath": 8007,
+-            "spawner": 8008,
+-            "operator-backend": 8011,
+-        }
++        services = [
++            "tentaculo_link",
++            "madre",
++            "switch",
++            "hermes",
++            "hormiguero",
++            "mcp",
++            "shubniggurath",
++            "spawner",
++            "operator-backend",
++        ]
+ 
+         healthy_count = 0
+-        for service, port in services.items():
++        for service in services:
+             try:
+-                resp = requests.get(f"http://localhost:{port}/health", timeout=7)
++                # Query each service via the single entrypoint
++                if service == "tentaculo_link":
++                    url = vx11_base_url() + "/health"
++                else:
++                    url = vx11_base_url() + f"/{service}/health"
++

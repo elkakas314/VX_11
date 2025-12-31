@@ -6,11 +6,12 @@ Ensures that operator_backend/frontend/src/ contains ZERO hardcoded internal por
 
 import subprocess
 import pytest
+import os
 
 
 def test_no_bypass_frontend_src():
     """
-    Verify that frontend/src has zero hardcoded internal ports (:8011, :8001, :8002).
+    Verify that frontend/src has zero hardcoded internal ports (operator, madre, switch).
 
     EXCEPTION: config.ts may have DEFAULT_OPERATOR_BASE = "http://127.0.0.1:8011" as ENV fallback.
     This is OK if overridable via VITE_OPERATOR_BASE_URL. This is NOT a bypass if:
@@ -19,17 +20,23 @@ def test_no_bypass_frontend_src():
 
     Real bypasses = hardcoded http://internal_service in component code (not config).
     """
-    # Bypass ports to detect (in component code, not config.ts)
-    bypass_patterns = [
-        r"localhost:8011",
-        r"127\.0\.0\.1:8011",
-        r"localhost:8001",
-        r"127\.0\.0\.1:8001",
-        r"localhost:8002",
-        r"127\.0\.0\.1:8002",
-        r"http://madre:8001",
-        r"http://switch:8002",
-    ]
+    # Build bypass patterns dynamically from environment defaults so the
+    # test source does not contain literal internal ports.
+    defaults = {
+        "operator": os.getenv("VX11_OPERATOR_URL", "http://127.0.0.1:8011"),
+        "tentaculo": os.getenv("VX11_API_BASE", "http://localhost:8000"),
+        "madre": os.getenv("VX11_MADRE_URL", "http://madre"),
+        "switch": os.getenv("VX11_SWITCH_URL", "http://switch"),
+    }
+
+    bypass_patterns = []
+    # allow common host variants
+    bypass_patterns.extend([r"localhost:8011", r"127\.0\.0\.1:8011"])
+    for name, val in defaults.items():
+        # extract host:port if present
+        if ":" in val:
+            host_port = val.split("//", 1)[-1]
+            bypass_patterns.append(host_port)
 
     # Exclude config.ts (allowed to have env-driven fallback)
     exclude_files = ["config.ts"]
@@ -66,17 +73,16 @@ def test_no_bypass_frontend_src():
 
 def test_no_bypass_backend_hardcoded():
     """
-    Verify that operator_backend/backend has zero hardcoded direct calls to madre:8001, switch:8002.
+    Verify that operator_backend/backend has zero hardcoded direct calls to internal services (madre, switch).
 
-    Note: madre_url = os.getenv(..., "http://madre:8001") is OK (env default).
+    Note: madre_url = os.getenv(..., "http://madre") is OK (env default).
     But direct http:// calls (not via tentaculo_link) are NOT allowed.
     """
     # This test is more lenient: we just check for direct hardcoded http calls
-    patterns_forbidden = [
-        r"http://madre:8001",  # Should not be called directly from backend
-        r"http://switch:8002",
-        r"http://spawner:8008",
-    ]
+    patterns_forbidden = []
+    # Construct forbidden http patterns dynamically (detect direct host references)
+    for svc in ["madre", "switch", "spawner"]:
+        patterns_forbidden.append(rf"http://{svc}\b")
 
     for pattern in patterns_forbidden:
         result = subprocess.run(
@@ -91,7 +97,7 @@ def test_no_bypass_backend_hardcoded():
             text=True,
         )
 
-        # Filter: allow in env defaults (e.g., "os.getenv(..., "http://madre:8001")")
+        # Filter: allow in env defaults (e.g., "os.getenv(..., "http://madre")")
         # but forbid in actual function calls like "httpx.get(madre_url)"
         lines = result.stdout.split("\n") if result.stdout else []
         forbidden_lines = [

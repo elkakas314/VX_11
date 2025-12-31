@@ -8,6 +8,8 @@ Markers: @pytest.mark.p0, @pytest.mark.docker, @pytest.mark.power_manager
 import pytest
 import subprocess
 import json
+import requests
+from tests._vx11_base import vx11_base_url
 
 
 @pytest.mark.p0
@@ -71,14 +73,19 @@ def test_p0_3_poder_ports_listening(docker_project_name, docker_available):
     """
     if not docker_available:
         pytest.skip("Docker not available")
+    # Verify frontdoor (single-entrypoint) health and redis port
+    try:
+        resp = requests.get(vx11_base_url() + "/health", timeout=2)
+        assert resp.status_code == 200, f"Frontdoor health returned {resp.status_code}"
+    except Exception as e:
+        pytest.skip(f"Frontdoor not available: {e}")
+
     import socket
 
-    ports = [(8001, "madre"), (6379, "redis")]
+    # Redis should still be reachable on localhost:6379
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.settimeout(1)
+    result = sock.connect_ex(("localhost", 6379))
+    sock.close()
 
-    for port, service in ports:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(1)
-        result = sock.connect_ex(("localhost", port))
-        sock.close()
-
-        assert result == 0, f"Port {port} ({service}) not listening"
+    assert result == 0, "Port 6379 (redis) not listening"

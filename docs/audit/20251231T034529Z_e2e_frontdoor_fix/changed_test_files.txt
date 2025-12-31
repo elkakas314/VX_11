@@ -1,0 +1,10 @@
+tests/conftest.py
+tests/test_e2e_workflows.py
+tests/test_integration_flows_e2e.py
+tests/test_madre_power_manager_phase4.py
+tests/test_no_bypass.py
+tests/test_operator_chat_e2e_p1.py
+tests/test_operator_chat_e2e_phase8.py
+tests/test_p1_power_manager.py
+tests/test_power_manager.py
+tests/test_stability_p0_runner_p0.py

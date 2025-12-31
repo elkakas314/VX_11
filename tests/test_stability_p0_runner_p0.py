@@ -25,6 +25,7 @@ from scripts.vx11_stability_p0 import (
     docker_stats,
     _parse_memory_to_mib,
 )
+from tests._vx11_base import vx11_base_url
 
 
 class TestHealthCheckHttpCodeParsing:
@@ -36,7 +37,7 @@ class TestHealthCheckHttpCodeParsing:
         # Simulate curl response: stdout is the HTTP code
         mock_run_cmd.return_value = (0, "200", "")
 
-        success, latency_ms = health_check("http://localhost:8001/health")
+        success, latency_ms = health_check(vx11_base_url() + "/madre/health")
 
         assert success is True
         assert latency_ms > 0
@@ -46,7 +47,7 @@ class TestHealthCheckHttpCodeParsing:
         """Health check should fail on HTTP 404."""
         mock_run_cmd.return_value = (0, "404", "")
 
-        success, latency_ms = health_check("http://localhost:8001/health")
+        success, latency_ms = health_check(vx11_base_url() + "/madre/health")
 
         assert success is False
 
@@ -55,7 +56,7 @@ class TestHealthCheckHttpCodeParsing:
         """Health check should succeed on any 2xx code."""
         for code in ["200", "201", "202", "204", "299"]:
             mock_run_cmd.return_value = (0, code, "")
-            success, _ = health_check("http://localhost:8001/health")
+            success, _ = health_check(vx11_base_url() + "/madre/health")
             assert success is True, f"HTTP {code} should succeed"
 
     @mock.patch("scripts.vx11_stability_p0.run_cmd")
@@ -69,7 +70,7 @@ class TestHealthCheckHttpCodeParsing:
         ]
 
         success, latency_ms = health_check(
-            "http://localhost:8001/health", max_retries=3
+            vx11_base_url() + "/madre/health", max_retries=3
         )
 
         assert success is True
@@ -167,7 +168,7 @@ class TestFlowCheckFunctionality:
         """Flow check should succeed on HTTP 200."""
         mock_run_cmd.return_value = (0, '{"status": "ok"}\n200', "")
 
-        result = flow_check("http://localhost:8001/status", "test-endpoint")
+        result = flow_check(vx11_base_url() + "/madre/status", "test-endpoint")
 
         assert result["success"] is True
         assert result["http_code"] == 200
@@ -178,7 +179,7 @@ class TestFlowCheckFunctionality:
         """Flow check should fail on HTTP 404."""
         mock_run_cmd.return_value = (0, "not found\n404", "")
 
-        result = flow_check("http://localhost:8001/status", "test-endpoint")
+        result = flow_check(vx11_base_url() + "/madre/status", "test-endpoint")
 
         assert result["success"] is False
         assert result["http_code"] == 404

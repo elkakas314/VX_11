@@ -1,0 +1,22 @@
+131:-        resp = requests.get("http://localhost:8001/health", timeout=7)
+141:-                "http://localhost:8001/spawn_daughter",
+169:-            "madre": 8001,
+220:-MADRE_URL = "http://localhost:8001"
+294:-        "madre": "http://localhost:8001/health",
+337:-    Verify that frontend/src has zero hardcoded internal ports (:8011, :8001, :8002).
+350:-        r"localhost:8001",
+351:-        r"127\.0\.0\.1:8001",
+354:-        r"http://madre:8001",
+381:-    Verify that operator_backend/backend has zero hardcoded direct calls to madre:8001, switch:8002.
+384:-    Note: madre_url = os.getenv(..., "http://madre:8001") is OK (env default).
+390:-        r"http://madre:8001",  # Should not be called directly from backend
+405:-        # Filter: allow in env defaults (e.g., "os.getenv(..., "http://madre:8001")")
+433:-    BASE_MADRE = os.getenv("VX11_MADRE_URL", "http://localhost:8001")
+488:-    MADRE_URL = os.getenv("VX11_MADRE_URL", "http://localhost:8001")
+609:-    ports = [(8001, "madre"), (6379, "redis")]
+641:-        success, latency_ms = health_check("http://localhost:8001/health")
+650:-        success, latency_ms = health_check("http://localhost:8001/health")
+659:-            success, _ = health_check("http://localhost:8001/health")
+668:-            "http://localhost:8001/health", max_retries=3
+677:-        result = flow_check("http://localhost:8001/status", "test-endpoint")
+686:-        result = flow_check("http://localhost:8001/status", "test-endpoint")

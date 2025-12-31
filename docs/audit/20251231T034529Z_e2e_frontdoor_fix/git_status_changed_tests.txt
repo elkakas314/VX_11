@@ -1,0 +1,11 @@
+ M tests/conftest.py
+ M tests/test_e2e_workflows.py
+ M tests/test_integration_flows_e2e.py
+ M tests/test_madre_power_manager_phase4.py
+ M tests/test_no_bypass.py
+ M tests/test_operator_chat_e2e_p1.py
+ M tests/test_operator_chat_e2e_phase8.py
+ M tests/test_p1_power_manager.py
+ M tests/test_power_manager.py
+ M tests/test_stability_p0_runner_p0.py
+?? tests/_vx11_base.py

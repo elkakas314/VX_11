@@ -9,18 +9,21 @@ E2E Test: OPERATOR CHAT P1 (fallback routing)
 import pytest
 import httpx
 import os
+from tests._vx11_base import vx11_base_url
 
 
 if not os.getenv("VX11_E2E"):
-    pytest.skip("VX11_E2E not set; skipping live integration tests", allow_module_level=True)
+    pytest.skip(
+        "VX11_E2E not set; skipping live integration tests", allow_module_level=True
+    )
 
 
 class TestOperatorChatE2E:
     """E2E tests for operator chat v0 (P1 fallback)."""
 
-    BASE_OPERATOR = os.getenv("VX11_OPERATOR_URL", "http://localhost:8011")
-    BASE_TENTACULO = os.getenv("VX11_TENTACULO_URL", "http://localhost:8000")
-    BASE_MADRE = os.getenv("VX11_MADRE_URL", "http://localhost:8001")
+    BASE_OPERATOR = os.getenv("VX11_OPERATOR_URL", vx11_base_url())
+    BASE_TENTACULO = os.getenv("VX11_TENTACULO_URL", vx11_base_url())
+    BASE_MADRE = os.getenv("VX11_MADRE_URL", vx11_base_url())
     TOKEN = os.getenv("VX11_TOKEN", "vx11-local-token")
 
     # Try with two header variants
@@ -31,7 +34,9 @@ class TestOperatorChatE2E:
     def test_01_operator_backend_health(self):
         """Test 1: operator_backend health check."""
         with httpx.Client(timeout=5.0) as client:
-            resp = client.get(f"{self.BASE_OPERATOR}/operator/api/health", headers=self.HEADERS)
+            resp = client.get(
+                f"{self.BASE_OPERATOR}/operator/api/health", headers=self.HEADERS
+            )
             assert resp.status_code == 200
             data = resp.json()
             assert data["status"] == "ok"
@@ -40,7 +45,9 @@ class TestOperatorChatE2E:
     def test_02_operator_api_status(self):
         """Test 2: operator_backend /api/status endpoint."""
         with httpx.Client(timeout=5.0) as client:
-            resp = client.get(f"{self.BASE_OPERATOR}/operator/api/status", headers=self.HEADERS)
+            resp = client.get(
+                f"{self.BASE_OPERATOR}/operator/api/status", headers=self.HEADERS
+            )
             assert resp.status_code in [200, 403, 401]
             if resp.status_code == 200:
                 data = resp.json()

@@ -10,6 +10,7 @@ import subprocess
 import json
 import requests
 import time
+from tests._vx11_base import vx11_base_url
 
 
 @pytest.mark.p1
@@ -21,9 +22,9 @@ def test_p1_1_start_single_service(madre_port, docker_available):
     """
     if not docker_available:
         pytest.skip("Docker not available")
-    # Start switch
+    # Start switch via frontdoor (single-entrypoint)
     response = requests.post(
-        f"http://localhost:{madre_port}/madre/power/service/start",
+        vx11_base_url() + "/madre/power/service/start",
         json={"service": "switch"},
         timeout=10,
     )
@@ -67,7 +68,7 @@ def test_p1_2_stop_single_service(madre_port, docker_available):
         pytest.skip("Docker not available")
     # Stop switch
     response = requests.post(
-        f"http://localhost:{madre_port}/madre/power/service/stop",
+        vx11_base_url() + "/madre/power/service/stop",
         json={"service": "switch"},
         timeout=10,
     )
@@ -103,7 +104,7 @@ def test_p1_3_start_multiple_services(madre_port, docker_available):
 
     for service, port in services:
         response = requests.post(
-            f"http://localhost:{madre_port}/madre/power/service/start",
+            vx11_base_url() + "/madre/power/service/start",
             json={"service": service},
             timeout=10,
         )
@@ -142,7 +143,7 @@ def test_p1_3_start_multiple_services(madre_port, docker_available):
     # Clean up: stop both
     for service, _ in services:
         requests.post(
-            f"http://localhost:{madre_port}/madre/power/service/stop",
+            vx11_base_url() + "/madre/power/service/stop",
             json={"service": service},
             timeout=10,
         )
@@ -160,7 +161,7 @@ def test_p1_4_policy_idempotence(madre_port, docker_available):
         pytest.skip("Docker not available")
     # Apply policy first time
     response1 = requests.post(
-        f"http://localhost:{madre_port}/madre/power/policy/solo_madre/apply",
+        vx11_base_url() + "/madre/power/policy/solo_madre/apply",
         timeout=10,
     )
     assert response1.status_code == 200, f"First apply failed: {response1.text}"
@@ -169,7 +170,7 @@ def test_p1_4_policy_idempotence(madre_port, docker_available):
     # Apply policy second time
     time.sleep(1)
     response2 = requests.post(
-        f"http://localhost:{madre_port}/madre/power/policy/solo_madre/apply",
+        vx11_base_url() + "/madre/power/policy/solo_madre/apply",
         timeout=10,
     )
     assert response2.status_code == 200, f"Second apply failed: {response2.text}"
@@ -208,7 +209,7 @@ def test_p1_5_invalid_service_rejected(madre_port, docker_available):
 
     for invalid_svc in invalid_services:
         response = requests.post(
-            f"http://localhost:{madre_port}/madre/power/service/start",
+            vx11_base_url() + "/madre/power/service/start",
             json={"service": invalid_svc},
             timeout=10,
         )
@@ -260,7 +261,7 @@ def test_p1_7_power_status_endpoint(madre_port, docker_available):
     if not docker_available:
         pytest.skip("Docker not available")
     response = requests.get(
-        f"http://localhost:{madre_port}/madre/power/status",
+        vx11_base_url() + "/madre/power/status",
         timeout=10,
     )
     assert response.status_code == 200, f"Status endpoint failed: {response.text}"
