@@ -6,7 +6,7 @@ Single responsibility: define request/response shapes for /vx11/* endpoints.
 """
 
 from pydantic import BaseModel, Field
-from typing import Optional, Dict, Any, Literal
+from typing import Optional, Dict, Any, Literal, List
 from enum import Enum
 from datetime import datetime
 import uuid
@@ -319,10 +319,10 @@ class SpawnCallbackResponse(BaseModel):
 class SpawnRequest(BaseModel):
     """
     Request to spawn a new async task (daughter execution).
-    
+
     INVARIANT: Requires spawner window to be open.
     """
-    
+
     task_type: str  # "python" | "shell" | "system"
     code: str  # Task code to execute
     max_retries: int = Field(default=0, ge=0, le=10)
@@ -330,7 +330,7 @@ class SpawnRequest(BaseModel):
     user_id: Optional[str] = "local"
     metadata: Optional[Dict[str, Any]] = None
     correlation_id: Optional[str] = None
-    
+
     class Config:
         json_schema_extra = {
             "example": {
@@ -345,21 +345,81 @@ class SpawnRequest(BaseModel):
 
 class SpawnResponse(BaseModel):
     """Response from spawn request submission."""
-    
+
     spawn_id: str  # Task ID (UUID)
+    spawn_uuid: Optional[str] = None  # Full UUID (for result retrieval)
     correlation_id: Optional[str] = None
     status: Literal["QUEUED", "RUNNING", "DONE", "ERROR"] = "QUEUED"
     task_type: str
     error: Optional[str] = None  # Semantic error (e.g., "off_by_policy")
     created_at: datetime = Field(default_factory=datetime.utcnow)
-    
+
     class Config:
         json_schema_extra = {
             "example": {
                 "spawn_id": "spawn-789-xyz",
+                "spawn_uuid": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
                 "correlation_id": "corr-456-def",
                 "status": "QUEUED",
                 "task_type": "python",
                 "created_at": "2026-01-01T00:00:00Z",
+            }
+        }
+
+
+class SpawnResult(BaseModel):
+    """Result of a spawn task (retrieved via spawn_uuid)."""
+
+    spawn_uuid: str
+    spawn_id: str
+    status: str  # "queued", "running", "completed", "failed", "timeout"
+    task_type: Optional[str] = None
+    exit_code: Optional[int] = None
+    stdout: Optional[str] = None
+    stderr: Optional[str] = None
+    created_at: Optional[datetime] = None
+    started_at: Optional[datetime] = None
+    finished_at: Optional[datetime] = None
+    ttl_seconds: int = 300
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "spawn_uuid": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+                "spawn_id": "spawn-789-xyz",
+                "status": "completed",
+                "task_type": "python",
+                "exit_code": 0,
+                "stdout": "MVP works",
+                "stderr": None,
+                "created_at": "2026-01-01T00:00:00Z",
+                "finished_at": "2026-01-01T00:00:05Z",
+            }
+        }
+
+
+class DBSummary(BaseModel):
+    """Summary of database audit records."""
+
+    counts: Dict[str, int]  # Table name → count
+    last_spawns: List[Dict[str, Any]] = []  # Last 5 spawns
+    last_routing_events: List[Dict[str, Any]] = []  # Last 5 routing events
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "counts": {
+                    "spawns": 42,
+                    "tasks": 150,
+                    "routing_events": 87,
+                    "cli_providers": 12,
+                },
+                "last_spawns": [
+                    {
+                        "uuid": "uuid-1",
+                        "status": "completed",
+                        "created_at": "2026-01-01T00:00:00Z",
+                    }
+                ],
             }
         }

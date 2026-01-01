@@ -69,6 +69,8 @@ from tentaculo_link.models_core_mvp import (
     WindowTarget,
     SpawnRequest,
     SpawnResponse,
+    SpawnResult,
+    DBSummary,
 )
 
 # Load environment tokens
@@ -1091,14 +1093,18 @@ async def vx11_spawn(
                 )
 
                 if resp.status_code == 202 or resp.status_code == 200:
+                    spawner_response = resp.json()
+                    spawn_uuid = spawner_response.get("spawn_uuid", "")
+
                     write_log(
                         "tentaculo_link",
-                        f"spawn:queued:spawn_id={spawn_id}:correlation_id={correlation_id}",
+                        f"spawn:queued:spawn_id={spawn_id}:spawn_uuid={spawn_uuid}:correlation_id={correlation_id}",
                         level="INFO",
                     )
 
                     return SpawnResponse(
                         spawn_id=spawn_id,
+                        spawn_uuid=spawn_uuid,
                         correlation_id=correlation_id,
                         status="QUEUED",
                         task_type=req.task_type,
@@ -1133,6 +1139,183 @@ async def vx11_spawn(
             task_type=req.task_type or "unknown",
             error="internal_error",
         )
+
+
+# ============ RESULT RETRIEVAL ENDPOINT (PHASE 6) ============
+
+
+@app.get("/vx11/result/{spawn_id_or_uuid}", response_model=SpawnResult)
+async def vx11_result(
+    spawn_id_or_uuid: str,
+    _: bool = Depends(token_guard),
+):
+    """
+    Retrieve result of a spawned task by spawn_uuid or spawn_id prefix.
+
+    Parameters:
+    - spawn_id_or_uuid: Full UUID or prefix like "spawn-XXXXXXXX"
+
+    Returns: SpawnResult with status, exit_code, stdout, stderr (when available)
+
+    HTTP 404: Not found
+    HTTP 200: Result (even if still QUEUED/RUNNING)
+    """
+    try:
+        import sqlite3
+        from pathlib import Path
+
+        db_path = Path(os.environ.get("DATABASE_PATH", "data/runtime/vx11.db"))
+        if not db_path.exists():
+            raise HTTPException(
+                status_code=404, detail="Spawn not found (DB unavailable)"
+            )
+
+        conn = sqlite3.connect(str(db_path))
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+
+        # Try exact UUID match first
+        cursor.execute(
+            "SELECT uuid, name, status, exit_code, stdout, stderr, created_at, started_at, ended_at, ttl_seconds FROM spawns WHERE uuid = ?",
+            (spawn_id_or_uuid,),
+        )
+        row = cursor.fetchone()
+
+        # If not found, try prefix match (for spawn_id like "spawn-XXXXXXXX")
+        if not row and spawn_id_or_uuid.startswith("spawn-"):
+            cursor.execute(
+                "SELECT uuid, name, status, exit_code, stdout, stderr, created_at, started_at, ended_at, ttl_seconds FROM spawns WHERE uuid LIKE ?",
+                (f"{spawn_id_or_uuid}%",),
+            )
+            rows = cursor.fetchall()
+            if len(rows) > 1:
+                raise HTTPException(
+                    status_code=400, detail="Ambiguous spawn_id (multiple matches)"
+                )
+            row = rows[0] if rows else None
+
+        conn.close()
+
+        if not row:
+            raise HTTPException(status_code=404, detail="Spawn not found")
+
+        return SpawnResult(
+            spawn_uuid=row["uuid"],
+            spawn_id=spawn_id_or_uuid,
+            status=row["status"] or "unknown",
+            exit_code=row["exit_code"],
+            stdout=row["stdout"],
+            stderr=row["stderr"],
+            created_at=row["created_at"],
+            started_at=row["started_at"],
+            finished_at=row["ended_at"],
+            ttl_seconds=row["ttl_seconds"] or 300,
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        write_log("tentaculo_link", f"result:exception:{str(e)[:100]}", level="ERROR")
+        raise HTTPException(status_code=500, detail="Internal error")
+
+
+# ============ DB SUMMARY ENDPOINT (PHASE 6) ============
+
+
+@app.get("/vx11/db/summary", response_model=DBSummary)
+async def vx11_db_summary(
+    _: bool = Depends(token_guard),
+):
+    """
+    Get summary of database audit records (counts + latest entries).
+
+    Returns:
+    - counts: Row counts per table
+    - last_spawns: Last 5 spawn records
+    - last_routing_events: Last 5 routing events
+
+    For development/debugging only. Token required.
+    """
+    try:
+        import sqlite3
+        from pathlib import Path
+
+        db_path = Path(os.environ.get("DATABASE_PATH", "data/runtime/vx11.db"))
+        if not db_path.exists():
+            return DBSummary(counts={}, last_spawns=[], last_routing_events=[])
+
+        conn = sqlite3.connect(str(db_path))
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+
+        counts = {}
+        tables = [
+            "spawns",
+            "tasks",
+            "routing_events",
+            "cli_providers",
+            "cli_usage_stats",
+            "daughters",
+            "daughter_tasks",
+            "daughter_attempts",
+        ]
+        for table in tables:
+            try:
+                cursor.execute(f"SELECT COUNT(*) as cnt FROM {table}")
+                count_row = cursor.fetchone()
+                counts[table] = count_row["cnt"] if count_row else 0
+            except:
+                counts[table] = 0  # Table might not exist
+
+        # Last 5 spawns
+        last_spawns = []
+        try:
+            cursor.execute(
+                "SELECT uuid, status, created_at FROM spawns ORDER BY created_at DESC LIMIT 5"
+            )
+            for row in cursor.fetchall():
+                last_spawns.append(
+                    {
+                        "uuid": row["uuid"],
+                        "status": row["status"],
+                        "created_at": row["created_at"],
+                    }
+                )
+        except:
+            pass
+
+        # Last 5 routing events
+        last_routing_events = []
+        try:
+            cursor.execute(
+                "SELECT intent, provider, status, created_at FROM routing_events ORDER BY created_at DESC LIMIT 5"
+            )
+            for row in cursor.fetchall():
+                last_routing_events.append(
+                    {
+                        "intent": row["intent"],
+                        "provider": row["provider"],
+                        "status": row["status"],
+                        "created_at": row["created_at"],
+                    }
+                )
+        except:
+            pass
+
+        conn.close()
+
+        return DBSummary(
+            counts=counts,
+            last_spawns=last_spawns,
+            last_routing_events=last_routing_events,
+        )
+
+    except Exception as e:
+        write_log(
+            "tentaculo_link", f"db_summary:exception:{str(e)[:100]}", level="ERROR"
+        )
+        # Return partial data rather than fail
+        return DBSummary(counts={}, last_spawns=[], last_routing_events=[])
 
 
 @app.get("/metrics")
