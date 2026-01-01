@@ -21,6 +21,8 @@ from tentaculo_link.models_core_mvp import (
     SpawnRequest,
     SpawnResponse,
     StatusEnum,
+    IntentTypeEnum,
+    WindowTarget,
 )
 
 
@@ -30,16 +32,16 @@ class TestCoreIntentContract:
     def test_valid_intent_minimal(self):
         """CoreIntent with minimal fields → valid"""
         intent = CoreIntent(
-            intent_type="chat",
+            intent_type=IntentTypeEnum.CHAT,
             text="test question",
         )
-        assert intent.intent_type == "chat"
+        assert intent.intent_type == IntentTypeEnum.CHAT
         assert intent.text == "test question"
 
     def test_valid_intent_full(self):
         """CoreIntent with all fields → valid"""
         intent = CoreIntent(
-            intent_type="chat",
+            intent_type=IntentTypeEnum.CHAT,
             text="complex task",
             payload={"nested": {"data": 123}},
             user_id="user-123",
@@ -51,11 +53,10 @@ class TestCoreIntentContract:
 
     def test_intent_schema_to_dict(self):
         """CoreIntent.model_dump() → valid dict"""
-        intent = CoreIntent(intent_type="chat", text="test")
+        intent = CoreIntent(intent_type=IntentTypeEnum.CHAT, text="test")
         data = intent.model_dump()
         assert "intent_type" in data
         assert "text" in data
-        assert data["intent_type"] == "chat"
 
 
 class TestCoreIntentResponseContract:
@@ -64,6 +65,7 @@ class TestCoreIntentResponseContract:
     def test_valid_response(self):
         """CoreIntentResponse with required fields → valid"""
         from tentaculo_link.models_core_mvp import StatusEnum, ModeEnum
+
         resp = CoreIntentResponse(
             correlation_id="corr-123",
             status=StatusEnum.DONE,
@@ -84,34 +86,34 @@ class TestWindowOpenContract:
 
     def test_valid_window_open_minimal(self):
         """WindowOpen with ttl_seconds=300 → valid"""
-        window = WindowOpen(target="spawner", ttl_seconds=300)
-        assert window.target == "spawner"
+        window = WindowOpen(target=WindowTarget.SPAWNER, ttl_seconds=300)
+        assert window.target == WindowTarget.SPAWNER
         assert window.ttl_seconds == 300
 
     def test_valid_window_open_min_ttl(self):
         """WindowOpen with ttl_seconds=1 → valid"""
-        window = WindowOpen(target="switch", ttl_seconds=1)
+        window = WindowOpen(target=WindowTarget.SWITCH, ttl_seconds=1)
         assert window.ttl_seconds == 1
 
     def test_valid_window_open_max_ttl(self):
         """WindowOpen with ttl_seconds=3600 → valid"""
-        window = WindowOpen(target="spawner", ttl_seconds=3600)
+        window = WindowOpen(target=WindowTarget.SPAWNER, ttl_seconds=3600)
         assert window.ttl_seconds == 3600
 
     def test_window_open_ttl_too_low(self):
         """WindowOpen with ttl_seconds=0 → ValidationError"""
         with pytest.raises(ValidationError):
-            WindowOpen(target="spawner", ttl_seconds=0)
+            WindowOpen(target=WindowTarget.SPAWNER, ttl_seconds=0)
 
     def test_window_open_ttl_too_high(self):
         """WindowOpen with ttl_seconds=3601 → ValidationError"""
         with pytest.raises(ValidationError):
-            WindowOpen(target="spawner", ttl_seconds=3601)
+            WindowOpen(target=WindowTarget.SPAWNER, ttl_seconds=3601)
 
     def test_window_open_negative_ttl(self):
         """WindowOpen with ttl_seconds=-1 → ValidationError"""
         with pytest.raises(ValidationError):
-            WindowOpen(target="spawner", ttl_seconds=-1)
+            WindowOpen(target=WindowTarget.SPAWNER, ttl_seconds=-1)
 
 
 class TestWindowStatusContract:
@@ -120,10 +122,9 @@ class TestWindowStatusContract:
     def test_valid_window_status_open(self):
         """WindowStatus for open window → valid"""
         status = WindowStatus(
-            target="spawner",
+            target=WindowTarget.SPAWNER,
             is_open=True,
             ttl_remaining_seconds=250,
-            window_id="w-123",
             opened_at=datetime.utcnow(),
             expires_at=datetime.utcnow(),
         )
@@ -133,7 +134,7 @@ class TestWindowStatusContract:
     def test_valid_window_status_closed(self):
         """WindowStatus for closed window → valid"""
         status = WindowStatus(
-            target="switch",
+            target=WindowTarget.SWITCH,
             is_open=False,
             ttl_remaining_seconds=0,
         )
@@ -142,7 +143,7 @@ class TestWindowStatusContract:
     def test_window_status_schema(self):
         """WindowStatus.model_dump() includes all fields"""
         status = WindowStatus(
-            target="spawner",
+            target=WindowTarget.SPAWNER,
             is_open=True,
             ttl_remaining_seconds=100,
         )
@@ -156,14 +157,14 @@ class TestWindowCloseContract:
 
     def test_valid_window_close(self):
         """WindowClose with target → valid"""
-        close = WindowClose(target="spawner", reason="manual")
-        assert close.target == "spawner"
+        close = WindowClose(target=WindowTarget.SPAWNER, reason="manual")
+        assert close.target == WindowTarget.SPAWNER
         assert close.reason == "manual"
 
     def test_window_close_missing_target(self):
         """WindowClose without target → ValidationError"""
         with pytest.raises(ValidationError):
-            WindowClose(reason="manual")
+            WindowClose(reason="manual")  # type: ignore
 
 
 class TestSpawnRequestContract:

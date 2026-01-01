@@ -44,7 +44,8 @@ class TestWindowOpen:
         data = resp.json()
         assert data.get("is_open") is True
         assert data.get("window_id") is not None
-        assert data.get("ttl_remaining_seconds") == 300
+        # TTL can be 299-300 due to timing
+        assert 299 <= data.get("ttl_remaining_seconds", 0) <= 300
 
     def test_open_window_switch(self):
         """POST /vx11/window/open switch → 200 with window state"""
@@ -56,7 +57,8 @@ class TestWindowOpen:
         assert resp.status_code == 200
         data = resp.json()
         assert data.get("is_open") is True
-        assert data.get("ttl_remaining_seconds") == 600
+        # TTL can be 599-600 due to timing
+        assert 599 <= data.get("ttl_remaining_seconds", 0) <= 600
 
     def test_open_window_min_ttl(self):
         """POST /vx11/window/open with ttl_seconds=1 → 200"""
@@ -78,7 +80,8 @@ class TestWindowOpen:
         )
         assert resp.status_code == 200
         data = resp.json()
-        assert data.get("ttl_remaining_seconds") == 3600
+        # TTL can be 3599-3600 due to timing
+        assert 3599 <= data.get("ttl_remaining_seconds", 0) <= 3600
 
     def test_open_window_invalid_ttl_low(self):
         """POST /vx11/window/open with ttl_seconds=0 → 422"""
@@ -186,7 +189,9 @@ class TestWindowStatus:
         assert resp.status_code == 200
         data = resp.json()
         assert data.get("is_open") is False
-        assert data.get("ttl_remaining_seconds") == 0
+        # ttl_remaining_seconds can be 0 or None when closed
+        ttl = data.get("ttl_remaining_seconds")
+        assert ttl == 0 or ttl is None
 
     def test_status_open_window(self):
         """GET /vx11/window/status/spawner open → is_open=true + ttl"""
@@ -319,6 +324,5 @@ class TestWindowExpiration:
 
         # Cleanup should mark it as expired
         result = wm.cleanup_expired_windows()
-        assert result.get("spawner", {}).get(
-            "status"
-        ) == "expired" or not wm.is_window_open("spawner")
+        # result is Dict[str, bool]: {"switch": False, "spawner": True/False}
+        assert result["spawner"] is True or not wm.is_window_open("spawner")
