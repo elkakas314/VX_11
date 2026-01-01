@@ -62,10 +62,7 @@ export function HormigueroView() {
                             <span className="summary-label">{severity}</span>
                             <span className="summary-count">{count}</span>
                         </div>
-                        <div
-                            className="summary-bar"
-                            style={{ width: `${Math.min(100, count * 10)}%` }}
-                        ></div>
+                        <div className="summary-bar" style={{ width: `${Math.min(100, count * 10)}%` }}></div>
                     </div>
                 ))}
             </div>

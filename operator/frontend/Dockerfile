@@ -6,7 +6,7 @@ WORKDIR /app
 COPY operator/frontend/package.json operator/frontend/package-lock.json ./
 RUN npm ci
 
-COPY operator/frontend . .
+COPY operator/frontend/ .
 
 ARG VITE_API_BASE=/operator
 ENV VITE_API_BASE=${VITE_API_BASE}
