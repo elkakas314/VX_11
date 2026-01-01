@@ -1083,6 +1083,56 @@ async def vx11_intent(req: CoreMVPIntentRequest):
                 "degraded": False,
             }
 
+        # If switch required: delegate to switch service (ventaneado por tentaculo_link)
+        if req.require.get("switch", False):
+            try:
+                async with httpx.AsyncClient(timeout=30.0) as client:
+                    switch_url = getattr(settings, "switch_url", None) or "http://switch:8002"
+                    sresp = await client.post(
+                        f"{switch_url}/switch/task",
+                        json={
+                            "task_type": req.intent_type or "intent",
+                            "payload": {
+                                "text": req.text,
+                                "payload": req.payload or {},
+                                "require": req.require or {},
+                                "priority": req.priority or "normal",
+                                "correlation_id": correlation_id,
+                            },
+                        },
+                        headers=AUTH_HEADERS,
+                        timeout=30.0,
+                    )
+
+                    if sresp.status_code == 200:
+                        sjson = sresp.json()
+                        write_log("madre", f"vx11_intent:switch_done:{correlation_id}")
+                        MadreDB.close_intent_log(
+                            intent_log_id,
+                            result_status="done",
+                            notes="executed_via_switch",
+                        )
+                        return {
+                            "status": StatusEnum.DONE.value,
+                            "correlation_id": correlation_id,
+                            "mode": "SWITCH",
+                            "provider": sjson.get("provider") or sjson.get("selected_provider") or "switch",
+                            "response": sjson,
+                            "degraded": False,
+                        }
+                    else:
+                        write_log(
+                            "madre",
+                            f"vx11_intent:switch_upstream_error:{correlation_id}:{sresp.status_code}",
+                        )
+                        # Degrade to fallback instead of returning error
+            except Exception as e:
+                write_log(
+                    "madre",
+                    f"vx11_intent:switch_exception:{correlation_id}:{str(e)[:120]}",
+                )
+                # Degrade to fallback instead of returning error
+
         # Otherwise: execute fallback plan (no switch needed)
         # Create a minimal execution context
         session_id = str(uuid.uuid4())
