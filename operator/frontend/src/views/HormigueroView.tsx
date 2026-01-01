@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { apiClient } from '../services/api'
 import { useEventsStore } from '../stores'
+import './HormigueroView.css'
 
 export function HormigueroView() {
     const { events, setEvents } = useEventsStore()
@@ -55,16 +56,19 @@ export function HormigueroView() {
             {error && <div className="error-banner">{error}</div>}
 
             <div className="hormiguero-summary">
-                {Object.entries(summary).map(([severity, count]) => (
-                    <div key={severity} className="summary-card" style={{ '--bar-width': `${Math.min(100, count * 10)}%` } as React.CSSProperties}>
-                        <span className={`severity-dot severity-${severity}`}></span>
-                        <div className="summary-info">
-                            <span className="summary-label">{severity}</span>
-                            <span className="summary-count">{count}</span>
+                {Object.entries(summary).map(([severity, count]) => {
+                    const pct = Math.min(100, count * 10)
+                    return (
+                        <div key={severity} className={`summary-card bar-${pct}`}>
+                            <span className={`severity-dot severity-${severity}`}></span>
+                            <div className="summary-info">
+                                <span className="summary-label">{severity}</span>
+                                <span className="summary-count">{count}</span>
+                            </div>
+                            <div className="summary-bar"></div>
                         </div>
-                        <div className="summary-bar"></div>
-                    </div>
-                ))}
+                    )
+                })}
             </div>
 
             {loading ? (

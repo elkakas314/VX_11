@@ -57,7 +57,12 @@ export default function App() {
                     const events = eventsResp.data.events || eventsResp.data
                     setEvents(events)
                     setEventsConnected(true)
+                } else if (eventsResp.status === 403 && eventsResp.data?.status === 'OFF_BY_POLICY') {
+                    // OFF_BY_POLICY in solo_madre is expected, not an error
+                    // Keep eventsConnected=true to avoid showing "Disconnected" banner
+                    setEventsConnected(true)
                 } else {
+                    // Real error (not 403 OFF_BY_POLICY)
                     setEventsConnected(false)
                 }
                 if (windowResp.ok && windowResp.data) {
