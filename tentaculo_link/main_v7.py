@@ -1059,14 +1059,13 @@ async def vx11_spawn(
                 f"spawn:off_by_policy:spawner_not_open:{correlation_id}",
                 level="WARNING",
             )
-            return JSONResponse(
-                status_code=403,
-                content={
-                    "error": "off_by_policy",
-                    "reason": "spawner window not open (SOLO_MADRE policy)",
-                    "hint": 'POST /vx11/window/open {"target":"spawner", "ttl_seconds":300}',
-                    "correlation_id": correlation_id,
-                },
+            # Return 200 + semantic error (not 403)
+            return SpawnResponse(
+                spawn_id="",  # No spawn created
+                correlation_id=correlation_id,
+                status=StatusEnum.ERROR,
+                task_type=req.task_type,
+                error="off_by_policy",
             )
 
         # Route to spawner service
@@ -1116,25 +1115,25 @@ async def vx11_spawn(
                     f"spawn:spawner_unavailable:correlation_id={correlation_id}",
                     level="ERROR",
                 )
-                return JSONResponse(
-                    status_code=503,
-                    content={
-                        "error": "spawner_unavailable",
-                        "reason": "Spawner service not responding",
-                        "correlation_id": correlation_id,
-                    },
+                # Return 200 + semantic error (not 503)
+                return SpawnResponse(
+                    spawn_id="",
+                    correlation_id=correlation_id,
+                    status=StatusEnum.ERROR,
+                    task_type=req.task_type,
+                    error="spawner_unavailable",
                 )
 
     except Exception as e:
         correlation_id = req.correlation_id or str(uuid.uuid4())
         write_log("tentaculo_link", f"spawn:exception:{str(e)[:100]}:{correlation_id}")
-        return JSONResponse(
-            status_code=500,
-            content={
-                "error": "internal_error",
-                "reason": str(e)[:100],
-                "correlation_id": correlation_id,
-            },
+        # Return 200 + semantic error (not 500)
+        return SpawnResponse(
+            spawn_id="",
+            correlation_id=correlation_id,
+            status=StatusEnum.ERROR,
+            task_type=req.task_type or "unknown",
+            error="internal_error",
         )
 
 

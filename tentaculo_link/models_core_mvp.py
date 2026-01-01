@@ -350,6 +350,7 @@ class SpawnResponse(BaseModel):
     correlation_id: Optional[str] = None
     status: Literal["QUEUED", "RUNNING", "DONE", "ERROR"] = "QUEUED"
     task_type: str
+    error: Optional[str] = None  # Semantic error (e.g., "off_by_policy")
     created_at: datetime = Field(default_factory=datetime.utcnow)
     
     class Config:
@@ -360,9 +361,5 @@ class SpawnResponse(BaseModel):
                 "status": "QUEUED",
                 "task_type": "python",
                 "created_at": "2026-01-01T00:00:00Z",
-            }
-        }
-
-                "message": "Spawn result persisted to DB",
             }
         }
