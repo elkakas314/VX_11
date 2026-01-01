@@ -9,7 +9,9 @@ RUN npm ci
 COPY operator/frontend/ .
 
 ARG VITE_API_BASE=/operator
+ARG VITE_VX11_TOKEN=vx11-test-token
 ENV VITE_API_BASE=${VITE_API_BASE}
+ENV VITE_VX11_TOKEN=${VITE_VX11_TOKEN}
 
 RUN npm run build
 
