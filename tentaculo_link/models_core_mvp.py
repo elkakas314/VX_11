@@ -26,6 +26,7 @@ class StatusEnum(str, Enum):
 
     QUEUED = "QUEUED"
     RUNNING = "RUNNING"
+    WAITING = "WAITING"
     DONE = "DONE"
     ERROR = "ERROR"
 

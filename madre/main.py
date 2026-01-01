@@ -1,12 +1,13 @@
 """Madre v7: Production Orchestrator (Simplified & Modular)."""
 
 from fastapi import FastAPI, Depends, HTTPException
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from contextlib import asynccontextmanager
 import uuid
 import logging
 import subprocess
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, cast
 from datetime import datetime
 import asyncio
 import os
@@ -39,7 +40,7 @@ from .core import (
 )
 from . import rails_router
 from .llm.deepseek_client import call_deepseek_r1, is_deepseek_available
-from tentaculo_link.models_core_mvp import StatusEnum, ModeEnum
+from .core.models import StatusEnum, ModeEnum
 
 log = logging.getLogger("vx11.madre")
 logger = log
@@ -202,8 +203,8 @@ async def madre_chat(req: ChatRequest):
                         session_id=session_id,
                         intent_id=intent_id,
                         plan_id=plan_id,
-                        status=StatusEnum.DONE.value,
-                        mode=ModeEnum.MADRE.value,
+                        status=cast(StatusEnum, StatusEnum.DONE),
+                        mode=ModeEnum.MADRE,
                         provider=deepseek_result["provider"],  # "deepseek"
                         model=deepseek_result["model"],  # "deepseek-reasoner"
                         warnings=warnings,
@@ -250,11 +251,11 @@ async def madre_chat(req: ChatRequest):
 
         # Step 3: Detect mode from domain
         if dsl.domain == "audio":
-            session_mode = "AUDIO_ENGINEER"
-            _SESSIONS[session_id]["mode"] = "AUDIO_ENGINEER"
+            session_mode = ModeEnum.AUDIO_ENGINEER
+            _SESSIONS[session_id]["mode"] = ModeEnum.AUDIO_ENGINEER.value
         else:
-            session_mode = "MADRE"
-            _SESSIONS[session_id]["mode"] = "MADRE"
+            session_mode = ModeEnum.MADRE
+            _SESSIONS[session_id]["mode"] = ModeEnum.MADRE.value
 
         # Step 4: Classify risk
         risk = _policy.classify_risk(dsl.domain, dsl.action)
@@ -302,7 +303,7 @@ async def madre_chat(req: ChatRequest):
                 session_id=session_id,
                 intent_id=intent_id,
                 plan_id=plan_id,
-                status="WAITING",
+                status=StatusEnum.WAITING,
                 mode=session_mode,
                 provider=provider,
                 model=model,
@@ -327,7 +328,6 @@ async def madre_chat(req: ChatRequest):
         plan = await _runner.execute_plan(plan, plan_id)
 
         # Step 9: Build response
-        mode_enum = session_mode  # It's already the right value
         for step in plan.steps:
             if step.result:
                 actions.append({"step": step.type, "result": step.result})
@@ -338,7 +338,7 @@ async def madre_chat(req: ChatRequest):
             intent_id=intent_id,
             plan_id=plan_id,
             status=plan.status,
-            mode=mode_enum,
+            mode=session_mode,
             provider=provider,
             model=model,
             warnings=warnings,
@@ -804,7 +804,28 @@ if USE_LEGACY:
         pass
 
 try:
-    app.add_api_route("/madre/task", _madre_task_alias, methods=["POST"])
+    # Wrap alias handler to ensure a fastapi.Response (JSONResponse) is returned,
+    # avoiding typing mismatch when registering the route.
+    async def _madre_task_alias_endpoint(req: MadreTaskAliasRequest):
+        res = await _madre_task_alias(req)
+        # Convert pydantic models to plain dicts if applicable
+        try:
+            # Prefer BaseModel.model_dump() (dict() is deprecated) and safely
+            # handle arbitrary objects exposing a .dict() method without
+            # accessing the attribute directly (avoids type-checker errors).
+            if isinstance(res, BaseModel):
+                data = res.model_dump()
+            else:
+                dict_fn = getattr(res, "dict", None)
+                if callable(dict_fn):
+                    data = dict_fn()
+                else:
+                    data = res
+        except Exception:
+            data = res
+        return JSONResponse(content=data)
+
+    app.add_api_route("/madre/task", _madre_task_alias_endpoint, methods=["POST"])
 except Exception:
     pass
 
@@ -1010,6 +1031,7 @@ async def vx11_intent(req: CoreMVPIntentRequest):
     If require.spawner=true: routes to spawner, returns QUEUED
     Otherwise: executes via fallback_local, returns DONE
     """
+    intent_log_id = None
     try:
         correlation_id = req.correlation_id or str(uuid.uuid4())
         intent_id = correlation_id
@@ -1047,10 +1069,14 @@ async def vx11_intent(req: CoreMVPIntentRequest):
                 notes=f"spawner_task_id:{task_id}",
             )
 
+            # Safely resolve ModeEnum.SPAWNER if present, otherwise fall back to literal
+            _mode_member = getattr(ModeEnum, "SPAWNER", None)
+            _mode_value = _mode_member.value if _mode_member is not None else "SPAWNER"
+
             return {
-                "status": StatusEnum.QUEUED.value,
+                "status": "queued",
                 "correlation_id": correlation_id,
-                "mode": ModeEnum.SPAWNER.value,
+                "mode": _mode_value,
                 "provider": "spawner",
                 "response": {"task_id": task_id},
                 "degraded": False,
@@ -1090,14 +1116,16 @@ async def vx11_intent(req: CoreMVPIntentRequest):
         correlation_id = req.correlation_id or str(uuid.uuid4())
         write_log("madre", f"vx11_intent:exception:{correlation_id}:{str(e)}")
 
-        try:
-            MadreDB.close_intent_log(
-                intent_log_id,
-                result_status="error",
-                notes=f"exception:{str(e)}",
-            )
-        except Exception:
-            pass
+        # Only attempt to close the intent log if it was created
+        if intent_log_id is not None:
+            try:
+                MadreDB.close_intent_log(
+                    intent_log_id,
+                    result_status="error",
+                    notes=f"exception:{str(e)}",
+                )
+            except Exception:
+                pass
 
         return {
             "status": StatusEnum.ERROR.value,
