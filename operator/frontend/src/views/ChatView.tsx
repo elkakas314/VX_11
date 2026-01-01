@@ -122,6 +122,47 @@ export function ChatView() {
         }
     }
 
+    async function handleOpenWindow() {
+        setLoading(true)
+        setError(null)
+        try {
+            const resp = await apiClient.chatWindowOpen(['switch', 'hermes'])
+            if (resp.ok && resp.data) {
+                setWindowStatus(resp.data)
+                setError(null)
+            } else {
+                // OFF_BY_POLICY is not an error, it's expected in some modes
+                if (resp.data?.status === 'OFF_BY_POLICY') {
+                    setError(`Window gated: ${resp.data?.message || 'solo_madre policy active'}`)
+                } else {
+                    setError(resp.error || 'Failed to open window')
+                }
+            }
+        } catch (err: any) {
+            setError(err.message || 'Failed to open window')
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    async function handleCloseWindow() {
+        setLoading(true)
+        setError(null)
+        try {
+            const resp = await apiClient.chatWindowClose()
+            if (resp.ok && resp.data) {
+                setWindowStatus(resp.data)
+                setError(null)
+            } else {
+                setError(resp.error || 'Failed to close window')
+            }
+        } catch (err: any) {
+            setError(err.message || 'Failed to close window')
+        } finally {
+            setLoading(false)
+        }
+    }
+
     return (
         <div className="chat-view">
             <div className="chat-header">
@@ -135,6 +176,28 @@ export function ChatView() {
                         {windowStatus?.mode === 'window_active' ? '✓ window_active' : '⊘ solo_madre'}
                     </span>
                     <span className="countdown">Observer mode: windows controlled by Madre.</span>
+                </div>
+                <div className="window-controls">
+                    {windowStatus?.mode !== 'window_active' && (
+                        <button
+                            onClick={handleOpenWindow}
+                            disabled={loading}
+                            className="btn-secondary"
+                            title="Open chat window (enables Switch/LLM)"
+                        >
+                            {loading ? '⟳' : '↑'} Open Window
+                        </button>
+                    )}
+                    {windowStatus?.mode === 'window_active' && (
+                        <button
+                            onClick={handleCloseWindow}
+                            disabled={loading}
+                            className="btn-secondary"
+                            title="Close chat window"
+                        >
+                            {loading ? '⟳' : '↓'} Close Window
+                        </button>
+                    )}
                 </div>
             </div>
 

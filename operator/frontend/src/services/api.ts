@@ -195,6 +195,21 @@ class ApiClient {
         return this.request('GET', '/operator/api/topology')
     }
 
+    // Chat window operations (primary endpoints for Operator UI)
+    async chatWindowStatus(): Promise<ApiResponse<any>> {
+        return this.request('GET', '/operator/api/chat/window/status')
+    }
+
+    async chatWindowOpen(services?: string[]): Promise<ApiResponse<any>> {
+        return this.request('POST', '/operator/api/chat/window/open', {
+            services: services || ['switch', 'hermes'],
+        })
+    }
+
+    async chatWindowClose(): Promise<ApiResponse<any>> {
+        return this.request('POST', '/operator/api/chat/window/close', {})
+    }
+
     // Power state endpoint (legacy, still available)
     async windows(): Promise<ApiResponse<any>> {
         return this.request('GET', '/operator/api/window/status')

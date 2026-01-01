@@ -19,7 +19,13 @@ export function HormigueroView() {
             if (resp.ok && resp.data) {
                 setEvents(resp.data.events || resp.data)
             } else {
-                setError(resp.error || 'Unable to load events')
+                // OFF_BY_POLICY means no events available in solo_madre mode, not an error
+                if (resp.data?.status === 'OFF_BY_POLICY' || resp.status === 403) {
+                    setError('solo_madre: events unavailable (open window to enable)')
+                    setEvents([])
+                } else {
+                    setError(resp.error || 'Unable to load events')
+                }
             }
         } catch (err: any) {
             setError(err.message || 'Failed to load events')
