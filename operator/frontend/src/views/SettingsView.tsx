@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { apiClient } from '../services/api'
+import { TokenSettings } from '../components/TokenSettings'
 
 interface SettingsData {
     appearance?: {
@@ -112,6 +113,11 @@ export function SettingsView() {
             {saved && <div className="success-banner">✓ Settings saved</div>}
 
             <div className="settings-panel">
+                {/* Token Settings (ALWAYS available, not read-only) */}
+                <div className="settings-section">
+                    <TokenSettings />
+                </div>
+
                 {/* Appearance */}
                 <div className="settings-section">
                     <h3>Appearance</h3>

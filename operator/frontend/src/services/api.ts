@@ -3,14 +3,28 @@
  * Consumes: tentaculo_link only (via relative URL)
  * No direct calls to backend services
  *
+ * Token handling:
+ * - NEVER hardcoded in bundle (invariant #3)
+ * - Read from localStorage ("vx11_token")
+ * - NO build-time injection
+ * - User can configure via Settings
+ *
  * API base is configurable (VITE_API_BASE). Defaults:
  * - Dev/Prod: relative to current origin
  */
 
-const TOKEN =
-    import.meta.env.VITE_VX11_TOKEN ||
-    import.meta.env.VITE_VX11_TENTACULO_TOKEN ||
-    'vx11-local-token' // In production: from auth service or config
+// Get token from localStorage (runtime, not build-time)
+function getStoredToken(): string | null {
+    if (typeof window === 'undefined') return null
+    try {
+        return localStorage.getItem('vx11_token')
+    } catch {
+        return null
+    }
+}
+
+// Default token (empty, user must configure)
+const DEFAULT_TOKEN = ''
 const TOKEN_HEADER = 'X-VX11-Token'
 const RAW_BASE =
     import.meta.env.VITE_API_BASE ||
@@ -19,6 +33,21 @@ const RAW_BASE =
     ''
 
 export const API_BASE = (RAW_BASE as string).trim()
+
+// Export getter for current token (always from storage)
+export function getCurrentToken(): string {
+    return getStoredToken() || DEFAULT_TOKEN
+}
+
+// Export setter for token (UI can call to configure)
+export function setTokenLocally(token: string): void {
+    if (typeof window === 'undefined') return
+    try {
+        localStorage.setItem('vx11_token', token)
+    } catch (e) {
+        console.error('Failed to save token to localStorage:', e)
+    }
+}
 
 export const buildApiUrl = (path: string) => {
     const base = API_BASE || ''
@@ -61,7 +90,7 @@ class ApiClient {
                 method,
                 headers: {
                     'Content-Type': 'application/json',
-                    [TOKEN_HEADER]: TOKEN,
+                    [TOKEN_HEADER]: getCurrentToken(),  // Get token at request time
                 },
                 body: body ? JSON.stringify(body) : undefined,
                 signal: controller.signal,
@@ -282,7 +311,7 @@ class ApiClient {
 
 export const buildAuthHeaders = () => ({
     'Content-Type': 'application/json',
-    [TOKEN_HEADER]: TOKEN,
+    [TOKEN_HEADER]: getCurrentToken(),
 })
 
 export const apiClient = new ApiClient()
