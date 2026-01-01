@@ -1,17 +1,17 @@
 {
-  "generated_ts": "20251230T215300Z",
+  "generated_ts": "20260101T043100Z",
   "integrity": "5000",
-  "total_tables": 86,
+  "total_tables": 88,
   "total_rows": 1149855,
   "db_size_bytes": 619692032,
   "backup_db_count": 2,
   "backups_archived_count": 23,
   "percentages": {
     "Orden_fs_pct": 95.0,
-    "Coherencia_routing_pct": 98.5,
-    "Automatizacion_pct": 92.0,
-    "Autonomia_pct": 87.5,
-    "Global_ponderado_pct": 93.25
+    "Coherencia_routing_pct": 99.0,
+    "Automatizacion_pct": 93.0,
+    "Autonomia_pct": 88.0,
+    "Global_ponderado_pct": 93.75
   },
-  "notes": "Post-task maintenance: DB maps regenerated, switch healthcheck fixed, percentages calculated from integrity_check + routing coherence + automation metrics"
+  "notes": "Post-task: Core wiring audit FASE A-C completado. Tentaculo_link→madre operativo, single entrypoint verificado, reproducible con 6 curls. DB maps regenerated, integrity ok."
 }

@@ -1,6 +1,6 @@
 # VX11 Database Map (generated)
 
-Generated at: 2026-01-01T02:25:49.061119Z
+Generated at: 2026-01-01T04:33:04.812077Z
 
 Database file: data/runtime/vx11.db
 
@@ -158,7 +158,7 @@ Database file: data/runtime/vx11.db
 ### context — ACTIVE
 
 - Module: madre
-- Rows: 74
+- Rows: 77
 - Columns:
   - id (INTEGER) PK NOT NULL
   - task_id (VARCHAR(36)) NOT NULL
@@ -593,7 +593,7 @@ Database file: data/runtime/vx11.db
 ### intents_log — ACTIVE
 
 - Module: madre
-- Rows: 33
+- Rows: 34
 - Columns:
   - id (INTEGER) PK NOT NULL
   - source (VARCHAR(64)) NOT NULL
@@ -626,7 +626,7 @@ Database file: data/runtime/vx11.db
 ### madre_actions — ACTIVE
 
 - Module: madre
-- Rows: 165
+- Rows: 168
 - Columns:
   - id (INTEGER) PK NOT NULL
   - module (VARCHAR(64)) NOT NULL
@@ -1265,7 +1265,7 @@ Database file: data/runtime/vx11.db
 ### tasks — ACTIVE
 
 - Module: madre
-- Rows: 44
+- Rows: 45
 - Columns:
   - id (INTEGER) PK NOT NULL
   - uuid (VARCHAR(36)) NOT NULL
