@@ -84,6 +84,8 @@ docs/audit/**
 !docs/audit/20260101T154600Z_pylance_fixes/
 !docs/audit/20260101T154600Z_pylance_fixes/*.md
 !docs/audit/20260101T154600Z_pylance_fixes/*.txt
+!docs/audit/20260101T160000Z_madre_analysis/
+!docs/audit/20260101T160000Z_madre_analysis/*.md
 
 # Public audit artifacts allowed for remote sync
 !docs/audit/_public/**
