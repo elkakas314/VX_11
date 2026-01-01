@@ -11,7 +11,7 @@ from threading import Lock
 import asyncio
 import uuid
 
-WindowTarget = Literal["switch", "spawner"]
+WindowTarget = Literal["switch", "spawner", "hermes"]
 
 
 class Window:
@@ -163,7 +163,7 @@ class WindowManager:
         """
         with self._lock:
             cleaned = {}
-            targets: Tuple[WindowTarget, ...] = ("switch", "spawner")
+            targets: Tuple[WindowTarget, ...] = ("switch", "spawner", "hermes")
             for target in targets:
                 window = self._windows[target]
                 if window is not None and window.is_expired():
@@ -178,6 +178,7 @@ class WindowManager:
         return {
             "switch": self.get_window_status("switch"),
             "spawner": self.get_window_status("spawner"),
+            "hermes": self.get_window_status("hermes"),
             "policy": "SOLO_MADRE (default)",
             "cleanup_scheduled": True,
         }
