@@ -71,6 +71,11 @@ docs/audit/**
 !docs/audit/20251228_SWITCH_HERMES_FIX/
 !docs/audit/20251228_SWITCH_HERMES_FIX/*.md
 !docs/audit/20251228_SWITCH_HERMES_FIX/*.sh
+!docs/audit/20260101T042401Z_core_wiring/
+!docs/audit/20260101T042401Z_core_wiring/*.md
+!docs/audit/20260101T042401Z_core_wiring/*.sh
+!docs/audit/20260101T042401Z_core_wiring/*.txt
+!docs/audit/20260101T042401Z_core_wiring/*.log
 
 # Public audit artifacts allowed for remote sync
 !docs/audit/_public/**

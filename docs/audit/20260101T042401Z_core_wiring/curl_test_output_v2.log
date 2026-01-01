@@ -1,0 +1,34 @@
+=== VX11 Core Wiring Tests [20260101T042633Z] ===
+
+CURL 1: GET /health (sin auth)
+{"status":"ok","module":"tentaculo_link","version":"7.0"}
+HTTP 200
+
+---
+
+CURL 2: GET /vx11/status (con auth)
+{"ok":true,"status":"ok","module":"tentaculo_link","version":"7.0","timestamp":"2026-01-01T04:26:33.789428","ports":{"tentaculo_link":8000,"gateway":8000,"madre":8001,"switch":8002,"hermes":8003,"hormiguero":8004,"mcp":8006,"shubniggurath":8007,"spawner":8008,"operator":8011},"modules":{"madre":{"module":"madre","status":"ok","version":"7.0","time":"2026-01-01T04:26:33.783931","deps":{"switch":"down","hormiguero":"down","spawner":"down"}},"switch":{"status":"service_offline","module":"switch","reason":"circuit_open"},"hermes":{"status":"service_offline","module":"hermes","reason":"circuit_open"},"hormiguero":{"status":"service_offline","module":"hormiguero","reason":"circuit_open"},"spawner":{"status":"service_offline","module":"spawner","reason":"circuit_open"},"mcp":{"status":"service_offline","module":"mcp","reason":"circuit_open"},"shub":{"status":"service_offline","module":"shub","reason":"circuit_open"},"operator-backend":{"status":"ok","service":"operator_backend","version":"7.0","timestamp":"2026-01-01T04:26:33.668224+00:00","correlation_id":"09f591cf-8a20-414a-8c9c-39a3a23b99d8"}},"summary":{"healthy_modules":2,"total_modules":8,"all_healthy":false}}
+HTTP 200
+
+---
+
+CURL 3: POST /operator/chat (sin ventana - SOLO_MADRE por defecto)
+{"error":"forbidden","status_code":403}
+HTTP 403
+
+---
+
+CURL 4: GET /operator/power/policy/solo_madre/status
+{"error":"forbidden","status_code":403}
+HTTP 403
+
+---
+
+CURL 5: POST /operator/power/window/open (abre ventana 300s para switch)
+{"detail":"Not Found"}
+HTTP 404
+
+⚠ No se pudo abrir ventana (endpoint puede no estar disponible)
+Saltando CURLs 6-8
+
+=== TEST COMPLETE ===

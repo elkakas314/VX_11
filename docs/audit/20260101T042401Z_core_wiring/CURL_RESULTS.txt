@@ -1,0 +1,34 @@
+=== VX11 Core Wiring Tests [20260101T043038Z] ===
+
+CURL 1: GET /health (sin auth)
+{"status":"ok","module":"tentaculo_link","version":"7.0"}
+HTTP 200
+
+---
+
+CURL 2: GET /vx11/status (con auth)
+{"ok":true,"status":"ok","module":"tentaculo_link","version":"7.0","timestamp":"2026-01-01T04:30:38.546224","ports":{"tentaculo_link":8000,"gateway":8000,"madre":8001,"switch":8002,"hermes":8003,"hormiguero":8004,"mcp":8006,"shubniggurath":8007,"spawner":8008,"operator":8011},"modules":{"madre":{"module":"madre","status":"ok","version":"7.0","time":"2026-01-01T04:30:38.542894","deps":{"switch":"down","hormiguero":"down","spawner":"down"}},"switch":{"status":"service_offline","module":"switch","error":"All connection attempts failed"},"hermes":{"status":"service_offline","module":"hermes","error":"All connection attempts failed"},"hormiguero":{"status":"service_offline","module":"hormiguero","error":"All connection attempts failed"},"spawner":{"status":"service_offline","module":"spawner","error":"All connection attempts failed"},"mcp":{"status":"service_offline","module":"mcp","error":"All connection attempts failed"},"shub":{"status":"service_offline","module":"shub","error":"All connection attempts failed"},"operator-backend":{"status":"ok","service":"operator_backend","version":"7.0","timestamp":"2026-01-01T04:30:38.445429+00:00","correlation_id":"f3ebbabd-8372-4929-8236-f03c3c91f9b8"}},"summary":{"healthy_modules":2,"total_modules":8,"all_healthy":false}}
+HTTP 200
+
+---
+
+CURL 3: POST /operator/chat (sin ventana - SOLO_MADRE por defecto)
+{"response":"Plan executed. Mode: MADRE. Status: DONE","session_id":"1f5ca9af-fb3b-4d6b-9481-df1e62a631a0","intent_id":"6e5f5cc5-d178-43c3-ab27-4d5312078c7a","plan_id":"88b89903-0c0c-4bdd-bc4a-3639afbd2f41","status":"DONE","mode":"MADRE","provider":"fallback_local","model":"local","warnings":[],"targets":[],"actions":[{"step":"SYSTEM_HEALTHCHECK","result":{"tentaculo_link":"down","madre":"up"}},{"step":"NOOP","result":{"status":"noop"}}]}
+HTTP 200
+
+---
+
+CURL 4: GET /operator/power/policy/solo_madre/status
+{"status":"error","code":500}
+HTTP 200
+
+---
+
+CURL 5: POST /operator/power/window/open (abre ventana 300s para switch)
+{"detail":"Not Found"}
+HTTP 404
+
+⚠ No se pudo abrir ventana (endpoint puede no estar disponible)
+Saltando CURLs 6-8
+
+=== TEST COMPLETE ===
