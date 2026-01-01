@@ -11,6 +11,7 @@ from datetime import datetime
 import asyncio
 import os
 import json
+import httpx
 
 from . import power_saver as power_saver_module
 from . import power_manager as power_manager_module
@@ -38,6 +39,7 @@ from .core import (
 )
 from . import rails_router
 from .llm.deepseek_client import call_deepseek_r1, is_deepseek_available
+from tentaculo_link.models_core_mvp import StatusEnum, ModeEnum
 
 log = logging.getLogger("vx11.madre")
 logger = log
@@ -200,8 +202,8 @@ async def madre_chat(req: ChatRequest):
                         session_id=session_id,
                         intent_id=intent_id,
                         plan_id=plan_id,
-                        status="DONE",
-                        mode="MADRE",
+                        status=StatusEnum.DONE.value,
+                        mode=ModeEnum.MADRE.value,
                         provider=deepseek_result["provider"],  # "deepseek"
                         model=deepseek_result["model"],  # "deepseek-reasoner"
                         warnings=warnings,
@@ -1046,9 +1048,9 @@ async def vx11_intent(req: CoreMVPIntentRequest):
             )
 
             return {
-                "status": "QUEUED",
+                "status": StatusEnum.QUEUED.value,
                 "correlation_id": correlation_id,
-                "mode": "SPAWNER",
+                "mode": ModeEnum.SPAWNER.value,
                 "provider": "spawner",
                 "response": {"task_id": task_id},
                 "degraded": False,
@@ -1076,9 +1078,9 @@ async def vx11_intent(req: CoreMVPIntentRequest):
         )
 
         return {
-            "status": "DONE",
+            "status": StatusEnum.DONE.value,
             "correlation_id": correlation_id,
-            "mode": "MADRE",
+            "mode": ModeEnum.MADRE.value,
             "provider": "fallback_local",
             "response": result,
             "degraded": False,
@@ -1098,9 +1100,9 @@ async def vx11_intent(req: CoreMVPIntentRequest):
             pass
 
         return {
-            "status": "ERROR",
+            "status": StatusEnum.ERROR.value,
             "correlation_id": correlation_id,
-            "mode": "MADRE",
+            "mode": ModeEnum.MADRE.value,
             "provider": "fallback_local",
             "response": None,
             "error": str(e),
@@ -1129,10 +1131,10 @@ async def vx11_result(correlation_id: str):
 
         return {
             "correlation_id": correlation_id,
-            "status": "DONE",  # Most synchronous executions are done immediately
+            "status": StatusEnum.DONE.value,  # Most synchronous executions are done immediately
             "result": {"note": "synchronous execution completed"},
             "error": None,
-            "mode": "MADRE",
+            "mode": ModeEnum.MADRE.value,
             "provider": "fallback_local",
         }
 
@@ -1141,7 +1143,7 @@ async def vx11_result(correlation_id: str):
 
         return {
             "correlation_id": correlation_id,
-            "status": "ERROR",
+            "status": StatusEnum.ERROR.value,
             "result": None,
             "error": str(e),
         }
