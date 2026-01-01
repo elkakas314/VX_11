@@ -104,7 +104,10 @@ class SoloMadreStatusResponse(BaseModel):
 
 def docker_compose_up(services: List[str]) -> dict:
     """
-    PHASE 2: Real execution via subprocess (docker compose available in madre container).
+    PHASE 2: Real execution via subprocess OR mock (test/develop).
+
+    If VX11_POWER_WINDOWS_DOCKER_EXEC=0 (test/develop): skip docker, return mock success.
+    If VX11_POWER_WINDOWS_DOCKER_EXEC=1 (production): execute docker compose (requires docker CLI).
 
     Each service started individually to ensure proper ordering and error isolation.
     Timeout: 30 seconds per service.
@@ -115,6 +118,33 @@ def docker_compose_up(services: List[str]) -> dict:
     }
     """
     results = []
+
+    # Check if docker execution is enabled (default=0 for test, =1 for production)
+    docker_exec_enabled = os.environ.get(
+        "VX11_POWER_WINDOWS_DOCKER_EXEC", "0"
+    ).lower() in ("1", "true", "yes")
+
+    if not docker_exec_enabled:
+        # MOCK MODE (test/develop): return success without executing
+        log.info(f"docker_compose_up MOCK MODE: services={services}")
+        for service in services:
+            results.append(
+                {
+                    "service": service,
+                    "returncode": 0,
+                    "elapsed_ms": 50,
+                    "stdout": "[MOCK] Service already running or in test mode",
+                    "mode": "mock",
+                }
+            )
+        return {
+            "status": "ok",
+            "results": results,
+            "timestamp": datetime.now(timezone.utc).isoformat() + "Z",
+            "mode": "mock",
+        }
+
+    # REAL EXECUTION MODE (production): execute docker compose
     timeout_sec = int(os.environ.get("VX11_POWER_WINDOWS_TIMEOUT_SEC", 30))
 
     for service in services:
@@ -471,9 +501,7 @@ async def get_power_state(
             for svc in os.environ.get("VX11_WINDOW_SERVICES", "").split(",")
             if svc.strip()
         ]
-        active_services = sorted(
-            set(extra_services + list(wm.SOLO_MADRE_SERVICES))
-        )
+        active_services = sorted(set(extra_services + list(wm.SOLO_MADRE_SERVICES)))
     else:
         active_services = list(wm.SOLO_MADRE_SERVICES)
 

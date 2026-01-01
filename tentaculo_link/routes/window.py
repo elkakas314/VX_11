@@ -35,7 +35,7 @@ async def get_madre_window_status() -> dict:
         headers = {"X-VX11-Token": token} if token else {}
         async with httpx.AsyncClient(timeout=3.0) as client:
             response = await client.get(
-                "http://madre:8001/power/state", headers=headers
+                "http://madre:8001/madre/power/state", headers=headers
             )
             if response.status_code == 200:
                 payload = response.json()
@@ -50,7 +50,7 @@ async def get_madre_window_status() -> dict:
                 }
     except Exception:
         pass
-    
+
     # Fallback: assume solo_madre mode
     return {
         "mode": "solo_madre",
@@ -64,10 +64,10 @@ async def get_madre_window_status() -> dict:
 async def get_window_status(auth: bool = Depends(check_auth)):
     """
     GET /api/window/status - Get current window/power state
-    
+
     Aliases to madre:8001/power/state if available.
     Falls back to solo_madre if madre is unavailable.
-    
+
     Response:
     {
       "mode": "solo_madre|window_active",
@@ -78,9 +78,9 @@ async def get_window_status(auth: bool = Depends(check_auth)):
       "reason": string|null // Why degraded
     }
     """
-    
+
     status = await get_madre_window_status()
-    
+
     # Normalize response
     return {
         "mode": status.get("mode", "solo_madre"),

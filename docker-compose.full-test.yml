@@ -51,6 +51,7 @@ services:
       - VX11_TOKEN=vx11-test-token
       - VX11_SOLO_MADRE=0
       - VX11_WINDOW_SERVICES=tentaculo_link,switch,spawner,operator-backend,operator-frontend
+      - VX11_POWER_WINDOWS_DOCKER_EXEC=0
       - REDIS_URL=redis://redis-test:6379
       - DATABASE_URL=sqlite:///app/data/runtime/vx11_test.db
       - PYTHONUNBUFFERED=1

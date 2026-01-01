@@ -2273,7 +2273,7 @@ async def operator_api_chat_commands(
                 }
 
             result = await madre_client.post(
-                "/power/window/open",
+                "/madre/power/window/open",
                 payload={
                     "services": services,
                     "ttl_sec": ttl_sec,
@@ -2326,7 +2326,7 @@ async def operator_api_chat_commands(
                 }
 
             result = await madre_client.post(
-                "/power/window/close",
+                "/madre/power/window/close",
                 payload={},
                 timeout=10.0,
             )
@@ -2566,9 +2566,71 @@ async def operator_api_chat(
         except Exception as e:
             write_log("tentaculo_link", f"chat_cache_error:{str(e)}", level="WARNING")
 
-    # Step 1: PRIMARY — Try SWITCH (timeout 6s)
-    clients = get_clients()
-    switch_client = clients.get_client("switch")
+    # WINDOW STATE CHECK — Determine if Switch is available
+    # If window is open AND switch is in active_services: try Switch
+    # Otherwise: skip directly to degraded
+    switch_available = False
+    write_log(
+        "tentaculo_link", f"CHAT_WINDOW_CHECK_START:session={session_id}", level="INFO"
+    )
+    try:
+        # Use direct HTTP call to madre (more reliable than clients)
+        madre_url = os.environ.get("MADRE_URL", "http://madre:8001")
+        write_log(
+            "tentaculo_link",
+            f"chat_calling_madre:{madre_url}:session={session_id}",
+            level="INFO",
+        )
+        async with httpx.AsyncClient(timeout=3.0) as client:
+            window_state_response = await client.get(
+                f"{madre_url}/madre/power/state",
+                headers={"X-VX11-Token": VX11_TOKEN},
+            )
+            write_log(
+                "tentaculo_link",
+                f"chat_madre_responded:status={window_state_response.status_code}:session={session_id}",
+                level="INFO",
+            )
+            if window_state_response.status_code == 200:
+                window_state = window_state_response.json()
+                if window_state and window_state.get("window_id"):
+                    # Window is open - check if switch is in active services
+                    active_services = window_state.get("active_services", [])
+                    switch_available = "switch" in active_services
+                    write_log(
+                        "tentaculo_link",
+                        f"chat_window_check:window_open=true:switch_available={switch_available}:active_services={active_services}",
+                        level="DEBUG",
+                    )
+                else:
+                    write_log(
+                        "tentaculo_link",
+                        f"chat_window_check:window_open=false",
+                        level="DEBUG",
+                    )
+            else:
+                write_log(
+                    "tentaculo_link",
+                    f"chat_window_check:madre_error:status={window_state_response.status_code}",
+                    level="WARNING",
+                )
+    except Exception as e:
+        write_log(
+            "tentaculo_link",
+            f"chat_window_check_error:{type(e).__name__}:{str(e)[:100]}",
+            level="DEBUG",
+        )
+
+    # Step 1: PRIMARY — Try SWITCH (only if window open and switch available, timeout 6s)
+    switch_client = None  # Initialize to prevent NameError
+    if switch_available:
+        clients = get_clients()
+        switch_client = clients.get_client("switch")
+        write_log(
+            "tentaculo_link",
+            f"chat_switch_acquired:client={switch_client is not None}:session={session_id}",
+            level="DEBUG",
+        )
 
     if switch_client:
         try:
@@ -2610,6 +2672,13 @@ async def operator_api_chat(
             )
         except Exception as e:
             write_log("tentaculo_link", f"chat_switch_failed:{str(e)}", level="WARNING")
+    else:
+        # Window not open or switch not available - skip to degraded
+        write_log(
+            "tentaculo_link",
+            f"chat_switch_unavailable:switch_available={switch_available}:session={session_id}",
+            level="DEBUG",
+        )
 
     # Step 2: SECONDARY FALLBACK — Try Provider Registry (DeepSeek or Mock)
     if allow_deepseek:
@@ -3585,7 +3654,7 @@ async def operator_api_chat_window_open(
 
         # Call madre internal power window endpoint
         result = await madre_client.post(
-            "/power/window/open",
+            "/madre/power/window/open",
             payload={
                 "services": req.services,
                 "ttl_sec": req.ttl_sec or 600,
@@ -3695,7 +3764,7 @@ async def operator_api_chat_window_close(_: bool = Depends(token_guard)):
             )
 
         result = await madre_client.post(
-            "/power/window/close",
+            "/madre/power/window/close",
             payload={},
             timeout=10.0,
         )
@@ -3772,12 +3841,21 @@ async def operator_api_chat_window_status(_: bool = Depends(token_guard)):
             )
 
         result = await madre_client.get(
-            "/power/state",
+            "/madre/power/state",
             timeout=5.0,
         )
 
         if result:
-            return result
+            # Map madre's PowerStateResponse to operator API format
+            return {
+                "status": "open" if result.get("window_id") else "none",
+                "window_id": result.get("window_id"),
+                "created_at": result.get("created_at"),
+                "deadline": result.get("deadline"),
+                "ttl_remaining_sec": result.get("ttl_remaining_sec"),
+                "active_services": result.get("active_services", []),
+                "mode": result.get("policy"),
+            }
         else:
             # No active window
             return {
