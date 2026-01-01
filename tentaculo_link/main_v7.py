@@ -48,6 +48,7 @@ from config.rate_limit import get_rate_limiter, set_redis_for_limiter
 from config.metrics_prometheus import get_prometheus_metrics
 from tentaculo_link.clients import get_clients
 from tentaculo_link.context7_middleware import get_context7_manager
+from madre.window_manager import get_window_manager
 from tentaculo_link.deepseek_client import DeepSeekClient, save_chat_to_db
 from tentaculo_link.deepseek_r1_client import get_deepseek_r1_client
 from switch.providers import get_provider  # PHASE 3: Provider registry
@@ -62,6 +63,10 @@ from tentaculo_link.models_core_mvp import (
     ErrorResponse,
     StatusEnum,
     ModeEnum,
+    WindowOpen,
+    WindowStatus,
+    WindowClose,
+    WindowTarget,
 )
 
 # Load environment tokens
@@ -178,6 +183,7 @@ async def lifespan(app: FastAPI):
     cache = get_cache()
     limiter = get_rate_limiter()
     metrics = get_prometheus_metrics()
+    window_manager = get_window_manager()  # Initialize window manager (PHASE 2)
 
     await clients.startup()
     await cache_startup()  # Initialize Redis cache
@@ -188,7 +194,8 @@ async def lifespan(app: FastAPI):
 
     FILES_DIR.mkdir(parents=True, exist_ok=True)
     write_log(
-        "tentaculo_link", "startup:v7_initialized (with cache+rate_limit+metrics)"
+        "tentaculo_link",
+        "startup:v7_initialized (with cache+rate_limit+metrics+windows)",
     )
 
     # Yield to allow app to run
@@ -197,7 +204,9 @@ async def lifespan(app: FastAPI):
     # Shutdown
     await clients.shutdown()
     await cache_shutdown()
-    write_log("tentaculo_link", "shutdown:v7_complete")
+    # Cleanup windows (PHASE 2)
+    window_manager.cleanup_expired_windows()
+    write_log("tentaculo_link", "shutdown:v7_complete (windows cleaned)")
 
 
 # Create app
@@ -400,7 +409,7 @@ async def operator_redirect():
 
 async def vx11_status_old():
     """Aggregate health check for all modules (async parallel) - DEPRECATED.
-    
+
     Use GET /vx11/status instead (canonical contract).
     """
     import datetime
@@ -480,8 +489,8 @@ async def core_intent(
     INVARIANT:
     - Single entrypoint (localhost:8000)
     - Generates correlation_id if missing
-    - If require.switch=true AND solo_madre policy: returns 423 off_by_policy
-    - If require.spawner=true: routes to spawner, returns QUEUED
+    - If require.switch=true AND solo_madre policy: returns ERROR off_by_policy
+    - If require.spawner=true AND solo_madre policy: returns ERROR off_by_policy
     - Otherwise: executes via madre, returns DONE or ERROR
 
     Token: X-VX11-Token header (required if settings.enable_auth)
@@ -490,22 +499,39 @@ async def core_intent(
         # Normalize intent
         correlation_id = req.correlation_id or str(uuid.uuid4())
 
-        # Validate policy: if switch required but solo_madre is active
-        # Check if switch is OFF by policy (circuit breaker or manual)
-        clients = get_clients()
-        switch_client = clients.clients.get("switch")
-
+        # PHASE 2: Validate policy for switch and spawner (both OFF by SOLO_MADRE default)
         if req.require.get("switch", False):
-            # CORE MVP is SOLO_MADRE: switch is never available
-            write_log("tentaculo_link", f"core_intent:off_by_policy:{correlation_id}")
+            # CORE MVP is SOLO_MADRE: switch is never available without window
+            write_log(
+                "tentaculo_link", f"core_intent:off_by_policy:switch:{correlation_id}"
+            )
             return CoreIntentResponse(
                 correlation_id=correlation_id,
                 status=StatusEnum.ERROR,
                 mode=ModeEnum.FALLBACK,
                 error="off_by_policy",
                 response={
-                    "reason": "switch required but SOLO_MADRE policy active",
+                    "reason": "switch required but SOLO_MADRE policy active (no window open)",
                     "policy": "SOLO_MADRE",
+                    "required_service": "switch",
+                },
+            )
+
+        # PHASE 2: Also check spawner
+        if req.require.get("spawner", False):
+            # CORE MVP is SOLO_MADRE: spawner is never available without window
+            write_log(
+                "tentaculo_link", f"core_intent:off_by_policy:spawner:{correlation_id}"
+            )
+            return CoreIntentResponse(
+                correlation_id=correlation_id,
+                status=StatusEnum.ERROR,
+                mode=ModeEnum.FALLBACK,
+                error="off_by_policy",
+                response={
+                    "reason": "spawner required but SOLO_MADRE policy active (no window open)",
+                    "policy": "SOLO_MADRE",
+                    "required_service": "spawner",
                 },
             )
 
@@ -726,6 +752,241 @@ async def vx11_core_status(_: bool = Depends(token_guard)):
             mode="solo_madre",
             policy="SOLO_MADRE",
             madre_available=False,
+        )
+
+
+# ============ VX11 WINDOW MANAGEMENT ENDPOINTS (PHASE 2) ============
+# INVARIANT: Window endpoints manage TTL-gated access to switch/spawner services
+
+
+@app.post("/vx11/window/open")
+async def vx11_window_open(
+    req: WindowOpen,
+    _: bool = Depends(token_guard),
+):
+    """
+    POST /vx11/window/open: Open a temporal window for service access.
+
+    PHASE 2: Manages TTL-gated availability of switch or spawner services.
+
+    Request:
+    {
+        "target": "switch" | "spawner",
+        "ttl_seconds": 1-3600,  # Validated by Pydantic
+        "reason": "operator requested" | "automated task" | etc
+    }
+
+    Response (200):
+    {
+        "target": "switch",
+        "is_open": true,
+        "ttl_remaining_seconds": 300,
+        "opened_at": "2025-01-01T00:00:00Z",
+        "expires_at": "2025-01-01T00:05:00Z"
+    }
+
+    Error Response (400):
+    {
+        "error": "invalid_window_request",
+        "reason": "TTL must be between 1 and 3600 seconds"
+    }
+
+    Token: X-VX11-Token header (required if settings.enable_auth)
+    """
+    try:
+        correlation_id = str(uuid.uuid4())
+        window_manager = get_window_manager()
+
+        # Validate target enum
+        if not (
+            isinstance(req.target, WindowTarget)
+            or req.target.value in ["switch", "spawner"]
+        ):
+            write_log(
+                "tentaculo_link",
+                f"window_open:invalid_target:{req.target}:{correlation_id}",
+            )
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "error": "invalid_target",
+                    "reason": f"target must be 'switch' or 'spawner', got '{req.target}'",
+                    "correlation_id": correlation_id,
+                },
+            )
+
+        # Open window (validates TTL bounds in window_manager)
+        # target is already WindowTarget enum, convert to string for window_manager
+        target_str = (
+            req.target.value if isinstance(req.target, WindowTarget) else req.target
+        )
+        result = window_manager.open_window(
+            target=target_str,
+            ttl_seconds=req.ttl_seconds,
+            reason=req.reason or "vx11_api_request",
+        )
+
+        write_log(
+            "tentaculo_link",
+            f"window_open:success:target={target_str}:ttl={req.ttl_seconds}:correlation_id={correlation_id}",
+            level="INFO",
+        )
+
+        # Extract the window dict from result and return it
+        window_data = result.get("window", {})
+        return JSONResponse(
+            status_code=200,
+            content=window_data,
+        )
+
+    except ValueError as e:
+        # TTL validation error
+        correlation_id = str(uuid.uuid4())
+        write_log(
+            "tentaculo_link", f"window_open:validation_error:{str(e)}:{correlation_id}"
+        )
+        return JSONResponse(
+            status_code=400,
+            content={
+                "error": "invalid_window_request",
+                "reason": str(e),
+                "correlation_id": correlation_id,
+            },
+        )
+
+    except Exception as e:
+        correlation_id = str(uuid.uuid4())
+        write_log(
+            "tentaculo_link", f"window_open:exception:{str(e)[:100]}:{correlation_id}"
+        )
+        return JSONResponse(
+            status_code=500,
+            content={
+                "error": "internal_error",
+                "reason": str(e)[:100],
+                "correlation_id": correlation_id,
+            },
+        )
+
+
+@app.post("/vx11/window/close")
+async def vx11_window_close(
+    req: WindowClose,
+    _: bool = Depends(token_guard),
+):
+    """
+    POST /vx11/window/close: Close an open window.
+
+    PHASE 2: Explicit window closure (auto-closure also happens on TTL expiration).
+
+    Request:
+    {
+        "target": "switch" | "spawner",
+        "reason": "manual closure" | etc
+    }
+
+    Response (200):
+    {
+        "target": "switch",
+        "closed": true,
+        "was_open": true
+    }
+
+    Token: X-VX11-Token header (required if settings.enable_auth)
+    """
+    try:
+        correlation_id = str(uuid.uuid4())
+        window_manager = get_window_manager()
+
+        # Close window - target is WindowTarget enum, convert to string
+        target_str = (
+            req.target.value if isinstance(req.target, WindowTarget) else req.target
+        )
+        result = window_manager.close_window(
+            target=target_str,
+            reason=req.reason or "vx11_api_close",
+        )
+
+        write_log(
+            "tentaculo_link",
+            f"window_close:target={target_str}:closed={result.get('closed')}:was_open={result.get('was_open')}:correlation_id={correlation_id}",
+            level="INFO",
+        )
+
+        return JSONResponse(
+            status_code=200,
+            content=result,
+        )
+
+    except Exception as e:
+        correlation_id = str(uuid.uuid4())
+        write_log(
+            "tentaculo_link", f"window_close:exception:{str(e)[:100]}:{correlation_id}"
+        )
+        return JSONResponse(
+            status_code=500,
+            content={
+                "error": "internal_error",
+                "reason": str(e)[:100],
+                "correlation_id": correlation_id,
+            },
+        )
+
+
+@app.get("/vx11/window/status/{target}")
+async def vx11_window_status(
+    target: str,
+    _: bool = Depends(token_guard),
+):
+    """
+    GET /vx11/window/status/{target}: Query window status for a service.
+
+    PHASE 2: Check if temporal window is open and TTL remaining.
+
+    Path Params:
+    - target: "switch" | "spawner"
+
+    Response (200):
+    {
+        "target": "switch",
+        "is_open": true | false,
+        "ttl_remaining_seconds": 300 | null,
+        "opened_at": "2025-01-01T00:00:00Z" | null,
+        "expires_at": "2025-01-01T00:05:00Z" | null
+    }
+
+    Token: X-VX11-Token header (required if settings.enable_auth)
+    """
+    try:
+        correlation_id = str(uuid.uuid4())
+        window_manager = get_window_manager()
+
+        # Get window status (auto-closes if expired)
+        window_status = window_manager.get_window_status(target)
+
+        write_log(
+            "tentaculo_link",
+            f"window_status:target={target}:is_open={window_status.get('is_open')}:correlation_id={correlation_id}",
+            level="DEBUG",
+        )
+
+        return JSONResponse(
+            status_code=200,
+            content=window_status,
+        )
+
+    except Exception as e:
+        correlation_id = str(uuid.uuid4())
+        write_log(
+            "tentaculo_link", f"window_status:exception:{str(e)[:100]}:{correlation_id}"
+        )
+        return JSONResponse(
+            status_code=500,
+            content={
+                "error": "internal_error",
+                "reason": str(e)[:100],
+                "correlation_id": correlation_id,
+            },
         )
 
 
