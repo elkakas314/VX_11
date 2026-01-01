@@ -518,7 +518,7 @@ async def core_intent(
                 )
                 return CoreIntentResponse(
                     correlation_id=correlation_id,
-                    status=StatusEnum.ERROR,
+                    status="ERROR",
                     mode=ModeEnum.FALLBACK,
                     error="off_by_policy",
                     response={
@@ -542,7 +542,7 @@ async def core_intent(
                 )
                 return CoreIntentResponse(
                     correlation_id=correlation_id,
-                    status=StatusEnum.ERROR,
+                    status="ERROR",
                     mode=ModeEnum.FALLBACK,
                     error="off_by_policy",
                     response={
@@ -593,7 +593,7 @@ async def core_intent(
                     )
                     return CoreIntentResponse(
                         correlation_id=correlation_id,
-                        status=StatusEnum.ERROR,
+                        status="ERROR",
                         mode=ModeEnum.FALLBACK,
                         error="upstream_unavailable",
                         response={"upstream_status": resp.status_code},
@@ -602,7 +602,7 @@ async def core_intent(
                 write_log("tentaculo_link", f"core_intent:timeout:{correlation_id}")
                 return CoreIntentResponse(
                     correlation_id=correlation_id,
-                    status=StatusEnum.ERROR,
+                    status="ERROR",
                     mode=ModeEnum.FALLBACK,
                     error="upstream_unavailable",
                     response={"reason": "madre timeout"},
@@ -613,7 +613,7 @@ async def core_intent(
                 )
                 return CoreIntentResponse(
                     correlation_id=correlation_id,
-                    status=StatusEnum.ERROR,
+                    status="ERROR",
                     mode=ModeEnum.FALLBACK,
                     error="upstream_unavailable",
                     response={"reason": str(e)},
@@ -627,7 +627,7 @@ async def core_intent(
         )
         return CoreIntentResponse(
             correlation_id=correlation_id,
-            status=StatusEnum.ERROR,
+            status="ERROR",
             mode=ModeEnum.FALLBACK,
             error="internal_error",
             response={"reason": str(outer_e)},
@@ -674,7 +674,7 @@ async def core_result(
                 write_log("tentaculo_link", f"core_result:not_found:{correlation_id}")
                 return CoreResultQuery(
                     correlation_id=correlation_id,
-                    status=StatusEnum.ERROR,
+                    status="ERROR",
                     error="not_found",
                 )
             else:
@@ -684,7 +684,7 @@ async def core_result(
                 )
                 return CoreResultQuery(
                     correlation_id=correlation_id,
-                    status=StatusEnum.ERROR,
+                    status="ERROR",
                     error="upstream_error",
                 )
 
@@ -692,14 +692,14 @@ async def core_result(
         write_log("tentaculo_link", f"core_result:timeout:{correlation_id}")
         return CoreResultQuery(
             correlation_id=correlation_id,
-            status=StatusEnum.ERROR,
+            status="ERROR",
             error="upstream_timeout",
         )
     except Exception as e:
         write_log("tentaculo_link", f"core_result:exception:{correlation_id}:{str(e)}")
         return CoreResultQuery(
             correlation_id=correlation_id,
-            status=StatusEnum.ERROR,
+            status="ERROR",
             error="internal_error",
         )
 
@@ -1063,7 +1063,7 @@ async def vx11_spawn(
             return SpawnResponse(
                 spawn_id="",  # No spawn created
                 correlation_id=correlation_id,
-                status=StatusEnum.ERROR,
+                status="ERROR",
                 task_type=req.task_type,
                 error="off_by_policy",
             )
@@ -1102,7 +1102,7 @@ async def vx11_spawn(
                     return SpawnResponse(
                         spawn_id=spawn_id,
                         correlation_id=correlation_id,
-                        status=StatusEnum.QUEUED,
+                        status="QUEUED",
                         task_type=req.task_type,
                         created_at=datetime.utcnow(),
                     )
@@ -1119,7 +1119,7 @@ async def vx11_spawn(
                 return SpawnResponse(
                     spawn_id="",
                     correlation_id=correlation_id,
-                    status=StatusEnum.ERROR,
+                    status="ERROR",
                     task_type=req.task_type,
                     error="spawner_unavailable",
                 )
@@ -1131,7 +1131,7 @@ async def vx11_spawn(
         return SpawnResponse(
             spawn_id="",
             correlation_id=correlation_id,
-            status=StatusEnum.ERROR,
+            status="ERROR",
             task_type=req.task_type or "unknown",
             error="internal_error",
         )

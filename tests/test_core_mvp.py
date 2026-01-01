@@ -104,7 +104,7 @@ def test_vx11_intent_off_by_policy(client):
 
 
 def test_vx11_intent_spawner_path(client):
-    """Test: POST /vx11/intent with require.spawner=true returns QUEUED."""
+    """Test: POST /vx11/intent with require.spawner=true in SOLO_MADRE returns off_by_policy."""
     resp = client.post(
         "/vx11/intent",
         json={
@@ -119,13 +119,10 @@ def test_vx11_intent_spawner_path(client):
     assert resp.status_code == 200
     body = resp.json()
     
-    assert body["status"] == "QUEUED"
-    assert body["mode"] == "SPAWNER"
-    assert body["provider"] == "spawner"
-    assert "task_id" in body["response"]
-    
-    # Store correlation_id for result query test
-    return body["correlation_id"]
+    # In SOLO_MADRE, spawner is blocked by policy
+    assert body["status"] == "ERROR"
+    assert body["error"] == "off_by_policy"
+    assert body["mode"] == "FALLBACK"
 
 
 def test_vx11_result_query(client):

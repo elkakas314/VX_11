@@ -41,7 +41,7 @@ from .core import (
 from . import rails_router
 from .llm.deepseek_client import call_deepseek_r1, is_deepseek_available
 from .core.models import StatusEnum, ModeEnum
-from tentaculo_link.models_core_mvp import SpawnCallbackRequest, SpawnCallbackResponse
+from config.models_shared import SpawnCallbackRequest, SpawnCallbackResponse
 
 log = logging.getLogger("vx11.madre")
 logger = log
