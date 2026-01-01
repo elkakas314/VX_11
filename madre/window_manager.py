@@ -63,6 +63,7 @@ class WindowManager:
         self._windows: Dict[WindowTarget, Optional[Window]] = {
             "switch": None,
             "spawner": None,
+            "hermes": None,
         }
         self._lock = Lock()
 

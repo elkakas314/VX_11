@@ -820,7 +820,7 @@ async def vx11_window_open(
         # Validate target enum
         if not (
             isinstance(req.target, WindowTarget)
-            or req.target.value in ["switch", "spawner"]
+            or req.target.value in ["switch", "spawner", "hermes"]
         ):
             write_log(
                 "tentaculo_link",
@@ -830,7 +830,7 @@ async def vx11_window_open(
                 status_code=400,
                 content={
                     "error": "invalid_target",
-                    "reason": f"target must be 'switch' or 'spawner', got '{req.target}'",
+                    "reason": f"target must be 'switch', 'spawner', or 'hermes', got '{req.target}'",
                     "correlation_id": correlation_id,
                 },
             )
@@ -1316,6 +1316,158 @@ async def vx11_db_summary(
         )
         # Return partial data rather than fail
         return DBSummary(counts={}, last_spawns=[], last_routing_events=[])
+
+
+# ============ HERMES PROXY ENDPOINTS (PHASE 7) ============
+
+
+@app.get("/vx11/hermes/health")
+async def vx11_hermes_health(
+    _: bool = Depends(token_guard),
+):
+    """Proxy health check to hermes service."""
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            resp = await client.get(
+                "http://hermes:8003/health",
+                headers=AUTH_HEADERS,
+            )
+            if resp.status_code == 200:
+                return resp.json()
+            return {"status": "unhealthy", "code": resp.status_code}
+    except Exception as e:
+        write_log(
+            "tentaculo_link", f"hermes_health:exception:{str(e)[:50]}", level="ERROR"
+        )
+        return {"status": "unreachable", "error": str(e)[:50]}
+
+
+@app.post("/vx11/hermes/discover")
+async def vx11_hermes_discover(
+    _: bool = Depends(token_guard),
+):
+    """
+    Trigger hermes discovery (find/register CLIs and models).
+    Requires hermes window to be open.
+
+    Returns: {"status": "ok", "discovered": N} or error
+    """
+    try:
+        window_manager = get_window_manager()
+        window_status = window_manager.get_window_status("hermes")
+        if not window_status.get("is_open", False):
+            return {
+                "status": "ERROR",
+                "error": "off_by_policy",
+                "hint": 'POST /vx11/window/open {"target":"hermes", "ttl_seconds":300}',
+            }
+
+        # In MVP: mock discovery (no aggressive web scraping)
+        # Just insert a mock provider into DB if not exists
+        import sqlite3
+        from pathlib import Path
+
+        db_path = Path(os.environ.get("DATABASE_PATH", "data/runtime/vx11.db"))
+        if db_path.exists():
+            try:
+                conn = sqlite3.connect(str(db_path))
+                cursor = conn.cursor()
+
+                # Insert mock CLI provider if not exists
+                cursor.execute(
+                    "INSERT OR IGNORE INTO cli_providers (name, tool_type, description, available) VALUES (?, ?, ?, ?)",
+                    ("python_exec", "language", "Python code executor", 1),
+                )
+                cursor.execute(
+                    "INSERT OR IGNORE INTO cli_providers (name, tool_type, description, available) VALUES (?, ?, ?, ?)",
+                    ("bash_exec", "system", "Bash shell executor", 1),
+                )
+                conn.commit()
+                cursor.execute("SELECT COUNT(*) as cnt FROM cli_providers")
+                count = cursor.fetchone()[0]
+                conn.close()
+
+                return {"status": "ok", "discovered": count}
+            except Exception as e:
+                write_log(
+                    "tentaculo_link",
+                    f"hermes_discover:db_error:{str(e)[:50]}",
+                    level="WARN",
+                )
+
+        return {"status": "ok", "discovered": 0}
+
+    except Exception as e:
+        write_log(
+            "tentaculo_link", f"hermes_discover:exception:{str(e)[:100]}", level="ERROR"
+        )
+        return {"status": "ERROR", "error": "internal_error"}
+
+
+@app.get("/vx11/hermes/catalog")
+async def vx11_hermes_catalog(
+    _: bool = Depends(token_guard),
+):
+    """
+    Get catalog of available CLIs and models from BD.
+    Returns: {"cli_providers": [...], "models": [...]}
+    """
+    try:
+        import sqlite3
+        from pathlib import Path
+
+        db_path = Path(os.environ.get("DATABASE_PATH", "data/runtime/vx11.db"))
+        if not db_path.exists():
+            return {"cli_providers": [], "models": []}
+
+        conn = sqlite3.connect(str(db_path))
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+
+        cli_providers = []
+        try:
+            cursor.execute(
+                "SELECT id, name, tool_type, description, available FROM cli_providers LIMIT 20"
+            )
+            for row in cursor.fetchall():
+                cli_providers.append(
+                    {
+                        "id": row["id"],
+                        "name": row["name"],
+                        "tool_type": row["tool_type"],
+                        "description": row["description"],
+                        "available": row["available"],
+                    }
+                )
+        except:
+            pass
+
+        models = []
+        try:
+            cursor.execute(
+                "SELECT id, name, model_type, source FROM models_local LIMIT 20"
+            )
+            for row in cursor.fetchall():
+                models.append(
+                    {
+                        "id": row["id"],
+                        "name": row["name"],
+                        "model_type": row["model_type"],
+                        "source": row["source"],
+                    }
+                )
+        except:
+            pass
+
+        conn.close()
+
+        return {"cli_providers": cli_providers, "models": models}
+
+    except Exception as e:
+        write_log(
+            "tentaculo_link", f"hermes_catalog:exception:{str(e)[:100]}", level="ERROR"
+        )
+        return {"cli_providers": [], "models": []}
 
 
 @app.get("/metrics")

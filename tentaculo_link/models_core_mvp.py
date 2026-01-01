@@ -183,6 +183,7 @@ class WindowTarget(str, Enum):
 
     SWITCH = "switch"
     SPAWNER = "spawner"
+    HERMES = "hermes"
 
 
 class WindowOpen(BaseModel):
