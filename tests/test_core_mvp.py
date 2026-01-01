@@ -73,7 +73,7 @@ def test_vx11_intent_sync_execution(client):
     )
     assert resp.status_code == 200
     body = resp.json()
-    
+
     assert "correlation_id" in body
     assert body["status"] == "DONE"
     assert body["mode"] == "MADRE"
@@ -96,7 +96,7 @@ def test_vx11_intent_off_by_policy(client):
     )
     assert resp.status_code == 200
     body = resp.json()
-    
+
     assert body["status"] == "ERROR"
     assert body["error"] == "off_by_policy"
     assert body["mode"] == "FALLBACK"
@@ -118,7 +118,7 @@ def test_vx11_intent_spawner_path(client):
     )
     assert resp.status_code == 200
     body = resp.json()
-    
+
     # In SOLO_MADRE, spawner is blocked by policy
     assert body["status"] == "ERROR"
     assert body["error"] == "off_by_policy"
@@ -139,12 +139,12 @@ def test_vx11_result_query(client):
     )
     assert resp.status_code == 200
     correlation_id = resp.json()["correlation_id"]
-    
+
     # Query result
     resp = client.get(f"/vx11/result/{correlation_id}", headers=HEADERS)
     assert resp.status_code == 200
     body = resp.json()
-    
+
     assert body["correlation_id"] == correlation_id
     assert body["status"] in ["QUEUED", "RUNNING", "DONE"]
     assert "result" in body or body["result"] is not None
@@ -155,7 +155,7 @@ def test_vx11_status_endpoint(client):
     resp = client.get("/vx11/status", headers=HEADERS)
     assert resp.status_code == 200
     body = resp.json()
-    
+
     assert "mode" in body
     assert body["mode"] in ["solo_madre", "windowed", "full"]
     assert "policy" in body
@@ -168,7 +168,7 @@ def test_health_endpoint(client):
     resp = client.get("/health")
     assert resp.status_code == 200
     body = resp.json()
-    
+
     assert body["status"] == "ok"
     assert "module" in body
     assert "version" in body
@@ -190,7 +190,7 @@ def test_intent_response_contract(client):
     )
     assert resp.status_code == 200
     body = resp.json()
-    
+
     # Required fields per contract
     assert "correlation_id" in body
     assert "status" in body
@@ -198,7 +198,7 @@ def test_intent_response_contract(client):
     assert "provider" in body
     assert "degraded" in body
     assert "timestamp" in body
-    
+
     # Type checks
     assert isinstance(body["correlation_id"], str)
     assert body["status"] in ["QUEUED", "RUNNING", "DONE", "ERROR"]
@@ -218,7 +218,7 @@ def test_error_response_format(client):
     )
     assert resp.status_code == 200
     body = resp.json()
-    
+
     # Error response contract
     assert body["error"] == "off_by_policy"
     assert isinstance(body["response"], dict)
@@ -244,15 +244,15 @@ def test_full_sync_flow(client):
     assert resp.status_code == 200
     intent_resp = resp.json()
     correlation_id = intent_resp["correlation_id"]
-    
+
     # For sync execution, should already be DONE
     assert intent_resp["status"] == "DONE"
-    
+
     # Query result anyway
     resp = client.get(f"/vx11/result/{correlation_id}", headers=HEADERS)
     assert resp.status_code == 200
     result_resp = resp.json()
-    
+
     assert result_resp["correlation_id"] == correlation_id
     assert result_resp["status"] in ["DONE", "QUEUED"]
 
@@ -271,11 +271,11 @@ def test_policy_enforcement_in_flow(client):
     )
     assert resp.status_code == 200
     body = resp.json()
-    
+
     # Must be denied with off_by_policy
     assert body["error"] == "off_by_policy"
     assert "SOLO_MADRE" in body["response"]["policy"]
-    
+
     # Compare with allowed request
     resp = client.post(
         "/vx11/intent",
@@ -288,7 +288,7 @@ def test_policy_enforcement_in_flow(client):
     )
     assert resp.status_code == 200
     body = resp.json()
-    
+
     # Should be allowed
     assert body["status"] == "DONE"
     assert body["error"] is None

@@ -22,6 +22,7 @@ ENV PATH=/root/.local/bin:$PATH
 
 COPY config /app/config/
 COPY spawner /app/spawner/
+COPY tentaculo_link /app/tentaculo_link/
 COPY sitecustomize.py /app/
 
 RUN mkdir -p /app/logs /app/data /app/models /app/sandbox /app/data/runtime

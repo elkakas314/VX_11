@@ -21,7 +21,16 @@ from config.db_schema import (
     Spawn,
     get_session,
 )
-from tentaculo_link.db.events_metrics import log_event
+
+# NOTE: decouple from tentaculo_link.db.events_metrics to avoid circular import
+# spawner runs independently; will re-enable when db/events is refactored
+# from tentaculo_link.db.events_metrics import log_event
+
+
+def log_event(*args, **kwargs):
+    """Stub: minimal event logging"""
+    pass
+
 
 app = FastAPI(title="VX11 Spawner - Advanced")
 

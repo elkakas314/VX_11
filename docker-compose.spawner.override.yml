@@ -1,0 +1,49 @@
+# Override: Add spawner service for MVP flow
+# Usage: docker compose -f docker-compose.full-test.yml -f docker-compose.spawner.override.yml up -d spawner
+
+version: "3.9"
+
+services:
+  spawner:
+    build:
+      context: .
+      dockerfile: spawner/Dockerfile
+      args:
+        - VX11_PROFILE=test
+    image: vx11-spawner:test
+    container_name: vx11-spawner-test
+    command:
+      [
+        "python",
+        "-m",
+        "uvicorn",
+        "spawner.main:app",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8008",
+      ]
+    environment:
+      - VX11_MODE=test
+      - VX11_TOKEN=vx11-test-token
+      - VX11_TENTACULO_LINK_TOKEN=vx11-test-token
+      - PYTHONUNBUFFERED=1
+      - LOG_LEVEL=INFO
+    networks:
+      - vx11_vx11-test
+    depends_on:
+      redis-test:
+        condition: service_healthy
+    volumes:
+      - ./data:/app/data
+      - ./spawner:/app/spawner
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8008/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: on-failure
+
+networks:
+  vx11_vx11-test:
+    external: true

@@ -1077,16 +1077,14 @@ async def vx11_spawn(
             try:
                 spawner_url = os.environ.get("SPAWNER_URL", "http://spawner:8008")
                 resp = await client.post(
-                    f"{spawner_url}/spawner/submit",
+                    f"{spawner_url}/spawn",
                     json={
-                        "spawn_id": spawn_id,
                         "task_type": req.task_type,
-                        "code": req.code,
+                        "cmd": req.code,  # Map 'code' to 'cmd' (spawner expects cmd)
                         "max_retries": req.max_retries,
                         "ttl_seconds": req.ttl_seconds,
-                        "user_id": req.user_id,
                         "metadata": req.metadata or {},
-                        "correlation_id": correlation_id,
+                        "trace_id": correlation_id,
                     },
                     headers=AUTH_HEADERS,
                     timeout=10.0,
