@@ -308,6 +308,61 @@ class SpawnCallbackResponse(BaseModel):
                 "spawn_id": "spawn-123-abc",
                 "correlation_id": "corr-456-def",
                 "status": "stored",
+                "message": "Spawn result persisted",
+            }
+        }
+
+
+# ============ SPAWN REQUEST/RESPONSE MODELS (PHASE 5) ============
+
+
+class SpawnRequest(BaseModel):
+    """
+    Request to spawn a new async task (daughter execution).
+    
+    INVARIANT: Requires spawner window to be open.
+    """
+    
+    task_type: str  # "python" | "shell" | "system"
+    code: str  # Task code to execute
+    max_retries: int = Field(default=0, ge=0, le=10)
+    ttl_seconds: int = Field(default=3600, ge=1, le=86400)  # 1 sec to 1 day
+    user_id: Optional[str] = "local"
+    metadata: Optional[Dict[str, Any]] = None
+    correlation_id: Optional[str] = None
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "task_type": "python",
+                "code": "print('hello world')",
+                "max_retries": 2,
+                "ttl_seconds": 300,
+                "user_id": "local",
+            }
+        }
+
+
+class SpawnResponse(BaseModel):
+    """Response from spawn request submission."""
+    
+    spawn_id: str  # Task ID (UUID)
+    correlation_id: Optional[str] = None
+    status: Literal["QUEUED", "RUNNING", "DONE", "ERROR"] = "QUEUED"
+    task_type: str
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "spawn_id": "spawn-789-xyz",
+                "correlation_id": "corr-456-def",
+                "status": "QUEUED",
+                "task_type": "python",
+                "created_at": "2026-01-01T00:00:00Z",
+            }
+        }
+
                 "message": "Spawn result persisted to DB",
             }
         }

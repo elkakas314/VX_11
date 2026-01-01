@@ -67,6 +67,8 @@ from tentaculo_link.models_core_mvp import (
     WindowStatus,
     WindowClose,
     WindowTarget,
+    SpawnRequest,
+    SpawnResponse,
 )
 
 # Load environment tokens
@@ -507,11 +509,12 @@ async def core_intent(
             # Check if switch window is open
             window_status = window_manager.get_window_status("switch")
             is_switch_open = window_status.get("is_open", False)
-            
+
             if not is_switch_open:
                 # Window not open → off_by_policy error
                 write_log(
-                    "tentaculo_link", f"core_intent:off_by_policy:switch:{correlation_id}"
+                    "tentaculo_link",
+                    f"core_intent:off_by_policy:switch:{correlation_id}",
                 )
                 return CoreIntentResponse(
                     correlation_id=correlation_id,
@@ -530,11 +533,12 @@ async def core_intent(
         if req.require.get("spawner", False):
             window_status = window_manager.get_window_status("spawner")
             is_spawner_open = window_status.get("is_open", False)
-            
+
             if not is_spawner_open:
                 # Window not open → off_by_policy error
                 write_log(
-                    "tentaculo_link", f"core_intent:off_by_policy:spawner:{correlation_id}"
+                    "tentaculo_link",
+                    f"core_intent:off_by_policy:spawner:{correlation_id}",
                 )
                 return CoreIntentResponse(
                     correlation_id=correlation_id,
@@ -994,6 +998,136 @@ async def vx11_window_status(
         write_log(
             "tentaculo_link", f"window_status:exception:{str(e)[:100]}:{correlation_id}"
         )
+        return JSONResponse(
+            status_code=500,
+            content={
+                "error": "internal_error",
+                "reason": str(e)[:100],
+                "correlation_id": correlation_id,
+            },
+        )
+
+
+@app.post("/vx11/spawn", response_model=SpawnResponse)
+async def vx11_spawn(
+    req: SpawnRequest,
+    _: bool = Depends(token_guard),
+):
+    """
+    POST /vx11/spawn: Submit async task to spawner (daughter execution).
+
+    PHASE 5: Requires spawner window to be open.
+
+    Request:
+    {
+        "task_type": "python" | "shell",
+        "code": "print('hello')",
+        "max_retries": 2,
+        "ttl_seconds": 300,
+        "user_id": "local",
+        "metadata": {...},
+        "correlation_id": "optional-uuid"
+    }
+
+    Response (200):
+    {
+        "spawn_id": "spawn-789-xyz",
+        "correlation_id": "corr-456-def",
+        "status": "QUEUED",
+        "task_type": "python",
+        "created_at": "2026-01-01T00:00:00Z"
+    }
+
+    Error (403 off_by_policy):
+    {
+        "error": "off_by_policy",
+        "reason": "spawner window not open",
+        "hint": "POST /vx11/window/open {\"target\":\"spawner\", \"ttl_seconds\":300}"
+    }
+
+    Token: X-VX11-Token header (required if settings.enable_auth)
+    """
+    try:
+        correlation_id = req.correlation_id or str(uuid.uuid4())
+        window_manager = get_window_manager()
+
+        # Check if spawner window is open
+        window_status = window_manager.get_window_status("spawner")
+        if not window_status.get("is_open", False):
+            write_log(
+                "tentaculo_link",
+                f"spawn:off_by_policy:spawner_not_open:{correlation_id}",
+                level="WARNING",
+            )
+            return JSONResponse(
+                status_code=403,
+                content={
+                    "error": "off_by_policy",
+                    "reason": "spawner window not open (SOLO_MADRE policy)",
+                    "hint": 'POST /vx11/window/open {"target":"spawner", "ttl_seconds":300}',
+                    "correlation_id": correlation_id,
+                },
+            )
+
+        # Route to spawner service
+        spawn_id = f"spawn-{str(uuid.uuid4())[:8]}"
+
+        # Queue task (in production: call spawner service)
+        # For now: simple submission
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            try:
+                spawner_url = os.environ.get("SPAWNER_URL", "http://spawner:8008")
+                resp = await client.post(
+                    f"{spawner_url}/spawner/submit",
+                    json={
+                        "spawn_id": spawn_id,
+                        "task_type": req.task_type,
+                        "code": req.code,
+                        "max_retries": req.max_retries,
+                        "ttl_seconds": req.ttl_seconds,
+                        "user_id": req.user_id,
+                        "metadata": req.metadata or {},
+                        "correlation_id": correlation_id,
+                    },
+                    headers=AUTH_HEADERS,
+                    timeout=10.0,
+                )
+
+                if resp.status_code == 202 or resp.status_code == 200:
+                    write_log(
+                        "tentaculo_link",
+                        f"spawn:queued:spawn_id={spawn_id}:correlation_id={correlation_id}",
+                        level="INFO",
+                    )
+
+                    return SpawnResponse(
+                        spawn_id=spawn_id,
+                        correlation_id=correlation_id,
+                        status=StatusEnum.QUEUED,
+                        task_type=req.task_type,
+                        created_at=datetime.utcnow(),
+                    )
+                else:
+                    raise Exception(f"spawner returned {resp.status_code}")
+
+            except (httpx.ConnectError, httpx.TimeoutException):
+                write_log(
+                    "tentaculo_link",
+                    f"spawn:spawner_unavailable:correlation_id={correlation_id}",
+                    level="ERROR",
+                )
+                return JSONResponse(
+                    status_code=503,
+                    content={
+                        "error": "spawner_unavailable",
+                        "reason": "Spawner service not responding",
+                        "correlation_id": correlation_id,
+                    },
+                )
+
+    except Exception as e:
+        correlation_id = req.correlation_id or str(uuid.uuid4())
+        write_log("tentaculo_link", f"spawn:exception:{str(e)[:100]}:{correlation_id}")
         return JSONResponse(
             status_code=500,
             content={
