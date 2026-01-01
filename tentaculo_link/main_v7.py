@@ -489,8 +489,10 @@ async def core_intent(
     INVARIANT:
     - Single entrypoint (localhost:8000)
     - Generates correlation_id if missing
-    - If require.switch=true AND solo_madre policy: returns ERROR off_by_policy
-    - If require.spawner=true AND solo_madre policy: returns ERROR off_by_policy
+    - PHASE 4: If require.switch=true AND window OPEN → route to switch
+    - PHASE 4: If require.switch=true AND window CLOSED → ERROR off_by_policy
+    - PHASE 4: If require.spawner=true AND window OPEN → route to spawner
+    - PHASE 4: If require.spawner=true AND window CLOSED → ERROR off_by_policy
     - Otherwise: executes via madre, returns DONE or ERROR
 
     Token: X-VX11-Token header (required if settings.enable_auth)
@@ -498,42 +500,54 @@ async def core_intent(
     try:
         # Normalize intent
         correlation_id = req.correlation_id or str(uuid.uuid4())
+        window_manager = get_window_manager()
 
-        # PHASE 2: Validate policy for switch and spawner (both OFF by SOLO_MADRE default)
+        # PHASE 4: Check window status for required services
         if req.require.get("switch", False):
-            # CORE MVP is SOLO_MADRE: switch is never available without window
-            write_log(
-                "tentaculo_link", f"core_intent:off_by_policy:switch:{correlation_id}"
-            )
-            return CoreIntentResponse(
-                correlation_id=correlation_id,
-                status=StatusEnum.ERROR,
-                mode=ModeEnum.FALLBACK,
-                error="off_by_policy",
-                response={
-                    "reason": "switch required but SOLO_MADRE policy active (no window open)",
-                    "policy": "SOLO_MADRE",
-                    "required_service": "switch",
-                },
-            )
+            # Check if switch window is open
+            window_status = window_manager.get_window_status("switch")
+            is_switch_open = window_status.get("is_open", False)
+            
+            if not is_switch_open:
+                # Window not open → off_by_policy error
+                write_log(
+                    "tentaculo_link", f"core_intent:off_by_policy:switch:{correlation_id}"
+                )
+                return CoreIntentResponse(
+                    correlation_id=correlation_id,
+                    status=StatusEnum.ERROR,
+                    mode=ModeEnum.FALLBACK,
+                    error="off_by_policy",
+                    response={
+                        "reason": "switch required but window not open (SOLO_MADRE policy)",
+                        "policy": "SOLO_MADRE",
+                        "required_service": "switch",
+                        "hint": "POST /vx11/window/open to enable access",
+                    },
+                )
 
-        # PHASE 2: Also check spawner
+        # PHASE 4: Check spawner window
         if req.require.get("spawner", False):
-            # CORE MVP is SOLO_MADRE: spawner is never available without window
-            write_log(
-                "tentaculo_link", f"core_intent:off_by_policy:spawner:{correlation_id}"
-            )
-            return CoreIntentResponse(
-                correlation_id=correlation_id,
-                status=StatusEnum.ERROR,
-                mode=ModeEnum.FALLBACK,
-                error="off_by_policy",
-                response={
-                    "reason": "spawner required but SOLO_MADRE policy active (no window open)",
-                    "policy": "SOLO_MADRE",
-                    "required_service": "spawner",
-                },
-            )
+            window_status = window_manager.get_window_status("spawner")
+            is_spawner_open = window_status.get("is_open", False)
+            
+            if not is_spawner_open:
+                # Window not open → off_by_policy error
+                write_log(
+                    "tentaculo_link", f"core_intent:off_by_policy:spawner:{correlation_id}"
+                )
+                return CoreIntentResponse(
+                    correlation_id=correlation_id,
+                    status=StatusEnum.ERROR,
+                    mode=ModeEnum.FALLBACK,
+                    error="off_by_policy",
+                    response={
+                        "reason": "spawner required but window not open (SOLO_MADRE policy)",
+                        "policy": "SOLO_MADRE",
+                        "required_service": "spawner",
+                        "hint": "POST /vx11/window/open to enable access",
+                    },
+                )
 
         # Route to madre for execution
         async with httpx.AsyncClient(timeout=30.0) as client:
