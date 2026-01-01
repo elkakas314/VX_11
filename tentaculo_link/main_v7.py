@@ -520,7 +520,7 @@ async def core_intent(
                 )
                 return CoreIntentResponse(
                     correlation_id=correlation_id,
-                    status="ERROR",
+                    status=StatusEnum.ERROR,
                     mode=ModeEnum.FALLBACK,
                     error="off_by_policy",
                     response={
@@ -544,7 +544,7 @@ async def core_intent(
                 )
                 return CoreIntentResponse(
                     correlation_id=correlation_id,
-                    status="ERROR",
+                    status=StatusEnum.ERROR,
                     mode=ModeEnum.FALLBACK,
                     error="off_by_policy",
                     response={
@@ -595,7 +595,7 @@ async def core_intent(
                     )
                     return CoreIntentResponse(
                         correlation_id=correlation_id,
-                        status="ERROR",
+                        status=StatusEnum.ERROR,
                         mode=ModeEnum.FALLBACK,
                         error="upstream_unavailable",
                         response={"upstream_status": resp.status_code},
@@ -604,7 +604,7 @@ async def core_intent(
                 write_log("tentaculo_link", f"core_intent:timeout:{correlation_id}")
                 return CoreIntentResponse(
                     correlation_id=correlation_id,
-                    status="ERROR",
+                    status=StatusEnum.ERROR,
                     mode=ModeEnum.FALLBACK,
                     error="upstream_unavailable",
                     response={"reason": "madre timeout"},
@@ -615,7 +615,7 @@ async def core_intent(
                 )
                 return CoreIntentResponse(
                     correlation_id=correlation_id,
-                    status="ERROR",
+                    status=StatusEnum.ERROR,
                     mode=ModeEnum.FALLBACK,
                     error="upstream_unavailable",
                     response={"reason": str(e)},
@@ -629,15 +629,15 @@ async def core_intent(
         )
         return CoreIntentResponse(
             correlation_id=correlation_id,
-            status="ERROR",
+            status=StatusEnum.ERROR,
             mode=ModeEnum.FALLBACK,
             error="internal_error",
             response={"reason": str(outer_e)},
         )
 
 
-@app.get("/vx11/result/{result_id}", response_model=Union[CoreResultQuery, SpawnResult])
-async def vx11_result(
+@app.get("/vx11/result/{result_id}")
+async def vx11_result_NEW_HANDLER_2025(
     result_id: str,
     _: bool = Depends(token_guard),
 ):
@@ -653,8 +653,11 @@ async def vx11_result(
     - For UUID/correlation_id: CoreResultQuery from madre
     """
     try:
+        write_log("tentaculo_link", f"result:handler_called:result_id={result_id}")
+
         # SPAWN PATH: resolve from BD
         if result_id.startswith("spawn-"):
+            write_log("tentaculo_link", f"result:spawn_path:{result_id}")
             import sqlite3
             from pathlib import Path
 
@@ -670,16 +673,16 @@ async def vx11_result(
 
             # Try exact name match first (preferred)
             cursor.execute(
-                "SELECT uuid, name, status, exit_code, stdout, stderr, created_at, started_at, ended_at, ttl_seconds FROM spawns WHERE name = ?",
+                "SELECT uuid, name, status, exit_code, stdout, stderr, created_at, started_at, ended_at FROM spawns WHERE name = ?",
                 (result_id,),
             )
             row = cursor.fetchone()
 
             # Fallback: prefix match on uuid (strip 'spawn-')
             if not row:
-                prefix = result_id[len("spawn-"):]
+                prefix = result_id[len("spawn-") :]
                 cursor.execute(
-                    "SELECT uuid, name, status, exit_code, stdout, stderr, created_at, started_at, ended_at, ttl_seconds FROM spawns WHERE uuid LIKE ?",
+                    "SELECT uuid, name, status, exit_code, stdout, stderr, created_at, started_at, ended_at FROM spawns WHERE uuid LIKE ?",
                     (f"{prefix}%",),
                 )
                 rows = cursor.fetchall()
@@ -721,7 +724,7 @@ async def vx11_result(
                 created_at=row["created_at"],
                 started_at=row["started_at"],
                 finished_at=row["ended_at"],
-                ttl_seconds=row["ttl_seconds"] or 300,
+                ttl_seconds=300,
             )
 
         # CORRELATION_ID PATH: proxy to madre
@@ -752,7 +755,7 @@ async def vx11_result(
                     write_log("tentaculo_link", f"result:not_found:{result_id}")
                     return CoreResultQuery(
                         correlation_id=result_id,
-                        status="ERROR",
+                        status=StatusEnum.ERROR,
                         error="not_found",
                     )
                 else:
@@ -762,7 +765,7 @@ async def vx11_result(
                     )
                     return CoreResultQuery(
                         correlation_id=result_id,
-                        status="ERROR",
+                        status=StatusEnum.ERROR,
                         error="upstream_error",
                     )
 
@@ -772,14 +775,14 @@ async def vx11_result(
         write_log("tentaculo_link", f"result:timeout:{result_id}")
         return CoreResultQuery(
             correlation_id=result_id,
-            status="ERROR",
+            status=StatusEnum.ERROR,
             error="upstream_timeout",
         )
     except Exception as e:
-        write_log("tentaculo_link", f"result:exception:{result_id}:{str(e)}")
+        write_log("tentaculo_link", f"result:exception:{result_id}:{type(e).__name__}:{str(e)}")
         return CoreResultQuery(
             correlation_id=result_id,
-            status="ERROR",
+            status=StatusEnum.ERROR,
             error="internal_error",
         )
 
@@ -1033,7 +1036,7 @@ async def vx11_window_close(
 
 @app.get("/vx11/window/status/{target}")
 async def vx11_window_status(
-    target: str,
+    target: WindowTarget,
     _: bool = Depends(token_guard),
 ):
     """
@@ -1059,12 +1062,15 @@ async def vx11_window_status(
         correlation_id = str(uuid.uuid4())
         window_manager = get_window_manager()
 
+        # Normalize target to string to avoid cross-module enum type mismatch
+        target_str = target.value if isinstance(target, WindowTarget) else target
+
         # Get window status (auto-closes if expired)
-        window_status = window_manager.get_window_status(target)
+        window_status = window_manager.get_window_status(target_str)
 
         write_log(
             "tentaculo_link",
-            f"window_status:target={target}:is_open={window_status.get('is_open')}:correlation_id={correlation_id}",
+            f"window_status:target={target_str}:is_open={window_status.get('is_open')}:correlation_id={correlation_id}",
             level="DEBUG",
         )
 
