@@ -636,71 +636,149 @@ async def core_intent(
         )
 
 
-@app.get("/vx11/result/{correlation_id}", response_model=CoreResultQuery)
-async def core_result(
-    correlation_id: str,
+@app.get("/vx11/result/{result_id}", response_model=Union[CoreResultQuery, SpawnResult])
+async def vx11_result(
+    result_id: str,
     _: bool = Depends(token_guard),
 ):
     """
-    GET /vx11/result/{correlation_id}: Query execution result.
+    GET /vx11/result/{result_id}: Query execution result.
 
     INVARIANT:
-    - Proxy to madre for result retrieval
-    - Returns QUEUED/RUNNING/DONE/ERROR status
-    - Tokens same as /vx11/intent
+    - If result_id starts with 'spawn-' → resolve from spawns table (real spawn result)
+    - Otherwise → proxy to madre for correlation_id lookup
+
+    Returns:
+    - For spawn-* IDs: SpawnResult with status, exit_code, stdout, stderr
+    - For UUID/correlation_id: CoreResultQuery from madre
     """
     try:
-        async with httpx.AsyncClient(timeout=15.0) as client:
-            resp = await client.get(
-                f"http://madre:8001/vx11/result/{correlation_id}",
-                headers=AUTH_HEADERS,
-                timeout=15.0,
+        # SPAWN PATH: resolve from BD
+        if result_id.startswith("spawn-"):
+            import sqlite3
+            from pathlib import Path
+
+            db_path = Path(os.environ.get("DATABASE_PATH", "data/runtime/vx11.db"))
+            if not db_path.exists():
+                raise HTTPException(
+                    status_code=404, detail="Spawn not found (DB unavailable)"
+                )
+
+            conn = sqlite3.connect(str(db_path))
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+
+            # Try exact name match first (preferred)
+            cursor.execute(
+                "SELECT uuid, name, status, exit_code, stdout, stderr, created_at, started_at, ended_at, ttl_seconds FROM spawns WHERE name = ?",
+                (result_id,),
+            )
+            row = cursor.fetchone()
+
+            # Fallback: prefix match on uuid (strip 'spawn-')
+            if not row:
+                prefix = result_id[len("spawn-"):]
+                cursor.execute(
+                    "SELECT uuid, name, status, exit_code, stdout, stderr, created_at, started_at, ended_at, ttl_seconds FROM spawns WHERE uuid LIKE ?",
+                    (f"{prefix}%",),
+                )
+                rows = cursor.fetchall()
+                if len(rows) > 1:
+                    conn.close()
+                    raise HTTPException(
+                        status_code=400, detail="Ambiguous spawn_id (multiple matches)"
+                    )
+                row = rows[0] if rows else None
+
+            conn.close()
+            if not row:
+                raise HTTPException(status_code=404, detail="Spawn not found")
+
+            # Map spawner status to API status
+            status_map = {
+                "pending": "QUEUED",
+                "queued": "QUEUED",
+                "running": "RUNNING",
+                "completed": "DONE",
+                "done": "DONE",
+                "failed": "ERROR",
+                "error": "ERROR",
+                "timeout": "ERROR",
+            }
+
+            write_log(
+                "tentaculo_link",
+                f"result:spawn_resolved:{result_id}:uuid={row['uuid']}:status={row['status']}",
             )
 
-            if resp.status_code == 200:
-                result = resp.json()
-                write_log("tentaculo_link", f"core_result:found:{correlation_id}")
-                return CoreResultQuery(
-                    correlation_id=correlation_id,
-                    status=StatusEnum(result.get("status", "QUEUED")),
-                    result=result.get("result"),
-                    error=result.get("error"),
-                    mode=(
-                        ModeEnum(result.get("mode", "MADRE"))
-                        if result.get("mode")
-                        else None
-                    ),
-                    provider=result.get("provider"),
-                )
-            elif resp.status_code == 404:
-                write_log("tentaculo_link", f"core_result:not_found:{correlation_id}")
-                return CoreResultQuery(
-                    correlation_id=correlation_id,
-                    status="ERROR",
-                    error="not_found",
-                )
-            else:
-                write_log(
-                    "tentaculo_link",
-                    f"core_result:upstream_error:{correlation_id}:{resp.status_code}",
-                )
-                return CoreResultQuery(
-                    correlation_id=correlation_id,
-                    status="ERROR",
-                    error="upstream_error",
+            return SpawnResult(
+                spawn_uuid=row["uuid"],
+                spawn_id=row["name"] or result_id,
+                status=status_map.get((row["status"] or "").lower(), "unknown"),
+                exit_code=row["exit_code"],
+                stdout=row["stdout"],
+                stderr=row["stderr"],
+                created_at=row["created_at"],
+                started_at=row["started_at"],
+                finished_at=row["ended_at"],
+                ttl_seconds=row["ttl_seconds"] or 300,
+            )
+
+        # CORRELATION_ID PATH: proxy to madre
+        else:
+            async with httpx.AsyncClient(timeout=15.0) as client:
+                resp = await client.get(
+                    f"http://madre:8001/vx11/result/{result_id}",
+                    headers=AUTH_HEADERS,
+                    timeout=15.0,
                 )
 
+                if resp.status_code == 200:
+                    result = resp.json()
+                    write_log("tentaculo_link", f"result:correlation_found:{result_id}")
+                    return CoreResultQuery(
+                        correlation_id=result_id,
+                        status=StatusEnum(result.get("status", "QUEUED")),
+                        result=result.get("result"),
+                        error=result.get("error"),
+                        mode=(
+                            ModeEnum(result.get("mode", "MADRE"))
+                            if result.get("mode")
+                            else None
+                        ),
+                        provider=result.get("provider"),
+                    )
+                elif resp.status_code == 404:
+                    write_log("tentaculo_link", f"result:not_found:{result_id}")
+                    return CoreResultQuery(
+                        correlation_id=result_id,
+                        status="ERROR",
+                        error="not_found",
+                    )
+                else:
+                    write_log(
+                        "tentaculo_link",
+                        f"result:upstream_error:{result_id}:{resp.status_code}",
+                    )
+                    return CoreResultQuery(
+                        correlation_id=result_id,
+                        status="ERROR",
+                        error="upstream_error",
+                    )
+
+    except HTTPException:
+        raise
     except httpx.TimeoutException:
-        write_log("tentaculo_link", f"core_result:timeout:{correlation_id}")
+        write_log("tentaculo_link", f"result:timeout:{result_id}")
         return CoreResultQuery(
-            correlation_id=correlation_id,
+            correlation_id=result_id,
             status="ERROR",
             error="upstream_timeout",
         )
     except Exception as e:
-        write_log("tentaculo_link", f"core_result:exception:{correlation_id}:{str(e)}")
+        write_log("tentaculo_link", f"result:exception:{result_id}:{str(e)}")
         return CoreResultQuery(
-            correlation_id=correlation_id,
+            correlation_id=result_id,
             status="ERROR",
             error="internal_error",
         )
@@ -1071,7 +1149,8 @@ async def vx11_spawn(
             )
 
         # Route to spawner service
-        spawn_id = f"spawn-{str(uuid.uuid4())[:8]}"
+        # NOTE: spawn_id will be derived from spawn_uuid (returned by spawner)
+        # to ensure /vx11/result is always resoluble in BD
 
         # Queue task (in production: call spawner service)
         # For now: simple submission
@@ -1095,6 +1174,8 @@ async def vx11_spawn(
                 if resp.status_code == 202 or resp.status_code == 200:
                     spawner_response = resp.json()
                     spawn_uuid = spawner_response.get("spawn_uuid", "")
+                    # STABLE spawn_id derived from real spawn_uuid
+                    spawn_id = f"spawn-{spawn_uuid[:8]}" if spawn_uuid else ""
 
                     write_log(
                         "tentaculo_link",
@@ -1139,84 +1220,6 @@ async def vx11_spawn(
             task_type=req.task_type or "unknown",
             error="internal_error",
         )
-
-
-# ============ RESULT RETRIEVAL ENDPOINT (PHASE 6) ============
-
-
-@app.get("/vx11/result/{spawn_id_or_uuid}", response_model=SpawnResult)
-async def vx11_result(
-    spawn_id_or_uuid: str,
-    _: bool = Depends(token_guard),
-):
-    """
-    Retrieve result of a spawned task by spawn_uuid or spawn_id prefix.
-
-    Parameters:
-    - spawn_id_or_uuid: Full UUID or prefix like "spawn-XXXXXXXX"
-
-    Returns: SpawnResult with status, exit_code, stdout, stderr (when available)
-
-    HTTP 404: Not found
-    HTTP 200: Result (even if still QUEUED/RUNNING)
-    """
-    try:
-        import sqlite3
-        from pathlib import Path
-
-        db_path = Path(os.environ.get("DATABASE_PATH", "data/runtime/vx11.db"))
-        if not db_path.exists():
-            raise HTTPException(
-                status_code=404, detail="Spawn not found (DB unavailable)"
-            )
-
-        conn = sqlite3.connect(str(db_path))
-        conn.row_factory = sqlite3.Row
-        cursor = conn.cursor()
-
-        # Try exact UUID match first
-        cursor.execute(
-            "SELECT uuid, name, status, exit_code, stdout, stderr, created_at, started_at, ended_at, ttl_seconds FROM spawns WHERE uuid = ?",
-            (spawn_id_or_uuid,),
-        )
-        row = cursor.fetchone()
-
-        # If not found, try prefix match (for spawn_id like "spawn-XXXXXXXX")
-        if not row and spawn_id_or_uuid.startswith("spawn-"):
-            cursor.execute(
-                "SELECT uuid, name, status, exit_code, stdout, stderr, created_at, started_at, ended_at, ttl_seconds FROM spawns WHERE uuid LIKE ?",
-                (f"{spawn_id_or_uuid}%",),
-            )
-            rows = cursor.fetchall()
-            if len(rows) > 1:
-                raise HTTPException(
-                    status_code=400, detail="Ambiguous spawn_id (multiple matches)"
-                )
-            row = rows[0] if rows else None
-
-        conn.close()
-
-        if not row:
-            raise HTTPException(status_code=404, detail="Spawn not found")
-
-        return SpawnResult(
-            spawn_uuid=row["uuid"],
-            spawn_id=spawn_id_or_uuid,
-            status=row["status"] or "unknown",
-            exit_code=row["exit_code"],
-            stdout=row["stdout"],
-            stderr=row["stderr"],
-            created_at=row["created_at"],
-            started_at=row["started_at"],
-            finished_at=row["ended_at"],
-            ttl_seconds=row["ttl_seconds"] or 300,
-        )
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        write_log("tentaculo_link", f"result:exception:{str(e)[:100]}", level="ERROR")
-        raise HTTPException(status_code=500, detail="Internal error")
 
 
 # ============ DB SUMMARY ENDPOINT (PHASE 6) ============
