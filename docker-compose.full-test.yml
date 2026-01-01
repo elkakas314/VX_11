@@ -251,6 +251,7 @@ services:
         - VX11_PROFILE=test
     image: vx11-hermes:test
     container_name: vx11-hermes-test
+    command: ["python3", "-m", "uvicorn", "switch.hermes.main:app", "--host", "0.0.0.0", "--port", "8003"]
     depends_on:
       tentaculo_link:
         condition: service_healthy
@@ -271,7 +272,7 @@ services:
       - ./switch/hermes:/app/hermes
       - ./data:/app/data
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8006/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
       interval: 10s
       timeout: 5s
       retries: 3
