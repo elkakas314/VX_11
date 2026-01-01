@@ -56,13 +56,13 @@ export function HormigueroView() {
 
             <div className="hormiguero-summary">
                 {Object.entries(summary).map(([severity, count]) => (
-                    <div key={severity} className="summary-card">
+                    <div key={severity} className="summary-card" style={{ '--bar-width': `${Math.min(100, count * 10)}%` } as React.CSSProperties}>
                         <span className={`severity-dot severity-${severity}`}></span>
                         <div className="summary-info">
                             <span className="summary-label">{severity}</span>
                             <span className="summary-count">{count}</span>
                         </div>
-                        <div className="summary-bar" style={{ width: `${Math.min(100, count * 10)}%` }}></div>
+                        <div className="summary-bar"></div>
                     </div>
                 ))}
             </div>
