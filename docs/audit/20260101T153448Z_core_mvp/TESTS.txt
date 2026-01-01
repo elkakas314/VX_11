@@ -1,0 +1,23 @@
+============================= test session starts ==============================
+platform linux -- Python 3.10.12, pytest-7.4.3, pluggy-1.6.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+rootdir: /home/elkakas314/vx11
+configfile: pytest.ini
+plugins: cov-7.0.0, asyncio-0.21.1, anyio-3.7.1
+asyncio: mode=auto
+collecting ... collected 12 items
+
+tests/test_core_mvp.py::test_vx11_intent_no_token PASSED                 [  8%]
+tests/test_core_mvp.py::test_vx11_intent_wrong_token PASSED              [ 16%]
+tests/test_core_mvp.py::test_vx11_intent_sync_execution PASSED           [ 25%]
+tests/test_core_mvp.py::test_vx11_intent_off_by_policy PASSED            [ 33%]
+tests/test_core_mvp.py::test_vx11_intent_spawner_path PASSED             [ 41%]
+tests/test_core_mvp.py::test_vx11_result_query PASSED                    [ 50%]
+tests/test_core_mvp.py::test_vx11_status_endpoint PASSED                 [ 58%]
+tests/test_core_mvp.py::test_health_endpoint PASSED                      [ 66%]
+tests/test_core_mvp.py::test_intent_response_contract PASSED             [ 75%]
+tests/test_core_mvp.py::test_error_response_format PASSED                [ 83%]
+tests/test_core_mvp.py::test_full_sync_flow PASSED                       [ 91%]
+tests/test_core_mvp.py::test_policy_enforcement_in_flow PASSED           [100%]
+
+======================== 12 passed, 1 warning in 5.61s =========================

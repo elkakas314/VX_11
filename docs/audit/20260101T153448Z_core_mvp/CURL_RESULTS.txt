@@ -1,0 +1,153 @@
+=== VX11 CORE MVP Test Suite ===
+Host: http://localhost:8000
+Token: vx11-test-token
+Timestamp: 2026-01-01T15:34:40Z
+
+--- CURL 1: GET /health ---
+{
+  "status": "ok",
+  "module": "tentaculo_link",
+  "version": "7.0"
+}
+
+--- CURL 2: GET /vx11/status ---
+{
+  "ok": true,
+  "status": "ok",
+  "module": "tentaculo_link",
+  "version": "7.0",
+  "timestamp": "2026-01-01T15:34:40.793110",
+  "ports": {
+    "tentaculo_link": 8000,
+    "gateway": 8000,
+    "madre": 8001,
+    "switch": 8002,
+    "hermes": 8003,
+    "hormiguero": 8004,
+    "mcp": 8006,
+    "shubniggurath": 8007,
+    "spawner": 8008,
+    "operator": 8011
+  },
+  "modules": {
+    "madre": {
+      "module": "madre",
+      "status": "ok",
+      "version": "7.0",
+      "time": "2026-01-01T15:34:40.791512",
+      "deps": {
+        "switch": "down",
+        "hormiguero": "down",
+        "spawner": "down"
+      }
+    },
+    "switch": {
+      "status": "ok",
+      "module": "switch",
+      "active_model": "general-7b",
+      "warm_model": "audio-engineering",
+      "queue_size": 0
+    },
+    "hermes": {
+      "status": "ok",
+      "module": "hermes",
+      "version": "minimal"
+    },
+    "hormiguero": {
+      "status": "service_offline",
+      "module": "hormiguero",
+      "error": "All connection attempts failed"
+    },
+    "spawner": {
+      "status": "service_offline",
+      "module": "spawner",
+      "error": "All connection attempts failed"
+    },
+    "mcp": {
+      "status": "service_offline",
+      "module": "mcp",
+      "error": "All connection attempts failed"
+    },
+    "shub": {
+      "status": "service_offline",
+      "module": "shub",
+      "error": "All connection attempts failed"
+    },
+    "operator-backend": {
+      "status": "ok",
+      "service": "operator_backend",
+      "version": "7.0",
+      "timestamp": "2026-01-01T15:34:40.751102+00:00",
+      "correlation_id": "822fc90f-0833-4301-b53e-2fe32c7a2341"
+    }
+  },
+  "summary": {
+    "healthy_modules": 4,
+    "total_modules": 8,
+    "all_healthy": false
+  }
+}
+
+--- CURL 3: POST /vx11/intent (require.switch=false) ---
+{
+  "correlation_id": "19049ea7-02ca-4fce-8efc-dfa3d3dc3050",
+  "status": "DONE",
+  "mode": "MADRE",
+  "provider": "fallback_local",
+  "response": {
+    "plan_id": "a1fbd2f4-8c43-4833-891e-08d6c89971b4",
+    "steps_executed": 1,
+    "result": "intent_processed",
+    "notes": "fallback_local execution"
+  },
+  "error": null,
+  "degraded": false,
+  "timestamp": "2026-01-01T15:34:40.821645"
+}
+correlation_id: 19049ea7-02ca-4fce-8efc-dfa3d3dc3050
+
+--- CURL 4: POST /vx11/intent (require.switch=true) ---
+{
+  "correlation_id": "94da7e0b-c607-434f-8c3f-1d823313aed9",
+  "status": "ERROR",
+  "mode": "FALLBACK",
+  "provider": null,
+  "response": {
+    "reason": "switch required but SOLO_MADRE policy active",
+    "policy": "SOLO_MADRE"
+  },
+  "error": "off_by_policy",
+  "degraded": false,
+  "timestamp": "2026-01-01T15:34:40.891882"
+}
+
+--- CURL 5: POST /vx11/intent (require.spawner=true) ---
+{
+  "correlation_id": "1a251e05-d181-4e10-be50-352e08f38412",
+  "status": "QUEUED",
+  "mode": "SPAWNER",
+  "provider": "spawner",
+  "response": {
+    "task_id": "a821f10c-3130-44e3-a2de-6cd6a8be3549"
+  },
+  "error": null,
+  "degraded": false,
+  "timestamp": "2026-01-01T15:34:40.949794"
+}
+correlation_id: 1a251e05-d181-4e10-be50-352e08f38412
+
+--- CURL 6: GET /vx11/result/1a251e05-d181-4e10-be50-352e08f38412 ---
+{
+  "correlation_id": "1a251e05-d181-4e10-be50-352e08f38412",
+  "status": "DONE",
+  "result": {
+    "note": "synchronous execution completed"
+  },
+  "error": null,
+  "mode": "MADRE",
+  "provider": "fallback_local",
+  "timestamp": "2026-01-01T15:34:41.037137"
+}
+
+=== Test Suite Complete ===
+Results logged to: core_mvp_test_results.log
