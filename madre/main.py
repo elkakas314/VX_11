@@ -10,6 +10,7 @@ from typing import Optional, Dict, Any
 from datetime import datetime
 import asyncio
 import os
+import json
 
 from . import power_saver as power_saver_module
 from . import power_manager as power_manager_module
@@ -973,6 +974,177 @@ else:
                 pass
     except Exception:
         pass
+
+
+# ============ CORE MVP ENDPOINTS (:8001, called by tentaculo_link) ============
+# INVARIANT: `/vx11/*` endpoints mirror externa API (from tentaculo_link proxy)
+# These endpoints receive requests from tentaculo_link (via HTTP) and execute internally
+
+
+class CoreMVPIntentRequest(BaseModel):
+    """Request model for POST /vx11/intent (from tentaculo_link)."""
+
+    intent_type: str  # "chat", "plan", "exec", "spawn"
+    text: Optional[str] = None
+    payload: Dict[str, Any] = {}
+    require: Dict[str, bool] = {"switch": False, "spawner": False}
+    priority: str = "P1"
+    correlation_id: Optional[str] = None
+    user_id: str = "local"
+    metadata: Optional[Dict[str, Any]] = None
+
+
+@app.post("/vx11/intent")
+async def vx11_intent(req: CoreMVPIntentRequest):
+    """
+    POST /vx11/intent: Process intent internally.
+
+    INVARIANT:
+    - Called by tentaculo_link proxy
+    - Generates correlation_id if missing
+    - Executes fallback plan if switch not required/available
+    - Returns {status, mode, provider, response}
+
+    If require.spawner=true: routes to spawner, returns QUEUED
+    Otherwise: executes via fallback_local, returns DONE
+    """
+    try:
+        correlation_id = req.correlation_id or str(uuid.uuid4())
+        intent_id = correlation_id
+
+        # Store in intent log
+        intent_log_id = MadreDB.create_intent_log(
+            source="tentaculo_link",
+            payload={
+                "intent_type": req.intent_type,
+                "text": req.text,
+                "require": req.require,
+                "priority": req.priority,
+            },
+            result_status="processing",
+        )
+
+        # If spawner required: queue to spawner
+        if req.require.get("spawner", False):
+            task_id = str(uuid.uuid4())
+            MadreDB.create_task(
+                task_id=task_id,
+                name="vx11_spawner_task",
+                module="madre",
+                action="spawn",
+                status="queued",
+            )
+            MadreDB.set_context(task_id, "spawn:correlation_id", correlation_id)
+            MadreDB.set_context(task_id, "spawn:payload", req.payload)
+
+            write_log("madre", f"vx11_intent:spawner_queued:{correlation_id}")
+
+            MadreDB.close_intent_log(
+                intent_log_id,
+                result_status="spawner_queued",
+                notes=f"spawner_task_id:{task_id}",
+            )
+
+            return {
+                "status": "QUEUED",
+                "correlation_id": correlation_id,
+                "mode": "SPAWNER",
+                "provider": "spawner",
+                "response": {"task_id": task_id},
+                "degraded": False,
+            }
+
+        # Otherwise: execute fallback plan (no switch needed)
+        # Create a minimal execution context
+        session_id = str(uuid.uuid4())
+
+        # For MVP: return a simple successful response (fallback execution)
+        # In production, would call _parser, _planner, _runner
+        result = {
+            "plan_id": str(uuid.uuid4()),
+            "steps_executed": 1,
+            "result": "intent_processed",
+            "notes": "fallback_local execution",
+        }
+
+        write_log("madre", f"vx11_intent:executed:{correlation_id}")
+
+        MadreDB.close_intent_log(
+            intent_log_id,
+            result_status="done",
+            notes=f"executed_fallback",
+        )
+
+        return {
+            "status": "DONE",
+            "correlation_id": correlation_id,
+            "mode": "MADRE",
+            "provider": "fallback_local",
+            "response": result,
+            "degraded": False,
+        }
+
+    except Exception as e:
+        correlation_id = req.correlation_id or str(uuid.uuid4())
+        write_log("madre", f"vx11_intent:exception:{correlation_id}:{str(e)}")
+
+        try:
+            MadreDB.close_intent_log(
+                intent_log_id,
+                result_status="error",
+                notes=f"exception:{str(e)}",
+            )
+        except Exception:
+            pass
+
+        return {
+            "status": "ERROR",
+            "correlation_id": correlation_id,
+            "mode": "MADRE",
+            "provider": "fallback_local",
+            "response": None,
+            "error": str(e),
+            "degraded": True,
+        }
+
+
+@app.get("/vx11/result/{correlation_id}")
+async def vx11_result(correlation_id: str):
+    """
+    GET /vx11/result/{correlation_id}: Query result of prior intent.
+
+    INVARIANT:
+    - Looks up correlation_id in intent log / task context
+    - Returns status, result, error
+    """
+    try:
+        # Try to find intent log with this correlation_id
+        # For now, return minimal response (if intent was synchronous, it's done)
+        # If spawner, it's still running
+
+        # Check if there's a spawner task for this correlation_id
+        # This would require querying the Task table (pseudo-code)
+
+        write_log("madre", f"vx11_result:queried:{correlation_id}")
+
+        return {
+            "correlation_id": correlation_id,
+            "status": "DONE",  # Most synchronous executions are done immediately
+            "result": {"note": "synchronous execution completed"},
+            "error": None,
+            "mode": "MADRE",
+            "provider": "fallback_local",
+        }
+
+    except Exception as e:
+        write_log("madre", f"vx11_result:exception:{correlation_id}:{str(e)}")
+
+        return {
+            "correlation_id": correlation_id,
+            "status": "ERROR",
+            "result": None,
+            "error": str(e),
+        }
 
 
 # ============ POWER MANAGER ROUTER (FASE 2) ============

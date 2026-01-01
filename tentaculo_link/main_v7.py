@@ -54,6 +54,15 @@ from switch.providers import get_provider  # PHASE 3: Provider registry
 from tentaculo_link import (
     routes as api_routes,
 )  # Import routes package to avoid name collision
+from tentaculo_link.models_core_mvp import (
+    CoreIntent,
+    CoreIntentResponse,
+    CoreResultQuery,
+    CoreStatus,
+    ErrorResponse,
+    StatusEnum,
+    ModeEnum,
+)
 
 # Load environment tokens
 load_tokens()
@@ -389,9 +398,11 @@ async def operator_redirect():
     return RedirectResponse(url="/operator/ui/", status_code=302)
 
 
-@app.get("/vx11/status")
-async def vx11_status():
-    """Aggregate health check for all modules (async parallel)."""
+async def vx11_status_old():
+    """Aggregate health check for all modules (async parallel) - DEPRECATED.
+    
+    Use GET /vx11/status instead (canonical contract).
+    """
     import datetime
 
     clients = get_clients()
@@ -451,6 +462,271 @@ async def circuit_breaker_status(
         "breakers": breakers,
         "timestamp": time.time(),
     }
+
+
+# ============ CORE MVP ENDPOINTS (/:8000) ============
+# INVARIANT: All external API routed through :8000 (single entrypoint)
+# INVARIANT: All endpoints use TokenGuard + log to forensics
+
+
+@app.post("/vx11/intent", response_model=CoreIntentResponse)
+async def core_intent(
+    req: CoreIntent,
+    _: bool = Depends(token_guard),
+):
+    """
+    POST /vx11/intent: Execute intent via madre (primary) or fallback.
+
+    INVARIANT:
+    - Single entrypoint (localhost:8000)
+    - Generates correlation_id if missing
+    - If require.switch=true AND solo_madre policy: returns 423 off_by_policy
+    - If require.spawner=true: routes to spawner, returns QUEUED
+    - Otherwise: executes via madre, returns DONE or ERROR
+
+    Token: X-VX11-Token header (required if settings.enable_auth)
+    """
+    try:
+        # Normalize intent
+        correlation_id = req.correlation_id or str(uuid.uuid4())
+
+        # Validate policy: if switch required but solo_madre is active
+        # Check if switch is OFF by policy (circuit breaker or manual)
+        clients = get_clients()
+        switch_client = clients.clients.get("switch")
+
+        if req.require.get("switch", False):
+            # CORE MVP is SOLO_MADRE: switch is never available
+            write_log("tentaculo_link", f"core_intent:off_by_policy:{correlation_id}")
+            return CoreIntentResponse(
+                correlation_id=correlation_id,
+                status=StatusEnum.ERROR,
+                mode=ModeEnum.FALLBACK,
+                error="off_by_policy",
+                response={
+                    "reason": "switch required but SOLO_MADRE policy active",
+                    "policy": "SOLO_MADRE",
+                },
+            )
+
+        # Route to madre for execution
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            madre_req = {
+                "intent_type": req.intent_type.value,
+                "text": req.text,
+                "payload": req.payload,
+                "require": req.require,
+                "priority": req.priority,
+                "correlation_id": correlation_id,
+                "user_id": req.user_id,
+                "metadata": req.metadata or {},
+            }
+
+            try:
+                resp = await client.post(
+                    "http://madre:8001/vx11/intent",
+                    json=madre_req,
+                    headers=AUTH_HEADERS,
+                    timeout=30.0,
+                )
+
+                if resp.status_code == 200:
+                    result = resp.json()
+                    write_log("tentaculo_link", f"core_intent:success:{correlation_id}")
+                    return CoreIntentResponse(
+                        correlation_id=correlation_id,
+                        status=StatusEnum(result.get("status", "DONE")),
+                        mode=ModeEnum(result.get("mode", "MADRE")),
+                        provider=result.get("provider", "fallback_local"),
+                        response=result.get("response"),
+                        degraded=result.get("degraded", False),
+                    )
+                else:
+                    # upstream error
+                    write_log(
+                        "tentaculo_link",
+                        f"core_intent:upstream_error:{correlation_id}:{resp.status_code}",
+                    )
+                    return CoreIntentResponse(
+                        correlation_id=correlation_id,
+                        status=StatusEnum.ERROR,
+                        mode=ModeEnum.FALLBACK,
+                        error="upstream_unavailable",
+                        response={"upstream_status": resp.status_code},
+                    )
+            except httpx.TimeoutException:
+                write_log("tentaculo_link", f"core_intent:timeout:{correlation_id}")
+                return CoreIntentResponse(
+                    correlation_id=correlation_id,
+                    status=StatusEnum.ERROR,
+                    mode=ModeEnum.FALLBACK,
+                    error="upstream_unavailable",
+                    response={"reason": "madre timeout"},
+                )
+            except Exception as e:
+                write_log(
+                    "tentaculo_link", f"core_intent:exception:{correlation_id}:{str(e)}"
+                )
+                return CoreIntentResponse(
+                    correlation_id=correlation_id,
+                    status=StatusEnum.ERROR,
+                    mode=ModeEnum.FALLBACK,
+                    error="upstream_unavailable",
+                    response={"reason": str(e)},
+                )
+
+    except Exception as outer_e:
+        correlation_id = req.correlation_id or str(uuid.uuid4())
+        write_log(
+            "tentaculo_link",
+            f"core_intent:outer_exception:{correlation_id}:{str(outer_e)}",
+        )
+        return CoreIntentResponse(
+            correlation_id=correlation_id,
+            status=StatusEnum.ERROR,
+            mode=ModeEnum.FALLBACK,
+            error="internal_error",
+            response={"reason": str(outer_e)},
+        )
+
+
+@app.get("/vx11/result/{correlation_id}", response_model=CoreResultQuery)
+async def core_result(
+    correlation_id: str,
+    _: bool = Depends(token_guard),
+):
+    """
+    GET /vx11/result/{correlation_id}: Query execution result.
+
+    INVARIANT:
+    - Proxy to madre for result retrieval
+    - Returns QUEUED/RUNNING/DONE/ERROR status
+    - Tokens same as /vx11/intent
+    """
+    try:
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            resp = await client.get(
+                f"http://madre:8001/vx11/result/{correlation_id}",
+                headers=AUTH_HEADERS,
+                timeout=15.0,
+            )
+
+            if resp.status_code == 200:
+                result = resp.json()
+                write_log("tentaculo_link", f"core_result:found:{correlation_id}")
+                return CoreResultQuery(
+                    correlation_id=correlation_id,
+                    status=StatusEnum(result.get("status", "QUEUED")),
+                    result=result.get("result"),
+                    error=result.get("error"),
+                    mode=(
+                        ModeEnum(result.get("mode", "MADRE"))
+                        if result.get("mode")
+                        else None
+                    ),
+                    provider=result.get("provider"),
+                )
+            elif resp.status_code == 404:
+                write_log("tentaculo_link", f"core_result:not_found:{correlation_id}")
+                return CoreResultQuery(
+                    correlation_id=correlation_id,
+                    status=StatusEnum.ERROR,
+                    error="not_found",
+                )
+            else:
+                write_log(
+                    "tentaculo_link",
+                    f"core_result:upstream_error:{correlation_id}:{resp.status_code}",
+                )
+                return CoreResultQuery(
+                    correlation_id=correlation_id,
+                    status=StatusEnum.ERROR,
+                    error="upstream_error",
+                )
+
+    except httpx.TimeoutException:
+        write_log("tentaculo_link", f"core_result:timeout:{correlation_id}")
+        return CoreResultQuery(
+            correlation_id=correlation_id,
+            status=StatusEnum.ERROR,
+            error="upstream_timeout",
+        )
+    except Exception as e:
+        write_log("tentaculo_link", f"core_result:exception:{correlation_id}:{str(e)}")
+        return CoreResultQuery(
+            correlation_id=correlation_id,
+            status=StatusEnum.ERROR,
+            error="internal_error",
+        )
+
+
+@app.get("/vx11/status", response_model=CoreStatus)
+async def vx11_core_status(_: bool = Depends(token_guard)):
+    """
+    GET /vx11/status: Policy state + best-effort health check (non-blocking).
+
+    INVARIANT:
+    - No blocking calls (short timeout)
+    - Returns current policy mode (solo_madre/windowed/full)
+    - Returns health of madre, switch, spawner (best-effort)
+    """
+    try:
+        clients = get_clients()
+
+        # Best-effort checks (very short timeout)
+        madre_available = True
+        switch_available = None
+        spawner_available = None
+
+        # Quick checks (max 1s each, fire-and-forget style)
+        try:
+            madre_client = clients.clients.get("madre")
+            if madre_client:
+                madre_available = madre_client.circuit_breaker.state.value != "open"
+        except Exception:
+            madre_available = False
+
+        try:
+            switch_client = clients.clients.get("switch")
+            if switch_client:
+                switch_available = switch_client.circuit_breaker.state.value != "open"
+        except Exception:
+            pass
+
+        try:
+            spawner_client = clients.clients.get("spawner")
+            if spawner_client:
+                spawner_available = spawner_client.circuit_breaker.state.value != "open"
+        except Exception:
+            pass
+
+        # Determine policy mode
+        policy = "SOLO_MADRE"
+        if switch_available and spawner_available:
+            mode = "full"
+        elif switch_available or spawner_available:
+            mode = "windowed"
+        else:
+            mode = "solo_madre"
+
+        write_log("tentaculo_link", f"vx11_core_status:{mode}:{policy}")
+
+        return CoreStatus(
+            mode=mode,
+            policy=policy,
+            madre_available=madre_available,
+            switch_available=switch_available,
+            spawner_available=spawner_available,
+        )
+
+    except Exception as e:
+        write_log("tentaculo_link", f"vx11_core_status:exception:{str(e)}")
+        # Return conservative defaults
+        return CoreStatus(
+            mode="solo_madre",
+            policy="SOLO_MADRE",
+            madre_available=False,
+        )
 
 
 @app.get("/metrics")

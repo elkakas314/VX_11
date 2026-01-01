@@ -76,6 +76,11 @@ docs/audit/**
 !docs/audit/20260101T042401Z_core_wiring/*.sh
 !docs/audit/20260101T042401Z_core_wiring/*.txt
 !docs/audit/20260101T042401Z_core_wiring/*.log
+!docs/audit/20260101T153448Z_core_mvp/
+!docs/audit/20260101T153448Z_core_mvp/*.md
+!docs/audit/20260101T153448Z_core_mvp/*.sh
+!docs/audit/20260101T153448Z_core_mvp/*.txt
+!docs/audit/20260101T153448Z_core_mvp/*.log
 
 # Public audit artifacts allowed for remote sync
 !docs/audit/_public/**
