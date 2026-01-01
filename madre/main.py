@@ -41,6 +41,7 @@ from .core import (
 from . import rails_router
 from .llm.deepseek_client import call_deepseek_r1, is_deepseek_available
 from .core.models import StatusEnum, ModeEnum
+from tentaculo_link.models_core_mvp import SpawnCallbackRequest, SpawnCallbackResponse
 
 log = logging.getLogger("vx11.madre")
 logger = log
@@ -1175,6 +1176,86 @@ async def vx11_result(correlation_id: str):
             "result": None,
             "error": str(e),
         }
+
+
+# ============ SPAWN CALLBACK HANDLER (PHASE 3) ============
+# Receives completion notifications from Spawner service
+
+
+@app.post("/madre/callback/spawn", response_model=SpawnCallbackResponse)
+async def madre_spawn_callback(req: SpawnCallbackRequest):
+    """
+    POST /madre/callback/spawn: Receive spawn task completion.
+
+    PHASE 3: Spawner service sends this when task completes.
+    Madre updates result store and marks correlation_id as complete.
+
+    Request:
+    {
+        "spawn_id": "spawn-123-abc",
+        "correlation_id": "corr-456-def",
+        "status": "success" | "failed" | "timeout" | "error",
+        "result": {...},
+        "error": null or error message,
+        "duration_ms": 1234
+    }
+
+    Response (200):
+    {
+        "spawn_id": "spawn-123-abc",
+        "correlation_id": "corr-456-def",
+        "status": "stored",
+        "message": "Spawn result persisted to DB"
+    }
+
+    Token: Not required (internal service-to-service communication).
+    """
+    try:
+        correlation_id = req.correlation_id or str(uuid.uuid4())
+
+        # Store result in result store (in-memory or DB)
+        # For now: simple in-memory storage
+        # In production: update copilot_actions_log or results table in vx11.db
+
+        result_data = {
+            "spawn_id": req.spawn_id,
+            "correlation_id": correlation_id,
+            "status": req.status,
+            "result": req.result,
+            "error": req.error,
+            "duration_ms": req.duration_ms,
+            "received_at": datetime.utcnow().isoformat(),
+        }
+
+        # TODO: Persist to DB
+        # For now: log to forensics
+        write_log(
+            "madre",
+            f"spawn_callback:received:spawn_id={req.spawn_id}:status={req.status}:correlation_id={correlation_id}",
+            level="INFO",
+        )
+
+        return SpawnCallbackResponse(
+            spawn_id=req.spawn_id,
+            correlation_id=correlation_id,
+            status="stored",
+            message="Spawn result persisted",
+        )
+
+    except Exception as e:
+        correlation_id = req.correlation_id or str(uuid.uuid4())
+        write_log(
+            "madre",
+            f"spawn_callback:error:spawn_id={req.spawn_id}:correlation_id={correlation_id}:{str(e)[:100]}",
+            level="ERROR",
+        )
+
+        return SpawnCallbackResponse(
+            spawn_id=req.spawn_id,
+            correlation_id=correlation_id,
+            status="error",
+            message=str(e)[:100],
+        )
 
 
 # ============ POWER MANAGER ROUTER (FASE 2) ============

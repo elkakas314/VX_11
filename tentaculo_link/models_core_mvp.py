@@ -261,3 +261,53 @@ class WindowCloseResponse(BaseModel):
         json_schema_extra = {
             "example": {"target": "switch", "closed": True, "was_open": True}
         }
+
+
+# ============ SPAWN CALLBACK MODELS (PHASE 3) ============
+
+
+class SpawnCallbackRequest(BaseModel):
+    """
+    Spawn task completion callback (sent by Spawner → Madre).
+
+    INVARIANT: Madre receives this to update result store and DB.
+    """
+
+    spawn_id: str  # Task ID from spawner
+    correlation_id: Optional[str] = None
+    status: Literal["success", "failed", "timeout", "error"] = "success"
+    result: Optional[Dict[str, Any]] = None
+    error: Optional[str] = None
+    duration_ms: Optional[int] = None  # Execution time
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "spawn_id": "spawn-123-abc",
+                "correlation_id": "corr-456-def",
+                "status": "success",
+                "result": {"output": "task completed", "return_code": 0},
+                "duration_ms": 1234,
+            }
+        }
+
+
+class SpawnCallbackResponse(BaseModel):
+    """Response from spawn callback handler."""
+
+    spawn_id: str
+    correlation_id: Optional[str] = None
+    status: str = "received"  # "received", "stored", "error"
+    message: Optional[str] = None
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "spawn_id": "spawn-123-abc",
+                "correlation_id": "corr-456-def",
+                "status": "stored",
+                "message": "Spawn result persisted to DB",
+            }
+        }
