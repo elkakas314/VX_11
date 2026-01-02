@@ -1,0 +1,166 @@
+name: VX11 E2E & Contract Tests CI
+
+on:
+    push:
+        branches: [main]
+    pull_request:
+        branches: [main]
+
+env:
+    REGISTRY: ghcr.io
+
+jobs:
+    e2e-and-contracts:
+        runs-on: ubuntu-latest
+        timeout-minutes: 30
+
+        services:
+            docker:
+                image: docker:dind
+                options: --privileged
+
+        steps:
+            # ===== SETUP =====
+            - name: Checkout repo
+              uses: actions/checkout@v4
+
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3
+
+            # ===== BUILD & START SERVICES =====
+            - name: Compose build and start services
+              run: |
+                  docker compose -f docker-compose.full-test.yml build --no-cache 2>&1 | tail -50
+                  docker compose -f docker-compose.full-test.yml up -d --wait --timeout 60 2>&1 | tail -20
+
+            # ===== WAIT FOR HEALTH =====
+            - name: Wait for tentaculo_link health (port 8000)
+              run: |
+                  for i in {1..30}; do
+                    if curl -sS http://localhost:8000/health > /dev/null 2>&1; then
+                      echo "✓ Entrypoint healthy"
+                      exit 0
+                    fi
+                    echo "Attempt $i/30: waiting for entrypoint..."
+                    sleep 2
+                  done
+                  echo "✗ Entrypoint failed to become healthy"
+                  exit 1
+
+            - name: Verify all services health
+              run: |
+                  docker compose -f docker-compose.full-test.yml ps
+                  curl -sS http://localhost:8000/health | python3 -m json.tool
+
+            # ===== RUN E2E TESTS (DOCKER MODE) =====
+            - name: Run E2E tests (docker mode inside tentaculo_link container)
+              id: e2e-docker
+              run: |
+                  docker exec vx11-tentaculo-link-test bash -c \
+                    'cd /app && VX11_ENTRYPOINT=http://tentaculo_link:8000 python3 -m pytest -q /app/tests/test_task_injection_e2e.py -v --tb=short' \
+                    | tee e2e_docker_output.txt
+                  EXIT_CODE=${PIPESTATUS[0]}
+                  echo "E2E_DOCKER_EXIT=$EXIT_CODE" >> $GITHUB_OUTPUT
+                  exit $EXIT_CODE
+              continue-on-error: true
+
+            - name: Run Contract tests (docker mode inside tentaculo_link container)
+              id: contracts-docker
+              run: |
+                  docker exec vx11-tentaculo-link-test bash -c \
+                    'cd /app && VX11_ENTRYPOINT=http://tentaculo_link:8000 python3 -m pytest -q /app/tests/contracts -v --tb=short' \
+                    | tee contracts_docker_output.txt
+                  EXIT_CODE=${PIPESTATUS[0]}
+                  echo "CONTRACTS_DOCKER_EXIT=$EXIT_CODE" >> $GITHUB_OUTPUT
+                  exit $EXIT_CODE
+              continue-on-error: true
+
+            # ===== RUN E2E TESTS (HOST MODE) =====
+            - name: Setup Python for host mode tests
+              uses: actions/setup-python@v4
+              with:
+                  python-version: "3.10"
+
+            - name: Install pytest dependencies
+              run: |
+                  pip install -q pytest pytest-asyncio httpx
+
+            - name: Run E2E tests (host mode)
+              id: e2e-host
+              run: |
+                  VX11_ENTRYPOINT=http://localhost:8000 python3 -m pytest -q tests/test_task_injection_e2e.py -v --tb=short \
+                    | tee e2e_host_output.txt
+                  EXIT_CODE=${PIPESTATUS[0]}
+                  echo "E2E_HOST_EXIT=$EXIT_CODE" >> $GITHUB_OUTPUT
+                  exit $EXIT_CODE
+              continue-on-error: true
+
+            - name: Run Contract tests (host mode)
+              id: contracts-host
+              run: |
+                  VX11_ENTRYPOINT=http://localhost:8000 python3 -m pytest -q tests/contracts -v --tb=short \
+                    | tee contracts_host_output.txt
+                  EXIT_CODE=${PIPESTATUS[0]}
+                  echo "CONTRACTS_HOST_EXIT=$EXIT_CODE" >> $GITHUB_OUTPUT
+                  exit $EXIT_CODE
+              continue-on-error: true
+
+            # ===== COLLECT LOGS & ARTIFACTS =====
+            - name: Collect docker compose logs
+              if: always()
+              run: |
+                  docker compose -f docker-compose.full-test.yml logs --no-color --timestamps=false \
+                    > docker_compose.log 2>&1 || true
+                  docker compose -f docker-compose.full-test.yml logs -f --no-color tentaculo_link madre switch spawner \
+                    > docker_services.log 2>&1 || true
+
+            - name: Collect docker ps output
+              if: always()
+              run: |
+                  docker compose -f docker-compose.full-test.yml ps > docker_ps.txt 2>&1 || true
+
+            - name: Upload test artifacts
+              if: always()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: vx11-e2e-contracts-results
+                  path: |
+                      e2e_docker_output.txt
+                      contracts_docker_output.txt
+                      e2e_host_output.txt
+                      contracts_host_output.txt
+                      docker_compose.log
+                      docker_services.log
+                      docker_ps.txt
+                  retention-days: 30
+
+            # ===== CLEANUP =====
+            - name: Cleanup docker compose
+              if: always()
+              run: |
+                  docker compose -f docker-compose.full-test.yml down -v --remove-orphans || true
+                  docker system prune -f --volumes || true
+
+            # ===== SUMMARY & EXIT =====
+            - name: Test results summary
+              if: always()
+              run: |
+                  echo "=== E2E TEST RESULTS ==="
+                  echo "Docker mode exit code: ${{ steps.e2e-docker.outputs.E2E_DOCKER_EXIT }}"
+                  echo "Host mode exit code: ${{ steps.e2e-host.outputs.E2E_HOST_EXIT }}"
+                  echo ""
+                  echo "=== CONTRACT TEST RESULTS ==="
+                  echo "Docker mode exit code: ${{ steps.contracts-docker.outputs.CONTRACTS_DOCKER_EXIT }}"
+                  echo "Host mode exit code: ${{ steps.contracts-host.outputs.CONTRACTS_HOST_EXIT }}"
+                  echo ""
+                  if [ "${{ steps.e2e-docker.outputs.E2E_DOCKER_EXIT }}" = "0" ] && [ "${{ steps.contracts-docker.outputs.CONTRACTS_DOCKER_EXIT }}" = "0" ]; then
+                    echo "✓ All docker mode tests passed"
+                  else
+                    echo "✗ Some docker mode tests failed"
+                  fi
+
+            - name: Fail if critical tests failed
+              if: steps.e2e-docker.outputs.E2E_DOCKER_EXIT != '0'
+              run: |
+                  echo "E2E tests in docker mode FAILED"
+                  exit 1
