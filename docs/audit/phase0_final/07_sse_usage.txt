@@ -1,0 +1,7 @@
+operator/frontend/src/services/api.ts:    retryAfterMs?: number
+operator/frontend/src/services/api.ts:    private backoffMs = 1000
+operator/frontend/src/services/api.ts:            this.backoffMs = 1000
+operator/frontend/src/services/api.ts:            const retryAfterMs = options?.noRetry
+operator/frontend/src/services/api.ts:                : Math.min(this.backoffMs, this.maxBackoffMs)
+operator/frontend/src/services/api.ts:                this.backoffMs = Math.min(this.backoffMs * 2, this.maxBackoffMs)
+operator/frontend/src/services/api.ts:                retryAfterMs,

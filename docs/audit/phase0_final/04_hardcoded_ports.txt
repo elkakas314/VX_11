@@ -1,0 +1,21 @@
+operator/frontend/vite.config.ts:                target: 'http://localhost:8000',
+operator/frontend/node_modules/vite/dist/node/index.d.ts:     *     // string shorthand: /foo -> http://localhost:4567/foo
+operator/frontend/node_modules/vite/dist/node/index.d.ts:     *     '/foo': 'http://localhost:4567',
+operator/frontend/node_modules/@types/node/inspector.generated.d.ts:     * $ node --inspect=localhost:3000 -p 'inspector.url()'
+operator/frontend/node_modules/@types/node/inspector.generated.d.ts:     * Debugger listening on ws://localhost:3000/51cf8d0e-3c36-4c59-8efd-54519839e56a
+operator/frontend/node_modules/@types/node/inspector.generated.d.ts:     * ws://localhost:3000/51cf8d0e-3c36-4c59-8efd-54519839e56a
+operator/frontend/node_modules/@types/node/http2.d.ts:         * const clientSession = http2.connect('https://localhost:1234');
+operator/frontend/node_modules/@types/node/http2.d.ts:     * const client = http2.connect('https://localhost:1234');
+operator/frontend/node_modules/@types/node/async_hooks.d.ts:     * http.get('http://localhost:8080');
+operator/frontend/node_modules/@types/node/async_hooks.d.ts:     * http.get('http://localhost:8080');
+operator/frontend/node_modules/@types/node/https.d.ts:     * // curl -k https://localhost:8000/
+operator/frontend/node_modules/@types/node/http.d.ts:         *   http.get('http://localhost:3000', { agent }, (res) => {
+operator/frontend/node_modules/@types/node/http.d.ts:         *     .get('http://localhost:3000', { agent }, (res) => {
+operator/frontend/node_modules/@types/node/http.d.ts:     * http.get('http://localhost:8000/', (res) => {
+operator/frontend/node_modules/ufo/dist/index.d.ts: * cleanDoubleSlashes("http://example.com/analyze//http://localhost:3000//");
+operator/frontend/node_modules/ufo/dist/index.d.ts: * // Returns "http://example.com/analyze/http://localhost:3000/"
+operator/frontend/node_modules/ufo/dist/index.d.ts: * normalizeURL("http://localhost:3000");
+operator/frontend/node_modules/ufo/dist/index.d.ts: * // Returns "http://localhost:3000"
+operator/frontend/node_modules/@vitejs/plugin-react/dist/index.d.ts:   * reactRefreshHost: 'http://localhost:3000'
+operator/frontend/node_modules/vitest/dist/reporters-5f784f42.d.ts:     * @default 'http://localhost:3000'.
+operator/frontend/__tests__/operator-endpoints.test.ts:const BASE_URL = 'http://localhost:8000'

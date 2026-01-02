@@ -1,0 +1,267 @@
+./attic/conftest.py:    # Insert into sys.modules so `from shubniggurath.main import app` works
+./attic/conftest.py:        # Mark as package so imports like 'shubniggurath.api' resolve to filesystem package
+./attic/tests_legacy/test_shub_modes.py:from shubniggurath.main import app as shub_app
+./attic/tests_legacy/test_shubniggurath_phase1.py:    from shubniggurath.core.initializer import ShubCoreInitializer
+./attic/tests_legacy/test_shubniggurath_phase1.py:    from shubniggurath.core.dsp_engine import DSPEngine
+./attic/tests_legacy/test_shubniggurath_phase1.py:from shubniggurath.engines import EngineRegistry
+./attic/tests_legacy/test_shubniggurath_phase1.py:    from shubniggurath.engines import AnalyzerEngine
+./attic/tests_legacy/test_operator_shub_phase4.py:    from operator_backend.backend.shub_api import shub_router
+./attic/tests_legacy/test_operator_shub_phase4.py:    from operator_backend.backend.shub_api import shub_router
+./attic/tests_legacy/test_operator_shub_phase4.py:    from operator_backend.backend.shub_api import shub_router
+./attic/tests_legacy/test_shubniggurath_phase6.py:    from manifestator.manifestator_shub_bridge import ShubDriftDetector
+./attic/tests_legacy/test_shubniggurath_phase6.py:    from manifestator.manifestator_shub_bridge import ShubDriftDetector
+./attic/tests_legacy/test_shubniggurath_phase6.py:    from manifestator.manifestator_shub_bridge import ManifestatorShubBridge
+./attic/tests_legacy/test_shubniggurath_phase6.py:    from manifestator.manifestator_shub_bridge import ManifestatorShubBridge
+./attic/tests_legacy/test_shubniggurath_phase3.py:    from madre.madre_shub_orchestrator import ShubAudioPipeline
+./attic/tests_legacy/test_shubniggurath_phase3.py:    from madre.madre_shub_orchestrator import ShubAudioPipeline
+./attic/tests_legacy/test_shubniggurath_phase3.py:    from madre.madre_shub_orchestrator import MadreShubOrchestrator
+./attic/tests_legacy/test_shubniggurath_phase3.py:    from madre.madre_shub_orchestrator import MadreShubOrchestrator
+./attic/tests_legacy/test_shub_core.py:from shubniggurath.integrations.reaper_rpc import REAPERController
+./attic/tests_legacy/test_shub_core.py:from shubniggurath.integrations.vx11_bridge import VX11Bridge
+./attic/tests_legacy/test_shub_core.py:from shubniggurath.core.audio_batch_engine import AudioBatchEngine, BatchJob
+./attic/tests_legacy/test_shub_core.py:from shubniggurath.core.virtual_engineer import VirtualEngineer
+./attic/tests_legacy/test_shub_core.py:            from shubniggurath.engines_paso8 import DSPEngine, FXEngine, AudioAnalysis
+./attic/tests_legacy/test_shub_core.py:            from shubniggurath.integrations.reaper_rpc import REAPERController
+./attic/tests_legacy/test_shub_core.py:            from shubniggurath.integrations.vx11_bridge import VX11Bridge
+./attic/tests_legacy/test_shub_core.py:            from shubniggurath.core.dsp_pipeline_full import DSPPipelineFull
+./attic/tests_legacy/test_shub_core.py:            from shubniggurath.core.audio_batch_engine import AudioBatchEngine
+./attic/tests_legacy/test_shub_core.py:            from shubniggurath.core.virtual_engineer import VirtualEngineer
+./attic/tests_legacy/test_shub_dsp.py:from shubniggurath.core.dsp_pipeline_full import DSPPipelineFull
+./attic/tests_legacy/test_shub_dsp.py:from shubniggurath.engines_paso8 import AudioAnalysis, FXChain, REAPERPreset
+./attic/tests_legacy/test_shubniggurath_phase7.py:    from mcp.mcp_shub_bridge import MCPShubBridge
+./attic/tests_legacy/test_shubniggurath_phase7.py:    from hormiguero.hormiguero_shub_integration import HormigueroShubIntegration
+./attic/tests_legacy/test_shubniggurath_phase7.py:    from tentaculo_link.tentaculo_shub_gateway import TentaculoShubGateway
+./attic/tests_legacy/test_shub_pro_io.py:from shubniggurath.pro.audio_io import load_audio, save_wav
+./attic/tests_legacy/test_shub_pro_io.py:from shubniggurath.pro.dsp import analyze_basic
+./attic/tests_legacy/test_shub_pro_io.py:from shubniggurath.pro.mixing import auto_mix
+./attic/tests_legacy/test_shub_api.py:from shubniggurath.main import app
+./attic/tests_legacy/test_shubniggurath_phase2.py:    from shubniggurath.integrations.hermes_shub_provider import ShubAudioProvider
+./attic/tests_legacy/test_shubniggurath_phase2.py:    from shubniggurath.integrations.hermes_shub_provider import ShubAudioProvider
+./attic/tests_legacy/test_shub_pro_api.py:        importlib.reload(importlib.import_module("shubniggurath.pro.project_db"))
+./attic/tests_legacy/test_shub_pro_api.py:    import shubniggurath.pro.interface_api as api
+./attic/tests_legacy/test_shub_autonomy_e2e.py:from shubniggurath.api.madre_shub_handler import ShubMadreHandler
+./attic/tests_legacy/test_shub_autonomy_e2e.py:from shubniggurath.core.audio_batch_engine import AudioBatchEngine
+./attic/tests_legacy/test_shub_autonomy_e2e.py:from shubniggurath.core.virtual_engineer import VirtualEngineer
+./attic/tests_legacy/test_shub_autonomy_e2e.py:from switch.shub_forwarder import SwitchShubForwarder, ShubRoutingDecision
+./attic/tests_legacy/test_shub_autonomy_e2e.py:from switch.hermes_shub_registration import HermesShubRegistrar
+./attic/tests_legacy/test_shub_autonomy_e2e.py:from hormiguero.shub_audio_pheromones import ShubAudioPheromones, ShubAudioBatchReporter
+./attic/tests_legacy/test_shub_autonomy_e2e.py:            from shubniggurath.api.madre_shub_handler import ShubMadreHandler
+./attic/tests_legacy/test_shub_autonomy_e2e.py:            from switch.shub_forwarder import SwitchShubForwarder
+./attic/tests_legacy/test_shub_autonomy_e2e.py:            from hormiguero.shub_audio_pheromones import ShubAudioPheromones
+./attic/tests_legacy/test_shub_mode_c.py:from shubniggurath.main import app
+./attic/tests_legacy/test_shub_mode_c.py:from shubniggurath.dsp_pipeline import analyze_audio
+./attic/tests_legacy/test_switch_hermes_flow.py:from shubniggurath.main import app as shub_app
+./attic/tests_legacy/test_shub_pro.py:from shubniggurath.pro.dsp_engine import DSPEngine, AudioAnalysisResult
+./attic/tests_legacy/test_shub_pro.py:from shubniggurath.pro.dsp_fx import (
+./attic/tests_legacy/test_shub_pro.py:from shubniggurath.pro.dsp_pipeline_full import DSPPipeline, PipelineConfig, JobStatus
+./attic/tests_legacy/test_shub_pro.py:from shubniggurath.pro.mode_c_pipeline import (
+./attic/tests_legacy/test_shub_pro.py:from shubniggurath.pro.virtual_engineer import VirtualEngineer
+./attic/tests_legacy/test_shub_pro.py:from shubniggurath.pro.shub_core_init import ShubProInitializer
+./attic/tests_legacy/test_shub_pro.py:        from shubniggurath.pro.dsp_pipeline_full import get_pipeline
+./attic/tests_legacy/test_shub_pro_simple.py:from shubniggurath.pro.dsp_fx import (
+./attic/tests_legacy/test_shub_pro_simple.py:from shubniggurath.pro.mode_c_pipeline import (
+./attic/tests_legacy/test_shub_pro_simple.py:from shubniggurath.pro.virtual_engineer import VirtualEngineer
+./attic/tests_legacy/test_shub_pro_simple.py:from shubniggurath.pro.shub_core_init import ShubProInitializer
+./attic/tests_legacy/test_shub_pro_simple.py:        from shubniggurath.pro import dsp_engine
+./attic/tests_legacy/test_shub_pro_simple.py:        from shubniggurath.pro import dsp_fx
+./attic/tests_legacy/test_shub_pro_simple.py:        from shubniggurath.pro import dsp_pipeline_full
+./attic/tests_legacy/test_shub_pro_simple.py:        from shubniggurath.pro import mode_c_pipeline
+./attic/tests_legacy/test_shub_pro_simple.py:        from shubniggurath.pro import virtual_engineer
+./attic/tests_legacy/test_shub_pro_simple.py:        """Test: importar shub_core_init"""
+./attic/tests_legacy/test_shub_pro_simple.py:        from shubniggurath.pro import shub_core_init
+./attic/tests_legacy/test_shub_pro_simple.py:    def test_import_shub_db(self):
+./attic/tests_legacy/test_shub_pro_simple.py:        """Test: importar shub_db"""
+./attic/tests_legacy/test_shub_pro_simple.py:        from shubniggurath.pro import shub_db
+./attic/tests_legacy/test_shubniggurath_complete_suite.py:        from shubniggurath.core import ShubCoreInitializer
+./attic/tests_legacy/test_shubniggurath_complete_suite.py:        from shubniggurath.core import DSPEngine
+./attic/tests_legacy/test_shubniggurath_complete_suite.py:        from shubniggurath.engines import EngineRegistry
+./attic/tests_legacy/test_shubniggurath_complete_suite.py:        from shubniggurath.engines import EngineRegistry
+./attic/tests_legacy/test_shubniggurath_complete_suite.py:        from shubniggurath.integrations.hermes_shub_provider import ShubAudioProvider
+./attic/tests_legacy/test_shubniggurath_complete_suite.py:        from madre.madre_shub_orchestrator import MadreShubOrchestrator
+./attic/tests_legacy/test_shubniggurath_complete_suite.py:        from mcp.mcp_shub_bridge import MCPShubBridge
+./attic/tests_legacy/test_shubniggurath_complete_suite.py:        from shubniggurath.database.models import Tenant
+./attic/tests_legacy/test_shubniggurath_complete_suite.py:        from operator_backend.backend.shub_api import shub_router
+./attic/tests_legacy/test_shubniggurath_complete_suite.py:        from operator_backend.backend.shub_api import shub_router
+./attic/tests_legacy/test_shubniggurath_complete_suite.py:        from manifestator.manifestator_shub_bridge import ShubDriftDetector
+./attic/tests_legacy/test_shubniggurath_complete_suite.py:        from shubniggurath.integrations.db_sync import BidirectionalSync
+./attic/tests_legacy/test_shubniggurath_complete_suite.py:        from madre.madre_shub_orchestrator import ShubAudioPipeline
+./attic/tests_legacy/test_shubniggurath_phase5.py:    from shubniggurath.integrations.db_sync import BidirectionalSync
+./attic/tests_legacy/test_shubniggurath_phase5.py:    from shubniggurath.integrations.db_sync import BidirectionalSync
+./attic/tests_legacy/test_shubniggurath_phase5.py:    from shubniggurath.integrations.db_sync import BidirectionalSync
+./attic/tests_legacy/test_shubniggurath_phase5.py:    from shubniggurath.integrations.db_sync import BidirectionalSync, SyncScheduler
+./attic/shubniggurath/dsp/analyzers.py:from shubniggurath.dsp.filters import FilterBank
+./attic/shubniggurath/dsp/analyzers.py:from shubniggurath.dsp.segmenter import AudioSegmenter
+./attic/shubniggurath/pipelines/audio_analyzer.py:from shubniggurath.dsp.analyzers import AudioAnalyzer
+./attic/shubniggurath/pipelines/audio_analyzer.py:from shubniggurath.ops.diagnostic_ops import DiagnosticOps
+./attic/shubniggurath/pipelines/mixing.py:        from shubniggurath.engines.mix_engine import MixSession
+./attic/shubniggurath/pipelines/mix_pipeline.py:from shubniggurath.ops.comp_ops import CompressionOps
+./attic/shubniggurath/pipelines/mix_pipeline.py:from shubniggurath.ops.mix_ops import MixOps
+./attic/shubniggurath/pipelines/mix_pipeline.py:from shubniggurath.ops.stem_ops import StemOps
+./attic/shubniggurath/shub_copilot_bridge_adapter.py:from shubniggurath.shub_vx11_bridge import VX11FlowAdapter, get_vx11_client
+./attic/shubniggurath/pro/dsp_pipeline_full.py:from shubniggurath.pro.dsp_engine import DSPEngine, AudioAnalysisResult
+./attic/shubniggurath/pro/dsp_pipeline_full.py:from shubniggurath.pro.dsp_fx import FXChain, EffectConfig, EffectType
+./attic/shubniggurath/pro/dsp_pipeline_full.py:from shubniggurath.pro.audio_io import load_audio, save_wav
+./attic/shubniggurath/pro/dsp_pipeline_full.py:from shubniggurath.pro.shub_db import (
+./attic/shubniggurath/pro/mode_c_pipeline.py:from shubniggurath.pro.dsp_engine import DSPEngine
+./attic/shubniggurath/pro/mode_c_pipeline.py:from shubniggurath.pro.dsp_fx import FXChain, EffectConfig, EffectType
+./attic/shubniggurath/pro/virtual_engineer.py:from shubniggurath.pro.dsp_engine import AudioAnalysisResult
+./attic/shubniggurath/pro/virtual_engineer.py:from shubniggurath.pro.dsp_fx import EffectConfig, EffectType, PRESET_MASTERING, PRESET_CLEAN_VOICE, PRESET_BRIGHT
+./attic/shubniggurath/pro/shub_core_init.py:from shubniggurath.pro.shub_db import init_shub_db, get_shub_session
+./attic/shubniggurath/pro/shub_core_init.py:from shubniggurath.pro.dsp_engine import DSPEngine
+./attic/shubniggurath/pro/shub_core_init.py:from shubniggurath.pro.dsp_fx import FXChain
+./attic/shubniggurath/pro/shub_core_init.py:from shubniggurath.pro.dsp_pipeline_full import get_pipeline
+./attic/shubniggurath/pro/shub_core_init.py:from shubniggurath.pro.mode_c_pipeline import create_mode_c_pipeline, ProcessingMode
+./attic/shubniggurath/pro/shub_core_init.py:from shubniggurath.pro.virtual_engineer import get_virtual_engineer
+./attic/shubniggurath/core/engine.py:from shubniggurath.pipelines.audio_analyzer import AudioAnalyzerPipeline
+./attic/shubniggurath/core/engine.py:from shubniggurath.pipelines.mix_pipeline import MixPipeline
+./attic/shubniggurath/core/engine.py:from shubniggurath.pipelines.reaper_pipeline import ReaperPipeline
+./attic/shubniggurath/core/dsp_pipeline_full.py:from shubniggurath.engines_paso8 import (
+./attic/shubniggurath/core/virtual_engineer.py:from shubniggurath.engines_paso8 import AudioAnalysis
+./attic/shubniggurath/core/virtual_engineer.py:from shubniggurath.integrations.vx11_bridge import VX11Bridge
+./attic/shubniggurath/core/router.py:from shubniggurath.core.registry import get_engine
+./attic/shubniggurath/core/router.py:from shubniggurath.routes.schemas import AnalyzeRequest, MixRequest, EventReadyRequest
+./attic/shubniggurath/core/registry.py:from shubniggurath.core.engine import ShubEngine
+./attic/shubniggurath/core/registry.py:from shubniggurath.dsp.analyzers import AudioAnalyzer
+./attic/shubniggurath/core/registry.py:from shubniggurath.dsp.filters import FilterBank
+./attic/shubniggurath/core/registry.py:from shubniggurath.dsp.segmenter import AudioSegmenter
+./attic/shubniggurath/core/registry.py:from shubniggurath.ops.comp_ops import CompressionOps
+./attic/shubniggurath/core/registry.py:from shubniggurath.ops.diagnostic_ops import DiagnosticOps
+./attic/shubniggurath/core/registry.py:from shubniggurath.ops.mix_ops import MixOps
+./attic/shubniggurath/core/registry.py:from shubniggurath.ops.stem_ops import StemOps
+./attic/shubniggurath/core/registry.py:from shubniggurath.pipelines.audio_analyzer import AudioAnalyzerPipeline
+./attic/shubniggurath/core/registry.py:from shubniggurath.pipelines.mix_pipeline import MixPipeline
+./attic/shubniggurath/core/registry.py:from shubniggurath.pipelines.reaper_pipeline import ReaperPipeline
+./attic/shubniggurath/core/audio_batch_engine.py:from shubniggurath.core.dsp_pipeline_full import pipeline
+./attic/shubniggurath/core/audio_batch_engine.py:from shubniggurath.integrations.vx11_bridge import VX11Bridge
+./attic/shubniggurath/core/audio_batch_engine.py:    from hormiguero.shub_audio_pheromones import get_shub_audio_batch_reporter
+./attic/shubniggurath/api/madre_shub_handler.py:from shubniggurath.core.dsp_pipeline_full import pipeline, AudioAnalysis
+./attic/shubniggurath/api/madre_shub_handler.py:from shubniggurath.core.audio_batch_engine import AudioBatchEngine, BatchJob
+./attic/shubniggurath/api/madre_shub_handler.py:from shubniggurath.core.virtual_engineer import VirtualEngineer
+./attic/shubniggurath/api/madre_shub_handler.py:from shubniggurath.integrations.vx11_bridge import VX11Bridge
+./attic/shubniggurath/api/madre_shub_handler.py:from shubniggurath.integrations.reaper_rpc import REAPERController
+./attic/shubniggurath/api/madre_shub_router.py:from shubniggurath.api.madre_shub_handler import get_madre_handler
+./attic/shubniggurath/tests/test_shub_pipelines.py:from shubniggurath.core.registry import get_engine
+./attic/shubniggurath/tests/test_shub_core.py:from shubniggurath.core.registry import get_engine
+./attic/shubniggurath/tests/test_shub_reaper_bridge.py:from shubniggurath.shub_reaper_bridge import ReaperBridge, ShubReaperIntegration, ReaperProject
+./attic/shubniggurath/tests/test_shub_reaper_bridge.py:from shubniggurath.shub_core_init import ShubAssistant
+./attic/shubniggurath/shub_routers.py:from shubniggurath.dsp_pipeline import analyze_audio
+./attic/shubniggurath/main.py:from shubniggurath.engines_paso8 import (
+./attic/shubniggurath/main.py:from shubniggurath.integrations.vx11_bridge import VX11Bridge
+./attic/shubniggurath/main.py:from shubniggurath.api.madre_shub_router import router as madre_router
+./attic/shubniggurath/shub_core_init.py:                from shubniggurath.shub_reaper_bridge import ReaperBridge, ShubReaperIntegration
+./forensic/crashes/CRASH_20251223T235232Z/main.py:from switch.shub_router import ShubRouter, AudioDomain
+./forensic/crashes/CRASH_20251223T235232Z/main.py:from switch.shub_forwarder import get_switch_shub_forwarder
+./forensic/crashes/CRASH_20251223T235245Z/main.py:from switch.shub_router import ShubRouter, AudioDomain
+./forensic/crashes/CRASH_20251223T235245Z/main.py:from switch.shub_forwarder import get_switch_shub_forwarder
+./forensic/crashes/CRASH_20251223T235258Z/main.py:from switch.shub_router import ShubRouter, AudioDomain
+./forensic/crashes/CRASH_20251223T235258Z/main.py:from switch.shub_forwarder import get_switch_shub_forwarder
+./forensic/crashes/CRASH_20251223T235251Z/main.py:from switch.shub_router import ShubRouter, AudioDomain
+./forensic/crashes/CRASH_20251223T235251Z/main.py:from switch.shub_forwarder import get_switch_shub_forwarder
+./forensic/crashes/CRASH_20251223T235239Z/main.py:from switch.shub_router import ShubRouter, AudioDomain
+./forensic/crashes/CRASH_20251223T235239Z/main.py:from switch.shub_forwarder import get_switch_shub_forwarder
+./docs/audit/archived_operator_duplicates_20251229T223000Z/operator_backend/backend/main_v7.py:        {"from": "madre", "to": "shubniggurath", "label": "policy"},
+./docs/audit/archive/2025-12-17/docs/audit/archived_forensic/forensic_crashes_CRASH_20251216T233637Z_main.py:from switch.shub_router import ShubRouter, AudioDomain
+./docs/audit/archive/2025-12-17/docs/audit/archived_forensic/forensic_crashes_CRASH_20251216T233637Z_main.py:from switch.shub_forwarder import get_switch_shub_forwarder
+./docs/audit/archive/2025-12-17/docs/audit/archived_forensic/forensic_crashes_CRASH_20251216T233644Z_main.py:from switch.shub_router import ShubRouter, AudioDomain
+./docs/audit/archive/2025-12-17/docs/audit/archived_forensic/forensic_crashes_CRASH_20251216T233644Z_main.py:from switch.shub_forwarder import get_switch_shub_forwarder
+./docs/audit/archive/2025-12-17/docs/audit/archived_forensic/forensic_crashes_CRASH_20251216T233645Z_main.py:from switch.shub_router import ShubRouter, AudioDomain
+./docs/audit/archive/2025-12-17/docs/audit/archived_forensic/forensic_crashes_CRASH_20251216T233645Z_main.py:from switch.shub_forwarder import get_switch_shub_forwarder
+./docs/audit/archive/2025-12-17/docs/audit/archived_forensic/forensic_crashes_CRASH_20251217T004342Z_main.py:from switch.shub_router import ShubRouter, AudioDomain
+./docs/audit/archive/2025-12-17/docs/audit/archived_forensic/forensic_crashes_CRASH_20251217T004342Z_main.py:from switch.shub_forwarder import get_switch_shub_forwarder
+./docs/audit/archive/2025-12-17/docs/audit/archived_forensic/forensic_crashes_CRASH_20251216T034013Z_main.py:from switch.shub_router import ShubRouter, AudioDomain
+./docs/audit/archive/2025-12-17/docs/audit/archived_forensic/forensic_crashes_CRASH_20251216T034013Z_main.py:from switch.shub_forwarder import get_switch_shub_forwarder
+./docs/audit/archive/2025-12-17/docs/audit/archived_forensic/forensic_crashes_CRASH_20251216T231834Z_main.py:from switch.shub_router import ShubRouter, AudioDomain
+./docs/audit/archive/2025-12-17/docs/audit/archived_forensic/forensic_crashes_CRASH_20251216T231834Z_main.py:from switch.shub_forwarder import get_switch_shub_forwarder
+./docs/audit/archive/2025-12-17/docs/audit/archived_forensic/forensic_crashes_CRASH_20251216T034025Z_main.py:from switch.shub_router import ShubRouter, AudioDomain
+./docs/audit/archive/2025-12-17/docs/audit/archived_forensic/forensic_crashes_CRASH_20251216T034025Z_main.py:from switch.shub_forwarder import get_switch_shub_forwarder
+./docs/audit/archive/2025-12-17/docs/audit/archived_forensic/forensic_crashes_CRASH_20251216T032117Z_main.py:from switch.shub_router import ShubRouter, AudioDomain
+./docs/audit/archive/2025-12-17/docs/audit/archived_forensic/forensic_crashes_CRASH_20251216T032117Z_main.py:from switch.shub_forwarder import get_switch_shub_forwarder
+./docs/audit/archive/2025-12-17/docs/audit/archived_forensic/forensic_crashes_CRASH_20251217T004334Z_main.py:from switch.shub_router import ShubRouter, AudioDomain
+./docs/audit/archive/2025-12-17/docs/audit/archived_forensic/forensic_crashes_CRASH_20251217T004334Z_main.py:from switch.shub_forwarder import get_switch_shub_forwarder
+./docs/audit/archive/2025-12-17/docs/audit/archived_forensic/forensic_crashes_CRASH_20251216T033804Z_main.py:from switch.shub_router import ShubRouter, AudioDomain
+./docs/audit/archive/2025-12-17/docs/audit/archived_forensic/forensic_crashes_CRASH_20251216T033804Z_main.py:from switch.shub_forwarder import get_switch_shub_forwarder
+./docs/audit/archive/2025-12-17/docs/audit/archived_forensic/forensic_crashes_CRASH_20251216T231833Z_main.py:from switch.shub_router import ShubRouter, AudioDomain
+./docs/audit/archive/2025-12-17/docs/audit/archived_forensic/forensic_crashes_CRASH_20251216T231833Z_main.py:from switch.shub_forwarder import get_switch_shub_forwarder
+./docs/audit/archive/2025-12-17/docs/audit/archived_forensic/forensic_crashes_CRASH_20251216T033803Z_main.py:from switch.shub_router import ShubRouter, AudioDomain
+./docs/audit/archive/2025-12-17/docs/audit/archived_forensic/forensic_crashes_CRASH_20251216T033803Z_main.py:from switch.shub_forwarder import get_switch_shub_forwarder
+./docs/audit/archive/2025-12-17/docs/audit/archived_forensic/forensic_crashes_CRASH_20251216T034024Z_main.py:from switch.shub_router import ShubRouter, AudioDomain
+./docs/audit/archive/2025-12-17/docs/audit/archived_forensic/forensic_crashes_CRASH_20251216T034024Z_main.py:from switch.shub_forwarder import get_switch_shub_forwarder
+./docs/audit/archive/2025-12-17/docs/audit/archived_forensic/forensic_crashes_CRASH_20251216T034026Z_main.py:from switch.shub_router import ShubRouter, AudioDomain
+./docs/audit/archive/2025-12-17/docs/audit/archived_forensic/forensic_crashes_CRASH_20251216T034026Z_main.py:from switch.shub_forwarder import get_switch_shub_forwarder
+./docs/audit/archive/2025-12-17/docs/audit/archived_forensic/forensic_crashes_CRASH_20251216T032116Z_main.py:from switch.shub_router import ShubRouter, AudioDomain
+./docs/audit/archive/2025-12-17/docs/audit/archived_forensic/forensic_crashes_CRASH_20251216T032116Z_main.py:from switch.shub_forwarder import get_switch_shub_forwarder
+./docs/audit/archive/2025-12-17/docs/audit/archived_forensic/forensic_crashes_CRASH_20251217T004343Z_main.py:from switch.shub_router import ShubRouter, AudioDomain
+./docs/audit/archive/2025-12-17/docs/audit/archived_forensic/forensic_crashes_CRASH_20251217T004343Z_main.py:from switch.shub_forwarder import get_switch_shub_forwarder
+./docs/audit/archive/2025-12-17/docs/audit/archived_forensic/forensic_crashes_CRASH_20251216T033751Z_main.py:from switch.shub_router import ShubRouter, AudioDomain
+./docs/audit/archive/2025-12-17/docs/audit/archived_forensic/forensic_crashes_CRASH_20251216T033751Z_main.py:from switch.shub_forwarder import get_switch_shub_forwarder
+./docs/audit/archive/2025-12-17/docs/audit/archived_forensic/forensic_crashes_CRASH_20251217T004341Z_main.py:from switch.shub_router import ShubRouter, AudioDomain
+./docs/audit/archive/2025-12-17/docs/audit/archived_forensic/forensic_crashes_CRASH_20251217T004341Z_main.py:from switch.shub_forwarder import get_switch_shub_forwarder
+./switch/main.py:from switch.shub_router import ShubRouter, AudioDomain
+./switch/main.py:from switch.shub_forwarder import get_switch_shub_forwarder
+./shubniggurath/dsp/analyzers.py:from shubniggurath.dsp.filters import FilterBank
+./shubniggurath/dsp/analyzers.py:from shubniggurath.dsp.segmenter import AudioSegmenter
+./shubniggurath/pipelines/audio_analyzer.py:from shubniggurath.dsp.analyzers import AudioAnalyzer
+./shubniggurath/pipelines/audio_analyzer.py:from shubniggurath.ops.diagnostic_ops import DiagnosticOps
+./shubniggurath/pipelines/mixing.py:        from shubniggurath.engines.mix_engine import MixSession
+./shubniggurath/pipelines/mix_pipeline.py:from shubniggurath.ops.comp_ops import CompressionOps
+./shubniggurath/pipelines/mix_pipeline.py:from shubniggurath.ops.mix_ops import MixOps
+./shubniggurath/pipelines/mix_pipeline.py:from shubniggurath.ops.stem_ops import StemOps
+./shubniggurath/shub_copilot_bridge_adapter.py:from shubniggurath.shub_vx11_bridge import VX11FlowAdapter, get_vx11_client
+./shubniggurath/pro/dsp_pipeline_full.py:from shubniggurath.pro.dsp_engine import DSPEngine, AudioAnalysisResult
+./shubniggurath/pro/dsp_pipeline_full.py:from shubniggurath.pro.dsp_fx import FXChain, EffectConfig, EffectType
+./shubniggurath/pro/dsp_pipeline_full.py:from shubniggurath.pro.audio_io import load_audio, save_wav
+./shubniggurath/pro/dsp_pipeline_full.py:from shubniggurath.pro.shub_db import (
+./shubniggurath/pro/mode_c_pipeline.py:from shubniggurath.pro.dsp_engine import DSPEngine
+./shubniggurath/pro/mode_c_pipeline.py:from shubniggurath.pro.dsp_fx import FXChain, EffectConfig, EffectType
+./shubniggurath/pro/virtual_engineer.py:from shubniggurath.pro.dsp_engine import AudioAnalysisResult
+./shubniggurath/pro/virtual_engineer.py:from shubniggurath.pro.dsp_fx import EffectConfig, EffectType, PRESET_MASTERING, PRESET_CLEAN_VOICE, PRESET_BRIGHT
+./shubniggurath/pro/shub_core_init.py:from shubniggurath.pro.shub_db import init_shub_db, get_shub_session
+./shubniggurath/pro/shub_core_init.py:from shubniggurath.pro.dsp_engine import DSPEngine
+./shubniggurath/pro/shub_core_init.py:from shubniggurath.pro.dsp_fx import FXChain
+./shubniggurath/pro/shub_core_init.py:from shubniggurath.pro.dsp_pipeline_full import get_pipeline
+./shubniggurath/pro/shub_core_init.py:from shubniggurath.pro.mode_c_pipeline import create_mode_c_pipeline, ProcessingMode
+./shubniggurath/pro/shub_core_init.py:from shubniggurath.pro.virtual_engineer import get_virtual_engineer
+./shubniggurath/core/engine.py:from shubniggurath.pipelines.audio_analyzer import AudioAnalyzerPipeline
+./shubniggurath/core/engine.py:from shubniggurath.pipelines.mix_pipeline import MixPipeline
+./shubniggurath/core/engine.py:from shubniggurath.pipelines.reaper_pipeline import ReaperPipeline
+./shubniggurath/core/dsp_pipeline_full.py:from shubniggurath.engines_paso8 import (
+./shubniggurath/core/virtual_engineer.py:from shubniggurath.engines_paso8 import AudioAnalysis
+./shubniggurath/core/virtual_engineer.py:from shubniggurath.integrations.vx11_bridge import VX11Bridge
+./shubniggurath/core/router.py:from shubniggurath.core.registry import get_engine
+./shubniggurath/core/router.py:from shubniggurath.routes.schemas import AnalyzeRequest, MixRequest, EventReadyRequest
+./shubniggurath/core/registry.py:from shubniggurath.core.engine import ShubEngine
+./shubniggurath/core/registry.py:from shubniggurath.dsp.analyzers import AudioAnalyzer
+./shubniggurath/core/registry.py:from shubniggurath.dsp.filters import FilterBank
+./shubniggurath/core/registry.py:from shubniggurath.dsp.segmenter import AudioSegmenter
+./shubniggurath/core/registry.py:from shubniggurath.ops.comp_ops import CompressionOps
+./shubniggurath/core/registry.py:from shubniggurath.ops.diagnostic_ops import DiagnosticOps
+./shubniggurath/core/registry.py:from shubniggurath.ops.mix_ops import MixOps
+./shubniggurath/core/registry.py:from shubniggurath.ops.stem_ops import StemOps
+./shubniggurath/core/registry.py:from shubniggurath.pipelines.audio_analyzer import AudioAnalyzerPipeline
+./shubniggurath/core/registry.py:from shubniggurath.pipelines.mix_pipeline import MixPipeline
+./shubniggurath/core/registry.py:from shubniggurath.pipelines.reaper_pipeline import ReaperPipeline
+./shubniggurath/core/audio_batch_engine.py:from shubniggurath.core.dsp_pipeline_full import pipeline
+./shubniggurath/core/audio_batch_engine.py:from shubniggurath.integrations.vx11_bridge import VX11Bridge
+./shubniggurath/core/audio_batch_engine.py:    from hormiguero.shub_audio_pheromones import get_shub_audio_batch_reporter
+./shubniggurath/api/madre_shub_handler.py:from shubniggurath.core.dsp_pipeline_full import pipeline, AudioAnalysis
+./shubniggurath/api/madre_shub_handler.py:from shubniggurath.core.audio_batch_engine import AudioBatchEngine, BatchJob
+./shubniggurath/api/madre_shub_handler.py:from shubniggurath.core.virtual_engineer import VirtualEngineer
+./shubniggurath/api/madre_shub_handler.py:from shubniggurath.integrations.vx11_bridge import VX11Bridge
+./shubniggurath/api/madre_shub_handler.py:from shubniggurath.integrations.reaper_rpc import REAPERController
+./shubniggurath/api/madre_shub_router.py:from shubniggurath.api.madre_shub_handler import get_madre_handler
+./shubniggurath/routes/canonical_routes.py:from shubniggurath.security.windowguard import require_window_token
+./shubniggurath/tests/test_shub_pipelines.py:from shubniggurath.core.registry import get_engine
+./shubniggurath/tests/test_shub_core.py:from shubniggurath.core.registry import get_engine
+./shubniggurath/tests/test_shub_reaper_bridge.py:from shubniggurath.shub_reaper_bridge import ReaperBridge, ShubReaperIntegration, ReaperProject
+./shubniggurath/tests/test_shub_reaper_bridge.py:from shubniggurath.shub_core_init import ShubAssistant
+./shubniggurath/shub_routers.py:from shubniggurath.dsp_pipeline import analyze_audio
+./shubniggurath/main.py:from shubniggurath.engines_paso8 import (
+./shubniggurath/main.py:from shubniggurath.integrations.vx11_bridge import VX11Bridge
+./shubniggurath/main.py:from shubniggurath.api.madre_shub_router import router as madre_router
+./shubniggurath/main.py:from shubniggurath.routes.canonical_routes import router as canonical_router
+./shubniggurath/main.py:from shubniggurath.security.entryguard import ShubEntryGuardMiddleware
+./shubniggurath/main.py:from shubniggurath.database.schema_shub_security import init_security_schema
+./shubniggurath/security/windowguard.py:from shubniggurath.database.schema_shub_security import (
+./shubniggurath/security/entryguard.py:from shubniggurath.database.schema_shub_security import (
+./shubniggurath/shub_core_init.py:                from shubniggurath.shub_reaper_bridge import ReaperBridge, ShubReaperIntegration
+NONE

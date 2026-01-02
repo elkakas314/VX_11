@@ -1,0 +1,9 @@
+           Name                          Command                  State                        Ports                  
+----------------------------------------------------------------------------------------------------------------------
+vx11-hermes-test              python3 -m uvicorn switch. ...   Up (healthy)                                           
+vx11-madre-test               python -m uvicorn madre.ma ...   Up (healthy)                                           
+vx11-operator-backend-test    python /app/operator/backe ...   Up (healthy)                                           
+vx11-operator-frontend-test   sh -c mkdir -p /shared/dis ...   Up (healthy)                                           
+vx11-redis-test               docker-entrypoint.sh redis ...   Up (healthy)   6379/tcp                                
+vx11-switch-test              python3 -m uvicorn switch. ...   Up (healthy)                                           
+vx11-tentaculo-link-test      uvicorn tentaculo_link.mai ...   Up (healthy)   0.0.0.0:8000->8000/tcp,:::8000->8000/tcp

@@ -1,0 +1,3 @@
+./operator/backend/main.py:        "status": "OFF_BY_POLICY",
+./operator/backend/main.py:        "status": "OFF_BY_POLICY",
+./operator/backend/main.py:            "status": "UP" if name in allowed else "OFF_BY_POLICY",
