@@ -1,0 +1,41 @@
+{
+  "correlation_id": "ccf4f662-4cd6-4c70-b4d7-dc73cbe3a298",
+  "status": "DONE",
+  "mode": "SWITCH",
+  "provider": "gpt4",
+  "response": {
+    "status": "ok",
+    "task_type": "plan",
+    "provider": "gpt4",
+    "decision": "CLI",
+    "result": {
+      "status": "accepted",
+      "engine": "hermes",
+      "payload": {
+        "prompt": "{\"text\": \"P2_FULL: delegaci\\u00f3n a switch y metadata\", \"payload\": {}, \"require\": {\"switch\": true}, \"priority\": \"P2\", \"correlation_id\": \"ccf4f662-4cd6-4c70-b4d7-dc73cbe3a298\"}",
+        "metadata": {
+          "payload": {
+            "text": "P2_FULL: delegación a switch y metadata",
+            "payload": {},
+            "require": {
+              "switch": true
+            },
+            "priority": "P2",
+            "correlation_id": "ccf4f662-4cd6-4c70-b4d7-dc73cbe3a298"
+          },
+          "priority": 1,
+          "queue_id": 7,
+          "task_uuid": "unknown",
+          "topic": "ops",
+          "model_hint": "audio-engineering"
+        }
+      }
+    },
+    "latency_ms": 16,
+    "queue_id": 7,
+    "reasoning": "Fallback to GPT-4"
+  },
+  "error": null,
+  "degraded": false,
+  "timestamp": "2026-01-02T01:19:47.198828"
+}

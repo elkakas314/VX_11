@@ -1,0 +1,9 @@
+{
+  "spawn_id": "spawn-750683bb",
+  "spawn_uuid": "750683bb-d121-4160-8d34-d778fbdf0d19",
+  "correlation_id": "ad5ce480-62eb-422a-bbd1-1920731d8271",
+  "status": "QUEUED",
+  "task_type": "shell",
+  "error": null,
+  "created_at": "2026-01-02T01:19:47.337014"
+}

@@ -1,0 +1,8 @@
+{
+  "target": "spawner",
+  "is_open": true,
+  "ttl_remaining_seconds": 599,
+  "opened_at": "2026-01-02T01:19:47.007393",
+  "expires_at": "2026-01-02T01:29:47.007393",
+  "window_id": "e2b06c43-3dfc-49be-b2b0-b2a8b23226e6"
+}
