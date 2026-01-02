@@ -1,0 +1,20 @@
+FASE 0 REAL — STACK DETECTION RESULT
+================================================================================
+
+Finding: PYTHON/FastAPI CONFIRMED (NOT Node/Express)
+
+Evidence:
+- ✓ requirements.txt exists (FastAPI, uvicorn, pydantic, sqlalchemy, aiosqlite)
+- ✓ NO package.json (Node marker absent)
+- ✓ main.py files found: 10+ Python entry points (tentaculo_link/, madre/, switch/, etc.)
+- ✓ @app.get/@app.post decorators (FastAPI syntax)
+- ✗ NO app.get()/ app.post() (Express syntax) found
+
+CONCLUSION: 
+The repository IS Python/FastAPI. My earlier auditoría (FASE 0 from 9f60f2c) was CORRECT.
+
+The "improved prompt" user provided was a GENERIC TEMPLATE designed to auto-detect stack.
+Since we detected Python, we proceed with PHASE 1 using the Python plan (already documented in PHASE0.5_DECISION_MATRIX.md).
+
+NEXT ACTION:
+Implement P0-1 (OFF_BY_POLICY JSON contract) using Python/FastAPI approach.

@@ -1,0 +1,10 @@
+./switch/main.py
+./switch/hermes/main.py
+./operator/backend/main.py
+./tentaculo_link/main.py
+./spawner/main.py
+./mcp/main.py
+./shubniggurath/main.py
+./madre/main.py
+./hormiguero/main.py
+./manifestator/main.py
