@@ -116,6 +116,9 @@ class VX11Settings(BaseSettings):
 
     # ========== HERMES (CLI TOOLS) ==========
     hermes_timeout: int = 30
+    hermes_allow_download: bool = (
+        False  # Enable model downloads from HuggingFace (default: False)
+    )
     max_local_tokens: int = 1000
 
     # ========== MODELOS LOCALES Y DESCUBRIMIENTO ==========

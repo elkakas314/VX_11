@@ -29,6 +29,11 @@ from config.forensics import write_log
 from config.db_schema import ModelsLocal, get_session, CLIProvider, CLIRegistry
 from switch.hermes.hf_scanner import get_hf_scanner
 from switch.hermes.cli_scanner import scan_cli_binaries, register_cli_provider
+from switch.hermes.models_scanner import (
+    scan_local_models as _scan_lm,
+    register_local_model,
+    download_hf_model,
+)
 
 load_tokens()
 
@@ -716,6 +721,82 @@ async def catalog(_: bool = Depends(_token_guard)):
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         session.close()
+
+
+class ModelPullRequest(BaseModel):
+    """Request to download a model from HuggingFace."""
+
+    model_id: str
+    token: Optional[str] = None
+    cache_dir: Optional[str] = None
+
+
+@app.post("/hermes/models/pull")
+async def models_pull(req: ModelPullRequest, _: bool = Depends(_token_guard)):
+    """Download a model from HuggingFace Hub (gated by window policy)."""
+
+    # Check window policy: HERMES_ALLOW_DOWNLOAD must be enabled
+    allow_download = os.getenv("HERMES_ALLOW_DOWNLOAD", "0") == "1"
+    if not allow_download:
+        write_log(
+            "hermes", f"models_pull: download disabled (set HERMES_ALLOW_DOWNLOAD=1)"
+        )
+        raise HTTPException(
+            status_code=403,
+            detail="Model download is disabled (HERMES_ALLOW_DOWNLOAD != 1)",
+        )
+
+    out_dir = _make_audit_dir("hermes_models_pull")
+
+    try:
+        write_log("hermes", f"models_pull: starting download for {req.model_id}")
+
+        # Download model from HuggingFace
+        cache_dir = req.cache_dir or None
+        download_result = await download_hf_model(
+            model_id=req.model_id,
+            token=req.token,
+            cache_dir=cache_dir,
+        )
+
+        if not download_result:
+            raise HTTPException(
+                status_code=500, detail=f"Failed to download {req.model_id}"
+            )
+
+        # Register downloaded model in BD
+        model_id = await register_local_model(
+            name=download_result["model_id"].split("/")[-1],
+            path=download_result["path"],
+            size_bytes=download_result["size_bytes"],
+            model_type="hf_download",
+        )
+
+        if not model_id:
+            raise HTTPException(
+                status_code=500, detail=f"Failed to register downloaded model"
+            )
+
+        result = {
+            "status": "ok",
+            "model_id": req.model_id,
+            "registered_id": model_id,
+            "path": download_result["path"],
+            "size_bytes": download_result["size_bytes"],
+            "downloaded_at": download_result["downloaded_at"],
+            "out_dir": out_dir,
+        }
+
+        _write_json(os.path.join(out_dir, "download_result.json"), result)
+        write_log("hermes", f"models_pull: success for {req.model_id} (id={model_id})")
+
+        return result
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        write_log("hermes", f"models_pull: error: {e}", level="ERROR")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.post("/hermes/register_model")
