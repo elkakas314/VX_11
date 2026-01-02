@@ -1,0 +1,10 @@
+VX11 task_injection_e2e FINAL (2026-01-02)
+
+Commit:
+301a3c1c9479e10825dd953ca307369140f0bfd0
+
+Docker mode:
+5/5 PASS inside vx11-tentaculo-link-test (VX11_ENTRYPOINT=http://tentaculo_link:8000)
+
+Host mode:
+2 PASS + 3 SKIP (403 expected by window policy)
