@@ -1,0 +1,3 @@
+# Audit bundle exclusions
+*.zip
+docs/audit/**/*.zip

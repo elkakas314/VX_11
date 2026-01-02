@@ -1,0 +1,26 @@
+============================= test session starts ==============================
+platform linux -- Python 3.10.19, pytest-7.4.3, pluggy-1.6.0 -- /usr/local/bin/python3
+cachedir: .pytest_cache
+rootdir: /app
+configfile: pytest.ini
+plugins: asyncio-0.21.1, anyio-3.7.1, timeout-2.2.0
+asyncio: mode=auto
+collecting ... collected 12 items
+
+tests/contracts/test_contract_hermes_p0.py::test_hermes_health <- ../home/elkakas314/vx11/tests/contracts/test_contract_hermes_p0.py PASSED [  8%]
+tests/contracts/test_contract_hermes_p0.py::test_hermes_available_via_proxy <- ../home/elkakas314/vx11/tests/contracts/test_contract_hermes_p0.py PASSED [ 16%]
+tests/contracts/test_contract_hermes_p0.py::test_hermes_no_heavy_execution <- ../home/elkakas314/vx11/tests/contracts/test_contract_hermes_p0.py SKIPPED [ 25%]
+tests/contracts/test_contract_madre_p0.py::test_madre_health <- ../home/elkakas314/vx11/tests/contracts/test_contract_madre_p0.py PASSED [ 33%]
+tests/contracts/test_contract_madre_p0.py::test_madre_power_status <- ../home/elkakas314/vx11/tests/contracts/test_contract_madre_p0.py PASSED [ 41%]
+tests/contracts/test_contract_madre_p0.py::test_madre_solo_madre_policy_status <- ../home/elkakas314/vx11/tests/contracts/test_contract_madre_p0.py PASSED [ 50%]
+tests/contracts/test_contract_spawner_p0.py::test_spawner_status <- ../home/elkakas314/vx11/tests/contracts/test_contract_spawner_p0.py PASSED [ 58%]
+tests/contracts/test_contract_spawner_p0.py::test_spawner_window_policy_enforced <- ../home/elkakas314/vx11/tests/contracts/test_contract_spawner_p0.py PASSED [ 66%]
+tests/contracts/test_contract_spawner_p0.py::test_spawner_no_destructive_spawn <- ../home/elkakas314/vx11/tests/contracts/test_contract_spawner_p0.py SKIPPED [ 75%]
+tests/contracts/test_contract_switch_p0.py::test_switch_health <- ../home/elkakas314/vx11/tests/contracts/test_contract_switch_p0.py PASSED [ 83%]
+tests/contracts/test_contract_switch_p0.py::test_switch_circuit_breaker_status <- ../home/elkakas314/vx11/tests/contracts/test_contract_switch_p0.py PASSED [ 91%]
+tests/contracts/test_contract_switch_p0.py::test_switch_vx11_status <- ../home/elkakas314/vx11/tests/contracts/test_contract_switch_p0.py PASSED [100%]
+
+=========================== short test summary info ============================
+SKIPPED [1] ../home/elkakas314/vx11/tests/contracts/test_contract_hermes_p0.py:65: Heavy execution reserved for E2E tests
+SKIPPED [1] ../home/elkakas314/vx11/tests/contracts/test_contract_spawner_p0.py:69: Spawn operations reserved for E2E tests
+======================== 10 passed, 2 skipped in 0.47s =========================
