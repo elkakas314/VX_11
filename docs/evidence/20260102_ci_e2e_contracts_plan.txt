@@ -1,0 +1,113 @@
+VX11 CI/E2E/CONTRACTS IMPLEMENTATION PLAN
+Generated: 2026-01-02
+Phase: PHASE 0 PRECHECK
+
+==========================================
+ENVIRONMENT STATUS
+==========================================
+Git Status: CLEAN (main, HEAD: e490272)
+Tag: vx11-e2e-green-20260102
+Containers: All UP (14h tentaculo_link, 3h restart)
+Entrypoint: http://localhost:8000 -> HEALTHY
+OpenAPI: /openapi.json -> ACCESSIBLE
+
+==========================================
+CONFIRMED ENDPOINTS (FOR TESTS)
+==========================================
+E2E Task Injection:
+  ✓ /health (global health check)
+  ✓ /vx11/window/open (POST, window policy)
+  ✓ /vx11/window/close (POST)
+  ✓ /vx11/window/status/{target} (GET)
+  ✓ /vx11/intent (POST, task submission)
+  ✓ /vx11/result/{result_id} (GET, result polling)
+
+Circuit Breaker / Degraded Paths:
+  ✓ /vx11/circuit-breaker/status (GET)
+
+Auth / Token:
+  ✓ /auth/login (POST) — but not used in current E2E
+  ✓ Headers: X-VX11-Token expected in window/intent endpoints
+
+Power Control (for contract tests):
+  ✓ /operator/power/status (GET)
+  ✓ /operator/power/policy/solo_madre/status (GET)
+
+Module-Specific Health (proxied):
+  ✓ /vx11/hermes/health
+  ✓ /operator/api/health (operator)
+  ✓ /shub/health (shubniggurath)
+  ? /hermes/execute (raw hermes, if accessible)
+
+==========================================
+ENDPOINTS TO VERIFY OR CREATE (T6-T8)
+==========================================
+T6 - Long Task TTL:
+  ✓ Window TTL support: Check window/open response structure for ttl_seconds
+  ? Window status after TTL: May need /vx11/window/status/{target} or infer from 403
+
+T7 - Breaker Degraded Path:
+  ✓ /vx11/circuit-breaker/status exists
+  ✓ Error handling on /vx11/intent should return error JSON (not 500 plain)
+  ? Force error payload (invalid provider/model) — NEEDS VERIFICATION IN CODE
+
+T8 - Auth Invalid Token:
+  ✓ X-VX11-Token header expected
+  ? 401/403 response codes: NEEDS VERIFICATION
+
+==========================================
+CONTRACT TESTS STRATEGY
+==========================================
+test_contract_madre_p0.py:
+  - /health -> 200
+  - /operator/power/status -> 200/403 (policy) with JSON
+  - /operator/power/policy/solo_madre/status -> 200 with JSON
+
+test_contract_switch_p0.py:
+  - /health -> 200
+  - /vx11/status -> 200/403 with JSON (or skip if not proxied)
+  - Circuit breaker status indirect validation via /vx11/circuit-breaker/status
+
+test_contract_hermes_p0.py:
+  - /vx11/hermes/health -> 200
+  - /hermes/execute with minimal payload -> 200/403/error JSON (no actual execution)
+
+test_contract_spawner_p0.py:
+  - /operator/api/spawner/status -> 200/403 with JSON
+  - Window policy enforcement: window/open on spawner -> 200 (docker) or 403 (host solo_madre)
+
+==========================================
+IMPLEMENTATION PLAN
+==========================================
+A) GitHub Actions Workflow (vx11-e2e.yml)
+   - Trigger: push + PR to main
+   - Build & up docker compose full-test
+   - Await tentaculo_link:8000 health
+   - Run E2E (8 tests expected, some skip in docker if endpoints missing)
+   - Run contract tests (4 files, some skip if policy/endpoints)
+   - Upload artifacts
+   - Down with -v cleanup
+
+B) E2E Suite Expansion (T6-T8)
+   - T6: test_t6_long_task_ttl_autoclose — window TTL + result polling
+   - T7: test_t7_breaker_degraded_path — circuit breaker / error handling
+   - T8: test_t8_auth_token_invalid_denied — invalid auth response
+   - All use ENTRYPOINT from VX11_ENTRYPOINT env var
+
+C) Contract Tests (P0 minimal)
+   - 4 new files under tests/contracts/
+   - No destructive actions (GET/idempotent POST only)
+   - Respect solo_madre default (403 acceptable)
+   - Fast (<2s each)
+   - Versionable in git (not gitignored)
+
+==========================================
+NEXT STEPS
+==========================================
+1. Implement workflow A
+2. Implement E2E T6-T8
+3. Implement contract tests
+4. Validate docker mode + host mode
+5. 3 atomic commits
+6. Final evidence document
+

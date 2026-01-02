@@ -1,0 +1,19 @@
+============================= test session starts ==============================
+platform linux -- Python 3.10.19, pytest-7.4.3, pluggy-1.6.0 -- /usr/local/bin/python3
+cachedir: .pytest_cache
+rootdir: /app
+configfile: pytest.ini
+plugins: asyncio-0.21.1, anyio-3.7.1, timeout-2.2.0
+asyncio: mode=auto
+collecting ... collected 8 items
+
+tests/test_task_injection_e2e.py::test_t1_solo_madre_off_by_policy <- ../home/elkakas314/vx11/tests/test_task_injection_e2e.py PASSED [ 12%]
+tests/test_task_injection_e2e.py::test_t2_window_open_intent_submit <- ../home/elkakas314/vx11/tests/test_task_injection_e2e.py PASSED [ 25%]
+tests/test_task_injection_e2e.py::test_t3_result_polling <- ../home/elkakas314/vx11/tests/test_task_injection_e2e.py PASSED [ 37%]
+tests/test_task_injection_e2e.py::test_t4_window_close_solo_madre <- ../home/elkakas314/vx11/tests/test_task_injection_e2e.py PASSED [ 50%]
+tests/test_task_injection_e2e.py::test_t5_single_entrypoint_invariant <- ../home/elkakas314/vx11/tests/test_task_injection_e2e.py PASSED [ 62%]
+tests/test_task_injection_e2e.py::test_t6_long_task_ttl_autoclose <- ../home/elkakas314/vx11/tests/test_task_injection_e2e.py PASSED [ 75%]
+tests/test_task_injection_e2e.py::test_t7_breaker_degraded_path <- ../home/elkakas314/vx11/tests/test_task_injection_e2e.py PASSED [ 87%]
+tests/test_task_injection_e2e.py::test_t8_auth_token_invalid_denied <- ../home/elkakas314/vx11/tests/test_task_injection_e2e.py PASSED [100%]
+
+============================== 8 passed in 10.13s ==============================

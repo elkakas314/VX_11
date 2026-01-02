@@ -1,0 +1,25 @@
+============================= test session starts ==============================
+platform linux -- Python 3.10.12, pytest-7.4.3, pluggy-1.6.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+rootdir: /home/elkakas314/vx11
+configfile: pytest.ini
+plugins: cov-7.0.0, asyncio-0.21.1, anyio-3.7.1
+asyncio: mode=auto
+collecting ... collected 8 items
+
+tests/test_task_injection_e2e.py::test_t1_solo_madre_off_by_policy PASSED [ 12%]
+tests/test_task_injection_e2e.py::test_t2_window_open_intent_submit SKIPPED [ 25%]
+tests/test_task_injection_e2e.py::test_t3_result_polling SKIPPED (Host
+mode: window open returns 403 (expected))                                [ 37%]
+tests/test_task_injection_e2e.py::test_t4_window_close_solo_madre SKIPPED [ 50%]
+tests/test_task_injection_e2e.py::test_t5_single_entrypoint_invariant PASSED [ 62%]
+tests/test_task_injection_e2e.py::test_t6_long_task_ttl_autoclose SKIPPED [ 75%]
+tests/test_task_injection_e2e.py::test_t7_breaker_degraded_path PASSED   [ 87%]
+tests/test_task_injection_e2e.py::test_t8_auth_token_invalid_denied PASSED [100%]
+
+=========================== short test summary info ============================
+SKIPPED [1] tests/test_task_injection_e2e.py:155: Host mode: window open returns 403 (expected)
+SKIPPED [1] tests/test_task_injection_e2e.py:251: Host mode: window open returns 403 (expected)
+SKIPPED [1] tests/test_task_injection_e2e.py:354: Host mode: window open returns 403 (expected)
+SKIPPED [1] tests/test_task_injection_e2e.py:559: Host mode: window open returns 403 (expected)
+========================= 4 passed, 4 skipped in 0.63s =========================

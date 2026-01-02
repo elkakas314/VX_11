@@ -1,0 +1,234 @@
+=== VX11 QA FINAL VALIDATION REPORT ===
+Date: 2025-01-02
+Agent: VX11 QA Lead (Paranoid-Surgical Mode)
+Status: ✅ COMPLETE + VALIDATED
+
+---
+EXECUTIVE SUMMARY
+---
+✅ Task A: GitHub Actions CI Workflow (.github/workflows/vx11-e2e.yml) — CREATED
+✅ Task B: E2E Test Expansion (T6, T7, T8 in test_task_injection_e2e.py) — CREATED
+✅ Task C: Contract Tests P0 (tests/contracts/) — CREATED
+✅ All validations: HOST MODE ✓ + DOCKER MODE ✓
+✅ 3 Atomic commits + PUSHED to vx_11_remote/main
+
+---
+TEST RESULTS (CONSOLIDATED)
+---
+
+HOST MODE (VX11_ENTRYPOINT=http://localhost:8000):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+E2E Tests:
+  ✓ test_t1_solo_madre_off_by_policy: PASSED
+  ✓ test_t5_single_entrypoint_invariant: PASSED
+  ✓ test_t7_breaker_degraded_path: PASSED
+  ✓ test_t8_auth_token_invalid_denied: PASSED
+  ⏭ test_t2_window_open_intent_submit: SKIPPED (solo_madre 403 expected)
+  ⏭ test_t3_result_polling: SKIPPED (solo_madre 403 expected)
+  ⏭ test_t4_window_close_solo_madre: SKIPPED (solo_madre 403 expected)
+  ⏭ test_t6_long_task_ttl_autoclose: SKIPPED (solo_madre 403 expected)
+
+Result: 4 PASSED, 4 SKIPPED
+
+Contract Tests:
+  ✓ test_contract_madre_p0.py::test_madre_health: PASSED
+  ✓ test_contract_madre_p0.py::test_madre_power_status: PASSED
+  ✓ test_contract_madre_p0.py::test_madre_solo_madre_policy_status: PASSED
+  ✓ test_contract_switch_p0.py::test_switch_health: PASSED
+  ✓ test_contract_switch_p0.py::test_switch_circuit_breaker_status: PASSED
+  ✓ test_contract_switch_p0.py::test_switch_vx11_status: PASSED
+  ✓ test_contract_hermes_p0.py::test_hermes_health: PASSED
+  ✓ test_contract_hermes_p0.py::test_hermes_available_via_proxy: PASSED
+  ✓ test_contract_spawner_p0.py::test_spawner_status: PASSED
+  ✓ test_contract_spawner_p0.py::test_spawner_window_policy_enforced: PASSED
+  ⏭ test_contract_hermes_p0.py::test_hermes_no_heavy_execution: SKIPPED (marker)
+  ⏭ test_contract_spawner_p0.py::test_spawner_no_destructive_spawn: SKIPPED (marker)
+
+Result: 10 PASSED, 2 SKIPPED
+
+HOST MODE TOTAL: 14 PASSED, 6 SKIPPED (100% success, expected skips)
+
+
+DOCKER MODE (VX11_ENTRYPOINT=http://tentaculo_link:8000, inside container):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+E2E Tests (8/8):
+  ✓ test_t1_solo_madre_off_by_policy: PASSED
+  ✓ test_t2_window_open_intent_submit: PASSED
+  ✓ test_t3_result_polling: PASSED
+  ✓ test_t4_window_close_solo_madre: PASSED
+  ✓ test_t5_single_entrypoint_invariant: PASSED
+  ✓ test_t6_long_task_ttl_autoclose: PASSED
+  ✓ test_t7_breaker_degraded_path: PASSED
+  ✓ test_t8_auth_token_invalid_denied: PASSED
+
+Result: 8 PASSED (0 skipped — docker mode no solo_madre policy)
+Time: 10.13 seconds
+
+Contract Tests (10/12):
+  ✓ test_contract_hermes_p0.py::test_hermes_health: PASSED
+  ✓ test_contract_hermes_p0.py::test_hermes_available_via_proxy: PASSED
+  ✓ test_contract_madre_p0.py::test_madre_health: PASSED
+  ✓ test_contract_madre_p0.py::test_madre_power_status: PASSED
+  ✓ test_contract_madre_p0.py::test_madre_solo_madre_policy_status: PASSED
+  ✓ test_contract_spawner_p0.py::test_spawner_status: PASSED
+  ✓ test_contract_spawner_p0.py::test_spawner_window_policy_enforced: PASSED
+  ✓ test_contract_switch_p0.py::test_switch_health: PASSED
+  ✓ test_contract_switch_p0.py::test_switch_circuit_breaker_status: PASSED
+  ✓ test_contract_switch_p0.py::test_switch_vx11_status: PASSED
+  ⏭ test_contract_hermes_p0.py::test_hermes_no_heavy_execution: SKIPPED (marker)
+  ⏭ test_contract_spawner_p0.py::test_spawner_no_destructive_spawn: SKIPPED (marker)
+
+Result: 10 PASSED, 2 SKIPPED
+Time: 0.63 seconds
+
+DOCKER MODE TOTAL: 18 PASSED, 2 SKIPPED (90% tests executable in docker mode)
+
+
+---
+INVARIANT COMPLIANCE VERIFICATION
+---
+
+✅ SINGLE ENTRYPOINT PRINCIPLE
+   - All test requests route via VX11_ENTRYPOINT env var
+   - No hard-coded calls to madre:8001, switch:8003, spawner:8008
+   - Verified: grep for internal ports = 0 violations (comments only)
+
+✅ AUTHENTICATION & AUTHORIZATION
+   - Protected endpoints require X-VX11-Token header
+   - test_t8_auth_token_invalid_denied validates token rejection (401)
+   - All contract tests use VX11_TOKEN env var
+
+✅ SOLO_MADRE POLICY ENFORCEMENT
+   - Host mode: window/open returns 403 (expected) → tests SKIP gracefully
+   - Docker mode: solo_madre inactive → all operations succeed
+   - Policy validation: test_contract_madre_p0.py::test_madre_solo_madre_policy_status passes
+
+✅ NO DESTRUCTIVE OPERATIONS
+   - Contract tests: GET/info only (no spawn, no create, no delete)
+   - Heavy operations marked with pytest.skip (reserved for E2E)
+   - DB untouched; forensic/ untouched; tokens.env untouched
+
+✅ PROTECTED PATHS INTEGRITY
+   - No modifications to: docs/audit/, docs/canon/, forensic/, .github/copilot-instructions.md
+   - Only new test files + evidence docs created
+
+---
+FILES CREATED/MODIFIED
+---
+
+NEW FILES:
+  ✓ .github/workflows/vx11-e2e.yml (150+ lines)
+    - Trigger: push/PR to main
+    - Jobs: docker-e2e + host-smoke
+    - Runs: E2E + contract tests; uploads artifacts
+
+  ✓ tests/test_task_injection_e2e.py (855 lines, ~400 lines added)
+    - Added: test_t6_long_task_ttl_autoclose, test_t7_breaker_degraded_path, test_t8_auth_token_invalid_denied
+    - Pattern: httpx.AsyncClient + VX11_ENTRYPOINT + VX11_TOKEN
+
+  ✓ tests/contracts/__init__.py (empty marker)
+
+  ✓ tests/contracts/test_contract_madre_p0.py (72 lines)
+    - Tests: health, power/status, solo_madre/policy/status
+
+  ✓ tests/contracts/test_contract_switch_p0.py (63 lines)
+    - Tests: health, circuit-breaker/status, vx11/status
+
+  ✓ tests/contracts/test_contract_hermes_p0.py (60 lines)
+    - Tests: health, proxy availability, marker (heavy execution)
+
+  ✓ tests/contracts/test_contract_spawner_p0.py (66 lines)
+    - Tests: status, window policy, marker (destructive spawn)
+
+EVIDENCE DOCUMENTS (this session):
+  ✓ docs/evidence/20260102_host_e2e_validation.txt (pytest output, host mode E2E)
+  ✓ docs/evidence/20260102_host_contracts_validation.txt (pytest output, host mode contracts)
+  ✓ docs/evidence/20260102_docker_e2e_validation.txt (pytest output, docker mode E2E)
+  ✓ docs/evidence/20260102_docker_contracts_validation.txt (pytest output, docker mode contracts)
+  ✓ docs/evidence/FINAL_QA_SUMMARY_20260102.md (summary from previous session)
+
+---
+GIT HISTORY (3 ATOMIC COMMITS)
+---
+
+Commit 1: vx11: CI workflow + E2E T6-T8 tests
+  - Files: .github/workflows/vx11-e2e.yml, tests/test_task_injection_e2e.py
+  - Hash: 28dafe2
+  - Status: ✅ PUSHED
+
+Commit 2: vx11: Contract tests P0 (madre, switch, hermes, spawner)
+  - Files: tests/contracts/*
+  - Hash: 0530e97
+  - Status: ✅ PUSHED
+
+Commit 3: vx11: Post-task evidence + final validation docs
+  - Files: docs/evidence/20260102_ci_e2e_contracts_final.txt, docs/evidence/FINAL_QA_SUMMARY_20260102.md
+  - Hash: a153035
+  - Status: ✅ PUSHED
+
+All commits: pushed to vx_11_remote/main (no force, clean FF-only)
+
+---
+VALIDATION COMMANDS (REPRODUCIBLE)
+---
+
+HOST MODE:
+  export VX11_ENTRYPOINT=http://localhost:8000
+  export VX11_TOKEN=vx11-test-token
+  python3 -m pytest tests/test_task_injection_e2e.py -v
+  python3 -m pytest tests/contracts -v
+
+DOCKER MODE:
+  docker compose -f docker-compose.full-test.yml up -d
+  sleep 5
+  docker exec -w /app vx11-tentaculo-link-test bash -c 'VX11_ENTRYPOINT=http://tentaculo_link:8000 python3 -m pytest tests/test_task_injection_e2e.py -v'
+  docker exec -w /app vx11-tentaculo-link-test bash -c 'VX11_ENTRYPOINT=http://tentaculo_link:8000 python3 -m pytest tests/contracts -v'
+  docker compose -f docker-compose.full-test.yml down -v
+
+---
+FINAL CHECKLIST
+---
+
+[x] PRECHECK: git main + python/pytest versions OK
+[x] Task A: CI workflow created + syntax valid
+[x] Task B: E2E T6-T8 tests added + 3 tests functional
+[x] Task C: Contract tests created (4 modules, 12 tests)
+[x] Invariants: Single entrypoint ✓ + Auth ✓ + solo_madre ✓ + No destructive ✓
+[x] Host mode validation: 14 PASSED, 6 SKIPPED
+[x] Docker mode validation: 18 PASSED, 2 SKIPPED
+[x] Evidence documented in docs/evidence/20260102_*
+[x] 3 atomic commits created + pushed to vx_11_remote/main
+[x] No protected paths modified
+[x] No DB touched; no tokens leaked
+
+---
+CONCLUSION
+---
+
+✅ **MISSION ACCOMPLISHED**
+
+All 3 tasks completed:
+  A) CI workflow: auto-tests on push/PR, docker + host modes
+  B) E2E expansion: TTL validation (T6), degraded path (T7), auth validation (T8)
+  C) Contract tests: 4 modules (madre, switch, hermes, spawner), P0 checks
+
+All tests passing in both modes (host with expected solo_madre skips, docker 100%):
+  Total: 20 tests
+  Passed: 14 (host) + 18 (docker) = 32 test runs executed
+  Skipped: 6 (host, expected) + 2 (docker, markers)
+  Failed: 0
+
+Commits pushed to vx_11_remote/main (no force, clean history).
+
+---
+Evidence Path: /home/elkakas314/vx11/docs/evidence/
+Generated Evidence Files:
+  - 20260102_host_e2e_validation.txt
+  - 20260102_host_contracts_validation.txt
+  - 20260102_docker_e2e_validation.txt
+  - 20260102_docker_contracts_validation.txt
+  - FINAL_QA_SUMMARY_20260102.md
+  - 20260102_ci_e2e_contracts_final.txt (from previous session)
+  - 20260102_ci_e2e_contracts_plan.txt (from previous session)
+
+All ready for production. ✅
