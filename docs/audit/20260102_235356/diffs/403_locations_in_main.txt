@@ -1,0 +1,15 @@
+126:                raise HTTPException(status_code=403, detail="forbidden")
+248:                return JSONResponse(status_code=403, content={"detail": "forbidden"})
+297:                status_code=403,
+1940:            status_code=403,
+1960:            status_code=403,
+1980:            status_code=403,
+2000:            status_code=403,
+2871:            status_code=403,
+2947:                status_code=403,
+4588:            status_code=403,
+4750:            status_code=403,
+4867:            status_code=403,
+5027:            status_code=403,
+5047:                status_code=403,
+5112:            status_code=403,

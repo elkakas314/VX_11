@@ -1,0 +1,10 @@
+1d5f884 vx11: phase-0-real-stack-verification: confirmed Python/FastAPI (NOT Node/Express)
+9f60f2c vx11: add PHASE0 navigation index + final status snapshot
+9a22fb8 vx11: phase-0-verification complete + decision matrix (PHASE 1 ready)
+6ceb22b vx11: deep-audit-v2-complete [facts+prompts+plans] - ready for copilot P0→P1
+40ca114 vx11: .github: cleanup canonical structure
+64ee3ba vx11: FASE 6 complete — GitHub hardening session summary (6 fases, 2 commits pushed)
+2d1b6fd vx11: audit: evidence FASE 0-5 (inventory, ports, status, bundle, report)
+ba3657b vx11: .github: add audit-bundle workflow + tools (deepseek_r1, vx11_status, audit_bundle)
+7d1a3cd vx11: Final validation evidence (host + docker modes) + consolidated report
+a153035 vx11: Post-task evidence + final validation docs

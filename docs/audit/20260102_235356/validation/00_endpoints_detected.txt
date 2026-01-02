@@ -1,0 +1,4 @@
+TENTACULO_PORT=8000
+HEALTH_PATH=/health
+BASE_PATH=/operator
+SCENARIO=A (Operator en :8000/operator)
