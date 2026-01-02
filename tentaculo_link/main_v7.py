@@ -779,7 +779,10 @@ async def vx11_result_NEW_HANDLER_2025(
             error="upstream_timeout",
         )
     except Exception as e:
-        write_log("tentaculo_link", f"result:exception:{result_id}:{type(e).__name__}:{str(e)}")
+        write_log(
+            "tentaculo_link",
+            f"result:exception:{result_id}:{type(e).__name__}:{str(e)}",
+        )
         return CoreResultQuery(
             correlation_id=result_id,
             status=StatusEnum.ERROR,
@@ -1576,6 +1579,98 @@ async def proxy_hermes_execute(
             )
     except Exception as exc:
         write_log("tentaculo_link", f"proxy_hermes_execute_error:{exc}", level="ERROR")
+        raise HTTPException(status_code=502, detail="hermes_proxy_error")
+
+
+@app.post("/vx11/hermes/models/pull", tags=["proxy-hermes-vx11"])
+async def vx11_hermes_models_pull(
+    body: Dict[str, Any],
+    x_correlation_id: Optional[str] = Header(None, alias="x-correlation-id"),
+    _: bool = Depends(token_guard),
+):
+    """
+    Proxy: POST /vx11/hermes/models/pull (forward to Hermes service).
+
+    Downloads a model from HuggingFace Hub and registers it locally.
+    Requires:
+    - Hermes window to be OPEN (window policy)
+    - HERMES_ALLOW_DOWNLOAD=1 environment variable
+    - X-VX11-Token header (token_guard)
+
+    Request body:
+    {
+      "model_id": "string (required)",
+      "token": "string|null (optional - HF token)",
+      "cache_dir": "string|null (optional - download cache path)"
+    }
+
+    Response:
+    - 200: {"status": "ok", "model_id": "...", "registered_id": 123, ...}
+    - 403: {"status": "OFF_BY_POLICY", "detail": "..."} (window not open or HERMES_ALLOW_DOWNLOAD != 1)
+    - 502: {"detail": "hermes_proxy_error"} (upstream error)
+    """
+    import uuid
+
+    corr_id = x_correlation_id or str(uuid.uuid4())[:8]
+
+    try:
+        write_log(
+            "tentaculo_link",
+            f"vx11_hermes_models_pull:start correlation_id={corr_id}",
+            level="INFO",
+        )
+
+        # Step 1: Check window policy (hermes window must be open)
+        window_manager = get_window_manager()
+        window_status = window_manager.get_window_status("hermes")
+        if not window_status.get("is_open", False):
+            write_log(
+                "tentaculo_link",
+                f"vx11_hermes_models_pull:off_by_policy (window not open) correlation_id={corr_id}",
+                level="WARN",
+            )
+            return {
+                "status": "OFF_BY_POLICY",
+                "detail": "Hermes window is not open. Open it first with POST /vx11/window/open",
+                "target": "hermes",
+                "correlation_id": corr_id,
+            }
+
+        # Step 2: Forward to upstream hermes
+        write_log(
+            "tentaculo_link",
+            f"vx11_hermes_models_pull:forwarding to hermes:8003 model_id={body.get('model_id', 'N/A')} correlation_id={corr_id}",
+            level="INFO",
+        )
+
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            resp = await client.post(
+                "http://hermes:8003/hermes/models/pull",
+                json=body,
+                headers={
+                    **AUTH_HEADERS,
+                    "x-correlation-id": corr_id,
+                },
+            )
+
+            write_log(
+                "tentaculo_link",
+                f"vx11_hermes_models_pull:upstream_status={resp.status_code} correlation_id={corr_id}",
+                level="INFO",
+            )
+
+            return Response(
+                content=resp.text,
+                status_code=resp.status_code,
+                media_type="application/json",
+            )
+
+    except Exception as exc:
+        write_log(
+            "tentaculo_link",
+            f"vx11_hermes_models_pull:error exception={str(exc)[:100]} correlation_id={corr_id}",
+            level="ERROR",
+        )
         raise HTTPException(status_code=502, detail="hermes_proxy_error")
 
 

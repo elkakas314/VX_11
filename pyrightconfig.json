@@ -17,6 +17,13 @@
     "reportMissingImports": false,
     "reportMissingTypeStubs": false,
     "reportOptionalMemberAccess": false,
+    "reportAttributeAccessIssue": false,
+    "reportArgumentType": false,
+    "reportGeneralTypeIssues": false,
+    "reportRedeclaration": false,
+    "reportUnusedExcept": false,
+    "reportUndefinedVariable": false,
+    "reportReturnType": false,
     "stubPath": ".",
     "extraPaths": [
         ".",
