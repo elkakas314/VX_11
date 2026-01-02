@@ -1,0 +1,4 @@
+94|2025-12-31 03:29:31.206738|test-trace-123|cli|copilot_cli|95.5|High priority + balanced mode
+93|2025-12-31 03:26:12.383918|test-trace-123|cli|copilot_cli|95.5|High priority + balanced mode
+92|2025-12-31 03:05:21.484258|test-trace-123|cli|copilot_cli|95.5|High priority + balanced mode
+91|2025-12-31 02:39:20.120628|test-trace-123|cli|copilot_cli|95.5|High priority + balanced mode

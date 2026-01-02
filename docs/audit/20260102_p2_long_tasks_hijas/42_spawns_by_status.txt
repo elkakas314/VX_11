@@ -1,0 +1,4 @@
+accepted|2
+completed|48
+failed|10
+pending|29

@@ -1,0 +1,13 @@
+{
+  "spawn_uuid": "c300c78f-cf7e-4df9-b0b9-c0b96e1a119a",
+  "spawn_id": "spawn-c300c78f",
+  "status": "ERROR",
+  "task_type": null,
+  "exit_code": 2,
+  "stdout": "",
+  "stderr": "/bin/sh: 1: import: not found\n/bin/sh: 2: Syntax error: \"(\" unexpected\n",
+  "created_at": "2026-01-02T00:55:49.480384",
+  "started_at": "2026-01-02T00:55:49.489545",
+  "finished_at": "2026-01-02T00:55:49.497120",
+  "ttl_seconds": 300
+}

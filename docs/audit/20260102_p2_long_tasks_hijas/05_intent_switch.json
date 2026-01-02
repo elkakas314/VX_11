@@ -1,0 +1,41 @@
+{
+  "correlation_id": "7a053f5a-b039-46ff-8220-02402a356e7f",
+  "status": "DONE",
+  "mode": "SWITCH",
+  "provider": "gpt4",
+  "response": {
+    "status": "ok",
+    "task_type": "plan",
+    "provider": "gpt4",
+    "decision": "CLI",
+    "result": {
+      "status": "accepted",
+      "engine": "hermes",
+      "payload": {
+        "prompt": "{\"text\": \"P2_E2E: test switch delegation + metadata\", \"payload\": {}, \"require\": {\"switch\": true}, \"priority\": \"P2\", \"correlation_id\": \"7a053f5a-b039-46ff-8220-02402a356e7f\"}",
+        "metadata": {
+          "payload": {
+            "text": "P2_E2E: test switch delegation + metadata",
+            "payload": {},
+            "require": {
+              "switch": true
+            },
+            "priority": "P2",
+            "correlation_id": "7a053f5a-b039-46ff-8220-02402a356e7f"
+          },
+          "priority": 1,
+          "queue_id": 5,
+          "task_uuid": "unknown",
+          "topic": "general",
+          "model_hint": "general-7b"
+        }
+      }
+    },
+    "latency_ms": 14,
+    "queue_id": 5,
+    "reasoning": "Fallback to GPT-4"
+  },
+  "error": null,
+  "degraded": false,
+  "timestamp": "2026-01-02T00:55:49.120471"
+}

@@ -1,0 +1,5 @@
+/hermes/execute
+/hermes/get-engine
+/vx11/hermes/catalog
+/vx11/hermes/discover
+/vx11/hermes/health

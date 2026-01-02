@@ -1,0 +1,13 @@
+{
+  "spawn_uuid": "ac44903d-8c22-4335-8e37-947eee12b8dc",
+  "spawn_id": "spawn-ac44903d",
+  "status": "DONE",
+  "task_type": null,
+  "exit_code": 0,
+  "stdout": "TASK3_START\n{\"phase\": \"A\", \"msg\": \"generating output\"}\n{\"phase\": \"B\", \"msg\": \"still alive\"}\n{\"phase\": \"C\", \"msg\": \"done\"}\nTASK3_END\n",
+  "stderr": "",
+  "created_at": "2026-01-02T00:55:49.763906",
+  "started_at": "2026-01-02T00:55:49.773272",
+  "finished_at": "2026-01-02T00:55:52.238461",
+  "ttl_seconds": 300
+}
