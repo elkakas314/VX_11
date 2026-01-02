@@ -1,0 +1,14 @@
+time="2026-01-02T01:21:50+01:00" level=warning msg="/home/elkakas314/vx11/docker-compose.spawner.override.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+vx11-redis-test  | 1:C 02 Jan 2026 00:19:03.735 # WARNING Memory overcommit must be enabled! Without it, a background save or replication may fail under low memory condition. Being disabled, it can also cause failures without low memory condition, see https://github.com/jemalloc/jemalloc/issues/1328. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.
+vx11-redis-test  | 1:C 02 Jan 2026 00:19:03.735 * oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+vx11-redis-test  | 1:C 02 Jan 2026 00:19:03.735 * Redis version=7.4.7, bits=64, commit=00000000, modified=0, pid=1, just started
+vx11-redis-test  | 1:C 02 Jan 2026 00:19:03.735 # Warning: no config file specified, using the default config. In order to specify a config file use redis-server /path/to/redis.conf
+vx11-redis-test  | 1:M 02 Jan 2026 00:19:03.735 * monotonic clock: POSIX clock_gettime
+vx11-redis-test  | 1:M 02 Jan 2026 00:19:03.736 * Running mode=standalone, port=6379.
+vx11-redis-test  | 1:M 02 Jan 2026 00:19:03.737 * Server initialized
+vx11-redis-test  | 1:M 02 Jan 2026 00:19:03.737 * Loading RDB produced by version 7.4.7
+vx11-redis-test  | 1:M 02 Jan 2026 00:19:03.737 * RDB age 1729 seconds
+vx11-redis-test  | 1:M 02 Jan 2026 00:19:03.737 * RDB memory usage when created 0.93 Mb
+vx11-redis-test  | 1:M 02 Jan 2026 00:19:03.737 * Done loading RDB, keys loaded: 0, keys expired: 0.
+vx11-redis-test  | 1:M 02 Jan 2026 00:19:03.737 * DB loaded from disk: 0.000 seconds
+vx11-redis-test  | 1:M 02 Jan 2026 00:19:03.737 * Ready to accept connections tcp

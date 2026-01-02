@@ -1,0 +1,21 @@
+time="2026-01-02T01:21:51+01:00" level=warning msg="/home/elkakas314/vx11/docker-compose.spawner.override.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+vx11-switch-test  | INFO:     Started server process [1]
+vx11-switch-test  | INFO:     Waiting for application startup.
+vx11-switch-test  | Modelo local_gguf_small no disponible en Hermes
+vx11-switch-test  | Modelo ollama_local no disponible en Hermes
+vx11-switch-test  | Modelo deepseek_r1 no disponible en Hermes
+vx11-switch-test  | INFO:     Application startup complete.
+vx11-switch-test  | INFO:     Uvicorn running on http://0.0.0.0:8002 (Press CTRL+C to quit)
+vx11-switch-test  | INFO:     127.0.0.1:36568 - "GET /health HTTP/1.1" 200 OK
+vx11-switch-test  | INFO:     127.0.0.1:55658 - "GET /health HTTP/1.1" 200 OK
+vx11-switch-test  | INFO:     127.0.0.1:52810 - "GET /health HTTP/1.1" 200 OK
+vx11-switch-test  | INFO:     127.0.0.1:46970 - "GET /health HTTP/1.1" 200 OK
+vx11-switch-test  | INFO:     127.0.0.1:43890 - "GET /health HTTP/1.1" 200 OK
+vx11-switch-test  | INFO:     127.0.0.1:39266 - "GET /health HTTP/1.1" 200 OK
+vx11-switch-test  | INFO:     127.0.0.1:55378 - "GET /health HTTP/1.1" 200 OK
+vx11-switch-test  | INFO:     127.0.0.1:36370 - "GET /health HTTP/1.1" 200 OK
+vx11-switch-test  | INFO:     127.0.0.1:37506 - "GET /health HTTP/1.1" 200 OK
+vx11-switch-test  | INFO:     127.0.0.1:49158 - "GET /health HTTP/1.1" 200 OK
+vx11-switch-test  | INFO:     127.0.0.1:41926 - "GET /health HTTP/1.1" 200 OK
+vx11-switch-test  | INFO:     127.0.0.1:43394 - "GET /health HTTP/1.1" 200 OK
+vx11-switch-test  | INFO:     127.0.0.1:56804 - "GET /health HTTP/1.1" 200 OK

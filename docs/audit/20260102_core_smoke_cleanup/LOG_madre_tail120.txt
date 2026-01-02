@@ -1,0 +1,22 @@
+time="2026-01-02T01:21:50+01:00" level=warning msg="/home/elkakas314/vx11/docker-compose.spawner.override.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+vx11-madre-test  | INFO:     Started server process [1]
+vx11-madre-test  | INFO:     Waiting for application startup.
+vx11-madre-test  | INFO:     Application startup complete.
+vx11-madre-test  | INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
+vx11-madre-test  | INFO:     127.0.0.1:46698 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test  | INFO:     127.0.0.1:46168 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test  | INFO:     127.0.0.1:49574 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test  | INFO:     127.0.0.1:57000 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test  | INFO:     127.0.0.1:56776 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test  | INFO:     127.0.0.1:40888 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test  | INFO:     127.0.0.1:53732 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test  | INFO:     127.0.0.1:41816 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test  | INFO:     127.0.0.1:40772 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test  | INFO:     172.18.0.4:39250 - "POST /vx11/intent HTTP/1.1" 200 OK
+vx11-madre-test  | INFO:     172.18.0.4:58274 - "POST /vx11/intent HTTP/1.1" 200 OK
+vx11-madre-test  | INFO:     127.0.0.1:38196 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test  | INFO:     127.0.0.1:44464 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test  | INFO:     127.0.0.1:38170 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test  | INFO:     127.0.0.1:35270 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test  | INFO:     127.0.0.1:54680 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test  | INFO:     127.0.0.1:44146 - "GET /health HTTP/1.1" 200 OK

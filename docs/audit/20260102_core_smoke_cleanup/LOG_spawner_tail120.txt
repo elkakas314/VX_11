@@ -1,0 +1,18 @@
+time="2026-01-02T01:22:01+01:00" level=warning msg="/home/elkakas314/vx11/docker-compose.spawner.override.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+vx11-spawner-test  | INFO:     Started server process [1]
+vx11-spawner-test  | INFO:     Waiting for application startup.
+vx11-spawner-test  | INFO:     Application startup complete.
+vx11-spawner-test  | INFO:     Uvicorn running on http://0.0.0.0:8008 (Press CTRL+C to quit)
+vx11-spawner-test  | INFO:     127.0.0.1:59580 - "GET /health HTTP/1.1" 200 OK
+vx11-spawner-test  | INFO:     127.0.0.1:47918 - "GET /health HTTP/1.1" 200 OK
+vx11-spawner-test  | INFO:     127.0.0.1:59086 - "GET /health HTTP/1.1" 200 OK
+vx11-spawner-test  | INFO:     127.0.0.1:49166 - "GET /health HTTP/1.1" 200 OK
+vx11-spawner-test  | INFO:     172.18.0.4:35354 - "POST /spawn HTTP/1.1" 200 OK
+vx11-spawner-test  | INFO:     172.18.0.4:50440 - "POST /spawn HTTP/1.1" 200 OK
+vx11-spawner-test  | INFO:     127.0.0.1:56808 - "GET /health HTTP/1.1" 200 OK
+vx11-spawner-test  | INFO:     127.0.0.1:45300 - "GET /health HTTP/1.1" 200 OK
+vx11-spawner-test  | INFO:     127.0.0.1:51658 - "GET /health HTTP/1.1" 200 OK
+vx11-spawner-test  | INFO:     127.0.0.1:46976 - "GET /health HTTP/1.1" 200 OK
+vx11-spawner-test  | INFO:     127.0.0.1:48682 - "GET /health HTTP/1.1" 200 OK
+vx11-spawner-test  | INFO:     127.0.0.1:43894 - "GET /health HTTP/1.1" 200 OK
+vx11-spawner-test  | INFO:     127.0.0.1:57068 - "GET /health HTTP/1.1" 200 OK

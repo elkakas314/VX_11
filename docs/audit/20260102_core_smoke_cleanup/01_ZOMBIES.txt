@@ -1,0 +1,15 @@
+=== FASE 0.2: DETECTAR ZOMBIS ===
+
+--- Procesos Zombis ---
+✅ NO ZOMBIES FOUND
+
+--- Procesos potencialmente runaway (uvicorn/python loops) ---
+⚠️  FOUND (may be normal):
+1420875 python -m uvicorn spawner.main:app --host 0.0.0.0 --port 8008
+1543747 python -m uvicorn madre.main:app --host 0.0.0.0 --port 8001
+1543976 python /app/operator/backend/uvicorn_entry.py
+1544318 python3 -m uvicorn switch.main:app --host 0.0.0.0 --port 8002
+1544332 python3 -m uvicorn switch.hermes.main:app --host 0.0.0.0 --port 8003
+1555110 /usr/local/bin/python3.10 /root/.local/bin/uvicorn tentaculo_link.main_v7:app --host 0.0.0.0 --port 8000
+
+=== ZOMBIE CHECK DONE ===

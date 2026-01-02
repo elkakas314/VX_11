@@ -1,0 +1,123 @@
+=== FASE 2: PRUEBA E2E CORE (ENTRYPOINT 8000) ===
+
+--- 2.1: Health check ---
+{
+  "status": "ok",
+  "module": "tentaculo_link",
+  "version": "7.0"
+}
+
+--- 2.2: Status check (SOLO_MADRE policy) ---
+{
+  "mode": "full",
+  "policy": "SOLO_MADRE",
+  "madre_available": true,
+  "switch_available": true,
+  "spawner_available": true,
+  "timestamp": "2026-01-02T00:20:48.609422"
+}
+
+--- 2.3: Open spawner window (TTL 300s) ---
+{
+  "target": "spawner",
+  "is_open": true,
+  "ttl_remaining_seconds": 299,
+  "opened_at": "2026-01-02T00:20:48.671831",
+  "expires_at": "2026-01-02T00:25:48.671831",
+  "window_id": "31def301-0d42-46ed-af18-a26319915b81"
+}
+
+--- 2.4: Create spawn (shell command) ---
+{
+  "spawn_id": "spawn-f5045532",
+  "spawn_uuid": "f5045532-eaca-4282-9205-2bfb38b0cbbe",
+  "correlation_id": "df47edb0-2a52-41f1-9b27-a4892b6cf1eb",
+  "status": "QUEUED",
+  "task_type": "shell",
+  "error": null,
+  "created_at": "2026-01-02T00:20:48.756998"
+}
+SPAWN_ID=spawn-f5045532
+SPAWN_UUID=f5045532-eaca-4282-9205-2bfb38b0cbbe
+
+--- 2.5: Poll result until DONE/ERROR ---
+Attempt 1:
+{
+  "spawn_uuid": "f5045532-eaca-4282-9205-2bfb38b0cbbe",
+  "spawn_id": "spawn-f5045532",
+  "status": "DONE",
+  "task_type": null,
+  "exit_code": 0,
+  "stdout": "HIJA_OK\n",
+  "stderr": "",
+  "created_at": "2026-01-02T00:20:48.742480",
+  "started_at": "2026-01-02T00:20:48.754779",
+  "finished_at": "2026-01-02T00:20:48.757889",
+  "ttl_seconds": 300
+}
+
+--- 2.6: Close spawner window ---
+{
+  "target": "spawner",
+  "closed": true,
+  "was_open": true,
+  "reason": "vx11_api_close"
+}
+
+--- 2.7: Attempt spawn with window CLOSED (expect off_by_policy, NOT 500) ---
+{
+  "spawn_id": "",
+  "spawn_uuid": null,
+  "correlation_id": "909ce7b5-17ae-4b9f-8a50-d715843c6e77",
+  "status": "ERROR",
+  "task_type": "shell",
+  "error": "off_by_policy",
+  "created_at": "2026-01-02T00:20:49.031289"
+}
+✅ OFF_BY_POLICY error (semantic, no 500)
+
+--- 2.8: Open switch window ---
+{
+  "target": "switch",
+  "is_open": true,
+  "ttl_remaining_seconds": 299,
+  "opened_at": "2026-01-02T00:20:49.125431",
+  "expires_at": "2026-01-02T00:25:49.125431",
+  "window_id": "18dfec62-3236-486d-baae-33d2b4bb9de8"
+}
+
+--- 2.9: Send intent with require.switch=true ---
+{
+  "correlation_id": "21e9519a-4abc-443a-980f-bcd04b52c31a",
+  "status": "DONE",
+  "mode": "MADRE",
+  "provider": "fallback_local",
+  "response": {
+    "plan_id": "ebad5749-5e20-4419-aa33-c89edfc82c91",
+    "steps_executed": 1,
+    "result": "intent_processed",
+    "notes": "fallback_local execution"
+  },
+  "error": null,
+  "degraded": false,
+  "timestamp": "2026-01-02T00:20:49.224645"
+}
+
+--- 2.10: Open hermes window ---
+{
+  "target": "hermes",
+  "is_open": true,
+  "ttl_remaining_seconds": 299,
+  "opened_at": "2026-01-02T00:20:49.241148",
+  "expires_at": "2026-01-02T00:25:49.241148",
+  "window_id": "d04d284d-0f91-4e13-99a7-5a9652ea730e"
+}
+
+--- 2.11: Hermes health (if endpoint exists) ---
+{
+  "status": "ok",
+  "module": "hermes",
+  "version": "minimal"
+}
+
+✅ FASE 2 COMPLETED

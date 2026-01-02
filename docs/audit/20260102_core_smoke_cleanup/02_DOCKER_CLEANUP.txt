@@ -1,0 +1,16 @@
+=== FASE 0.3: LIMPIEZA DOCKER ===
+
+--- 1. Down docker compose (remove orphans) ---
+
+--- 2. Check for remaining vx11 containers ---
+✅ No lingering vx11 containers
+
+--- 3. Prune orphan networks ---
+
+--- 4. Prune stopped containers ---
+Total reclaimed space: 0B
+
+--- 5. Final docker ps ---
+CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
+
+=== DOCKER CLEANUP DONE ===

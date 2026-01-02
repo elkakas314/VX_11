@@ -1,0 +1,201 @@
+=== SNAPSHOT DE ESTADO INICIAL ===
+
+--- date ---
+vie 02 ene 2026 01:17:08 CET
+
+--- uname -a ---
+Linux elkakas314-Lenovo-Z50-70 6.8.0-90-generic #91~22.04.1-Ubuntu SMP PREEMPT_DYNAMIC Thu Nov 20 15:20:45 UTC 2 x86_64 x86_64 x86_64 GNU/Linux
+
+--- git rev-parse --short HEAD ---
+49ace2f
+
+--- docker ps -a ---
+CONTAINER ID   IMAGE                         COMMAND                  CREATED          STATUS                    PORTS                                         NAMES
+83116c56c464   vx11-tentaculo-link:test      "uvicorn tentaculo_l…"   20 minutes ago   Up 20 minutes (healthy)   0.0.0.0:8000->8000/tcp, [::]:8000->8000/tcp   vx11-tentaculo-link-test
+4d78685941d6   vx11-operator-frontend:test   "sh -c 'mkdir -p /sh…"   26 minutes ago   Up 26 minutes (healthy)                                                 vx11-operator-frontend-test
+fc5835f0a632   vx11-hermes:test              "python3 -m uvicorn …"   26 minutes ago   Up 26 minutes (healthy)                                                 vx11-hermes-test
+7e3b9c14e3cf   vx11-switch:test              "python3 -m uvicorn …"   26 minutes ago   Up 26 minutes (healthy)                                                 vx11-switch-test
+623d836a9c7d   vx11-operator-backend:test    "python /app/operato…"   26 minutes ago   Up 26 minutes (healthy)                                                 vx11-operator-backend-test
+ddfe9721ab7c   vx11-madre:test               "python -m uvicorn m…"   26 minutes ago   Up 26 minutes (healthy)                                                 vx11-madre-test
+c364abd8d89e   redis:7-alpine                "docker-entrypoint.s…"   26 minutes ago   Up 26 minutes (healthy)   6379/tcp                                      vx11-redis-test
+b847c84b84d1   vx11-spawner:test             "python -m uvicorn s…"   2 hours ago      Up 2 hours (healthy)                                                    vx11-spawner-test
+
+--- docker compose ls ---
+NAME                STATUS              CONFIG FILES
+vx11                running(8)          /home/elkakas314/vx11/docker-compose.full-test.yml,/home/elkakas314/vx11/docker-compose.spawner.override.yml
+
+--- docker network ls ---
+NETWORK ID     NAME             DRIVER    SCOPE
+ae8ee1261f60   bridge           bridge    local
+6428ea8e9fc1   host             host      local
+a8f6db888117   none             null      local
+b6a84844a6f1   vx11-network     bridge    local
+aefaadc3c16e   vx11-test        bridge    local
+20ef5fe9c439   vx11_vx11-test   bridge    local
+
+--- docker volume ls ---
+DRIVER    VOLUME NAME
+local     vx11_data
+local     vx11_logs
+local     vx11_models
+local     vx11_operator-ui-dist
+local     vx11_postgres_data
+local     vx11_redis-data-test
+local     vx11_sandbox
+local     vx11_vx11-db-test
+
+--- Puertos abiertos (8000-8008, 6379) ---
+LISTEN 0      4096         0.0.0.0:8000       0.0.0.0:*                                          
+LISTEN 0      4096            [::]:8000          [::]:*                                          
+
+--- Procesos relevantes ---
+    PID    PPID STAT CMD
+      1       0 Ss   /sbin/init splash
+      2       0 S    [kthreadd]
+    294       1 S<s  /lib/systemd/systemd-journald
+    342       1 Ss   /lib/systemd/systemd-udevd
+    569       1 Ss   /lib/systemd/systemd-resolved
+    570       1 Ssl  /lib/systemd/systemd-timesyncd
+    577       1 Ss   /usr/sbin/haveged --Foreground --verbose=1
+    615       1 Ssl  /usr/libexec/accounts-daemon
+    616       1 Ss   /usr/sbin/acpid
+    620       1 Ss   avahi-daemon: running [elkakas314-Lenovo-Z50-70.local]
+    621       1 Ss   /usr/lib/bluetooth/bluetoothd
+    623       1 Ss   /usr/sbin/cron -f -P
+    624       1 Ss   @dbus-daemon --system --address=systemd: --nofork --nopidfile --systemd-activation --syslog-only
+    626       1 Ssl  /usr/sbin/NetworkManager --no-daemon
+    631       1 Ssl  /usr/sbin/irqbalance --foreground
+    633       1 Ss   /usr/bin/python3 /usr/bin/networkd-dispatcher --run-startup-triggers
+    636       1 Ssl  /usr/libexec/polkitd --no-debug
+    637       1 Ssl  /usr/libexec/power-profiles-daemon
+    640       1 Ssl  /usr/sbin/rsyslogd -n -iNONE
+    644       1 Ss   /usr/sbin/smartd -n
+    646       1 Ssl  /usr/lib/snapd/snapd
+    651       1 Ss   /lib/systemd/systemd-logind
+    655       1 Ssl  /usr/sbin/thermald --systemd --dbus-enable --adaptive
+    656       1 Ssl  /usr/libexec/udisks2/udisksd
+    657       1 Ss   /sbin/wpa_supplicant -u -s -O /run/wpa_supplicant
+    730       1 Ssl  /usr/bin/python3 /usr/share/unattended-upgrades/unattended-upgrade-shutdown --wait-for-signal
+    731       1 Ssl  /usr/sbin/ModemManager
+    760       1 Ssl  /usr/bin/containerd
+    870       1 Ss   /usr/bin/nvidia-persistenced --user nvidia-persistenced --no-persistence-mode --verbose
+   1118       1 SNsl /usr/libexec/rtkit-daemon
+   1141       1 Ssl  /usr/libexec/upowerd
+   1148       1 Ssl  /usr/bin/caddy run --environ --config /etc/caddy/Caddyfile
+   1151       1 Ssl  /usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock
+   1162       1 Ss   /usr/sbin/kerneloops --test
+   1166       1 Ss   /usr/sbin/kerneloops
+   1966       1 Ss   /bin/login -p --
+   2081       1 Ss   /lib/systemd/systemd --user
+   2212       1 Ssl  /usr/bin/sddm
+   2555       1 Sl   /usr/bin/kwalletd5 --pam-login 7 8
+   2772       1 S    /usr/lib/x86_64-linux-gnu/libexec/kf5/start_kdeinit
+   2773       1 Ss   kdeinit5: Running...
+   2820       1 S    /usr/bin/xsettingsd
+   2893       1 Ssl  /usr/libexec/packagekitd
+   3133       1 S    /lib/x86_64-linux-gnu/libexec/kf5/kioslave5 /usr/lib/x86_64-linux-gnu/qt5/plugins/kf5/kio/kio_file.so file  local:/run/user/1000/kded5NajeUp.1.slave-socket
+  31276       1 Sl   /usr/libexec/at-spi2-registryd --use-gnome-session
+1062562       1 Sl   /snap/firefox/7559/usr/lib/firefox/crashhelper 1062052 15 /tmp/ 17
+1070992       1 Sl   /usr/share/code/chrome_crashpad_handler --monitor-self-annotation=ptype=crashpad-handler --no-rate-limit --database=/home/elkakas314/.config/Code/Crashpad --url=appcenter://code?aid=fba07a4d-84bd-4fc8-a125-9640fc8ce171&uid=592006cc-e4d5-458d-b3ff-1a85853ead76&iid=592006cc-e4d5-458d-b3ff-1a85853ead76&sid=592006cc-e4d5-458d-b3ff-1a85853ead76 --annotation=_companyName=Microsoft --annotation=_productName=VSCode --annotation=_version=1.107.1 --annotation=lsb-release=Ubuntu 22.04.5 LTS --annotation=plat=Linux --annotation=prod=Electron --annotation=ver=39.2.3 --initial-client-fd=47 --shared-client-connection
+1420853       1 Sl   /usr/bin/containerd-shim-runc-v2 -namespace moby -id b847c84b84d1c76fbe760401e757c509d3af1a64b41eb38d04523b855144bda2 -address /run/containerd/containerd.sock
+1476355       1 Ss   /usr/sbin/cupsd -l
+1476359       1 Ssl  /usr/sbin/cups-browsed
+1543584       1 Sl   /usr/bin/containerd-shim-runc-v2 -namespace moby -id c364abd8d89e06e359ede573c290750c63e2b7d585cb16618183798e358d6c55 -address /run/containerd/containerd.sock
+1543726       1 Sl   /usr/bin/containerd-shim-runc-v2 -namespace moby -id ddfe9721ab7c1d9491f5894b85c3600d33c53378e5debf13f34214aea253466f -address /run/containerd/containerd.sock
+1543928       1 Sl   /usr/bin/containerd-shim-runc-v2 -namespace moby -id 623d836a9c7d7b72512aa1c9affd689dd6136b1cf1f19caae8222594b87275db -address /run/containerd/containerd.sock
+1544253       1 Sl   /usr/bin/containerd-shim-runc-v2 -namespace moby -id fc5835f0a632945df6920514b9ecae6c43e248efa1fde3ab33156162a7f1e692 -address /run/containerd/containerd.sock
+1544258       1 Sl   /usr/bin/containerd-shim-runc-v2 -namespace moby -id 7e3b9c14e3cfb467dce44ce78929473683eb8e06b2306d0be86eb9cf72fc41fa -address /run/containerd/containerd.sock
+1544283       1 Sl   /usr/bin/containerd-shim-runc-v2 -namespace moby -id 4d78685941d6a0c264e210ee6883ffd148d2e3de2d252a17159e6d828693a1e3 -address /run/containerd/containerd.sock
+1555088       1 Sl   /usr/bin/containerd-shim-runc-v2 -namespace moby -id 83116c56c464d887ab62778ce5efda93744a5f7fa85212dce07b8c398c8f69db -address /run/containerd/containerd.sock
+1564426       1 S    /lib/x86_64-linux-gnu/libexec/kf5/kioslave5 /usr/lib/x86_64-linux-gnu/qt5/plugins/kf5/kio/kio_file.so file  local:/run/user/1000/dolphinmIJKWW.453.slave-socket
+1578695       1 S    /lib/x86_64-linux-gnu/libexec/kf5/kioslave5 /usr/lib/x86_64-linux-gnu/qt5/plugins/kf5/kio/kio_file.so file  local:/run/user/1000/dolphinQpByjF.455.slave-socket
+1578697       1 Sl   /lib/x86_64-linux-gnu/libexec/kf5/kioslave5 /usr/lib/x86_64-linux-gnu/qt5/plugins/kf5/kio/thumbnail.so thumbnail  local:/run/user/1000/dolphinLbeumG.456.slave-socket
+      3       2 S    [pool_workqueue_release]
+      4       2 I<   [kworker/R-rcu_g]
+      5       2 I<   [kworker/R-rcu_p]
+      6       2 I<   [kworker/R-slub_]
+      7       2 I<   [kworker/R-netns]
+      9       2 I<   [kworker/0:0H-events_highpri]
+     12       2 I<   [kworker/R-mm_pe]
+     13       2 I    [rcu_tasks_kthread]
+     14       2 I    [rcu_tasks_rude_kthread]
+     15       2 I    [rcu_tasks_trace_kthread]
+     16       2 S    [ksoftirqd/0]
+     17       2 I    [rcu_preempt]
+     18       2 S    [migration/0]
+     19       2 S    [idle_inject/0]
+     20       2 S    [cpuhp/0]
+     21       2 S    [cpuhp/2]
+     22       2 S    [idle_inject/2]
+     23       2 S    [migration/2]
+     24       2 S    [ksoftirqd/2]
+     27       2 S    [cpuhp/1]
+     28       2 S    [idle_inject/1]
+     29       2 S    [migration/1]
+     30       2 S    [ksoftirqd/1]
+     32       2 I<   [kworker/1:0H-events_highpri]
+     33       2 S    [cpuhp/3]
+     34       2 S    [idle_inject/3]
+     35       2 S    [migration/3]
+     36       2 S    [ksoftirqd/3]
+     38       2 I<   [kworker/3:0H-kblockd]
+     39       2 S    [kdevtmpfs]
+     40       2 I<   [kworker/R-inet_]
+     41       2 S    [kauditd]
+     42       2 S    [khungtaskd]
+     44       2 S    [oom_reaper]
+     46       2 I<   [kworker/R-write]
+     47       2 S    [kcompactd0]
+     48       2 SN   [ksmd]
+     50       2 SN   [khugepaged]
+     51       2 I<   [kworker/R-kinte]
+     52       2 I<   [kworker/R-kbloc]
+     53       2 I<   [kworker/R-blkcg]
+     54       2 S    [irq/9-acpi]
+     57       2 I<   [kworker/R-tpm_d]
+     58       2 I<   [kworker/R-ata_s]
+     59       2 I<   [kworker/R-md]
+     60       2 I<   [kworker/R-md_bi]
+     61       2 I<   [kworker/R-edac-]
+     62       2 I<   [kworker/R-devfr]
+     63       2 S    [watchdogd]
+     64       2 I<   [kworker/3:1H]
+     65       2 S    [kswapd0]
+     66       2 S    [ecryptfs-kthread]
+     67       2 I<   [kworker/R-kthro]
+     68       2 I<   [kworker/R-acpi_]
+     72       2 I<   [kworker/R-mld]
+     73       2 I<   [kworker/2:1H-kblockd]
+     74       2 I<   [kworker/R-ipv6_]
+     82       2 I<   [kworker/R-kstrp]
+     89       2 I<   [kworker/R-crypt]
+    100       2 I<   [kworker/R-charg]
+    119       2 I<   [kworker/1:1H-events_highpri]
+    148       2 I<   [kworker/0:1H-events_highpri]
+    152       2 S    [scsi_eh_0]
+    153       2 I<   [kworker/R-scsi_]
+    154       2 S    [scsi_eh_1]
+    155       2 I<   [kworker/R-scsi_]
+    156       2 S    [scsi_eh_2]
+    157       2 I<   [kworker/R-scsi_]
+    158       2 S    [scsi_eh_3]
+    159       2 I<   [kworker/R-scsi_]
+    170       2 I<   [kworker/R-ttm]
+    171       2 S    [card1-crtc0]
+    172       2 S    [card1-crtc1]
+    173       2 S    [card1-crtc2]
+    250       2 S    [jbd2/sda2-8]
+    251       2 I<   [kworker/R-ext4-]
+    409       2 S    [irq/47-mei_me]
+    424       2 I<   [kworker/R-cfg80]
+    454       2 I<   [kworker/R-kmems]
+    610       2 S    [nv_queue]
+    611       2 S    [nv_queue]
+    669       2 S    [nvidia-modeset/kthread_q]
+    670       2 S    [nvidia-modeset/deferred_close_kthread_q]
+    692       2 S    [irq/50-nvidia]
+    693       2 S    [nvidia]
+    694       2 S    [nv_queue]
+    762       2 I<   [kworker/2:2H-kblockd]
+    864       2 S    [UVM global queue]
+    865       2 S    [UVM deferred release queue]

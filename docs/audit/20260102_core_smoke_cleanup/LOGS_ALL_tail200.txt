@@ -1,0 +1,173 @@
+time="2026-01-02T01:21:50+01:00" level=warning msg="/home/elkakas314/vx11/docker-compose.spawner.override.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+vx11-spawner-test  | INFO:     Started server process [1]
+vx11-spawner-test  | INFO:     Waiting for application startup.
+vx11-spawner-test  | INFO:     Application startup complete.
+vx11-spawner-test  | INFO:     Uvicorn running on http://0.0.0.0:8008 (Press CTRL+C to quit)
+vx11-spawner-test  | INFO:     127.0.0.1:59580 - "GET /health HTTP/1.1" 200 OK
+vx11-spawner-test  | INFO:     127.0.0.1:47918 - "GET /health HTTP/1.1" 200 OK
+vx11-spawner-test  | INFO:     127.0.0.1:59086 - "GET /health HTTP/1.1" 200 OK
+vx11-spawner-test  | INFO:     127.0.0.1:49166 - "GET /health HTTP/1.1" 200 OK
+vx11-spawner-test  | INFO:     172.18.0.4:35354 - "POST /spawn HTTP/1.1" 200 OK
+vx11-spawner-test  | INFO:     172.18.0.4:50440 - "POST /spawn HTTP/1.1" 200 OK
+vx11-spawner-test  | INFO:     127.0.0.1:56808 - "GET /health HTTP/1.1" 200 OK
+vx11-spawner-test  | INFO:     127.0.0.1:45300 - "GET /health HTTP/1.1" 200 OK
+vx11-spawner-test  | INFO:     127.0.0.1:51658 - "GET /health HTTP/1.1" 200 OK
+vx11-spawner-test  | INFO:     127.0.0.1:46976 - "GET /health HTTP/1.1" 200 OK
+vx11-spawner-test  | INFO:     127.0.0.1:48682 - "GET /health HTTP/1.1" 200 OK
+vx11-spawner-test  | INFO:     127.0.0.1:43894 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     Started server process [1]
+vx11-tentaculo-link-test  | INFO:     Waiting for application startup.
+vx11-tentaculo-link-test  | ✗ Redis cache init failed: Error 111 connecting to localhost:6379. 111.
+vx11-tentaculo-link-test  | INFO:     Application startup complete.
+vx11-tentaculo-link-test  | INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+vx11-tentaculo-link-test  | INFO:     127.0.0.1:48144 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:43506 - "GET /operator/api/events HTTP/1.1" 401 Unauthorized
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:43518 - "GET /operator/api/window/status HTTP/1.1" 401 Unauthorized
+vx11-tentaculo-link-test  | INFO:     127.0.0.1:55702 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:34574 - "GET /operator/api/events HTTP/1.1" 401 Unauthorized
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:34578 - "GET /operator/api/window/status HTTP/1.1" 401 Unauthorized
+vx11-tentaculo-link-test  | INFO:     127.0.0.1:48828 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     127.0.0.1:55458 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:60528 - "GET /operator/api/events HTTP/1.1" 401 Unauthorized
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:60534 - "GET /operator/api/window/status HTTP/1.1" 401 Unauthorized
+vx11-tentaculo-link-test  | INFO:     127.0.0.1:51552 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:38216 - "GET /operator/api/events HTTP/1.1" 401 Unauthorized
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:38228 - "GET /operator/api/window/status HTTP/1.1" 401 Unauthorized
+vx11-tentaculo-link-test  | INFO:     127.0.0.1:41908 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     127.0.0.1:49598 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:53806 - "GET /operator/api/events HTTP/1.1" 401 Unauthorized
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:53822 - "GET /operator/api/window/status HTTP/1.1" 401 Unauthorized
+vx11-tentaculo-link-test  | INFO:     127.0.0.1:48228 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:48186 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:48188 - "GET /vx11/status HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:48198 - "POST /vx11/window/open HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:48210 - "POST /vx11/spawn HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:48224 - "GET /vx11/result/spawn-0721dacd HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:48230 - "POST /vx11/window/close HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:48234 - "POST /vx11/spawn HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:48248 - "POST /vx11/window/open HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:48254 - "POST /vx11/intent HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:48258 - "POST /vx11/window/open HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:48264 - "GET /vx11/hermes/health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:47300 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:47314 - "GET /vx11/status HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:47328 - "POST /vx11/window/open HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:47330 - "POST /vx11/spawn HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:47342 - "GET /vx11/result/spawn-f5045532 HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:47352 - "POST /vx11/window/close HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:47364 - "POST /vx11/spawn HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:47380 - "POST /vx11/window/open HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:47392 - "POST /vx11/intent HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:47408 - "POST /vx11/window/open HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:47414 - "GET /vx11/hermes/health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:47416 - "GET /operator/api/events HTTP/1.1" 401 Unauthorized
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:47430 - "GET /operator/api/window/status HTTP/1.1" 401 Unauthorized
+vx11-tentaculo-link-test  | INFO:     127.0.0.1:55216 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     127.0.0.1:41590 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:44246 - "GET /operator/api/events HTTP/1.1" 401 Unauthorized
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:44252 - "GET /operator/api/window/status HTTP/1.1" 401 Unauthorized
+vx11-tentaculo-link-test  | INFO:     127.0.0.1:49948 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:47720 - "GET /operator/api/events HTTP/1.1" 401 Unauthorized
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:47728 - "GET /operator/api/window/status HTTP/1.1" 401 Unauthorized
+vx11-tentaculo-link-test  | INFO:     127.0.0.1:49960 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     127.0.0.1:50390 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:44490 - "GET /operator/api/events HTTP/1.1" 401 Unauthorized
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:44506 - "GET /operator/api/window/status HTTP/1.1" 401 Unauthorized
+vx11-tentaculo-link-test  | INFO:     127.0.0.1:40006 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:46200 - "GET /operator/api/events HTTP/1.1" 401 Unauthorized
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:46206 - "GET /operator/api/window/status HTTP/1.1" 401 Unauthorized
+vx11-madre-test           | INFO:     Started server process [1]
+vx11-madre-test           | INFO:     Waiting for application startup.
+vx11-madre-test           | INFO:     Application startup complete.
+vx11-madre-test           | INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
+vx11-madre-test           | INFO:     127.0.0.1:46698 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test           | INFO:     127.0.0.1:46168 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test           | INFO:     127.0.0.1:49574 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test           | INFO:     127.0.0.1:57000 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test           | INFO:     127.0.0.1:56776 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test           | INFO:     127.0.0.1:40888 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test           | INFO:     127.0.0.1:53732 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test           | INFO:     127.0.0.1:41816 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test           | INFO:     127.0.0.1:40772 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test           | INFO:     172.18.0.4:39250 - "POST /vx11/intent HTTP/1.1" 200 OK
+vx11-madre-test           | INFO:     172.18.0.4:58274 - "POST /vx11/intent HTTP/1.1" 200 OK
+vx11-madre-test           | INFO:     127.0.0.1:38196 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test           | INFO:     127.0.0.1:44464 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test           | INFO:     127.0.0.1:38170 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test           | INFO:     127.0.0.1:35270 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test           | INFO:     127.0.0.1:54680 - "GET /health HTTP/1.1" 200 OK
+vx11-madre-test           | INFO:     127.0.0.1:44146 - "GET /health HTTP/1.1" 200 OK
+vx11-switch-test          | INFO:     Started server process [1]
+vx11-switch-test          | INFO:     Waiting for application startup.
+vx11-switch-test          | Modelo local_gguf_small no disponible en Hermes
+vx11-switch-test          | Modelo ollama_local no disponible en Hermes
+vx11-switch-test          | Modelo deepseek_r1 no disponible en Hermes
+vx11-switch-test          | INFO:     Application startup complete.
+vx11-switch-test          | INFO:     Uvicorn running on http://0.0.0.0:8002 (Press CTRL+C to quit)
+vx11-redis-test           | 1:C 02 Jan 2026 00:19:03.735 # WARNING Memory overcommit must be enabled! Without it, a background save or replication may fail under low memory condition. Being disabled, it can also cause failures without low memory condition, see https://github.com/jemalloc/jemalloc/issues/1328. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.
+vx11-redis-test           | 1:C 02 Jan 2026 00:19:03.735 * oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+vx11-redis-test           | 1:C 02 Jan 2026 00:19:03.735 * Redis version=7.4.7, bits=64, commit=00000000, modified=0, pid=1, just started
+vx11-redis-test           | 1:C 02 Jan 2026 00:19:03.735 # Warning: no config file specified, using the default config. In order to specify a config file use redis-server /path/to/redis.conf
+vx11-redis-test           | 1:M 02 Jan 2026 00:19:03.735 * monotonic clock: POSIX clock_gettime
+vx11-redis-test           | 1:M 02 Jan 2026 00:19:03.736 * Running mode=standalone, port=6379.
+vx11-redis-test           | 1:M 02 Jan 2026 00:19:03.737 * Server initialized
+vx11-redis-test           | 1:M 02 Jan 2026 00:19:03.737 * Loading RDB produced by version 7.4.7
+vx11-redis-test           | 1:M 02 Jan 2026 00:19:03.737 * RDB age 1729 seconds
+vx11-redis-test           | 1:M 02 Jan 2026 00:19:03.737 * RDB memory usage when created 0.93 Mb
+vx11-redis-test           | 1:M 02 Jan 2026 00:19:03.737 * Done loading RDB, keys loaded: 0, keys expired: 0.
+vx11-redis-test           | 1:M 02 Jan 2026 00:19:03.737 * DB loaded from disk: 0.000 seconds
+vx11-redis-test           | 1:M 02 Jan 2026 00:19:03.737 * Ready to accept connections tcp
+vx11-switch-test          | INFO:     127.0.0.1:36568 - "GET /health HTTP/1.1" 200 OK
+vx11-switch-test            | INFO:     127.0.0.1:55658 - "GET /health HTTP/1.1" 200 OK
+vx11-switch-test            | INFO:     127.0.0.1:52810 - "GET /health HTTP/1.1" 200 OK
+vx11-switch-test            | INFO:     127.0.0.1:46970 - "GET /health HTTP/1.1" 200 OK
+vx11-switch-test            | INFO:     127.0.0.1:43890 - "GET /health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     Started server process [1]
+vx11-operator-backend-test  | INFO:     Waiting for application startup.
+vx11-operator-backend-test  | INFO:     Application startup complete.
+vx11-operator-backend-test  | INFO:     Uvicorn running on http://0.0.0.0:8011 (Press CTRL+C to quit)
+vx11-operator-backend-test  | INFO:     127.0.0.1:35004 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:37236 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:41774 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:49586 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:36394 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:50242 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:58478 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:38394 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:43732 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:35866 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:36370 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:53820 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:39848 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:32844 - "GET /api/health HTTP/1.1" 200 OK
+vx11-switch-test            | INFO:     127.0.0.1:39266 - "GET /health HTTP/1.1" 200 OK
+vx11-switch-test            | INFO:     127.0.0.1:55378 - "GET /health HTTP/1.1" 200 OK
+vx11-switch-test            | INFO:     127.0.0.1:36370 - "GET /health HTTP/1.1" 200 OK
+vx11-switch-test            | INFO:     127.0.0.1:37506 - "GET /health HTTP/1.1" 200 OK
+vx11-switch-test            | INFO:     127.0.0.1:49158 - "GET /health HTTP/1.1" 200 OK
+vx11-switch-test            | INFO:     127.0.0.1:41926 - "GET /health HTTP/1.1" 200 OK
+vx11-switch-test            | INFO:     127.0.0.1:43394 - "GET /health HTTP/1.1" 200 OK
+vx11-switch-test            | INFO:     127.0.0.1:56804 - "GET /health HTTP/1.1" 200 OK
+vx11-hermes-test            | INFO:     Started server process [1]
+vx11-hermes-test            | INFO:     Waiting for application startup.
+vx11-hermes-test            | INFO:     Application startup complete.
+vx11-hermes-test            | INFO:     Uvicorn running on http://0.0.0.0:8003 (Press CTRL+C to quit)
+vx11-hermes-test            | INFO:     172.18.0.7:43532 - "POST /hermes/get-engine HTTP/1.1" 500 Internal Server Error
+vx11-hermes-test            | INFO:     172.18.0.7:43540 - "POST /hermes/get-engine HTTP/1.1" 500 Internal Server Error
+vx11-hermes-test            | INFO:     172.18.0.7:43552 - "POST /hermes/get-engine HTTP/1.1" 500 Internal Server Error
+vx11-hermes-test            | INFO:     172.18.0.7:43566 - "POST /hermes/execute HTTP/1.1" 200 OK
+vx11-hermes-test            | INFO:     127.0.0.1:47082 - "GET /health HTTP/1.1" 200 OK
+vx11-hermes-test            | INFO:     127.0.0.1:52694 - "GET /health HTTP/1.1" 200 OK
+vx11-hermes-test            | INFO:     127.0.0.1:55622 - "GET /health HTTP/1.1" 200 OK
+vx11-hermes-test            | INFO:     127.0.0.1:43494 - "GET /health HTTP/1.1" 200 OK
+vx11-hermes-test            | INFO:     127.0.0.1:51356 - "GET /health HTTP/1.1" 200 OK
+vx11-hermes-test            | INFO:     127.0.0.1:47700 - "GET /health HTTP/1.1" 200 OK
+vx11-hermes-test            | INFO:     127.0.0.1:54220 - "GET /health HTTP/1.1" 200 OK
+vx11-hermes-test            | INFO:     172.18.0.4:43128 - "GET /health HTTP/1.1" 200 OK
+vx11-hermes-test            | INFO:     172.18.0.4:44326 - "GET /health HTTP/1.1" 200 OK
+vx11-hermes-test            | INFO:     127.0.0.1:47246 - "GET /health HTTP/1.1" 200 OK
+vx11-hermes-test            | INFO:     127.0.0.1:60218 - "GET /health HTTP/1.1" 200 OK
+vx11-hermes-test            | INFO:     127.0.0.1:55996 - "GET /health HTTP/1.1" 200 OK
+vx11-hermes-test            | INFO:     127.0.0.1:51538 - "GET /health HTTP/1.1" 200 OK
+vx11-hermes-test            | INFO:     127.0.0.1:36472 - "GET /health HTTP/1.1" 200 OK
+vx11-hermes-test            | INFO:     127.0.0.1:34210 - "GET /health HTTP/1.1" 200 OK

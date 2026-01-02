@@ -1,0 +1,62 @@
+time="2026-01-02T01:21:51+01:00" level=warning msg="/home/elkakas314/vx11/docker-compose.spawner.override.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+vx11-tentaculo-link-test  | INFO:     Started server process [1]
+vx11-tentaculo-link-test  | INFO:     Waiting for application startup.
+vx11-tentaculo-link-test  | ✗ Redis cache init failed: Error 111 connecting to localhost:6379. 111.
+vx11-tentaculo-link-test  | INFO:     Application startup complete.
+vx11-tentaculo-link-test  | INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+vx11-tentaculo-link-test  | INFO:     127.0.0.1:48144 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:43506 - "GET /operator/api/events HTTP/1.1" 401 Unauthorized
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:43518 - "GET /operator/api/window/status HTTP/1.1" 401 Unauthorized
+vx11-tentaculo-link-test  | INFO:     127.0.0.1:55702 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:34574 - "GET /operator/api/events HTTP/1.1" 401 Unauthorized
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:34578 - "GET /operator/api/window/status HTTP/1.1" 401 Unauthorized
+vx11-tentaculo-link-test  | INFO:     127.0.0.1:48828 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     127.0.0.1:55458 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:60528 - "GET /operator/api/events HTTP/1.1" 401 Unauthorized
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:60534 - "GET /operator/api/window/status HTTP/1.1" 401 Unauthorized
+vx11-tentaculo-link-test  | INFO:     127.0.0.1:51552 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:38216 - "GET /operator/api/events HTTP/1.1" 401 Unauthorized
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:38228 - "GET /operator/api/window/status HTTP/1.1" 401 Unauthorized
+vx11-tentaculo-link-test  | INFO:     127.0.0.1:41908 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     127.0.0.1:49598 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:53806 - "GET /operator/api/events HTTP/1.1" 401 Unauthorized
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:53822 - "GET /operator/api/window/status HTTP/1.1" 401 Unauthorized
+vx11-tentaculo-link-test  | INFO:     127.0.0.1:48228 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:48186 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:48188 - "GET /vx11/status HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:48198 - "POST /vx11/window/open HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:48210 - "POST /vx11/spawn HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:48224 - "GET /vx11/result/spawn-0721dacd HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:48230 - "POST /vx11/window/close HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:48234 - "POST /vx11/spawn HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:48248 - "POST /vx11/window/open HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:48254 - "POST /vx11/intent HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:48258 - "POST /vx11/window/open HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:48264 - "GET /vx11/hermes/health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:47300 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:47314 - "GET /vx11/status HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:47328 - "POST /vx11/window/open HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:47330 - "POST /vx11/spawn HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:47342 - "GET /vx11/result/spawn-f5045532 HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:47352 - "POST /vx11/window/close HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:47364 - "POST /vx11/spawn HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:47380 - "POST /vx11/window/open HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:47392 - "POST /vx11/intent HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:47408 - "POST /vx11/window/open HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:47414 - "GET /vx11/hermes/health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:47416 - "GET /operator/api/events HTTP/1.1" 401 Unauthorized
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:47430 - "GET /operator/api/window/status HTTP/1.1" 401 Unauthorized
+vx11-tentaculo-link-test  | INFO:     127.0.0.1:55216 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     127.0.0.1:41590 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:44246 - "GET /operator/api/events HTTP/1.1" 401 Unauthorized
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:44252 - "GET /operator/api/window/status HTTP/1.1" 401 Unauthorized
+vx11-tentaculo-link-test  | INFO:     127.0.0.1:49948 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:47720 - "GET /operator/api/events HTTP/1.1" 401 Unauthorized
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:47728 - "GET /operator/api/window/status HTTP/1.1" 401 Unauthorized
+vx11-tentaculo-link-test  | INFO:     127.0.0.1:49960 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     127.0.0.1:50390 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:44490 - "GET /operator/api/events HTTP/1.1" 401 Unauthorized
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:44506 - "GET /operator/api/window/status HTTP/1.1" 401 Unauthorized
+vx11-tentaculo-link-test  | INFO:     127.0.0.1:40006 - "GET /health HTTP/1.1" 200 OK
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:46200 - "GET /operator/api/events HTTP/1.1" 401 Unauthorized
+vx11-tentaculo-link-test  | INFO:     172.18.0.1:46206 - "GET /operator/api/window/status HTTP/1.1" 401 Unauthorized

@@ -1,0 +1,41 @@
+=== FASE 3: VALIDAR BD (SQLite) ===
+
+--- Database path ---
+/home/elkakas314/vx11/data/runtime/vx11.db
+-rw-r--r-- 1 elkakas314 elkakas314 591M ene  1 22:41 /home/elkakas314/vx11/data/runtime/vx11.db
+
+--- spawns table schema ---
+CREATE TABLE spawns (
+	id INTEGER NOT NULL, 
+	uuid VARCHAR(36) NOT NULL, 
+	name VARCHAR(255) NOT NULL, 
+	cmd VARCHAR(500) NOT NULL, 
+	pid INTEGER, 
+	status VARCHAR(20), 
+	started_at DATETIME, 
+	ended_at DATETIME, 
+	exit_code INTEGER, 
+	stdout TEXT, 
+	stderr TEXT, 
+	parent_task_id VARCHAR(36), 
+	created_at DATETIME, 
+	PRIMARY KEY (id), 
+	UNIQUE (uuid), 
+	FOREIGN KEY(parent_task_id) REFERENCES tasks (uuid)
+);
+
+--- Spawn spawn-f5045532 (from E2E test) ---
+f5045532-eaca-4282-9205-2bfb38b0cbbe|spawn-f5045532|completed|0|HIJA_OK
+||2026-01-02 00:20:48.742480|2026-01-02 00:20:48.754779|2026-01-02 00:20:48.757889
+
+--- Last 5 spawns (recent) ---
+f5045532-eaca-4282-9205-2bfb38b0cbbe|spawn-f5045532|completed|0|2026-01-02 00:20:48.742480
+0721dacd-a14e-4c5f-b452-22b01bf8cd43|spawn-0721dacd|completed|0|2026-01-02 00:20:43.466927
+7bc62df0-29db-4bd7-acfe-1d8235132a86|spawn-7bc62df0|completed|0|2026-01-02 00:07:45.948664
+f45bd247-80fe-45ae-a174-e285fed0246e|spawn-f45bd247|completed|0|2026-01-02 00:07:03.077521
+7aebc003-9326-4e44-ad76-64283cd9f0e6|spawn-7aebc003|completed|0|2026-01-01 23:58:52.075786
+
+--- Total spawns count ---
+86
+
+✅ FASE 3 COMPLETED

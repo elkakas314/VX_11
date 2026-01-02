@@ -1,0 +1,19 @@
+time="2026-01-02T01:21:51+01:00" level=warning msg="/home/elkakas314/vx11/docker-compose.spawner.override.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+vx11-operator-backend-test  | INFO:     Started server process [1]
+vx11-operator-backend-test  | INFO:     Waiting for application startup.
+vx11-operator-backend-test  | INFO:     Application startup complete.
+vx11-operator-backend-test  | INFO:     Uvicorn running on http://0.0.0.0:8011 (Press CTRL+C to quit)
+vx11-operator-backend-test  | INFO:     127.0.0.1:35004 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:37236 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:41774 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:49586 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:36394 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:50242 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:58478 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:38394 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:43732 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:35866 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:36370 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:53820 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:39848 - "GET /api/health HTTP/1.1" 200 OK
+vx11-operator-backend-test  | INFO:     127.0.0.1:32844 - "GET /api/health HTTP/1.1" 200 OK

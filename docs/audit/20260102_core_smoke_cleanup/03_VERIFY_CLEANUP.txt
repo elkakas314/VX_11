@@ -1,0 +1,10 @@
+=== FASE 0.4: VERIFICACIÓN POST-LIMPIEZA ===
+
+--- Zombis (debe estar vacío) ---
+
+--- Docker ps (debe estar vacío) ---
+CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
+
+--- Puertos escuchando (antes de levantar stack) ---
+
+✅ CLEANUP VERIFIED

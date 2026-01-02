@@ -1,0 +1,24 @@
+time="2026-01-02T01:21:51+01:00" level=warning msg="/home/elkakas314/vx11/docker-compose.spawner.override.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+vx11-hermes-test  | INFO:     Started server process [1]
+vx11-hermes-test  | INFO:     Waiting for application startup.
+vx11-hermes-test  | INFO:     Application startup complete.
+vx11-hermes-test  | INFO:     Uvicorn running on http://0.0.0.0:8003 (Press CTRL+C to quit)
+vx11-hermes-test  | INFO:     172.18.0.7:43532 - "POST /hermes/get-engine HTTP/1.1" 500 Internal Server Error
+vx11-hermes-test  | INFO:     172.18.0.7:43540 - "POST /hermes/get-engine HTTP/1.1" 500 Internal Server Error
+vx11-hermes-test  | INFO:     172.18.0.7:43552 - "POST /hermes/get-engine HTTP/1.1" 500 Internal Server Error
+vx11-hermes-test  | INFO:     172.18.0.7:43566 - "POST /hermes/execute HTTP/1.1" 200 OK
+vx11-hermes-test  | INFO:     127.0.0.1:47082 - "GET /health HTTP/1.1" 200 OK
+vx11-hermes-test  | INFO:     127.0.0.1:52694 - "GET /health HTTP/1.1" 200 OK
+vx11-hermes-test  | INFO:     127.0.0.1:55622 - "GET /health HTTP/1.1" 200 OK
+vx11-hermes-test  | INFO:     127.0.0.1:43494 - "GET /health HTTP/1.1" 200 OK
+vx11-hermes-test  | INFO:     127.0.0.1:51356 - "GET /health HTTP/1.1" 200 OK
+vx11-hermes-test  | INFO:     127.0.0.1:47700 - "GET /health HTTP/1.1" 200 OK
+vx11-hermes-test  | INFO:     127.0.0.1:54220 - "GET /health HTTP/1.1" 200 OK
+vx11-hermes-test  | INFO:     172.18.0.4:43128 - "GET /health HTTP/1.1" 200 OK
+vx11-hermes-test  | INFO:     172.18.0.4:44326 - "GET /health HTTP/1.1" 200 OK
+vx11-hermes-test  | INFO:     127.0.0.1:47246 - "GET /health HTTP/1.1" 200 OK
+vx11-hermes-test  | INFO:     127.0.0.1:60218 - "GET /health HTTP/1.1" 200 OK
+vx11-hermes-test  | INFO:     127.0.0.1:55996 - "GET /health HTTP/1.1" 200 OK
+vx11-hermes-test  | INFO:     127.0.0.1:51538 - "GET /health HTTP/1.1" 200 OK
+vx11-hermes-test  | INFO:     127.0.0.1:36472 - "GET /health HTTP/1.1" 200 OK
+vx11-hermes-test  | INFO:     127.0.0.1:34210 - "GET /health HTTP/1.1" 200 OK

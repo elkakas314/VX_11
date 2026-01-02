@@ -1,0 +1,23 @@
+=== FASE 4: EXTRAER LOGS ===
+
+--- All services tail 200 lines ---
+Saved to: /home/elkakas314/vx11/docs/audit/20260102_core_smoke_cleanup/LOGS_ALL_tail200.txt
+
+--- Per-service logs (tail 120 lines each) ---
+Extracting logs for: redis-test
+Extracting logs for: madre
+Extracting logs for: tentaculo_link
+Extracting logs for: hermes
+Extracting logs for: operator-backend
+Extracting logs for: operator-frontend
+Extracting logs for: switch
+
+✅ FASE 4 COMPLETED
+-rw-rw-r-- 1 elkakas314 elkakas314 2,1K ene  2 01:21 /home/elkakas314/vx11/docs/audit/20260102_core_smoke_cleanup/LOG_hermes_tail120.txt
+-rw-rw-r-- 1 elkakas314 elkakas314 1,8K ene  2 01:21 /home/elkakas314/vx11/docs/audit/20260102_core_smoke_cleanup/LOG_madre_tail120.txt
+-rw-rw-r-- 1 elkakas314 elkakas314 1,8K ene  2 01:21 /home/elkakas314/vx11/docs/audit/20260102_core_smoke_cleanup/LOG_operator-backend_tail120.txt
+-rw-rw-r-- 1 elkakas314 elkakas314  215 ene  2 01:21 /home/elkakas314/vx11/docs/audit/20260102_core_smoke_cleanup/LOG_operator-frontend_tail120.txt
+-rw-rw-r-- 1 elkakas314 elkakas314 1,8K ene  2 01:21 /home/elkakas314/vx11/docs/audit/20260102_core_smoke_cleanup/LOG_redis-test_tail120.txt
+-rw-rw-r-- 1 elkakas314 elkakas314  16K ene  2 01:21 /home/elkakas314/vx11/docs/audit/20260102_core_smoke_cleanup/LOGS_ALL_tail200.txt
+-rw-rw-r-- 1 elkakas314 elkakas314 1,7K ene  2 01:21 /home/elkakas314/vx11/docs/audit/20260102_core_smoke_cleanup/LOG_switch_tail120.txt
+-rw-rw-r-- 1 elkakas314 elkakas314 6,1K ene  2 01:21 /home/elkakas314/vx11/docs/audit/20260102_core_smoke_cleanup/LOG_tentaculo_link_tail120.txt

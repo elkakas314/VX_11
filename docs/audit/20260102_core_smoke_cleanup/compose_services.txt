@@ -1,0 +1,7 @@
+redis-test
+madre
+tentaculo_link
+hermes
+operator-backend
+operator-frontend
+switch
