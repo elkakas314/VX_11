@@ -26,8 +26,9 @@ from sqlalchemy.orm import Session
 from config.settings import settings
 from config.tokens import get_token, load_tokens
 from config.forensics import write_log
-from config.db_schema import ModelsLocal, get_session
+from config.db_schema import ModelsLocal, get_session, CLIProvider, CLIRegistry
 from switch.hermes.hf_scanner import get_hf_scanner
+from switch.hermes.cli_scanner import scan_cli_binaries, register_cli_provider
 
 load_tokens()
 
@@ -194,6 +195,36 @@ def _collect_binaries() -> Dict[str, bool]:
         "gh": bool(shutil.which("gh")),
         "playwright": bool(shutil.which("playwright")),
     }
+
+
+async def _scan_cli_binaries_and_register() -> List[Dict[str, Any]]:
+    """Scan local CLI binaries and register them in BD."""
+    try:
+        detected = await scan_cli_binaries()
+        db = get_session("vx11")
+        try:
+            for cli_info in detected:
+                provider_id = await register_cli_provider(
+                    name=cli_info["name"],
+                    path=cli_info["path"],
+                    version=cli_info.get("version", "unknown"),
+                )
+                if provider_id:
+                    write_log(
+                        "hermes_discover",
+                        f"✓ Registered CLI {cli_info['name']} (id={provider_id})",
+                    )
+                else:
+                    write_log(
+                        "hermes_discover",
+                        f"⚠ Failed to register CLI {cli_info['name']}",
+                    )
+        finally:
+            db.close()
+        return detected
+    except Exception as e:
+        write_log("hermes_discover", f"❌ CLI scan error: {str(e)}")
+        return []
 
 
 @app.get("/hermes/available")
@@ -639,6 +670,54 @@ async def catalog_summary(max_mb: int = 2048):
         session.close()
 
 
+@app.get("/hermes/catalog")
+async def catalog(_: bool = Depends(_token_guard)):
+    """Unified catalog: local models + CLI providers (NEW)"""
+    session: Session = get_session("vx11")
+    try:
+        # Query local models
+        local_models = (
+            session.query(ModelsLocal).filter(ModelsLocal.status != "deprecated").all()
+        )
+        models_list = [
+            {
+                "type": "model",
+                "name": m.name,
+                "path": m.path,
+                "size_mb": m.size_mb,
+                "category": m.category,
+                "status": m.status,
+            }
+            for m in local_models
+        ]
+
+        # Query CLI providers (NEW)
+        cli_providers = session.query(CLIProvider).all()  # Show all, not just enabled
+        providers_list = [
+            {
+                "type": "provider",
+                "name": p.name,
+                "task_types": p.task_types,
+                "enabled": p.enabled,
+            }
+            for p in cli_providers
+        ]
+
+        return {
+            "status": "ok",
+            "models": models_list,
+            "providers": providers_list,
+            "total_models": len(models_list),
+            "total_providers": len(providers_list),
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+    except Exception as e:
+        write_log("hermes", f"catalog_error:{e}", level="ERROR")
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        session.close()
+
+
 @app.post("/hermes/register_model")
 async def register_model(body: ModelRegister):
     # Simulación de descarga mínima
@@ -916,10 +995,14 @@ async def discover(req: DiscoverRequest, _: bool = Depends(_token_guard)):
     - Tier 1: local (filesystem)
     - Tier 2: catalogos locales (models_catalog.json)
     - Tier 3: web (disabled by default; allow_web=True)
+    - Tier 4: CLI binaries (new - async registration to BD)
     """
     out_dir = _make_audit_dir("hermes_discover")
     local_models = _scan_local_models()
     catalog_models = _load_catalog()
+
+    # NEW: Scan CLI binaries and register them
+    cli_binaries = await _scan_cli_binaries_and_register()
 
     download_enabled = os.getenv("VX11_HERMES_DOWNLOAD_ENABLED", "0") == "1"
     allow_download = bool(req.allow_download) and download_enabled
@@ -953,9 +1036,13 @@ async def discover(req: DiscoverRequest, _: bool = Depends(_token_guard)):
             "local": {"enabled": True, "count": len(local_models)},
             "catalog": {"enabled": True, "count": len(catalog_models)},
             "web": {"enabled": bool(req.allow_web), "count": len(hf_models)},
+            "cli": {"enabled": True, "count": len(cli_binaries)},
         },
     }
     _write_json(os.path.join(out_dir, "plan.json"), plan)
+    _write_json(
+        os.path.join(out_dir, "cli_binaries.json"), {"discovered": cli_binaries}
+    )
 
     if not req.apply:
         return {
@@ -975,6 +1062,7 @@ async def discover(req: DiscoverRequest, _: bool = Depends(_token_guard)):
             "tier1_local": local_models,
             "tier2_catalog": catalog_models,
             "tier3_web": hf_models,
+            "tier4_cli": cli_binaries,
             "web_skipped": not req.allow_web,
             "download_attempted": False,
         }
