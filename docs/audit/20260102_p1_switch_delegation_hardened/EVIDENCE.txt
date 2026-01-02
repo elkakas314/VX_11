@@ -1,0 +1,8 @@
+   mode=SWITCH
+   provider=gpt4 (not fallback)
+   status=DONE
+   response.result.engine=hermes
+   mode=SWITCH
+   provider=gpt4 (not fallback)
+   status=DONE
+   response.result.engine=hermes
