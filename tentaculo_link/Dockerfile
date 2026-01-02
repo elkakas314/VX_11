@@ -9,6 +9,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements_tentaculo.txt .
 RUN pip install --user --no-cache-dir -r requirements_tentaculo.txt
 
+# Optional: Install test dependencies if available
+COPY requirements-test.txt .
+RUN test -f requirements-test.txt && pip install --user --no-cache-dir -r requirements-test.txt || echo "Test requirements not found"
+
 # ==== RUNTIME STAGE ====
 FROM python:3.10-slim
 

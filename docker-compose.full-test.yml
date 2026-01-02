@@ -100,6 +100,8 @@ services:
       - ./data:/app/data
       - ./tentaculo_link:/app/tentaculo_link
       - ./operator:/app/operator:ro
+      - ./tests:/app/tests:ro
+      - ./pytest.ini:/app/pytest.ini:ro
       - operator-ui-dist:/app/operator/frontend/dist
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
