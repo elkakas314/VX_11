@@ -392,14 +392,43 @@ def _notify_madre(daughter_id: int, status: str, payload: Dict[str, Any]) -> Non
         pass
 
 
-def _execute_command(cmd: str, ttl_seconds: int) -> Tuple[int, str, str, str]:
-    proc = subprocess.Popen(
-        cmd,
-        shell=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True,
-    )
+def _execute_command(
+    cmd: str, ttl_seconds: int, task_type: Optional[str] = None
+) -> Tuple[int, str, str, str]:
+    """Execute command with appropriate interpreter based on task_type.
+
+    task_type can be: 'shell' (default), 'python', 'bash', etc.
+    For python: uses 'python3' interpreter
+    For bash: uses '/bin/bash' explicitly
+    For shell (default): uses shell=True
+    """
+    # Choose shell and command based on task_type
+    if task_type == "python":
+        # Run code as Python script
+        proc = subprocess.Popen(
+            ["python3", "-c", cmd],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+    elif task_type == "bash":
+        # Run code as bash script
+        proc = subprocess.Popen(
+            ["/bin/bash", "-c", cmd],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+    else:
+        # Default: shell execution
+        proc = subprocess.Popen(
+            cmd,
+            shell=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+
     try:
         stdout, stderr = proc.communicate(timeout=ttl_seconds)
         exit_code = proc.returncode
@@ -470,6 +499,7 @@ async def _run_spawn_lifecycle(
     max_retries: int,
     auto_retry: bool,
     mutation_level: int,
+    task_type: Optional[str] = None,
 ) -> None:
     attempt_number = 1
     current_mutation = mutation_level
@@ -500,7 +530,7 @@ async def _run_spawn_lifecycle(
         )
 
         exit_code, stdout, stderr, status = await asyncio.to_thread(
-            _execute_command, cmd, ttl_seconds
+            _execute_command, cmd, ttl_seconds, task_type
         )
         session = get_session("vx11")
         try:
@@ -807,6 +837,7 @@ async def spawn(req: SpawnRequest, background_tasks: BackgroundTasks):
             req.max_retries,
             req.auto_retry,
             req.mutation_level,
+            req.task_type,
         )
 
     _log_spawn_event(

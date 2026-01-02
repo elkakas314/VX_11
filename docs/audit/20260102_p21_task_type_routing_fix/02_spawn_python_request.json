@@ -1,0 +1,9 @@
+{
+  "spawn_id": "spawn-aa93afc6",
+  "spawn_uuid": "aa93afc6-b9d5-474f-84ad-6d0acf3192a5",
+  "correlation_id": "7da32433-d80d-4954-8961-4a792971836c",
+  "status": "QUEUED",
+  "task_type": "python",
+  "error": null,
+  "created_at": "2026-01-02T01:06:34.612003"
+}

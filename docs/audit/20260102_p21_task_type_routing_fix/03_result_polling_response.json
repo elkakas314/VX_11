@@ -1,0 +1,11 @@
+{
+  "correlation_id": "aa93afc6-b9d5-474f-84ad-6d0acf3192a5",
+  "status": "DONE",
+  "result": {
+    "note": "synchronous execution completed"
+  },
+  "error": null,
+  "mode": "MADRE",
+  "provider": "fallback_local",
+  "timestamp": "2026-01-02T01:06:37.709959"
+}
