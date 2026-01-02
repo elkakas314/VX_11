@@ -11,3 +11,16 @@ CONTRATO DE AGENTES VX11 (resumen)
 - Antes de mover o archivar archivos a `attic/` o ubicaciones de backup: cargar `docs/audit/CLEANUP_EXCLUDES_CORE.txt` y aplicar hard-exclude. Si un path CORE aparece en la lista de candidatos => ABORTA y reporta en `docs/audit/`.
 - Nunca mover o eliminar archivos listados en `docs/audit/CLEANUP_EXCLUDES_CORE.txt` sin autorización explícita y registro de evidencia en `docs/audit/`.
 
+---
+
+## Tools Location (Active - 2026-01-02)
+
+All copilot tools consolidated in `tools/` folder:
+
+- **`tools/deepseek_r1.py`**: DeepSeek R1 reasoning engine wrapper (OpenAI-compatible)
+- **`tools/vx11_status.py`**: System status generator (markdown/JSON output)
+- **`tools/audit_bundle.py`**: Audit evidence bundler (ZIP compression)
+- **`tools/copilot_reasoning.py`**: Advanced reasoning engine for complex tasks (2026-01-02: moved from .github/)
+
+**Note**: Legacy backups stored in `docs/audit/archived_github_backups/20260102_cleanup/` for audit trail.
+

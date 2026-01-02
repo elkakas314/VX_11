@@ -107,3 +107,9 @@ package-lock.json
 
 # Local docker ignore (keep out of git status)
 .dockerignore
+# Audit bundle exclusions
+*.zip
+docs/audit/**/*.zip
+
+# Python cache in tools
+tools/__pycache__/

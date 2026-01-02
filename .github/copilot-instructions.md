@@ -310,6 +310,30 @@ After completing @vx11 task:
 
 ---
 
+## .github Structure (Clean State 2026-01-02)
+
+```
+.github/
+├── copilot-instructions.md              # This file (canonical rails)
+├── instructions/vx11_global.instructions.md
+├── workflows/ (4 CI workflows)
+│   ├── vx11-e2e.yml
+│   ├── operator-e2e-hardening.yml
+│   ├── p11-secret-scan.yml
+│   └── vx11-audit-bundle.yml
+└── (no backups, no duplicates, no legacy)
+```
+
+**Active Tools (tools/)**:
+- `deepseek_r1.py`: Basic DeepSeek wrapper (OpenAI-compatible)
+- `vx11_status.py`: Status generator (markdown/JSON)
+- `audit_bundle.py`: ZIP bundler for audit evidence
+- `copilot_reasoning.py`: Advanced reasoning engine for complex tasks
+
+**Backups Moved To**: `docs/audit/archived_github_backups/20260102_cleanup/`
+
+---
+
 Copilot:
 - Audita primero.
 - Ejecuta despues.
