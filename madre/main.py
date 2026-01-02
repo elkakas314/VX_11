@@ -1087,6 +1087,7 @@ async def vx11_intent(req: CoreMVPIntentRequest):
         if req.require.get("switch", False):
             try:
                 write_log("madre", f"vx11_intent:switch_call_start:{correlation_id}")
+                _switch_start_time = datetime.utcnow()
                 async with httpx.AsyncClient(timeout=30.0) as client:
                     switch_url = (
                         getattr(settings, "switch_url", None) or "http://switch:8002"
@@ -1109,6 +1110,10 @@ async def vx11_intent(req: CoreMVPIntentRequest):
                         headers=AUTH_HEADERS,
                         timeout=30.0,
                     )
+                    _switch_end_time = datetime.utcnow()
+                    _latency_ms = int(
+                        (_switch_end_time - _switch_start_time).total_seconds() * 1000
+                    )
 
                     write_log(
                         "madre",
@@ -1116,10 +1121,44 @@ async def vx11_intent(req: CoreMVPIntentRequest):
                     )
                     if sresp.status_code == 200:
                         sjson = sresp.json()
+                        provider_name = (
+                            sjson.get("provider")
+                            or sjson.get("selected_provider")
+                            or "switch"
+                        )
                         write_log(
                             "madre",
-                            f"vx11_intent:switch_done:{correlation_id}:provider={sjson.get('provider', 'unknown')}",
+                            f"vx11_intent:switch_done:{correlation_id}:provider={provider_name}",
                         )
+
+                        # Record routing event and CLI usage stat
+                        try:
+                            MadreDB.insert_routing_event(
+                                trace_id=correlation_id,
+                                route_type="intent_delegation",
+                                provider_id=provider_name,
+                                score=None,
+                                reasoning_short=sjson.get(
+                                    "reasoning", "Switch delegation completed"
+                                ),
+                            )
+                            MadreDB.insert_cli_usage_stat(
+                                provider_id=provider_name,
+                                success=True,
+                                latency_ms=_latency_ms,
+                                cost_estimated=None,
+                                tokens_estimated=None,
+                                error_class=None,
+                            )
+                            write_log(
+                                "madre", f"vx11_intent:events_recorded:{correlation_id}"
+                            )
+                        except Exception as e:
+                            write_log(
+                                "madre",
+                                f"vx11_intent:events_record_failed:{correlation_id}:{str(e)[:100]}",
+                            )
+
                         MadreDB.close_intent_log(
                             intent_log_id,
                             result_status="done",
@@ -1129,9 +1168,7 @@ async def vx11_intent(req: CoreMVPIntentRequest):
                             "status": StatusEnum.DONE.value,
                             "correlation_id": correlation_id,
                             "mode": "SWITCH",
-                            "provider": sjson.get("provider")
-                            or sjson.get("selected_provider")
-                            or "switch",
+                            "provider": provider_name,
                             "response": sjson,
                             "degraded": False,
                         }

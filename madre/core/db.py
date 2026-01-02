@@ -8,6 +8,8 @@ from config.db_schema import (
     MadreAction,
     MadrePolicy,
     DaughterTask,
+    RoutingEvent,
+    CLIUsageStat,
 )
 from datetime import datetime
 import json
@@ -244,6 +246,97 @@ class MadreDB:
                     "created_at": task.created_at.isoformat(),
                     "updated_at": task.updated_at.isoformat(),
                 }
+            return None
+        finally:
+            db.close()
+
+    @staticmethod
+    def insert_routing_event(
+        trace_id: str,
+        route_type: str,
+        provider_id: str,
+        score: Optional[float] = None,
+        reasoning_short: Optional[str] = None,
+    ) -> Optional[int]:
+        """Insert row in routing_events table for Switch delegations and provider calls.
+
+        Args:
+            trace_id: correlation_id for tracing
+            route_type: 'intent_delegation' | 'provider_call' | etc
+            provider_id: name of provider (e.g., 'gpt4', 'switch', 'deepseek')
+            score: optional routing score
+            reasoning_short: brief explanation of routing decision
+
+        Returns:
+            Row ID if inserted, None on failure
+        """
+        db = get_session("vx11")
+        try:
+            entry = RoutingEvent(
+                timestamp=datetime.utcnow(),
+                trace_id=trace_id,
+                route_type=route_type,
+                provider_id=provider_id,
+                score=score or 0.0,
+                reasoning_short=reasoning_short,
+            )
+            db.add(entry)
+            db.commit()
+            result_id = entry.id
+            log.info(
+                f"routing_event inserted: trace_id={trace_id}, provider={provider_id}, id={result_id}"
+            )
+            return result_id
+        except Exception as e:
+            log.error(f"insert_routing_event failed: {e}")
+            db.rollback()
+            return None
+        finally:
+            db.close()
+
+    @staticmethod
+    def insert_cli_usage_stat(
+        provider_id: str,
+        success: bool,
+        latency_ms: int,
+        cost_estimated: Optional[float] = None,
+        tokens_estimated: Optional[int] = None,
+        error_class: Optional[str] = None,
+    ) -> Optional[int]:
+        """Insert row in cli_usage_stats table for provider execution tracking.
+
+        Args:
+            provider_id: name of provider executed
+            success: whether execution succeeded
+            latency_ms: execution time in milliseconds
+            cost_estimated: optional estimated cost
+            tokens_estimated: optional token count
+            error_class: error type if failed (e.g., 'NetworkError', 'TimeoutError')
+
+        Returns:
+            Row ID if inserted, None on failure
+        """
+        db = get_session("vx11")
+        try:
+            entry = CLIUsageStat(
+                timestamp=datetime.utcnow(),
+                provider_id=provider_id,
+                success=success,
+                latency_ms=latency_ms,
+                cost_estimated=cost_estimated or 0.0,
+                tokens_estimated=tokens_estimated or 0,
+                error_class=error_class,
+            )
+            db.add(entry)
+            db.commit()
+            result_id = entry.id
+            log.info(
+                f"cli_usage_stat inserted: provider={provider_id}, success={success}, latency={latency_ms}ms, id={result_id}"
+            )
+            return result_id
+        except Exception as e:
+            log.error(f"insert_cli_usage_stat failed: {e}")
+            db.rollback()
             return None
         finally:
             db.close()
