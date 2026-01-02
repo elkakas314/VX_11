@@ -1,0 +1,50 @@
+{
+  "timestamp": "2026-01-02T23:46:05Z",
+  "frontend_root": "/home/elkakas314/vx11/operator/frontend",
+  "checks": {
+    "hardcoded_ports": {
+      "status": "PASS",
+      "violations": []
+    },
+    "vite_config": {
+      "status": "PASS",
+      "issues": []
+    },
+    "api_paths": {
+      "status": "WARN",
+      "invalid_paths": [
+        {
+          "file": "src/stores/index.ts",
+          "path": "/docs/audit"
+        },
+        {
+          "file": "src/stores/index.ts",
+          "path": "/docs/audit"
+        },
+        {
+          "file": "src/stores/index.ts",
+          "path": "/data/runtime"
+        },
+        {
+          "file": "src/stores/index.ts",
+          "path": "/logs"
+        },
+        {
+          "file": "src/stores/index.ts",
+          "path": "/build/artifacts"
+        },
+        {
+          "file": "src/stores/index.ts",
+          "path": "/forensic"
+        }
+      ]
+    },
+    "build_artifacts": {
+      "status": "FAIL",
+      "issues": [
+        "Base path not correctly set in built HTML"
+      ]
+    }
+  },
+  "overall_status": "WARN"
+}
