@@ -1,43 +1,43 @@
 name: vx11-audit-bundle
 
 on:
-  workflow_dispatch:
-    inputs:
-      run_id:
-        description: "Run ID (default: timestamp)"
-        required: false
+    workflow_dispatch:
+        inputs:
+            run_id:
+                description: "Run ID (default: timestamp)"
+                required: false
 
 jobs:
-  bundle:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 10
-          
-      - name: Set run ID
-        id: runid
-        run: |
-          RUN_ID="${{ github.event.inputs.run_id }}"
-          if [ -z "$RUN_ID" ]; then
-            RUN_ID=$(date -u +%Y%m%d_audit_%H%M%SZ)
-          fi
-          echo "run_id=$RUN_ID" >> $GITHUB_OUTPUT
-          echo "Run ID: $RUN_ID"
-      
-      - name: Generate status
-        run: |
-          python3 tools/vx11_status.py markdown > docs/audit/VX11_STATUS_HANDOFF.md
-          cat docs/audit/VX11_STATUS_HANDOFF.md
-      
-      - name: Create bundle
-        run: |
-          python3 tools/audit_bundle.py "${{ steps.runid.outputs.run_id }}" audit_bundle_${{ steps.runid.outputs.run_id }}.zip
-          ls -lah audit_bundle_*.zip
-      
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: audit-bundle-${{ steps.runid.outputs.run_id }}
-          path: audit_bundle_*.zip
-          retention-days: 30
+    bundle:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 10
+
+            - name: Set run ID
+              id: runid
+              run: |
+                  RUN_ID="${{ github.event.inputs.run_id }}"
+                  if [ -z "$RUN_ID" ]; then
+                    RUN_ID=$(date -u +%Y%m%d_audit_%H%M%SZ)
+                  fi
+                  echo "run_id=$RUN_ID" >> $GITHUB_OUTPUT
+                  echo "Run ID: $RUN_ID"
+
+            - name: Generate status
+              run: |
+                  python3 tools/vx11_status.py markdown > docs/audit/VX11_STATUS_HANDOFF.md
+                  cat docs/audit/VX11_STATUS_HANDOFF.md
+
+            - name: Create bundle
+              run: |
+                  python3 tools/audit_bundle.py "${{ steps.runid.outputs.run_id }}" audit_bundle_${{ steps.runid.outputs.run_id }}.zip
+                  ls -lah audit_bundle_*.zip
+
+            - name: Upload artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: audit-bundle-${{ steps.runid.outputs.run_id }}
+                  path: audit_bundle_*.zip
+                  retention-days: 30
