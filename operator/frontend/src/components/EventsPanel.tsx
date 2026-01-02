@@ -1,11 +1,13 @@
 /**
  * EventsPanel - Real-time event stream with filtering
+ * Supports both polling (HTTP) and streaming (SSE) via intelligent client
  * operator/frontend/src/components/EventsPanel.tsx
  */
 
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState, useCallback, useRef } from 'react'
 import { useEventsStore, VX11Event } from '../stores'
 import { apiClient } from '../services/api'
+import { getEventsClient, closeEventsClient, IntelligentEventsClient } from '../lib/events-client'
 
 export const EventsPanel: React.FC = () => {
     const {
@@ -22,8 +24,12 @@ export const EventsPanel: React.FC = () => {
     } = useEventsStore()
 
     const [scrollToBottom, setScrollToBottom] = useState(true)
+    const [useStreaming, setUseStreaming] = useState(true)
+    const [retryCount, setRetryCount] = useState(0)
+    const [connectionStatus, setConnectionStatus] = useState<'idle' | 'connecting' | 'connected' | 'error' | 'offline'>('idle')
+    const eventsClientRef = useRef<IntelligentEventsClient | null>(null)
 
-    // Fetch events from API
+    // Poll events from API (fallback)
     const fetchEvents = useCallback(async () => {
         try {
             setLoading(true)
@@ -40,18 +46,75 @@ export const EventsPanel: React.FC = () => {
             )
             if (!response.ok || !response.data) throw new Error(response.error || 'Failed to fetch events')
             setEvents(response.data.events || [])
+            setConnectionStatus('connected')
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Unknown error')
             setEvents([])
+            setConnectionStatus('error')
         } finally {
             setLoading(false)
         }
     }, [filterSeverity, filterModule, setEvents, setLoading, setError])
 
-    // Initial fetch
+    // Setup streaming via intelligent client
+    const setupStreaming = useCallback(() => {
+        if (!useStreaming) return
+
+        setConnectionStatus('connecting')
+        closeEventsClient()
+
+        const params = new URLSearchParams()
+        if (filterSeverity !== 'all') params.append('severity', filterSeverity)
+        if (filterModule) params.append('module', filterModule)
+
+        eventsClientRef.current = getEventsClient(
+            `/operator/api/events?${params}`,
+            {
+                onOpen: () => {
+                    console.log('[EventsPanel] Stream connected')
+                    setError(null)
+                    setConnectionStatus('connected')
+                    setRetryCount(0)
+                },
+                onMessage: (data: any) => {
+                    if (data?.events) {
+                        setEvents(data.events)
+                    }
+                },
+                onOffByPolicy: (policyData: any) => {
+                    console.warn('[EventsPanel] Policy rejection:', policyData)
+                    setError(`Policy denied: ${policyData.reason || 'unknown'}`)
+                    setConnectionStatus('offline')
+                },
+                onMaxRetries: () => {
+                    console.error('[EventsPanel] Stream max retries exceeded')
+                    setError('Stream connection lost (max retries exceeded)')
+                    setConnectionStatus('error')
+                    // Fallback to polling
+                    setUseStreaming(false)
+                    fetchEvents()
+                },
+                onError: (err) => {
+                    console.error('[EventsPanel] Stream error:', err)
+                    setConnectionStatus('error')
+                },
+            }
+        )
+    }, [useStreaming, filterSeverity, filterModule, setEvents, setError, fetchEvents])
+
+    // Initialize: try streaming first, then fallback to polling
     useEffect(() => {
-        fetchEvents()
-    }, [filterSeverity, filterModule, fetchEvents])
+        if (useStreaming) {
+            setupStreaming()
+        } else {
+            // Initial fetch
+            fetchEvents()
+        }
+
+        return () => {
+            closeEventsClient()
+        }
+    }, [useStreaming, filterSeverity, filterModule, setupStreaming, fetchEvents])
 
 
     const severityColors: Record<string, string> = {
@@ -59,6 +122,14 @@ export const EventsPanel: React.FC = () => {
         error: 'bg-orange-900 text-orange-100',
         warn: 'bg-yellow-900 text-yellow-100',
         info: 'bg-blue-900 text-blue-100',
+    }
+
+    const statusColors: Record<string, string> = {
+        idle: 'text-slate-400 bg-slate-800',
+        connecting: 'text-yellow-400 bg-yellow-900/20 animate-pulse',
+        connected: 'text-green-400 bg-green-900/20',
+        error: 'text-red-400 bg-red-900/20',
+        offline: 'text-orange-400 bg-orange-900/20',
     }
 
     const filteredEvents = events.filter((e) => {
@@ -82,14 +153,31 @@ export const EventsPanel: React.FC = () => {
             {/* Header */}
             <div className="px-4 py-3 border-b border-slate-700 bg-slate-900">
                 <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-lg font-semibold">📡 Events Stream</h3>
-                    <button
-                        onClick={fetchEvents}
-                        disabled={loading}
-                        className="px-3 py-1 bg-blue-700 hover:bg-blue-600 disabled:bg-slate-600 rounded text-sm font-medium"
-                    >
-                        {loading ? 'Loading...' : 'Refresh'}
-                    </button>
+                    <div className="flex items-center gap-3">
+                        <h3 className="text-lg font-semibold">📡 Events Stream</h3>
+                        <div className={`px-2 py-1 rounded text-xs font-mono ${statusColors[connectionStatus]}`}>
+                            {connectionStatus.toUpperCase()}
+                            {retryCount > 0 && ` (retry ${retryCount})`}
+                        </div>
+                    </div>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={() => setUseStreaming(!useStreaming)}
+                            className={`px-3 py-1 rounded text-sm font-medium transition-colors ${useStreaming
+                                    ? 'bg-purple-700 hover:bg-purple-600'
+                                    : 'bg-slate-700 hover:bg-slate-600'
+                                }`}
+                        >
+                            {useStreaming ? '📡 SSE' : '🔄 Poll'}
+                        </button>
+                        <button
+                            onClick={useStreaming ? () => setupStreaming() : fetchEvents}
+                            disabled={loading}
+                            className="px-3 py-1 bg-blue-700 hover:bg-blue-600 disabled:bg-slate-600 rounded text-sm font-medium"
+                        >
+                            {loading ? 'Loading...' : useStreaming ? 'Reconnect' : 'Refresh'}
+                        </button>
+                    </div>
                 </div>
 
                 {/* Filters */}
