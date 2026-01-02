@@ -779,7 +779,10 @@ async def vx11_result_NEW_HANDLER_2025(
             error="upstream_timeout",
         )
     except Exception as e:
-        write_log("tentaculo_link", f"result:exception:{result_id}:{type(e).__name__}:{str(e)}")
+        write_log(
+            "tentaculo_link",
+            f"result:exception:{result_id}:{type(e).__name__}:{str(e)}",
+        )
         return CoreResultQuery(
             correlation_id=result_id,
             status=StatusEnum.ERROR,
