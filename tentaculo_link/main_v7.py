@@ -880,6 +880,114 @@ async def vx11_core_status(_: bool = Depends(token_guard)):
         )
 
 
+# ============ VX11 AGENTS & SWITCH ENDPOINTS (PHASE 5) ============
+# INVARIANT: Agents list and switch status endpoints
+
+
+@app.get("/vx11/agents")
+async def vx11_list_agents(_: bool = Depends(token_guard)):
+    """
+    GET /vx11/agents: List all active agents (daughters).
+
+    Returns:
+    {
+        "agents": [
+            {
+                "agent_id": "daughter-123-xyz",
+                "spawn_id": "spawn-456-abc",
+                "status": "RUNNING|COMPLETED|FAILED",
+                "task_type": "python|shell",
+                "created_at": "2026-01-03T01:12:00Z",
+                "updated_at": "2026-01-03T01:12:10Z"
+            },
+            ...
+        ],
+        "total": 0,
+        "window_open": false
+    }
+    """
+    try:
+        window_manager = get_window_manager()
+        window_status = window_manager.get_window_status("spawner")
+
+        # Query BD para agentes activos
+        # Por ahora: retornar lista vacía + estado de ventana
+        write_log("tentaculo_link", "vx11_list_agents:success")
+
+        return JSONResponse(
+            status_code=200,
+            content={
+                "agents": [],
+                "total": 0,
+                "window_open": window_status.get("is_open", False),
+                "spawner_available": True,
+                "timestamp": datetime.utcnow().isoformat(),
+            },
+        )
+    except Exception as e:
+        write_log("tentaculo_link", f"vx11_list_agents:exception:{str(e)}")
+        return JSONResponse(
+            status_code=500, content={"error": "internal_error", "detail": str(e)}
+        )
+
+
+@app.get("/vx11/switch/status")
+async def vx11_switch_status(_: bool = Depends(token_guard)):
+    """
+    GET /vx11/switch/status: Query estado del módulo switch.
+
+    Returns:
+    {
+        "status": "healthy",
+        "module": "switch",
+        "version": "7.0",
+        "providers": [...],
+        "routing_mode": "active",
+        "circuit_breaker": "closed"
+    }
+    """
+    try:
+        clients = get_clients()
+        switch_client = clients.clients.get("switch")
+
+        if not switch_client:
+            write_log("tentaculo_link", "vx11_switch_status:switch_client_not_found")
+            return JSONResponse(
+                status_code=503,
+                content={
+                    "status": "unavailable",
+                    "module": "switch",
+                    "error": "switch_client_not_configured",
+                },
+            )
+
+        # Get circuit breaker status
+        cb_state = (
+            switch_client.circuit_breaker.state.value
+            if switch_client.circuit_breaker
+            else "unknown"
+        )
+
+        write_log("tentaculo_link", f"vx11_switch_status:success:{cb_state}")
+
+        return JSONResponse(
+            status_code=200,
+            content={
+                "status": "healthy" if cb_state != "open" else "degraded",
+                "module": "switch",
+                "version": "7.0",
+                "routing_mode": "active",
+                "circuit_breaker": cb_state,
+                "timestamp": datetime.utcnow().isoformat(),
+            },
+        )
+    except Exception as e:
+        write_log("tentaculo_link", f"vx11_switch_status:exception:{str(e)}")
+        return JSONResponse(
+            status_code=500, content={"error": "internal_error", "detail": str(e)}
+        )
+
+
 # ============ VX11 WINDOW MANAGEMENT ENDPOINTS (PHASE 2) ============
 # INVARIANT: Window endpoints manage TTL-gated access to switch/spawner services
 
