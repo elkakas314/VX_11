@@ -34,7 +34,12 @@ class CacheLayer:
     def __init__(self):
         self.redis = None
         self.enabled = os.getenv("VX11_CACHE_ENABLED", "true").lower() == "true"
-        self.redis_url = os.getenv("VX11_REDIS_URL", "redis://localhost:6379/0")
+        # Tolerant: try VX11_REDIS_URL first, fallback to REDIS_URL (for compatibility)
+        self.redis_url = (
+            os.getenv("VX11_REDIS_URL")
+            or os.getenv("REDIS_URL")
+            or "redis://localhost:6379/0"
+        )
 
     async def initialize(self):
         """Initialize Redis connection (compatible with aioredis 2.x)"""
