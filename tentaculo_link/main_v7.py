@@ -4257,20 +4257,21 @@ async def operator_api_events(
     request: Request,
     follow: bool = False,
     x_correlation_id: Optional[str] = Header(None),
+    token: str = Query(None),  # Token from query param (for SSE/EventSource)
+    _: bool = Depends(token_guard_with_query_param),  # Validate token
 ):
     """
-    PHASE 3: Real-time Event Stream (SSE).
+    PHASE 3: Real-time Event Stream (SSE) with auth validation.
 
     Returns Server-Sent Events with system status changes.
 
-    Usage:
-    - GET /operator/api/events?follow=true
-    - With token: /operator/api/events?token=vx11-test-token&follow=true
-    - Or: Header X-VX11-Token: <token>
-    - Client receives text/event-stream response
-    - Events: service_status, feature_toggle, performance_milestone
-    - Heartbeat: every 30s (prevent proxy timeout)
-    - Max connection: 5 minutes
+    Usage (from browser via EventSource):
+    - GET /operator/api/events?follow=true&token=vx11-test-token
+    - Uses query param because EventSource doesn't support custom headers
+
+    Usage (via curl):
+    - GET /operator/api/events?follow=true with Header X-VX11-Token: token
+    - Or query param: GET /operator/api/events?follow=true&token=...
 
     Response (text/event-stream):
     event: service_status
@@ -4283,11 +4284,6 @@ async def operator_api_events(
     """
     import asyncio
     from datetime import datetime
-
-    # Token validation already done by middleware
-    # Extract token for reference if needed
-    token = request.query_params.get("token")
-    x_vx11_token = request.headers.get("X-VX11-Token")
 
     correlation_id = x_correlation_id or str(uuid.uuid4())
     last_row_id = 0
