@@ -11,6 +11,7 @@ Context-7 sessions, and intelligent request routing to internal services.
 import asyncio
 import json
 import os
+import sys
 import time
 import uuid
 from datetime import datetime
@@ -261,6 +262,13 @@ app.add_middleware(
 
 @app.middleware("http")
 async def operator_api_proxy(request: Request, call_next):
+    import sys
+
+    if request.url.path.startswith("/operator/api"):
+        print(
+            f"[DEBUG MIDDLEWARE] Intercepted /operator/api request: {request.method} {request.url.path}",
+            file=sys.stderr,
+        )
     if request.method == "OPTIONS":
         return await call_next(request)
     if request.url.path.startswith("/operator/api"):
@@ -277,7 +285,15 @@ async def operator_api_proxy(request: Request, call_next):
         headers["X-Correlation-Id"] = correlation_id
 
         # Extract provided token (from header or query param)
+        # Support both X-VX11-Token and Authorization: Bearer formats
         provided_token = request.headers.get(settings.token_header)
+
+        # Also check for Authorization: Bearer header (frontend sends this)
+        if not provided_token:
+            auth_header = request.headers.get("Authorization", "")
+            if auth_header.startswith("Bearer "):
+                provided_token = auth_header[7:]  # Remove "Bearer " prefix
+
         params = dict(request.query_params)
         if "token" in params and params["token"]:
             provided_token = params["token"]
@@ -305,8 +321,19 @@ async def operator_api_proxy(request: Request, call_next):
             # Operator-backend will do final validation and reject if ephemeral token expired
             pass
 
-        # Forward token as-is: in both header and query param (for SSE compatibility)
-        if provided_token:
+        # Forward token: use backend's operator token for inter-service authentication
+        # Tentaculo proxies requests to operator-backend using its own credentials
+        # Frontend tokens (VALID_OPERATOR_TOKENS) authenticate to gateway
+        # Backend tokens (VX11_OPERATOR_TOKEN) authenticate to operator-backend service
+        import os
+
+        backend_token = os.environ.get("VX11_OPERATOR_TOKEN")
+        if backend_token:
+            headers[settings.token_header] = backend_token
+            if "token" in params:
+                params["token"] = backend_token
+        elif provided_token:
+            # Fallback: use frontend token (for backward compat)
             headers[settings.token_header] = provided_token
             if "token" in params:
                 params["token"] = provided_token
@@ -354,6 +381,13 @@ async def operator_api_proxy(request: Request, call_next):
                         )
 
                 body = await request.body()
+                import sys
+
+                sent_token = headers.get(settings.token_header, "NONE")
+                print(
+                    f"[PROXY DEBUG] Calling backend: {request.method} {target_url} with token={sent_token}",
+                    file=sys.stderr,
+                )
                 resp = await client.request(
                     request.method,
                     target_url,
@@ -361,6 +395,7 @@ async def operator_api_proxy(request: Request, call_next):
                     params=params,
                     content=body or None,
                 )
+                print(f"[PROXY DEBUG] Response: {resp.status_code}", file=sys.stderr)
         except Exception as e:
             import sys
 
@@ -2951,6 +2986,22 @@ async def debug_events_correlations():
     }
 
 
+@app.get("/api/events")
+async def api_events(limit: int = 10):
+    """
+    Internal API endpoint for events polling (used by operator-backend).
+    Returns recent events from madre message bus.
+    """
+    # TODO: Fetch from madre event log (P1+)
+    # For now, return empty list (valid response, not error)
+    return {
+        "events": [],
+        "total": 0,
+        "limit": limit,
+        "note": "Event storage P1+ feature (currently empty)",
+    }
+
+
 @app.websocket("/ws")
 async def websocket_endpoint(
     websocket: WebSocket, channel: str = "event", client_id: str = "anonymous"
@@ -3435,88 +3486,88 @@ async def auth_logout(_: bool = Depends(token_guard)):
 # ============ OPERATOR API — P0 NATIVE ENDPOINTS (NO operator_backend dependency) ============
 
 
-@app.get("/operator/api/status", tags=["operator-api-p0"])
-async def operator_api_status(_: bool = Depends(token_guard)):
-    """
-    P0: Stable status shape for Operator UI.
-    Does NOT call operator_backend (archived).
-    Returns current policy + core service health + OFF_BY_POLICY state.
-    """
-    clients = get_clients()
-    health_results = await clients.health_check_all()
+# @app.get("/operator/api/status", tags=["operator-api-p0"])
+# async def operator_api_status(_: bool = Depends(token_guard)):
+#     """
+#     P0: Stable status shape for Operator UI.
+#     Does NOT call operator_backend (archived).
+#     Returns current policy + core service health + OFF_BY_POLICY state.
+#     """
+#     clients = get_clients()
+#     health_results = await clients.health_check_all()
+#
+#     return {
+#         "status": "ok",
+#         "policy": "solo_madre",  # Always solo_madre by default
+#         "core_services": {
+#             "madre": health_results.get("madre", {}).get("status") == "healthy",
+#             "redis": health_results.get("redis", {}).get("status") == "healthy",
+#             "tentaculo_link": health_results.get("tentaculo_link", {}).get("status")
+#             == "healthy",
+#         },
+#         "optional_services": {
+#             "switch": {"status": "OFF_BY_POLICY", "reason": "solo_madre policy"},
+#             "hermes": {"status": "OFF_BY_POLICY", "reason": "solo_madre policy"},
+#             "hormiguero": {"status": "OFF_BY_POLICY", "reason": "solo_madre policy"},
+#             "spawner": {"status": "OFF_BY_POLICY", "reason": "solo_madre policy"},
+#             "operator_backend": {
+#                 "status": "ARCHIVED",
+#                 "reason": "UI moved to tentaculo_link",
+#             },
+#         },
+#         "degraded": not all(
+#             health_results.get(s, {}).get("status") == "healthy"
+#             for s in ["madre", "redis", "tentaculo_link"]
+#         ),
+#     }
 
-    return {
-        "status": "ok",
-        "policy": "solo_madre",  # Always solo_madre by default
-        "core_services": {
-            "madre": health_results.get("madre", {}).get("status") == "healthy",
-            "redis": health_results.get("redis", {}).get("status") == "healthy",
-            "tentaculo_link": health_results.get("tentaculo_link", {}).get("status")
-            == "healthy",
-        },
-        "optional_services": {
-            "switch": {"status": "OFF_BY_POLICY", "reason": "solo_madre policy"},
-            "hermes": {"status": "OFF_BY_POLICY", "reason": "solo_madre policy"},
-            "hormiguero": {"status": "OFF_BY_POLICY", "reason": "solo_madre policy"},
-            "spawner": {"status": "OFF_BY_POLICY", "reason": "solo_madre policy"},
-            "operator_backend": {
-                "status": "ARCHIVED",
-                "reason": "UI moved to tentaculo_link",
-            },
-        },
-        "degraded": not all(
-            health_results.get(s, {}).get("status") == "healthy"
-            for s in ["madre", "redis", "tentaculo_link"]
-        ),
-    }
 
-
-@app.get("/operator/api/modules", tags=["operator-api-p0"])
-async def operator_api_modules(_: bool = Depends(token_guard)):
-    """
-    P0: List all modules with state + reason.
-    OFF_BY_POLICY modules shown as inactive (not error).
-    """
-    clients = get_clients()
-    health_results = await clients.health_check_all()
-
-    modules = {}
-
-    # Core (always should be up in solo_madre)
-    for name in ["madre", "redis", "tentaculo_link"]:
-        info = health_results.get(name, {})
-        modules[name] = {
-            "status": "healthy" if info.get("status") == "healthy" else "unhealthy",
-            "port": {"madre": 8001, "redis": 6379, "tentaculo_link": 8000}.get(name),
-            "reason": (
-                "Core service" if info.get("status") == "healthy" else "Check logs"
-            ),
-            "category": "core",
-        }
-
-    # Optional (OFF_BY_POLICY in solo_madre)
-    for name in ["switch", "hermes", "hormiguero", "spawner"]:
-        modules[name] = {
-            "status": "OFF_BY_POLICY",
-            "port": {
-                "switch": 8002,
-                "hermes": 8003,
-                "hormiguero": 8004,
-                "spawner": 8006,
-            }.get(name),
-            "reason": "solo_madre policy active",
-            "category": "optional",
-        }
-
-    # Archived
-    modules["operator_backend"] = {
-        "status": "ARCHIVED",
-        "port": 8011,
-        "reason": "Operator API migrated to tentaculo_link:/operator/*",
-        "category": "archived",
-    }
-
-    return {"modules": modules}
+# @app.get("/operator/api/modules", tags=["operator-api-p0"])
+# async def operator_api_modules(_: bool = Depends(token_guard)):
+#     """
+#     P0: List all modules with state + reason.
+#     OFF_BY_POLICY modules shown as inactive (not error).
+#     """
+#     clients = get_clients()
+#     health_results = await clients.health_check_all()
+#
+#     modules = {}
+#
+#     # Core (always should be up in solo_madre)
+#     for name in ["madre", "redis", "tentaculo_link"]:
+#         info = health_results.get(name, {})
+#         modules[name] = {
+#             "status": "healthy" if info.get("status") == "healthy" else "unhealthy",
+#             "port": {"madre": 8001, "redis": 6379, "tentaculo_link": 8000}.get(name),
+#             "reason": (
+#                 "Core service" if info.get("status") == "healthy" else "Check logs"
+#             ),
+#             "category": "core",
+#         }
+#
+#     # Optional (OFF_BY_POLICY in solo_madre)
+#     for name in ["switch", "hermes", "hormiguero", "spawner"]:
+#         modules[name] = {
+#             "status": "OFF_BY_POLICY",
+#             "port": {
+#                 "switch": 8002,
+#                 "hermes": 8003,
+#                 "hormiguero": 8004,
+#                 "spawner": 8006,
+#             }.get(name),
+#             "reason": "solo_madre policy active",
+#             "category": "optional",
+#         }
+#
+#     # Archived
+#     modules["operator_backend"] = {
+#         "status": "ARCHIVED",
+#         "port": 8011,
+#         "reason": "Operator API migrated to tentaculo_link:/operator/*",
+#         "category": "archived",
+#     }
+#
+#     return {"modules": modules}
 
 
 @app.post("/operator/api/chat/commands", tags=["operator-api-p0"])
@@ -5290,7 +5341,7 @@ async def operator_api_events_stream_proxy(request: Request):
         return JSONResponse(status_code=503, content={"detail": str(e)})
 
 
-@app.get("/operator/api/events", tags=["operator-api-p0"])
+# @app.get("/operator/api/events", tags=["operator-api-p0"])
 # async def operator_api_events_polling(limit: int = 10, _: bool = Depends(token_guard)):
 #     """
 #     P0: Events polling endpoint (no SSE yet).

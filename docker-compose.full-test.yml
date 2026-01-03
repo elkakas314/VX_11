@@ -90,6 +90,7 @@ services:
       - VX11_MODE=test
       - VX11_TENTACULO_LINK_TOKEN=vx11-test-token
       - VX11_GATEWAY_TOKEN=vx11-test-token
+      - VX11_OPERATOR_TOKEN=vx11-operator-test-token
       - VX11_OPERATOR_PROXY_ENABLED=1
       - VX11_OPERATOR_CONTROL_ENABLED=1
       - VX11_EVENTS_ENABLED=1
