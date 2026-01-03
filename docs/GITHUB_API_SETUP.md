@@ -71,18 +71,20 @@ curl -sS \
 
 ### 2. List Your Repositories (Paginated)
 
+**Recommended: Use `gh api` (safer, handles auth automatically)**:
+
+```bash
+gh api --paginate /user/repos --jq '.[] | .name'
+```
+
+**Alternative: Manual curl with headers**:
+
 ```bash
 curl -sS \
   -H "$AUTH" \
   -H "$ACCEPT" \
   -H "$API_VER" \
   "$GH_API/user/repos?per_page=100&page=1" | jq -r '.[].name'
-```
-
-**Or using `gh api` (better):**
-
-```bash
-gh api --paginate /user/repos --jq '.[] | .name'
 ```
 
 ### 3. Get Repository Info
@@ -231,7 +233,64 @@ git config --global credential.helper pass         # Linux
 
 ---
 
-## Advanced: GitHub Apps vs Personal Access Tokens
+## RECOMMENDED: Using `gh` CLI (Safer & Simpler)
+
+The `gh` CLI handles authentication securely and never exposes tokens in commands. **Preferred for most workflows**.
+
+### Setup
+
+```bash
+# Authenticate (stores token securely in ~/.config/gh)
+gh auth login --with-token <<< "${GITHUB_FINEGRAND_PAT}"
+
+# Verify
+gh auth status  # Shows: Logged in to github.com as elkakas314
+```
+
+### Common Operations (No Token Passing)
+
+```bash
+# Clone
+gh repo clone elkakas314/VX_11
+
+# List repos with pagination (automatic)
+gh api --paginate /user/repos --jq '.[] | .name'
+
+# List issues
+gh api /repos/elkakas314/VX_11/issues -f state=open --jq '.[] | {number, title}'
+
+# Create issue
+gh api /repos/elkakas314/VX_11/issues -X POST \
+  -f title="Fix: Security audit" \
+  -f body="Complete security audit of deployment process"
+
+# Get PR
+gh pr view 42
+
+# Create PR
+gh pr create --title "Feature: New endpoint" --body "Description" --base main
+
+# Comment on PR
+gh pr comment 42 --body "Looks good!"
+
+# Merge
+gh pr merge 42 --merge
+
+# Check rate limit
+gh api rate_limit --jq '.rate_limit | {limit, remaining, reset}'
+```
+
+### Why `gh` is Safer
+- ✅ Token never printed or exposed in process output
+- ✅ Automatic authentication (no `Authorization:` header in commands)
+- ✅ Automatic pagination (no manual loops)
+- ✅ Consistent error handling
+
+---
+
+## ADVANCED: REST API with curl (Manual Control)
+
+For scripts that need fine-grained control or offline operation, use curl with proper headers.
 
 ### When to Use GitHub Apps
 
@@ -247,6 +306,86 @@ git config --global credential.helper pass         # Linux
 - **Development workflows**
 
 See: https://docs.github.com/en/apps/creating-github-apps/about-creating-github-apps
+
+---
+
+## ❌ ANTI-PATTERNS: NEVER DO THIS
+
+### 1. Token in URL (Deprecated & Insecure)
+
+```bash
+# ❌ NEVER: git clone https://<token>@github.com/...
+# Tokens appear in: config, shell history, process logs
+
+# ✅ INSTEAD: Use SSH or gh CLI
+git clone git@github.com:elkakas314/VX_11.git
+# or
+gh repo clone elkakas314/VX_11
+```
+
+### 2. Token in Script (Variable Expansion Risk)
+
+```bash
+# ❌ NEVER: Hardcode or echo tokens
+export MY_TOKEN="ghp_xxxx..."  # Visible in ps aux, shell history
+curl -H "Authorization: Bearer $MY_TOKEN" ...
+
+# ✅ INSTEAD: Load from secure location only
+source tokens.env  # git-ignored file
+# Use immediately, don't store in intermediate variables
+curl -H "Authorization: Bearer ${GITHUB_FINEGRAND_PAT}" ...
+```
+
+### 3. Token in Documentation (Phishing/Leakage)
+
+```bash
+# ❌ NEVER: Include real token values in comments/docs
+# GITHUB_FINEGRAND_PAT=github_pat_11BN5ARTA0iURN705UlKWd_...
+
+# ✅ INSTEAD: Use placeholders only
+# GITHUB_FINEGRAND_PAT=${GITHUB_FINEGRAND_PAT}  # Reference
+# or
+# GITHUB_FINEGRAND_PAT=<your-fine-grained-pat>  # Placeholder
+```
+
+### 4. Classic Token Without Scope Limitation
+
+```bash
+# ❌ NEVER: Create classic token with full scope
+# Scopes: (all repos, all workflows, all admin)
+
+# ✅ INSTEAD: Use fine-grained tokens
+# Repository access: Only VX_11
+# Permissions: contents, pull_requests, issues, metadata
+# Expiration: 90 days
+```
+
+### 5. Forgotten Token Rotation
+
+```bash
+# ❌ NEVER: Keep tokens for 1+ year
+# Risk: Account compromise, leaked tokens go stale but don't invalidate
+
+# ✅ INSTEAD: Rotate quarterly
+# Set calendar reminder: 3 months
+# Revoke old token → create new → update tokens.env
+```
+
+---
+
+## 🔐 SECURITY CHECKLIST
+
+Before using GitHub API in automation:
+
+- [ ] Token stored in `tokens.env` (git-ignored)
+- [ ] `tokens.env` mode 600 (`-rw-------`)
+- [ ] No hardcoded tokens in scripts/docs
+- [ ] Using `gh api` or Bearer auth (not deprecated `token`)
+- [ ] Fine-grained token with minimal scopes (if possible)
+- [ ] Token expiration set (90 days recommended)
+- [ ] Pre-commit hook enabled (`.git/hooks/pre-commit`)
+- [ ] GitHub Push Protection enabled (repo settings)
+- [ ] SSH keys configured (for git operations)
 
 ---
 
