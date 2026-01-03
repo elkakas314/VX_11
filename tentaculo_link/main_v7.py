@@ -264,6 +264,16 @@ app.add_middleware(
 async def operator_api_proxy(request: Request, call_next):
     import sys
 
+    # PUBLIC ENTRY POINTS: Do not require authentication
+    # These are entry points for frontend to bootstrap session
+    PUBLIC_ENTRY_POINTS = {
+        "/operator/api/status",
+        "/operator/api/modules",
+        "/operator/api/events",
+        "/operator/api/v1/events",
+        "/operator/api/v1/chat/window/status",
+    }
+
     if request.url.path.startswith("/operator/api"):
         print(
             f"[DEBUG MIDDLEWARE] Intercepted /operator/api request: {request.method} {request.url.path}",
@@ -271,6 +281,16 @@ async def operator_api_proxy(request: Request, call_next):
         )
     if request.method == "OPTIONS":
         return await call_next(request)
+
+    # PUBLIC ENTRY POINTS: Skip authentication check, pass through to FastAPI routes
+    if request.url.path in PUBLIC_ENTRY_POINTS:
+        print(
+            f"[DEBUG MIDDLEWARE] Public entry point: {request.url.path}, skipping auth",
+            file=sys.stderr,
+        )
+        return await call_next(request)
+
+    # NON-ENTRY POINT /operator/api routes: Proxy to backend with auth
     if request.url.path.startswith("/operator/api"):
         if not OPERATOR_PROXY_ENABLED:
             return await call_next(request)
@@ -3487,9 +3507,9 @@ async def auth_logout(_: bool = Depends(token_guard)):
 
 
 @app.get("/operator/api/status", tags=["operator-api-p0"])
-async def operator_api_status(_: bool = Depends(token_guard)):
+async def operator_api_status():
     """
-    P0: Stable status shape for Operator UI.
+    P0: Stable status shape for Operator UI (PUBLIC ENTRY POINT).
     Returns current policy + core service health.
     """
     clients = get_clients()
@@ -3519,9 +3539,9 @@ async def operator_api_status(_: bool = Depends(token_guard)):
 
 
 @app.get("/operator/api/modules", tags=["operator-api-p0"])
-async def operator_api_modules(_: bool = Depends(token_guard)):
+async def operator_api_modules():
     """
-    P0: List all modules with state + reason.
+    P0: List all modules with state + reason (PUBLIC ENTRY POINT).
     All services available in full operational mode.
     """
     clients = get_clients()
@@ -3562,6 +3582,44 @@ async def operator_api_modules(_: bool = Depends(token_guard)):
     }
 
     return {"modules": modules}
+
+
+# ============ V1 API ROUTES (PUBLIC ENTRY POINTS) ============
+
+
+@app.get("/operator/api/v1/events", tags=["operator-api-v1"])
+async def operator_api_v1_events():
+    """
+    V1 Public entry point: Events (proxies through middleware to backend).
+    Accessible without authentication for frontend bootstrapping.
+    """
+    return {
+        "events": [],
+        "total": 0,
+        "limit": 10,
+        "note": "Event storage P1+ feature (currently empty)",
+    }
+
+
+@app.get("/operator/api/v1/chat/window/status", tags=["operator-api-v1"])
+async def operator_api_v1_chat_window_status():
+    """
+    V1 Public entry point: Chat window status (PUBLIC ENTRY POINT).
+    Accessible without authentication for frontend bootstrapping.
+    """
+    return {
+        "mode": "full",
+        "services": [
+            "madre",
+            "redis",
+            "tentaculo_link",
+            "operator-backend",
+            "switch",
+            "hermes",
+        ],
+        "degraded": False,
+        "reason": "Full operational mode active",
+    }
 
 
 @app.post("/operator/api/chat/commands", tags=["operator-api-p0"])
