@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { getCurrentToken, setTokenLocally } from '../services/api'
+import { getCurrentToken, setTokenLocally, isTokenConfigured } from '../services/api'
 
 /**
  * TokenRequiredBanner
- * Shows when no token is configured, with inline token input CTA
+ * Shows when no token is configured, with inline token input CTA.
+ * NO window.location.reload() - parent will detect 'vx11:token-changed' event
  */
 export function TokenRequiredBanner() {
     const [token, setToken] = useState('')
@@ -18,8 +19,7 @@ export function TokenRequiredBanner() {
                 setSaved(false)
                 setShowInput(false)
                 setToken('')
-                // Trigger reload of App (parent should detect token change)
-                window.location.reload()
+                // Parent App.tsx will detect 'vx11:token-changed' event and update UI
             }, 1500)
         }
     }

@@ -39,13 +39,32 @@ export function getCurrentToken(): string {
     return getStoredToken() || DEFAULT_TOKEN
 }
 
+// Export checker for token configuration status
+export function isTokenConfigured(): boolean {
+    const token = getStoredToken()
+    return Boolean(token && token.trim().length > 0)
+}
+
 // Export setter for token (UI can call to configure)
 export function setTokenLocally(token: string): void {
     if (typeof window === 'undefined') return
     try {
         localStorage.setItem('vx11_token', token)
+        // Dispatch custom event for same-tab listeners
+        window.dispatchEvent(new CustomEvent('vx11:token-changed', { detail: { token } }))
     } catch (e) {
         console.error('Failed to save token to localStorage:', e)
+    }
+}
+
+// Export clearToken function
+export function clearTokenLocally(): void {
+    if (typeof window === 'undefined') return
+    try {
+        localStorage.removeItem('vx11_token')
+        window.dispatchEvent(new CustomEvent('vx11:token-changed', { detail: { token: null } }))
+    } catch (e) {
+        console.error('Failed to clear token:', e)
     }
 }
 

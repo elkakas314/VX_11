@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { getCurrentToken, setTokenLocally } from '../services/api'
+import { getCurrentToken, setTokenLocally, clearTokenLocally } from '../services/api'
 
 /**
  * TokenSettings Component
@@ -8,6 +8,7 @@ import { getCurrentToken, setTokenLocally } from '../services/api'
  * Token is stored in localStorage and used for all API requests.
  * 
  * Invariant: Token is NEVER hardcoded in bundle.
+ * NOTE: No window.location.reload() - parent will detect token change via 'vx11:token-changed' event
  */
 export function TokenSettings() {
     const [token, setToken] = useState('')
@@ -26,15 +27,15 @@ export function TokenSettings() {
             return
         }
         setTokenLocally(token)
-        setSavedMessage('Token saved successfully')
+        setSavedMessage('✓ Token saved successfully')
         setIsEditing(false)
         setTimeout(() => setSavedMessage(''), 3000)
     }
 
     const handleClear = () => {
         setToken('')
-        setTokenLocally('')
-        setSavedMessage('Token cleared')
+        clearTokenLocally()
+        setSavedMessage('⚠ Token cleared')
         setTimeout(() => setSavedMessage(''), 2000)
     }
 
@@ -49,7 +50,7 @@ export function TokenSettings() {
             {!isEditing ? (
                 <div className="token-display">
                     <div className="token-value">
-                        {token ? (
+                        {token && token.trim() ? (
                             <>
                                 <code>{token.substring(0, 10)}...{token.substring(token.length - 5)}</code>
                                 <span className="text-xs text-green-400 ml-2">✓ Configured</span>
@@ -74,6 +75,7 @@ export function TokenSettings() {
                         value={token}
                         onChange={(e) => setToken(e.target.value)}
                         className="input-field"
+                        autoFocus
                     />
                     <div className="token-actions">
                         <button onClick={handleSave} className="btn-primary btn-sm">

@@ -11,7 +11,7 @@ import { RightDrawer } from './components/RightDrawer'
 import { DegradedModeBanner } from './components/DegradedModeBanner'
 import { DebugDrawer } from './components/DebugDrawer'
 import { TokenRequiredBanner } from './components/TokenRequiredBanner'
-import { apiClient, API_BASE, getCurrentToken } from './services/api'
+import { apiClient, API_BASE, getCurrentToken, isTokenConfigured } from './services/api'
 import { useEventsStore, useWindowStatusStore } from './stores'
 import './App.css'
 
@@ -30,7 +30,7 @@ export default function App() {
     const [activeTab, setActiveTab] = useState<TabName>('overview')
     const [degraded, setDegraded] = useState(false)
     const [eventsConnected, setEventsConnected] = useState(true)
-    const [tokenConfigured, setTokenConfigured] = useState(!!getCurrentToken())
+    const [tokenConfigured, setTokenConfigured] = useState(isTokenConfigured())
     const { setEvents } = useEventsStore()
     const { setWindowStatus } = useWindowStatusStore()
     const [debugData] = useState({
@@ -44,18 +44,25 @@ export default function App() {
         checkStatus()
     }, [])
 
-    // Listen for token changes (e.g., from TokenSettings component)
+    // Listen for token changes (custom event + storage + interval)
     useEffect(() => {
-        const handleStorageChange = () => {
-            setTokenConfigured(!!getCurrentToken())
+        const handleTokenChange = () => {
+            console.log('[App] Token change detected, updating state')
+            setTokenConfigured(isTokenConfigured())
         }
-        window.addEventListener('storage', handleStorageChange)
-        // Also check periodically in case token was set in same tab
-        const interval = setInterval(() => {
-            setTokenConfigured(!!getCurrentToken())
-        }, 1000)
+
+        // Custom event (same-tab token change from TokenSettings)
+        window.addEventListener('vx11:token-changed', handleTokenChange)
+
+        // Storage event (cross-tab token change)
+        window.addEventListener('storage', handleTokenChange)
+
+        // Periodic check (safety)
+        const interval = setInterval(handleTokenChange, 2000)
+
         return () => {
-            window.removeEventListener('storage', handleStorageChange)
+            window.removeEventListener('vx11:token-changed', handleTokenChange)
+            window.removeEventListener('storage', handleTokenChange)
             clearInterval(interval)
         }
     }, [])
