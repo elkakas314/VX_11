@@ -116,7 +116,7 @@ FILES_DIR = _resolve_files_dir()
 
 
 class TokenGuard:
-    """Token validation dependency."""
+    """Token validation dependency (header-only)."""
 
     def __call__(self, x_vx11_token: str = Header(None)) -> bool:
         if settings.enable_auth:
@@ -127,7 +127,26 @@ class TokenGuard:
         return True
 
 
+class TokenGuardWithQueryParam:
+    """Token validation supporting header or query param (for SSE via EventSource)."""
+
+    def __call__(
+        self,
+        x_vx11_token: str = Header(None),
+        token: str = None,  # Query param fallback for SSE/EventSource
+    ) -> bool:
+        if settings.enable_auth:
+            # Try header first, then query param
+            provided_token = x_vx11_token or token
+            if not provided_token:
+                raise HTTPException(status_code=401, detail="auth_required")
+            if provided_token != VX11_TOKEN:
+                raise HTTPException(status_code=403, detail="forbidden")
+        return True
+
+
 token_guard = TokenGuard()
+token_guard_with_query_param = TokenGuardWithQueryParam()
 
 
 class OperatorChatRequest(BaseModel):
@@ -4125,7 +4144,7 @@ async def operator_api_chat(
 async def operator_api_events(
     follow: bool = False,
     x_correlation_id: Optional[str] = Header(None),
-    _: bool = Depends(token_guard),
+    _: bool = Depends(token_guard_with_query_param),
 ):
     """
     PHASE 3: Real-time Event Stream (SSE).
