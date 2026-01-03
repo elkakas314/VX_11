@@ -203,41 +203,38 @@ services:
     restart: on-failure
 
   # --- SPAWNER (Windowed spawn + hijas) ---
-  # NOTE: Spawner disabled in full-test due to build context dependency on tentaculo_link.
-  # Will be enabled in full-prod after restructuring imports.
-  # For now, E2E demonstrates windowed pattern via Switch.
 
-  # spawner:
-  #   build:
-  #     context: .
-  #     dockerfile: spawner/Dockerfile
-  #     args:
-  #       - VX11_PROFILE=test
-  #   image: vx11-spawner:test
-  #   container_name: vx11-spawner-test
-  #   depends_on:
-  #     tentaculo_link:
-  #       condition: service_healthy
-  #     redis-test:
-  #       condition: service_healthy
-  #   networks:
-  #     - vx11-test
-  #   environment:
-  #     - VX11_MODE=test
-  #     - VX11_TENTACULO_LINK_TOKEN=vx11-test-token
-  #     - VX11_GATEWAY_TOKEN=vx11-test-token
-  #     - TENTACULO_LINK_URL=http://tentaculo_link:8000
-  #     - MADRE_URL=http://madre:8001
-  #     - REDIS_URL=redis://redis-test:6379
-  #     - PYTHONUNBUFFERED=1
-  #     - LOG_LEVEL=INFO
-  #   volumes:
-  #     - ./spawner:/app/spawner
-  #     - ./data:/app/data
-  #   healthcheck:
-  #     test: ["CMD", "curl", "-f", "http://localhost:8005/health"]
-  #     interval: 10s
-  #     timeout: 5s
+  spawner:
+    build:
+      context: .
+      dockerfile: spawner/Dockerfile
+      args:
+        - VX11_PROFILE=test
+    image: vx11-spawner:test
+    container_name: vx11-spawner-test
+    depends_on:
+      tentaculo_link:
+        condition: service_healthy
+      redis-test:
+        condition: service_healthy
+    networks:
+      - vx11-test
+    environment:
+      - VX11_MODE=test
+      - VX11_TENTACULO_LINK_TOKEN=vx11-test-token
+      - VX11_GATEWAY_TOKEN=vx11-test-token
+      - TENTACULO_LINK_URL=http://tentaculo_link:8000
+      - MADRE_URL=http://madre:8001
+      - REDIS_URL=redis://redis-test:6379
+      - PYTHONUNBUFFERED=1
+      - LOG_LEVEL=INFO
+    volumes:
+      - ./spawner:/app/spawner
+      - ./data:/app/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8005/health"]
+      interval: 10s
+      timeout: 5s
   #     retries: 3
   #   restart: on-failure
 
