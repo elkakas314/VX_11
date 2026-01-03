@@ -260,7 +260,7 @@ class ApiClient {
 
     // Power state endpoint (legacy, still available)
     async windows(): Promise<ApiResponse<any>> {
-        return this.request('GET', '/operator/api/window/status')
+        return this.request('GET', '/operator/api/chat/window/status')
     }
 
     // Hormiguero status (optional, may be unavailable)

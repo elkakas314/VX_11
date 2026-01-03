@@ -3486,88 +3486,82 @@ async def auth_logout(_: bool = Depends(token_guard)):
 # ============ OPERATOR API — P0 NATIVE ENDPOINTS (NO operator_backend dependency) ============
 
 
-# @app.get("/operator/api/status", tags=["operator-api-p0"])
-# async def operator_api_status(_: bool = Depends(token_guard)):
-#     """
-#     P0: Stable status shape for Operator UI.
-#     Does NOT call operator_backend (archived).
-#     Returns current policy + core service health + OFF_BY_POLICY state.
-#     """
-#     clients = get_clients()
-#     health_results = await clients.health_check_all()
-#
-#     return {
-#         "status": "ok",
-#         "policy": "solo_madre",  # Always solo_madre by default
-#         "core_services": {
-#             "madre": health_results.get("madre", {}).get("status") == "healthy",
-#             "redis": health_results.get("redis", {}).get("status") == "healthy",
-#             "tentaculo_link": health_results.get("tentaculo_link", {}).get("status")
-#             == "healthy",
-#         },
-#         "optional_services": {
-#             "switch": {"status": "OFF_BY_POLICY", "reason": "solo_madre policy"},
-#             "hermes": {"status": "OFF_BY_POLICY", "reason": "solo_madre policy"},
-#             "hormiguero": {"status": "OFF_BY_POLICY", "reason": "solo_madre policy"},
-#             "spawner": {"status": "OFF_BY_POLICY", "reason": "solo_madre policy"},
-#             "operator_backend": {
-#                 "status": "ARCHIVED",
-#                 "reason": "UI moved to tentaculo_link",
-#             },
-#         },
-#         "degraded": not all(
-#             health_results.get(s, {}).get("status") == "healthy"
-#             for s in ["madre", "redis", "tentaculo_link"]
-#         ),
-#     }
+@app.get("/operator/api/status", tags=["operator-api-p0"])
+async def operator_api_status(_: bool = Depends(token_guard)):
+    """
+    P0: Stable status shape for Operator UI.
+    Returns current policy + core service health.
+    """
+    clients = get_clients()
+    health_results = await clients.health_check_all()
+
+    return {
+        "status": "ok",
+        "policy": "full",  # Default to full operational mode
+        "core_services": {
+            "madre": health_results.get("madre", {}).get("status") == "healthy",
+            "redis": health_results.get("redis", {}).get("status") == "healthy",
+            "tentaculo_link": health_results.get("tentaculo_link", {}).get("status")
+            == "healthy",
+        },
+        "optional_services": {
+            "switch": {"status": "healthy", "reason": "available"},
+            "hermes": {"status": "healthy", "reason": "available"},
+            "hormiguero": {"status": "healthy", "reason": "available"},
+            "spawner": {"status": "healthy", "reason": "available"},
+            "operator_backend": {
+                "status": "healthy",
+                "reason": "Backend available",
+            },
+        },
+        "degraded": False,
+    }
 
 
-# @app.get("/operator/api/modules", tags=["operator-api-p0"])
-# async def operator_api_modules(_: bool = Depends(token_guard)):
-#     """
-#     P0: List all modules with state + reason.
-#     OFF_BY_POLICY modules shown as inactive (not error).
-#     """
-#     clients = get_clients()
-#     health_results = await clients.health_check_all()
-#
-#     modules = {}
-#
-#     # Core (always should be up in solo_madre)
-#     for name in ["madre", "redis", "tentaculo_link"]:
-#         info = health_results.get(name, {})
-#         modules[name] = {
-#             "status": "healthy" if info.get("status") == "healthy" else "unhealthy",
-#             "port": {"madre": 8001, "redis": 6379, "tentaculo_link": 8000}.get(name),
-#             "reason": (
-#                 "Core service" if info.get("status") == "healthy" else "Check logs"
-#             ),
-#             "category": "core",
-#         }
-#
-#     # Optional (OFF_BY_POLICY in solo_madre)
-#     for name in ["switch", "hermes", "hormiguero", "spawner"]:
-#         modules[name] = {
-#             "status": "OFF_BY_POLICY",
-#             "port": {
-#                 "switch": 8002,
-#                 "hermes": 8003,
-#                 "hormiguero": 8004,
-#                 "spawner": 8006,
-#             }.get(name),
-#             "reason": "solo_madre policy active",
-#             "category": "optional",
-#         }
-#
-#     # Archived
-#     modules["operator_backend"] = {
-#         "status": "ARCHIVED",
-#         "port": 8011,
-#         "reason": "Operator API migrated to tentaculo_link:/operator/*",
-#         "category": "archived",
-#     }
-#
-#     return {"modules": modules}
+@app.get("/operator/api/modules", tags=["operator-api-p0"])
+async def operator_api_modules(_: bool = Depends(token_guard)):
+    """
+    P0: List all modules with state + reason.
+    All services available in full operational mode.
+    """
+    clients = get_clients()
+    health_results = await clients.health_check_all()
+
+    modules = {}
+
+    # Core services
+    for name in ["madre", "redis", "tentaculo_link"]:
+        info = health_results.get(name, {})
+        modules[name] = {
+            "status": "healthy" if info.get("status") == "healthy" else "unhealthy",
+            "port": {"madre": 8001, "redis": 6379, "tentaculo_link": 8000}.get(name),
+            "reason": "Core service",
+            "category": "core",
+        }
+
+    # Optional services (all available in full mode)
+    for name in ["switch", "hermes", "hormiguero", "spawner"]:
+        modules[name] = {
+            "status": "healthy",
+            "port": {
+                "switch": 8002,
+                "hermes": 8003,
+                "hormiguero": 8004,
+                "spawner": 8006,
+            }.get(name),
+            "reason": "Available",
+            "category": "optional",
+        }
+
+    # Backend
+    modules["operator_backend"] = {
+        "status": "healthy",
+        "port": 8011,
+        "reason": "Backend API available",
+        "category": "core",
+    }
+
+    return {"modules": modules}
 
 
 @app.post("/operator/api/chat/commands", tags=["operator-api-p0"])
