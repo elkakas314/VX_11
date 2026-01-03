@@ -10,7 +10,8 @@ import { LeftRail } from './components/LeftRail'
 import { RightDrawer } from './components/RightDrawer'
 import { DegradedModeBanner } from './components/DegradedModeBanner'
 import { DebugDrawer } from './components/DebugDrawer'
-import { apiClient, API_BASE } from './services/api'
+import { TokenRequiredBanner } from './components/TokenRequiredBanner'
+import { apiClient, API_BASE, getCurrentToken } from './services/api'
 import { useEventsStore, useWindowStatusStore } from './stores'
 import './App.css'
 
@@ -29,6 +30,7 @@ export default function App() {
     const [activeTab, setActiveTab] = useState<TabName>('overview')
     const [degraded, setDegraded] = useState(false)
     const [eventsConnected, setEventsConnected] = useState(true)
+    const [tokenConfigured, setTokenConfigured] = useState(!!getCurrentToken())
     const { setEvents } = useEventsStore()
     const { setWindowStatus } = useWindowStatusStore()
     const [debugData] = useState({
@@ -40,6 +42,22 @@ export default function App() {
     // Check system status on mount
     useEffect(() => {
         checkStatus()
+    }, [])
+
+    // Listen for token changes (e.g., from TokenSettings component)
+    useEffect(() => {
+        const handleStorageChange = () => {
+            setTokenConfigured(!!getCurrentToken())
+        }
+        window.addEventListener('storage', handleStorageChange)
+        // Also check periodically in case token was set in same tab
+        const interval = setInterval(() => {
+            setTokenConfigured(!!getCurrentToken())
+        }, 1000)
+        return () => {
+            window.removeEventListener('storage', handleStorageChange)
+            clearInterval(interval)
+        }
     }, [])
 
     useEffect(() => {
@@ -102,6 +120,8 @@ export default function App() {
                 show={!eventsConnected}
                 message="Disconnected from events feed. Retrying…"
             />
+
+            {!tokenConfigured && <TokenRequiredBanner />}
 
             <header className="app-header">
                 <div className="header-title">

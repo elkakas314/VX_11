@@ -39,6 +39,19 @@ export class IntelligentEventsClient {
         this.maxRetries = options.maxRetries ?? 10
         this.maxDelayMs = options.maxDelayMs ?? 30000
 
+        // GUARD: Only connect if token is available
+        // If no token, call onError and stop
+        const token = getCurrentToken()
+        if (!token) {
+            console.warn('[EventsClient] No token configured; SSE disabled until token is set')
+            this.shouldStop = true
+            this.options.onError?.({
+                message: 'Token not configured',
+                code: 'NO_TOKEN',
+            })
+            return
+        }
+
         this.connect()
     }
 
