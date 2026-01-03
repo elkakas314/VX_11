@@ -10,26 +10,37 @@ Endpoints:
 
 from typing import Optional
 from fastapi import APIRouter, Depends, Header, HTTPException, Path as PathParam
+from fastapi.responses import JSONResponse
+import importlib
 import os
 import json
 import sqlite3
 from pathlib import Path
-
-try:
-    from hormiguero.manifestator.controller import RailsController
-except ImportError:
-    RailsController = None
+import uuid
 
 router = APIRouter(prefix="/api", tags=["rails"])
 controller = None
+RailsController = None
+
+
+def _load_rails_controller():
+    global RailsController
+    if RailsController is None:
+        try:
+            module = importlib.import_module("hormiguero.manifestator.controller")
+            RailsController = getattr(module, "RailsController", None)
+        except Exception:
+            RailsController = None
+    return RailsController
 
 
 def get_controller() -> Optional[RailsController]:
     """Get or initialize RailsController if available"""
     global controller
-    if controller is None and RailsController is not None:
+    rails_cls = _load_rails_controller()
+    if controller is None and rails_cls is not None:
         repo_root = os.environ.get("VX11_REPO_ROOT", "/home/elkakas314/vx11")
-        controller = RailsController(repo_root)
+        controller = rails_cls(repo_root)
     return controller
 
 
@@ -53,7 +64,10 @@ def get_db() -> sqlite3.Connection:
 
 
 @router.get("/rails/lanes")
-async def get_rails_lanes(auth: bool = Depends(check_auth)):
+async def get_rails_lanes(
+    auth: bool = Depends(check_auth),
+    x_correlation_id: Optional[str] = Header(None),
+):
     """
     GET /api/rails/lanes - Get manifestator drift detection lanes
 
@@ -87,9 +101,17 @@ async def get_rails_lanes(auth: bool = Depends(check_auth)):
             "lanes": [],
         }
 
-    if RailsController is None:
-        raise HTTPException(
-            status_code=501, detail="Hormiguero module not available in this deployment"
+    correlation_id = x_correlation_id or str(uuid.uuid4())
+    if _load_rails_controller() is None:
+        return JSONResponse(
+            status_code=503,
+            content={
+                "status": "error",
+                "code": "DEPENDENCY_UNAVAILABLE",
+                "dependency": "hormiguero",
+                "action": "enable profile core or route via http bridge",
+                "correlation_id": correlation_id,
+            },
         )
 
     try:
@@ -108,7 +130,10 @@ async def get_rails_lanes(auth: bool = Depends(check_auth)):
 
 
 @router.get("/rails")
-async def get_rails(auth: bool = Depends(check_auth)):
+async def get_rails(
+    auth: bool = Depends(check_auth),
+    x_correlation_id: Optional[str] = Header(None),
+):
     """
     GET /api/rails - Get all manifestator rails (constraints + rules)
 
@@ -139,6 +164,18 @@ async def get_rails(auth: bool = Depends(check_auth)):
             "count": 0,
         }
 
+    correlation_id = x_correlation_id or str(uuid.uuid4())
+    if _load_rails_controller() is None:
+        return JSONResponse(
+            status_code=503,
+            content={
+                "status": "error",
+                "code": "DEPENDENCY_UNAVAILABLE",
+                "dependency": "hormiguero",
+                "action": "enable profile core or route via http bridge",
+                "correlation_id": correlation_id,
+            },
+        )
     try:
         ctrl = get_controller()
         rails = ctrl.get_all_rails()
@@ -158,6 +195,7 @@ async def get_rails(auth: bool = Depends(check_auth)):
 async def get_lane_status(
     lane_id: str = PathParam(..., description="Lane ID"),
     auth: bool = Depends(check_auth),
+    x_correlation_id: Optional[str] = Header(None),
 ):
     """
     GET /api/rails/{lane_id}/status - Detailed lane status + audit findings
@@ -195,6 +233,18 @@ async def get_lane_status(
             "status": "disabled",
         }
 
+    correlation_id = x_correlation_id or str(uuid.uuid4())
+    if _load_rails_controller() is None:
+        return JSONResponse(
+            status_code=503,
+            content={
+                "status": "error",
+                "code": "DEPENDENCY_UNAVAILABLE",
+                "dependency": "hormiguero",
+                "action": "enable profile core or route via http bridge",
+                "correlation_id": correlation_id,
+            },
+        )
     try:
         ctrl = get_controller()
         result = ctrl.get_lane_status(lane_id)

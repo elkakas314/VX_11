@@ -1,0 +1,10 @@
+61980bf (HEAD -> work) vx11: add(scripts): deepseek r1 p1 blocker diagnostic script
+cbb511c vx11: fix(p1): lazy-load hormiguero in tentaculo_link for production isolation [deepseek-r1]
+34db53d vx11: docs: gates enforce single-entrypoint ports check [audit:20251230T030237Z]
+d4b56c9 vx11: deploy: production compose single-entrypoint (only 8000 published) [audit:20251230T030237Z]
+d23344f vx11: docs: core gates pack (no placeholders, auth + openapi discovery) [audit:20251230T025209Z]
+c37788e vx11: deploy: prod overlay single-entrypoint (only 8000 published) [audit:20251230T025209Z]
+b0db461 vx11: fix(prod): valid overlay - remove services ports via null (single-entrypoint) [audit:20251230T023622Z]
+e0b2dde vx11: maintenance: post_task + db_map regen + scorecard [audit:20251230T023049Z]
+4402042 vx11: docs: core gates pack (no placeholders, auth + openapi discovery) [audit:20251230T022453Z]
+341622b vx11: deploy: prod overlay single-entrypoint (only 8000 published) [audit:20251230T022453Z]

@@ -1,0 +1,3 @@
+-rw-r--r-- 1 root root 11589 Dec 30 03:10 docker-compose.production.yml
+-rw-r--r-- 1 root root  9009 Dec 30 03:10 docs/audit/CORE_GATES_PACK.md
+-rw-r--r-- 1 root root  5561 Dec 30 04:31 tentaculo_link/routes/rails.py

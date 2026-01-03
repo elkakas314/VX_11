@@ -9,6 +9,7 @@ Context-7 sessions, and intelligent request routing to internal services.
 """
 
 import asyncio
+import importlib
 import json
 import os
 import time
@@ -52,7 +53,6 @@ from tentaculo_link.context7_middleware import get_context7_manager
 from madre.window_manager import get_window_manager
 from tentaculo_link.deepseek_client import DeepSeekClient, save_chat_to_db
 from tentaculo_link.deepseek_r1_client import get_deepseek_r1_client
-from switch.providers import get_provider  # PHASE 3: Provider registry
 from tentaculo_link import (
     routes as api_routes,
 )  # Import routes package to avoid name collision
@@ -4001,6 +4001,10 @@ async def operator_api_chat(
         # Laboratory mode: use provider registry (PHASE 3)
         try:
             # Select provider: deepseek_r1 if configured, else mock
+            module = importlib.import_module("switch.providers")
+            get_provider = getattr(module, "get_provider", None)
+            if get_provider is None:
+                raise AttributeError("switch.providers.get_provider not found")
             provider = get_provider("deepseek_r1")
 
             response = await provider(prompt=req.message, correlation_id=correlation_id)
@@ -4072,6 +4076,22 @@ async def operator_api_chat(
                 "tentaculo_link",
                 f"chat_provider_value_error:{str(ve)[:100]}:session={session_id}",
                 level="DEBUG",
+            )
+        except (ImportError, AttributeError) as e:
+            write_log(
+                "tentaculo_link",
+                f"chat_provider_dependency_unavailable:{type(e).__name__}:{str(e)[:120]}",
+                level="WARNING",
+            )
+            return JSONResponse(
+                status_code=503,
+                content={
+                    "status": "error",
+                    "code": "DEPENDENCY_UNAVAILABLE",
+                    "dependency": "switch",
+                    "action": "enable profile core or route via http bridge",
+                    "correlation_id": correlation_id,
+                },
             )
         except Exception as e:
             write_log(
