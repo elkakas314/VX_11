@@ -538,6 +538,45 @@ async def health():
     return {"status": "ok", "module": "tentaculo_link", "version": "7.0"}
 
 
+@app.get("/debug/token-info", tags=["debug"])
+async def debug_token_info(token: str = None, request: Request = None):
+    """
+    DEBUG endpoint: Check if a token is valid.
+    Helps diagnose authentication issues.
+
+    Usage:
+    - GET /debug/token-info?token=vx11-test-token
+    - GET /debug/token-info (uses X-VX11-Token header)
+    """
+    # Get token from various sources
+    token_from_param = token
+    token_from_header = request.headers.get(settings.token_header) if request else None
+    token_from_bearer = None
+    if request:
+        auth_header = request.headers.get("Authorization", "")
+        if auth_header.startswith("Bearer "):
+            token_from_bearer = auth_header[7:]
+
+    # Use first available token
+    actual_token = token_from_param or token_from_header or token_from_bearer
+
+    # Check if valid
+    is_valid = actual_token in VALID_OPERATOR_TOKENS if actual_token else False
+
+    return {
+        "debug": "token_info",
+        "token_provided": actual_token or None,
+        "token_valid": is_valid,
+        "valid_tokens_count": len(VALID_OPERATOR_TOKENS),
+        "auth_enabled": settings.enable_auth,
+        "sources_checked": {
+            "querystring": token_from_param or None,
+            "x_vx11_token_header": token_from_header or None,
+            "bearer_auth": token_from_bearer or None,
+        },
+    }
+
+
 @app.get("/madre/health")
 async def madre_health_proxy():
     """
@@ -3024,12 +3063,14 @@ async def api_events(limit: int = 10):
 
 
 @app.get("/operator/api/events", tags=["operator-api-sse"])
-async def operator_api_events(limit: int = 10, token: str = None, request: Request = None):
+async def operator_api_events(
+    limit: int = 10, token: str = None, request: Request = None
+):
     """
     Dual-mode events endpoint:
     - EventSource clients: Returns SSE stream (Content-Type: text/event-stream)
     - Regular fetch clients: Returns JSON polling response
-    
+
     Frontend EventSource connects with: /operator/api/events?token=XXX
     Endpoint detects EventSource request and returns streaming response.
     """
@@ -3046,11 +3087,13 @@ async def operator_api_events(limit: int = 10, token: str = None, request: Reque
             status_code=401,
             content={"detail": "token_required"},
         )
-    
+
     # Check if this is an EventSource client (by Accept header)
     accept_header = request.headers.get("Accept", "") if request else ""
-    is_sse_client = "text/event-stream" in accept_header or "Accept" not in (request.headers if request else {})
-    
+    is_sse_client = "text/event-stream" in accept_header or "Accept" not in (
+        request.headers if request else {}
+    )
+
     # If EventSource client OR if explicitly requesting SSE mode, return stream
     if is_sse_client:
         return StreamingResponse(
@@ -3062,7 +3105,7 @@ async def operator_api_events(limit: int = 10, token: str = None, request: Reque
                 "X-Accel-Buffering": "no",
             },
         )
-    
+
     # Otherwise return JSON polling response
     return {
         "events": [],
@@ -3080,7 +3123,7 @@ async def events_stream_generator():
     try:
         # Send initial connection marker
         yield f"data: {json.dumps({'type': 'connected', 'message': 'SSE stream established'})}\n\n"
-        
+
         # Keep connection alive with periodic keep-alive messages
         # EventSource will auto-retry on error, so we just keep the connection open
         for i in range(600):  # Keep open for ~10 minutes (60s/msg * 600)
@@ -3096,7 +3139,7 @@ async def operator_api_events_stream(token: str = None):
     """
     Server-Sent Events (SSE) endpoint for real-time event streaming.
     Frontend uses EventSource() to connect here, passing token in querystring.
-    
+
     Endpoint flow:
     1. Frontend calls /operator/api/events?token=XXX with EventSource
     2. Validate token from querystring
@@ -3115,7 +3158,7 @@ async def operator_api_events_stream(token: str = None):
             status_code=401,
             content={"detail": "token_required"},
         )
-    
+
     return StreamingResponse(
         events_stream_generator(),
         media_type="text/event-stream",
