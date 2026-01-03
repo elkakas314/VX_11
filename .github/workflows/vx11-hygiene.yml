@@ -6,14 +6,8 @@ on:
             - main
             - dev
     schedule:
-        # Run daily at 2 AM UTC
-        - cron: "0 2 * * *"
-
-permissions:
-    contents: read
-    actions: write
-
-env:
+        # ⏰ Run daily at 2 AM UTC (GitHub Actions scheduled event)
+        - cron: "0 2 * * *" # Runs at 02:00
     REGISTRY: ghcr.io
     ARTIFACT_RETENTION: 7 # days
 
@@ -227,12 +221,35 @@ jobs:
         name: Cleanup Old Artifacts
         steps:
             - name: Delete artifacts older than retention period
-              uses: geekyeggo/delete-artifact@v2
-              with:
-                  name: |
-                      smoke-test-logs
-                      scorecard
-                  minCreatedTime: ${{ env.ARTIFACT_RETENTION }}d
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  RETENTION_DAYS: ${{ env.ARTIFACT_RETENTION }}
+                  GITHUB_REPOSITORY: ${{ github.repository }}
+              run: |
+                  set -euo pipefail
+                  echo "Deleting artifacts older than $RETENTION_DAYS days from $GITHUB_REPOSITORY..."
+                  api_base="https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts"
+                  page=1
+                  while :; do
+                    resp=$(curl -s -H "Authorization: token ${GITHUB_TOKEN}" "${api_base}?per_page=100&page=${page}")
+                    artifacts_count=$(echo "$resp" | jq '.artifacts | length')
+                    if [ "$artifacts_count" -eq 0 ]; then
+                      break
+                    fi
+                    for i in $(seq 0 $((artifacts_count - 1))); do
+                      id=$(echo "$resp" | jq -r ".artifacts[$i].id")
+                      name=$(echo "$resp" | jq -r ".artifacts[$i].name")
+                      created_at=$(echo "$resp" | jq -r ".artifacts[$i].created_at")
+                      created_epoch=$(date -d "$created_at" +%s)
+                      cutoff_epoch=$(date -d "${RETENTION_DAYS} days ago" +%s)
+                      if [ "$created_epoch" -lt "$cutoff_epoch" ]; then
+                        echo "Deleting artifact id=$id name=$name created_at=$created_at"
+                        curl -s -X DELETE -H "Authorization: token ${GITHUB_TOKEN}" "${api_base}/${id}" >/dev/null || true
+                      fi
+                    done
+                    page=$((page + 1))
+                  done
+                  echo "Artifact cleanup completed."
 
     result:
         runs-on: ubuntu-latest
