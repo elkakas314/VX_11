@@ -563,11 +563,15 @@ async def debug_token_info(token: str = None, request: Request = None):
     # Check if valid
     is_valid = actual_token in VALID_OPERATOR_TOKENS if actual_token else False
 
+    # Build list of valid token prefixes for debugging (first 10 chars + "...")
+    valid_token_prefixes = [f"{t[:10]}..." for t in VALID_OPERATOR_TOKENS]
+    
     return {
         "debug": "token_info",
         "token_provided": actual_token or None,
         "token_valid": is_valid,
         "valid_tokens_count": len(VALID_OPERATOR_TOKENS),
+        "valid_token_prefixes": valid_token_prefixes,  # Show prefixes for debugging
         "auth_enabled": settings.enable_auth,
         "sources_checked": {
             "querystring": token_from_param or None,
@@ -577,33 +581,27 @@ async def debug_token_info(token: str = None, request: Request = None):
     }
 
 
-@app.get("/madre/health")
-async def madre_health_proxy():
+@app.get("/debug/valid-tokens", tags=["debug"])
+async def debug_valid_tokens():
     """
-    Proxy to Madre /health endpoint (internal service read-only).
-    Acceso: GET http://localhost:8000/madre/health (single entrypoint).
-    Uso: Verificar salud de Madre sin exponer puerto 8001 al host.
+    DEBUG endpoint: List all valid tokens (prefixes only for security).
+    This helps identify which tokens are configured in tentaculo_link.
     """
-    try:
-        clients = get_clients()
-        async with httpx.AsyncClient(timeout=5.0) as client:
-            r = await client.get("http://madre:8001/health")
-            r.raise_for_status()
-            return r.json()
-    except (httpx.HTTPError, Exception) as e:
-        write_log(
-            "tentaculo_link",
-            f"madre_health:error:{type(e).__name__}:{str(e)[:50]}",
-            level="WARNING",
-        )
-        return JSONResponse(
-            status_code=503,
-            content={
-                "status": "error",
-                "module": "madre",
-                "error": f"upstream_error: {str(e)[:50]}",
-            },
-        )
+    # Show token environment variable names
+    token_sources = {}
+    for env_key in ["VX11_OPERATOR_TOKEN", "VX11_GATEWAY_TOKEN", "VX11_TENTACULO_LINK_TOKEN"]:
+        val = os.environ.get(env_key)
+        if val:
+            token_sources[env_key] = f"{val[:10]}..."
+    
+    return {
+        "debug": "valid_tokens",
+        "valid_tokens_count": len(VALID_OPERATOR_TOKENS),
+        "valid_token_prefixes": [f"{t[:10]}..." for t in VALID_OPERATOR_TOKENS],
+        "full_tokens": list(VALID_OPERATOR_TOKENS),  # DEBUGGING ONLY - shows actual tokens
+        "token_sources": token_sources,
+        "note": "This is a DEBUG endpoint. Do not expose in production.",
+    }
 
 
 @app.get("/operator")
