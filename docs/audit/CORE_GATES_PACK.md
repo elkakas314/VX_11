@@ -54,11 +54,20 @@ docker ps --format 'table {{.Names}}\t{{.Ports}}' | tee "$OUT/prod_ports_table.t
 
 # GATE: Validación de single-entrypoint (fail-hard)
 echo "=== SINGLE-ENTRYPOINT GATE ===" | tee "$OUT/single_entrypoint_check.txt"
-EXTRA_PORTS=$(docker ps --format '{{.Names}}\t{{.Ports}}' | grep -E '\->' | grep -v 'vx11-tentaculo-link.*8000' | wc -l)
-if [[ $EXTRA_PORTS -gt 0 ]]; then
-  echo "FAIL: Found $EXTRA_PORTS containers with published ports outside vx11-tentaculo-link:8000" | tee -a "$OUT/single_entrypoint_check.txt"
-  echo "Violators:" | tee -a "$OUT/single_entrypoint_check.txt"
-  docker ps --format '{{.Names}}\t{{.Ports}}' | grep -E '\->' | grep -v 'vx11-tentaculo-link.*8000' | tee -a "$OUT/single_entrypoint_check.txt"
+PORT_LINES="$(docker ps --format '{{.Names}}|{{.Ports}}')"
+EXTRA_PORTS=$(echo "$PORT_LINES" | grep -E '\->' | grep -v '^vx11-tentaculo-link|' | wc -l)
+TENTACULO_OK=$(echo "$PORT_LINES" | grep -E '^vx11-tentaculo-link\|.*8000->8000' | wc -l)
+if [[ $EXTRA_PORTS -gt 0 || $TENTACULO_OK -eq 0 ]]; then
+  echo "FAIL: Single-entrypoint ports check failed" | tee -a "$OUT/single_entrypoint_check.txt"
+  if [[ $EXTRA_PORTS -gt 0 ]]; then
+    echo "Violators (ports published outside vx11-tentaculo-link:8000):" | tee -a "$OUT/single_entrypoint_check.txt"
+    echo "$PORT_LINES" | grep -E '\->' | grep -v '^vx11-tentaculo-link|' | tee -a "$OUT/single_entrypoint_check.txt"
+  fi
+  if [[ $TENTACULO_OK -eq 0 ]]; then
+    echo "FAIL: vx11-tentaculo-link is not publishing 8000->8000" | tee -a "$OUT/single_entrypoint_check.txt"
+    echo "$PORT_LINES" | grep -E '^vx11-tentaculo-link\|' | tee -a "$OUT/single_entrypoint_check.txt"
+  fi
+  echo "NOTE: If this check fails, SINGLE-ENTRYPOINT = FAIL even if the rest passes." | tee -a "$OUT/single_entrypoint_check.txt"
   exit 1
 else
   echo "PASS: Only vx11-tentaculo-link publishes ports (8000)" | tee -a "$OUT/single_entrypoint_check.txt"

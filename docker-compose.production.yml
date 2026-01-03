@@ -1,9 +1,6 @@
-# Production Deployment: Single-Entrypoint Architecture
-# INVARIANT: Only tentaculo_link (8000) published to host. All other services internal.
-# Usage: docker compose -f docker-compose.production.yml up -d --build
-
+# PROD: single-entrypoint; only tentaculo_link publishes port 8000.
 services:
-  # ========== TENTACULO LINK (PORT 8000 ONLY) ==========
+  # ========== TENTACULO LINK (PORT 8000) ==========
   tentaculo_link:
     # INVARIANTE: tentaculo_link is ALWAYS ON (single entrypoint for all clients)
     # No profile means it runs in every context (default, --profile core, --profile operator)
@@ -64,7 +61,7 @@ services:
       retries: 3
       start_period: 60s
 
-  # ========== MADRE (INTERNAL ONLY) ==========
+  # ========== MADRE (PORT 8001) ==========
   madre:
     build:
       context: .
@@ -100,7 +97,7 @@ services:
       retries: 3
       start_period: 60s
 
-  # ========== SWITCH (INTERNAL ONLY) ==========
+  # ========== SWITCH (PORT 8002) ==========
   switch:
     profiles: ["core"]
     build:
@@ -132,7 +129,7 @@ services:
       retries: 3
       start_period: 60s
 
-  # ========== HERMES (INTERNAL ONLY) ==========
+  # ========== HERMES (PORT 8003) ==========
   hermes:
     profiles: ["core"]
     build:
@@ -164,7 +161,7 @@ services:
       retries: 3
       start_period: 60s
 
-  # ========== HORMIGUERO (INTERNAL ONLY) ==========
+  # ========== HORMIGUERO (PORT 8004) ==========
   hormiguero:
     profiles: ["core"]
     image: vx11-hormiguero:v6.7
@@ -197,7 +194,7 @@ services:
       retries: 3
       start_period: 60s
 
-  # ========== MANIFESTATOR (INTERNAL ONLY) ==========
+  # ========== MANIFESTATOR (PORT 8005) ==========
   manifestator:
     build:
       context: .
@@ -229,7 +226,7 @@ services:
       retries: 3
       start_period: 60s
 
-  # ========== MCP (INTERNAL ONLY) ==========
+  # ========== MCP (PORT 8006) ==========
   mcp:
     profiles: ["core"]
     build:
@@ -260,12 +257,14 @@ services:
       retries: 3
       start_period: 60s
 
-  # ========== SHUB NIGGURATH (INTERNAL ONLY) ==========
+  # ========== SHUB NIGGURATH (PORT 8007) ==========
   shubniggurath:
     profiles: ["audio"]
     image: vx11-shub:v6.7
     container_name: vx11-shubniggurath
-    # NO PORTS: Internal only. Access via tentaculo_link proxy.
+    # PORT 8007 REMOVED: No direct public access. Access only via tentaculo_link proxy.
+    # Internal container port remains 8007 for compose networking.
+    # Security: Shub is behind tentaculo gateway when started with --profile audio
     volumes:
       - ./build/artifacts/logs:/app/logs
       - ./data/runtime:/app/data/runtime
@@ -291,7 +290,7 @@ services:
       retries: 3
       start_period: 60s
 
-  # ========== SPAWNER (INTERNAL ONLY) ==========
+  # ========== SPAWNER (PORT 8008) ==========
   spawner:
     profiles: ["core"]
     build:
@@ -323,7 +322,7 @@ services:
       retries: 3
       start_period: 60s
 
-  # ========== OPERATOR BACKEND (INTERNAL ONLY) ==========
+  # ========== OPERATOR BACKEND (PORT 8011) — PROFILE: operator ==========
   operator-backend:
     profiles: ["operator"]
     build:
@@ -353,7 +352,18 @@ services:
       - tentaculo_link
     restart: unless-stopped
 
-  # ========== REDIS (CACHE LAYER - INTERNAL ONLY) ==========
+  # ========== OPERATOR BACKEND (PORT 8011) — DEPRECATED/PASSIVE ==========
+  # DECISION: Kept for backward compatibility with legacy tests (test_operator_production_phase5.py, etc.)
+  # but NOT integrated into single entrypoint. Operator UI now served via tentaculo_link:8000/operator/ui
+  # Rationale: Single entrypoint invariant = tentaculo_link:8000 only. API endpoints (/operator/status,
+  # /operator/chat/ask, /operator/power/state) proxied through tentaculo_link, not this backend.
+  # ========== OPERATOR UI & BACKEND ARCHIVED ==========
+  # ARCHIVED (2025-12-28): Moved operator_backend + operator-frontend to docs/audit/ARCHIVED_OPERATOR_BACKEND_20251228_170000/
+  # Reason: operator_backend was unused (no active code references). UI now served via tentaculo_link:8000/operator/ui/ (StaticFiles mount).
+  # See: docs/audit/ARCHIVED_OPERATOR_BACKEND_20251228_170000/ARCHIVE_REASON.md
+  # Commit: [vx11: Archive operator_backend - unused, single entrypoint via tentaculo_link]
+
+  # ========== REDIS (CACHE LAYER - PORT 6379 INTERNAL) ==========
   redis:
     image: redis:7-alpine
     container_name: vx11-redis
