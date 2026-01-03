@@ -1,137 +1,124 @@
 name: VX11 Smoke Tests
 
 on:
-    push:
-        branches:
-            - main
-            - dev
-    pull_request:
-        branches:
-            - main
-    schedule:
+  push:
+    branches:
+      - main
+      - dev
+  pull_request:
+    branches:
+      - main
+  schedule:
     # ⏰ Run every 12 hours (GitHub Actions scheduled event)
-    - cron: "0 */12 * * *"  # Runs at 0 minutes past the hour, every 12 hours
+    - cron: "0 */12 * * *" # Runs at 0 minutes past the hour, every 12 hours
 
-        services:
-            docker:
-                image: docker:latest
-                options: --privileged
+jobs:
+  smoke-tests:
+    runs-on: ubuntu-latest
+    services:
+      docker:
+        image: docker:latest
+        options: --privileged
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.head_ref }}
 
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v4
-              with:
-                  fetch-depth: 0
-                  ref: ${{ github.head_ref }}
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
 
-            - name: Set up Python
-              uses: actions/setup-python@v4
-              with:
-                  python-version: "3.11"
+      - name: Cache Docker layers
+        uses: actions/cache@v3
+        with:
+          path: /tmp/.docker-cache
+          key: ${{ runner.os }}-docker-${{ hashFiles('docker-compose.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-docker-
 
-            - name: Cache Docker layers
-              uses: actions/cache@v3
-              with:
-                  path: /tmp/.docker-cache
-                  key: ${{ runner.os }}-docker-${{ hashFiles('docker-compose.yml') }}
-                  restore-keys: |
-                      ${{ runner.os }}-docker-
+      - name: Start services (docker-compose)
+        run: |
+          docker-compose -f docker-compose.yml up -d
+          sleep 5
 
-            - name: Start services (docker-compose)
-              run: |
-                  docker-compose -f docker-compose.yml up -d
-                  sleep 5
+      - name: Health check - Tentaculo Link
+        run: |
+          echo "Checking tentaculo_link:8000..."
+          for i in {1..10}; do
+            if curl -s http://localhost:8000/health | grep -q "ok"; then
+              echo "✓ tentaculo_link healthy"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "✗ tentaculo_link failed"
+          exit 1
 
-            - name: Health check - Tentaculo Link
-              run: |
-                  echo "Checking tentaculo_link:8000..."
-                  for i in {1..10}; do
-                    if curl -s http://localhost:8000/health | grep -q "ok"; then
-                      echo "✓ tentaculo_link healthy"
-                      exit 0
-                    fi
-                    sleep 2
-                  done
-                  echo "✗ tentaculo_link failed"
-                  exit 1
+      - name: Health check - Operator Backend
+        run: |
+          echo "Checking operator-backend:8005..."
+          for i in {1..10}; do
+            if curl -s -H "X-VX11-Token: vx11-test-token" http://localhost:8000/operator/api/health | grep -q "ok"; then
+              echo "✓ operator-backend healthy"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "✗ operator-backend failed"
+          exit 1
 
-            - name: Health check - Operator Backend
-              run: |
-                  echo "Checking operator-backend:8005..."
-                  for i in {1..10}; do
-                    if curl -s -H "X-VX11-Token: vx11-test-token" http://localhost:8000/operator/api/health | grep -q "ok"; then
-                      echo "✓ operator-backend healthy"
-                      exit 0
-                    fi
-                    sleep 2
-                  done
-                  echo "✗ operator-backend failed"
-                  exit 1
+      - name: Health check - Madre
+        run: |
+          echo "Checking madre:8001..."
+          for i in {1..10}; do
+            if curl -s -H "X-VX11-Token: vx11-internal-token" http://localhost:8001/health | grep -q "ok"; then
+              echo "✓ madre healthy"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "✗ madre failed"
+          exit 1
 
-            - name: Health check - Madre
-              run: |
-                  echo "Checking madre:8001..."
-                  for i in {1..10}; do
-                    if curl -s -H "X-VX11-Token: vx11-internal-token" http://localhost:8001/health | grep -q "ok"; then
-                      echo "✓ madre healthy"
-                      exit 0
-                    fi
-                    sleep 2
-                  done
-                  echo "✗ madre failed"
-                  exit 1
+      - name: Test Status Endpoint
+        run: |
+          curl -s -H "X-VX11-Token: vx11-test-token" http://localhost:8000/vx11/status | jq .
+          echo "✓ Status endpoint responsive"
 
-            - name: Test Status Endpoint
-              run: |
-                  curl -s -H "X-VX11-Token: vx11-test-token" http://localhost:8000/vx11/status | jq .
-                  echo "✓ Status endpoint responsive"
+      - name: Test Token Security
+        run: |
+          # Should fail without token
+          RESPONSE=$(curl -s -w "\n%{http_code}" http://localhost:8000/vx11/status || true)
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
 
-            - name: Test Token Security
-              run: |
-                  # Should fail without token
-                  RESPONSE=$(curl -s -w "\n%{http_code}" http://localhost:8000/vx11/status || true)
-                  HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          if [ "$HTTP_CODE" = "401" ] || [ "$HTTP_CODE" = "403" ]; then
+            echo "✓ Token security enforced"
+          else
+            echo "✗ Token security FAILED (HTTP $HTTP_CODE)"
+            exit 1
+          fi
 
-                  if [ "$HTTP_CODE" = "401" ] || [ "$HTTP_CODE" = "403" ]; then
-                    echo "✓ Token security enforced"
-                  else
-                    echo "✗ Token security FAILED (HTTP $HTTP_CODE)"
-                    exit 1
-                  fi
-
-            - name: Collect Docker logs
-              if: always()
-              run: |
-                  mkdir -p logs
-                  docker-compose logs > logs/docker-compose.log 2>&1
-                  docker ps -a > logs/docker-ps.log
-                  echo "Logs collected"
-
-            - name: Upload test artifacts
-              if: always()
-              uses: actions/upload-artifact@v4
-              with:
-                  name: smoke-test-logs
-                  path: logs/
-                  retention-days: 7
-
-            - name: Cleanup
-              if: always()
-              run: |
-                  docker-compose down --remove-orphans
-                  docker system prune -f
-
-    result:
-        runs-on: ubuntu-latest
-        needs: smoke-tests
+      - name: Collect Docker logs
         if: always()
-        steps:
-            - name: Check test results
-              run: |
-                  if [ "${{ needs.smoke-tests.result }}" == "success" ]; then
-                    echo "✓ All smoke tests passed"
-                    exit 0
-                  else
-                    echo "✗ Smoke tests failed"
-                    exit 1
-                  fi
+        run: |
+          mkdir -p logs
+          docker-compose logs > logs/docker-compose.log 2>&1
+          docker ps -a > logs/docker-ps.log
+          echo "Logs collected"
+
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-test-logs
+          path: logs/
+          retention-days: 7
+
+      - name: Cleanup
+        if: always()
+        run: |
+          docker-compose down --remove-orphans
+          docker system prune -f

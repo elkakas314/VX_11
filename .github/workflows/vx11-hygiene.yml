@@ -1,286 +1,288 @@
 name: VX11 Repository Hygiene
 
 on:
-    push:
-        branches:
-            - main
-            - dev
-    schedule:
-        # ⏰ Run daily at 2 AM UTC (GitHub Actions scheduled event)
-        - cron: "0 2 * * *" # Runs at 02:00
-    REGISTRY: ghcr.io
-    ARTIFACT_RETENTION: 7 # days
+  push:
+    branches:
+      - main
+      - dev
+  schedule:
+    # ⏰ Run daily at 2 AM UTC (GitHub Actions scheduled event)
+    - cron: "0 2 * * *" # Runs at 02:00
+
+env:
+  REGISTRY: ghcr.io
+  ARTIFACT_RETENTION: 7
 
 jobs:
-    check-secrets:
-        runs-on: ubuntu-latest
-        name: Secret Scanning
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v4
-              with:
-                  fetch-depth: 0
+  check-secrets:
+    runs-on: ubuntu-latest
+    name: Secret Scanning
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-            - name: Scan for secrets (tokens, passwords, keys)
-              run: |
-                  echo "Scanning for hardcoded secrets..."
+      - name: Scan for secrets (tokens, passwords, keys)
+        run: |
+          echo "Scanning for hardcoded secrets..."
 
-                  # Check for common patterns
-                  PATTERNS=(
-                    "password\s*[:=]\s*['\"]"
-                    "token\s*[:=]\s*['\"]"
-                    "api_key\s*[:=]\s*['\"]"
-                    "secret\s*[:=]\s*['\"]"
-                    "private_key"
-                    "BEGIN.*PRIVATE.*KEY"
-                    "aws_access_key_id"
-                    "OPENAI_API_KEY"
-                  )
+          # Check for common patterns
+          PATTERNS=(
+            "password\s*[:=]\s*['\"]"
+            "token\s*[:=]\s*['\"]"
+            "api_key\s*[:=]\s*['\"]"
+            "secret\s*[:=]\s*['\"]"
+            "private_key"
+            "BEGIN.*PRIVATE.*KEY"
+            "aws_access_key_id"
+            "OPENAI_API_KEY"
+          )
 
-                  FOUND=0
-                  for pattern in "${PATTERNS[@]}"; do
-                    COUNT=$(grep -r "$pattern" --include="*.py" --include="*.js" --include="*.ts" \
-                      --include="*.json" --include="*.yml" --include="*.yaml" \
-                      --exclude-dir=.git --exclude-dir=node_modules --exclude-dir=__pycache__ \
-                      . 2>/dev/null | grep -v "test\|spec\|example\|fixture" | wc -l)
-                    
-                    if [ "$COUNT" -gt 0 ]; then
-                      echo "⚠️  Found $COUNT potential secrets matching: $pattern"
-                      grep -r "$pattern" --include="*.py" --include="*.js" \
-                        --include="*.ts" --include="*.json" --exclude-dir=.git \
-                        . 2>/dev/null | head -5
-                      FOUND=$((FOUND + COUNT))
-                    fi
-                  done
+          FOUND=0
+          for pattern in "${PATTERNS[@]}"; do
+            COUNT=$(grep -r "$pattern" --include="*.py" --include="*.js" --include="*.ts" \
+              --include="*.json" --include="*.yml" --include="*.yaml" \
+              --exclude-dir=.git --exclude-dir=node_modules --exclude-dir=__pycache__ \
+              . 2>/dev/null | grep -v "test\|spec\|example\|fixture" | wc -l)
+            
+            if [ "$COUNT" -gt 0 ]; then
+              echo "⚠️  Found $COUNT potential secrets matching: $pattern"
+              grep -r "$pattern" --include="*.py" --include="*.js" \
+                --include="*.ts" --include="*.json" --exclude-dir=.git \
+                . 2>/dev/null | head -5
+              FOUND=$((FOUND + COUNT))
+            fi
+          done
 
-                  if [ "$FOUND" -gt 0 ]; then
-                    echo "❌ Secret scan FAILED: $FOUND potential secrets found"
-                    exit 1
-                  else
-                    echo "✓ No hardcoded secrets detected"
-                  fi
+          if [ "$FOUND" -gt 0 ]; then
+            echo "❌ Secret scan FAILED: $FOUND potential secrets found"
+            exit 1
+          else
+            echo "✓ No hardcoded secrets detected"
+          fi
 
-    check-syntax:
-        runs-on: ubuntu-latest
-        name: Code Syntax Check
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v4
+  check-syntax:
+    runs-on: ubuntu-latest
+    name: Code Syntax Check
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-            - name: Set up Python
-              uses: actions/setup-python@v4
-              with:
-                  python-version: "3.11"
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
 
-            - name: Check Python syntax
-              run: |
-                  echo "Checking Python syntax..."
-                  find . -name "*.py" -type f \
-                    -not -path "./.git/*" \
-                    -not -path "./node_modules/*" \
-                    -not -path "./__pycache__/*" \
-                    | head -50 \
-                    | xargs -I {} python3 -m py_compile {}
-                  echo "✓ Python syntax OK"
+      - name: Check Python syntax
+        run: |
+          echo "Checking Python syntax..."
+          find . -name "*.py" -type f \
+            -not -path "./.git/*" \
+            -not -path "./node_modules/*" \
+            -not -path "./__pycache__/*" \
+            | head -50 \
+            | xargs -I {} python3 -m py_compile {}
+          echo "✓ Python syntax OK"
 
-    check-deps:
-        runs-on: ubuntu-latest
-        name: Dependency Check
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v4
+  check-deps:
+    runs-on: ubuntu-latest
+    name: Dependency Check
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-            - name: Check for outdated Python packages
-              run: |
-                  echo "Checking for vulnerable Python packages..."
-                  pip install safety 2>/dev/null || true
+      - name: Check for outdated Python packages
+        run: |
+          echo "Checking for vulnerable Python packages..."
+          pip install safety 2>/dev/null || true
 
-                  if [ -f "requirements.txt" ]; then
-                    safety check -r requirements.txt --json > /tmp/safety.json 2>/dev/null || true
-                    if [ -s /tmp/safety.json ]; then
-                      echo "⚠️  Vulnerabilities found:"
-                      cat /tmp/safety.json | jq .
-                    else
-                      echo "✓ No known vulnerabilities"
-                    fi
-                  fi
+          if [ -f "requirements.txt" ]; then
+            safety check -r requirements.txt --json > /tmp/safety.json 2>/dev/null || true
+            if [ -s /tmp/safety.json ]; then
+              echo "⚠️  Vulnerabilities found:"
+              cat /tmp/safety.json | jq .
+            else
+              echo "✓ No known vulnerabilities"
+            fi
+          fi
 
-    check-audit-rotation:
-        runs-on: ubuntu-latest
-        name: Audit Rotation Policy
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v4
+  check-audit-rotation:
+    runs-on: ubuntu-latest
+    name: Audit Rotation Policy
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-            - name: Verify audit rotation script exists
-              run: |
-                  if [ -f "scripts/vx11_rotate_audits.sh" ]; then
-                    echo "✓ Audit rotation script found"
-                    bash scripts/vx11_rotate_audits.sh --dry-run 2>&1 | tail -5
-                  else
-                    echo "❌ Audit rotation script NOT found"
-                    exit 1
-                  fi
+      - name: Verify audit rotation script exists
+        run: |
+          if [ -f "scripts/vx11_rotate_audits.sh" ]; then
+            echo "✓ Audit rotation script found"
+            bash scripts/vx11_rotate_audits.sh --dry-run 2>&1 | tail -5
+          else
+            echo "❌ Audit rotation script NOT found"
+            exit 1
+          fi
 
-            - name: Check docs/audit size
-              run: |
-                  AUDIT_SIZE=$(du -sh docs/audit 2>/dev/null | cut -f1)
-                  echo "docs/audit size: $AUDIT_SIZE"
+      - name: Check docs/audit size
+        run: |
+          AUDIT_SIZE=$(du -sh docs/audit 2>/dev/null | cut -f1)
+          echo "docs/audit size: $AUDIT_SIZE"
 
-                  # Count OUTDIR directories
-                  OUTDIR_COUNT=$(find docs/audit -type d -name "*Z" -o -name "*Z_*" 2>/dev/null | wc -l)
-                  echo "OUTDIR directories: $OUTDIR_COUNT"
+          # Count OUTDIR directories
+          OUTDIR_COUNT=$(find docs/audit -type d -name "*Z" -o -name "*Z_*" 2>/dev/null | wc -l)
+          echo "OUTDIR directories: $OUTDIR_COUNT"
 
-                  if [ "$OUTDIR_COUNT" -gt 50 ]; then
-                    echo "⚠️  WARNING: More than 50 OUTDIR directories (rotation may be needed)"
-                  fi
+          if [ "$OUTDIR_COUNT" -gt 50 ]; then
+            echo "⚠️  WARNING: More than 50 OUTDIR directories (rotation may be needed)"
+          fi
 
-    check-git-state:
-        runs-on: ubuntu-latest
-        name: Git State Check
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v4
-              with:
-                  fetch-depth: 0
+  check-git-state:
+    runs-on: ubuntu-latest
+    name: Git State Check
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-            - name: Check for uncommitted secrets in history
-              run: |
-                  echo "Checking git history for potential secrets..."
+      - name: Check for uncommitted secrets in history
+        run: |
+          echo "Checking git history for potential secrets..."
 
-                  # Check for leaked tokens in commits
-                  LEAKED=$(git log -p --all -S "token=" --format="%h %s" 2>/dev/null | head -20)
+          # Check for leaked tokens in commits
+          LEAKED=$(git log -p --all -S "token=" --format="%h %s" 2>/dev/null | head -20)
 
-                  if [ -z "$LEAKED" ]; then
-                    echo "✓ No token= patterns in recent history"
-                  else
-                    echo "⚠️  Found potential token patterns in history:"
-                    echo "$LEAKED" | head -3
-                  fi
+          if [ -z "$LEAKED" ]; then
+            echo "✓ No token= patterns in recent history"
+          else
+            echo "⚠️  Found potential token patterns in history:"
+            echo "$LEAKED" | head -3
+          fi
 
-            - name: Check for large files
-              run: |
-                  echo "Checking for large files in repo..."
+      - name: Check for large files
+        run: |
+          echo "Checking for large files in repo..."
 
-                  LARGE_FILES=$(git ls-files -z | xargs -0 du -h | sort -rh | head -10 | awk '$1 ~ /M|G/')
+          LARGE_FILES=$(git ls-files -z | xargs -0 du -h | sort -rh | head -10 | awk '$1 ~ /M|G/')
 
-                  if [ -z "$LARGE_FILES" ]; then
-                    echo "✓ No unusually large files"
-                  else
-                    echo "⚠️  Large files detected:"
-                    echo "$LARGE_FILES"
-                  fi
+          if [ -z "$LARGE_FILES" ]; then
+            echo "✓ No unusually large files"
+          else
+            echo "⚠️  Large files detected:"
+            echo "$LARGE_FILES"
+          fi
 
-    generate-scorecard:
-        runs-on: ubuntu-latest
-        name: Generate SCORECARD
-        needs:
-            [
-                check-secrets,
-                check-syntax,
-                check-deps,
-                check-audit-rotation,
-                check-git-state,
-            ]
-        if: always()
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v4
+  generate-scorecard:
+    runs-on: ubuntu-latest
+    name: Generate SCORECARD
+    needs:
+      [
+        check-secrets,
+        check-syntax,
+        check-deps,
+        check-audit-rotation,
+        check-git-state,
+      ]
+    if: always()
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-            - name: Generate SCORECARD.json
-              run: |
-                  mkdir -p docs/audit
+      - name: Generate SCORECARD.json
+        run: |
+          mkdir -p docs/audit
 
-                  cat > /tmp/scorecard.json << 'EOF'
-                  {
-                    "timestamp": "$(date -Iseconds)",
-                    "checks": {
-                      "secrets": "${{ needs.check-secrets.result }}",
-                      "syntax": "${{ needs.check-syntax.result }}",
-                      "dependencies": "${{ needs.check-deps.result }}",
-                      "audit_rotation": "${{ needs.check-audit-rotation.result }}",
-                      "git_state": "${{ needs.check-git-state.result }}"
-                    },
-                    "overall": "${{ needs.check-secrets.result }}",
-                    "workflow_url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-                  }
-                  EOF
+          cat > /tmp/scorecard.json << 'EOF'
+          {
+            "timestamp": "$(date -Iseconds)",
+            "checks": {
+              "secrets": "${{ needs.check-secrets.result }}",
+              "syntax": "${{ needs.check-syntax.result }}",
+              "dependencies": "${{ needs.check-deps.result }}",
+              "audit_rotation": "${{ needs.check-audit-rotation.result }}",
+              "git_state": "${{ needs.check-git-state.result }}"
+            },
+            "overall": "${{ needs.check-secrets.result }}",
+            "workflow_url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          }
+          EOF
 
-                  cat /tmp/scorecard.json | jq . > docs/audit/SCORECARD_CI.json
-                  echo "✓ SCORECARD generated"
+          cat /tmp/scorecard.json | jq . > docs/audit/SCORECARD_CI.json
+          echo "✓ SCORECARD generated"
 
-            - name: Upload SCORECARD artifact
-              uses: actions/upload-artifact@v4
-              with:
-                  name: scorecard
-                  path: docs/audit/SCORECARD_CI.json
-                  retention-days: 14
+      - name: Upload SCORECARD artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: scorecard
+          path: docs/audit/SCORECARD_CI.json
+          retention-days: 14
 
-    cleanup-artifacts:
-        runs-on: ubuntu-latest
-        name: Cleanup Old Artifacts
-        steps:
-            - name: Delete artifacts older than retention period
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                  RETENTION_DAYS: ${{ env.ARTIFACT_RETENTION }}
-                  GITHUB_REPOSITORY: ${{ github.repository }}
-              run: |
-                  set -euo pipefail
-                  echo "Deleting artifacts older than $RETENTION_DAYS days from $GITHUB_REPOSITORY..."
-                  api_base="https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts"
-                  page=1
-                  while :; do
-                    resp=$(curl -s -H "Authorization: token ${GITHUB_TOKEN}" "${api_base}?per_page=100&page=${page}")
-                    artifacts_count=$(echo "$resp" | jq '.artifacts | length')
-                    if [ "$artifacts_count" -eq 0 ]; then
-                      break
-                    fi
-                    for i in $(seq 0 $((artifacts_count - 1))); do
-                      id=$(echo "$resp" | jq -r ".artifacts[$i].id")
-                      name=$(echo "$resp" | jq -r ".artifacts[$i].name")
-                      created_at=$(echo "$resp" | jq -r ".artifacts[$i].created_at")
-                      created_epoch=$(date -d "$created_at" +%s)
-                      cutoff_epoch=$(date -d "${RETENTION_DAYS} days ago" +%s)
-                      if [ "$created_epoch" -lt "$cutoff_epoch" ]; then
-                        echo "Deleting artifact id=$id name=$name created_at=$created_at"
-                        curl -s -X DELETE -H "Authorization: token ${GITHUB_TOKEN}" "${api_base}/${id}" >/dev/null || true
-                      fi
-                    done
-                    page=$((page + 1))
-                  done
-                  echo "Artifact cleanup completed."
+  cleanup-artifacts:
+    runs-on: ubuntu-latest
+    name: Cleanup Old Artifacts
+    steps:
+      - name: Delete artifacts older than retention period
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RETENTION_DAYS: ${{ env.ARTIFACT_RETENTION }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          echo "Deleting artifacts older than $RETENTION_DAYS days from $GITHUB_REPOSITORY..."
+          api_base="https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts"
+          page=1
+          while :; do
+            resp=$(curl -s -H "Authorization: token ${GITHUB_TOKEN}" "${api_base}?per_page=100&page=${page}")
+            artifacts_count=$(echo "$resp" | jq '.artifacts | length')
+            if [ "$artifacts_count" -eq 0 ]; then
+              break
+            fi
+            for i in $(seq 0 $((artifacts_count - 1))); do
+              id=$(echo "$resp" | jq -r ".artifacts[$i].id")
+              name=$(echo "$resp" | jq -r ".artifacts[$i].name")
+              created_at=$(echo "$resp" | jq -r ".artifacts[$i].created_at")
+              created_epoch=$(date -d "$created_at" +%s)
+              cutoff_epoch=$(date -d "${RETENTION_DAYS} days ago" +%s)
+              if [ "$created_epoch" -lt "$cutoff_epoch" ]; then
+                echo "Deleting artifact id=$id name=$name created_at=$created_at"
+                curl -s -X DELETE -H "Authorization: token ${GITHUB_TOKEN}" "${api_base}/${id}" >/dev/null || true
+              fi
+            done
+            page=$((page + 1))
+          done
+          echo "Artifact cleanup completed."
 
-    result:
-        runs-on: ubuntu-latest
-        name: Hygiene Report
-        needs:
-            [
-                check-secrets,
-                check-syntax,
-                check-deps,
-                check-audit-rotation,
-                check-git-state,
-                generate-scorecard,
-            ]
-        if: always()
-        steps:
-            - name: Generate hygiene report
-              run: |
-                  echo "🔍 VX11 Repository Hygiene Report"
-                  echo "================================"
-                  echo ""
-                  echo "✓ Secrets:          ${{ needs.check-secrets.result }}"
-                  echo "✓ Syntax:           ${{ needs.check-syntax.result }}"
-                  echo "✓ Dependencies:     ${{ needs.check-deps.result }}"
-                  echo "✓ Audit Rotation:   ${{ needs.check-audit-rotation.result }}"
-                  echo "✓ Git State:        ${{ needs.check-git-state.result }}"
-                  echo "✓ SCORECARD:        ${{ needs.generate-scorecard.result }}"
-                  echo ""
+  result:
+    runs-on: ubuntu-latest
+    name: Hygiene Report
+    needs:
+      [
+        check-secrets,
+        check-syntax,
+        check-deps,
+        check-audit-rotation,
+        check-git-state,
+        generate-scorecard,
+      ]
+    if: always()
+    steps:
+      - name: Generate hygiene report
+        run: |
+          echo "🔍 VX11 Repository Hygiene Report"
+          echo "================================"
+          echo ""
+          echo "✓ Secrets:          ${{ needs.check-secrets.result }}"
+          echo "✓ Syntax:           ${{ needs.check-syntax.result }}"
+          echo "✓ Dependencies:     ${{ needs.check-deps.result }}"
+          echo "✓ Audit Rotation:   ${{ needs.check-audit-rotation.result }}"
+          echo "✓ Git State:        ${{ needs.check-git-state.result }}"
+          echo "✓ SCORECARD:        ${{ needs.generate-scorecard.result }}"
+          echo ""
 
-                  if [ "${{ needs.check-secrets.result }}" != "success" ]; then
-                    echo "❌ Hygiene check FAILED"
-                    exit 1
-                  else
-                    echo "✅ All hygiene checks passed"
-                  fi
+          if [ "${{ needs.check-secrets.result }}" != "success" ]; then
+            echo "❌ Hygiene check FAILED"
+            exit 1
+          else
+            echo "✅ All hygiene checks passed"
+          fi
