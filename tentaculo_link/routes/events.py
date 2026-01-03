@@ -23,10 +23,10 @@ def check_auth(
     if not os.environ.get("ENABLE_AUTH", "true").lower() in ("true", "1"):
         return True
     required_token = os.environ.get("VX11_TENTACULO_LINK_TOKEN", "")
-    
+
     # Try header first, then query param (for SSE/EventSource API)
     provided_token = x_vx11_token or token
-    
+
     if not provided_token:
         raise HTTPException(status_code=401, detail="auth_required")
     if provided_token != required_token:
