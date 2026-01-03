@@ -1,21 +1,46 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+###############################################################################
+# Start Services - Canonical Compose-Based Startup
+#
+# Purpose: Start specified services using full-test profile
+# Usage: bash scripts/start_services.sh [service1] [service2] ...
+#        bash scripts/start_services.sh  (default: tentaculo_link hermes operator-backend operator-frontend)
+#
+# Default services preserve madre running; start others on-demand
+###############################################################################
+
 TS=$(date -u +"%Y%m%dT%H%M%SZ")
 OUT="docs/audit/$TS"
 mkdir -p "$OUT"
 
-# default services to start (omit madre intentionally, Madre should stay on)
-SERVICES=("tentaculo_link" "hermes" "hormiguero" "mcp" "shubniggurath" "spawner" "operator-backend" "operator-frontend")
+# Default services to start (omit madre; it should be already running)
+# These are the services that make sense to bring up after core
+SERVICES=("tentaculo_link" "hermes" "operator-backend" "operator-frontend" "switch")
 if [ "$#" -gt 0 ]; then
   SERVICES=("$@")
 fi
 
-echo "TS=$TS" > "$OUT/start_services.log"
-echo "Starting services: ${SERVICES[*]}" >> "$OUT/start_services.log"
+COMPOSE_FILE="docker-compose.full-test.yml"
 
-docker compose -f docker-compose.yml -f docker-compose.override.yml up -d "${SERVICES[@]}" >> "$OUT/start_services.log" 2>&1 || true
-docker compose -f docker-compose.yml -f docker-compose.override.yml ps > "$OUT/docker_compose_ps_after_start.txt" 2>&1 || true
+{
+    echo "=== Starting Services ==="
+    echo "Timestamp: $TS"
+    echo "Compose: $COMPOSE_FILE"
+    echo "Services: ${SERVICES[*]}"
+    echo ""
+    
+    echo "Starting: ${SERVICES[*]}"
+    docker compose -f "$COMPOSE_FILE" up -d --build "${SERVICES[@]}" || true
+    
+    echo ""
+    echo "Service state:"
+    docker compose -f "$COMPOSE_FILE" ps
+    
+    echo ""
+    echo "Services started (or attempted). See $OUT for logs."
+} | tee "$OUT/start_services.log"
 
-echo "Started (or attempted). See $OUT for logs." >> "$OUT/start_services.log"
 echo "$OUT"
+

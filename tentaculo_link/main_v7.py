@@ -350,9 +350,11 @@ async def operator_api_proxy(request: Request, call_next):
 
 
 # Mount Operator UI static files
+# NOTE: Paths include both local dev and Docker volume mount locations
 operator_ui_candidates = [
-    Path(__file__).parent.parent / "operator_ui" / "frontend" / "dist",
-    Path(__file__).parent.parent / "operator" / "frontend" / "dist",
+    Path("/app/operator/frontend/dist"),  # Docker volume mount (primary for production)
+    Path(__file__).parent.parent / "operator" / "frontend" / "dist",  # Local dev
+    Path(__file__).parent.parent / "operator_ui" / "frontend" / "dist",  # Legacy
 ]
 operator_ui_path = next(
     (candidate for candidate in operator_ui_candidates if candidate.exists()), None
