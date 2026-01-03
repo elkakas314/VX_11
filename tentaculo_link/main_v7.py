@@ -270,6 +270,7 @@ async def operator_api_proxy(request: Request, call_next):
         "/operator/api/status",
         "/operator/api/modules",
         "/operator/api/events",
+        "/operator/api/events/stream",  # SSE stream endpoint
         "/operator/api/v1/events",
         "/operator/api/v1/chat/window/status",
     }
@@ -3020,6 +3021,110 @@ async def api_events(limit: int = 10):
         "limit": limit,
         "note": "Event storage P1+ feature (currently empty)",
     }
+
+
+@app.get("/operator/api/events", tags=["operator-api-sse"])
+async def operator_api_events(limit: int = 10, token: str = None, request: Request = None):
+    """
+    Dual-mode events endpoint:
+    - EventSource clients: Returns SSE stream (Content-Type: text/event-stream)
+    - Regular fetch clients: Returns JSON polling response
+    
+    Frontend EventSource connects with: /operator/api/events?token=XXX
+    Endpoint detects EventSource request and returns streaming response.
+    """
+    # Validate token if provided
+    if settings.enable_auth and token:
+        if token not in VALID_OPERATOR_TOKENS:
+            return JSONResponse(
+                status_code=401,
+                content={"detail": "invalid_token"},
+            )
+    elif settings.enable_auth and not token:
+        # Token required but not provided
+        return JSONResponse(
+            status_code=401,
+            content={"detail": "token_required"},
+        )
+    
+    # Check if this is an EventSource client (by Accept header)
+    accept_header = request.headers.get("Accept", "") if request else ""
+    is_sse_client = "text/event-stream" in accept_header or "Accept" not in (request.headers if request else {})
+    
+    # If EventSource client OR if explicitly requesting SSE mode, return stream
+    if is_sse_client:
+        return StreamingResponse(
+            events_stream_generator(),
+            media_type="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "Connection": "keep-alive",
+                "X-Accel-Buffering": "no",
+            },
+        )
+    
+    # Otherwise return JSON polling response
+    return {
+        "events": [],
+        "total": 0,
+        "limit": limit,
+        "note": "Event storage P1+ feature (currently empty)",
+    }
+
+
+async def events_stream_generator():
+    """
+    Server-Sent Events (SSE) generator for real-time event streaming.
+    Yields keep-alive comments to maintain connection.
+    """
+    try:
+        # Send initial connection marker
+        yield f"data: {json.dumps({'type': 'connected', 'message': 'SSE stream established'})}\n\n"
+        
+        # Keep connection alive with periodic keep-alive messages
+        # EventSource will auto-retry on error, so we just keep the connection open
+        for i in range(600):  # Keep open for ~10 minutes (60s/msg * 600)
+            await asyncio.sleep(10)  # Send keep-alive every 10 seconds
+            yield f": keep-alive {i}\n\n"  # Comment line (keeps connection alive)
+    except Exception as e:
+        print(f"[EventsClient] Stream error: {e}", file=sys.stderr)
+        yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
+
+
+@app.get("/operator/api/events/stream", tags=["operator-api-sse"])
+async def operator_api_events_stream(token: str = None):
+    """
+    Server-Sent Events (SSE) endpoint for real-time event streaming.
+    Frontend uses EventSource() to connect here, passing token in querystring.
+    
+    Endpoint flow:
+    1. Frontend calls /operator/api/events?token=XXX with EventSource
+    2. Validate token from querystring
+    3. Return SSE stream with keep-alive + events
+    """
+    # Validate token if provided
+    if settings.enable_auth and token:
+        if token not in VALID_OPERATOR_TOKENS:
+            return JSONResponse(
+                status_code=401,
+                content={"detail": "invalid_token"},
+            )
+    elif settings.enable_auth and not token:
+        # Token required but not provided
+        return JSONResponse(
+            status_code=401,
+            content={"detail": "token_required"},
+        )
+    
+    return StreamingResponse(
+        events_stream_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",  # Disable proxy buffering
+        },
+    )
 
 
 @app.websocket("/ws")
