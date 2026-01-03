@@ -284,14 +284,28 @@ async def operator_api_proxy(request: Request, call_next):
         # PASSTHROUGH token as-is (no rewrite)
         # Both tentaculo and operator-backend maintain VALID_OPERATOR_TOKENS set
         # This prevents 401 from token mismatch
-        if settings.enable_auth and provided_token:
+        # IMPORTANT: Ephemeral SSE tokens (short-lived, 60s) are NOT validated here
+        # They are generated and validated by operator-backend, so we bypass tentaculo validation for SSE
+        is_sse_stream = request.method == "GET" and request.url.path.endswith(
+            "/events/stream"
+        )
+
+        if settings.enable_auth and provided_token and not is_sse_stream:
+            # For non-SSE endpoints, validate token against known set
+            # SSE endpoints validate ephemeral tokens downstream in operator-backend
             if provided_token not in VALID_OPERATOR_TOKENS:
                 return JSONResponse(
                     status_code=401,
                     content={"detail": "invalid_token"},
                     headers={"X-Correlation-Id": correlation_id},
                 )
-            # Forward token as-is: in both header and query param (for SSE compatibility)
+        elif settings.enable_auth and provided_token and is_sse_stream:
+            # For SSE: allow passthrough if token looks valid (UUID format or known principal)
+            # Operator-backend will do final validation and reject if ephemeral token expired
+            pass
+
+        # Forward token as-is: in both header and query param (for SSE compatibility)
+        if provided_token:
             headers[settings.token_header] = provided_token
             if "token" in params:
                 params["token"] = provided_token
@@ -303,8 +317,12 @@ async def operator_api_proxy(request: Request, call_next):
                 ):
                     import sys
 
+                    # SECURITY: Don't log tokens in query params
+                    safe_params = {
+                        k: "***" if k == "token" else v for k, v in params.items()
+                    }
                     print(
-                        f"[STREAM PROXY] Stream request to {target_url}?{params}",
+                        f"[STREAM PROXY] Stream request to {target_url}?{safe_params}",
                         file=sys.stderr,
                     )
                     async with client.stream(

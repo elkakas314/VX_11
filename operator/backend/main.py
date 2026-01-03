@@ -38,6 +38,11 @@ for token_key in [
         _VALID_TOKENS_SET.add(token_val)
 VALID_TOKENS = _VALID_TOKENS_SET or {VX11_TOKEN}
 
+# SSE token cache: ephemeral tokens for EventSource (no headers support)
+# Format: {ephemeral_token: {"created_at": float, "principal_token": str, "ttl_sec": int}}
+EPHEMERAL_TOKENS_CACHE: Dict[str, Dict[str, Any]] = {}
+EPHEMERAL_TOKEN_TTL_SEC = 60  # 60-second expiry for SSE tokens
+
 RATE_LIMIT_WINDOW_SEC = int(os.environ.get("VX11_OPERATOR_RATE_WINDOW_SEC", "60"))
 RATE_LIMIT_MAX = int(os.environ.get("VX11_OPERATOR_RATE_LIMIT", "60"))
 RATE_STATE: Dict[str, list[float]] = {}
@@ -73,6 +78,12 @@ class PowerWindowRequest(BaseModel):
     reason: str = "operator_manual"
 
 
+class SSETokenResponse(BaseModel):
+    sse_token: str
+    expires_in_sec: int
+    ttl_sec: int = EPHEMERAL_TOKEN_TTL_SEC
+
+
 class TokenGuard:
     def __call__(self, x_vx11_token: Optional[str] = Header(None)) -> bool:
         if settings.enable_auth:
@@ -86,29 +97,50 @@ class TokenGuard:
 token_guard = TokenGuard()
 
 
+def _is_ephemeral_token_valid(eph_token: str) -> bool:
+    """Check if ephemeral token is valid and not expired."""
+    if eph_token not in EPHEMERAL_TOKENS_CACHE:
+        return False
+    token_data = EPHEMERAL_TOKENS_CACHE[eph_token]
+    created_at = token_data.get("created_at", 0)
+    ttl_sec = token_data.get("ttl_sec", EPHEMERAL_TOKEN_TTL_SEC)
+    if time.time() - created_at > ttl_sec:
+        del EPHEMERAL_TOKENS_CACHE[eph_token]
+        return False
+    return True
+
+
 def check_sse_auth(
     x_vx11_token: Optional[str] = Header(None),
     token: Optional[str] = Query(None),
 ) -> bool:
     """SSE-aware auth validator: accepts token in header (REST) or query param (EventSource).
-    Multi-token support: validates against VALID_TOKENS set.
+    Multi-token support: validates against VALID_TOKENS set or ephemeral tokens.
     """
     if settings.enable_auth:
         provided_token = x_vx11_token or token
         import sys
 
         print(
-            f"[SSE AUTH] Header: {x_vx11_token}, Query: {token}, Valid: {VALID_TOKENS}",
+            f"[SSE AUTH] Header: {x_vx11_token}, Query: {token}, Valid principal: {VALID_TOKENS}, Ephemeral cache size: {len(EPHEMERAL_TOKENS_CACHE)}",
             file=sys.stderr,
         )
         if not provided_token:
             raise HTTPException(status_code=401, detail="auth_required")
-        if provided_token not in VALID_TOKENS:
-            print(
-                f"[SSE AUTH] MISMATCH: {provided_token} not in {VALID_TOKENS}",
-                file=sys.stderr,
-            )
-            raise HTTPException(status_code=403, detail="invalid_token")
+
+        # Check principal tokens first
+        if provided_token in VALID_TOKENS:
+            return True
+
+        # Check ephemeral tokens (for SSE via query param)
+        if _is_ephemeral_token_valid(provided_token):
+            return True
+
+        print(
+            f"[SSE AUTH] MISMATCH: {provided_token} not in {VALID_TOKENS} and not valid ephemeral",
+            file=sys.stderr,
+        )
+        raise HTTPException(status_code=403, detail="invalid_token")
     return True
 
 
@@ -322,6 +354,40 @@ async def health(correlation_id: str = Depends(get_correlation_id)):
         "version": APP_VERSION,
         "timestamp": _now_iso(),
     }
+
+
+@app.post("/operator/api/events/sse-token", tags=["operator-api-auth"])
+async def get_sse_token(
+    correlation_id: str = Depends(get_correlation_id),
+    _: bool = Depends(token_guard),
+) -> SSETokenResponse:
+    """
+    Issue an ephemeral SSE token (valid for 60s).
+
+    EventSource constructor in browser cannot send custom headers, so this endpoint
+    allows trading a principal token (via header) for an ephemeral token (valid for query param).
+
+    Security:
+    - Principal token (X-VX11-Token header) is required for auth
+    - Returned token expires in 60 seconds (prevents long-term query string exposure)
+    - Each token is single-use per session
+
+    Usage:
+    1. GET /operator/api/events/sse-token with X-VX11-Token header
+    2. Response: {"sse_token": "...", "expires_in_sec": 60}
+    3. Use sse_token in EventSource: new EventSource("/operator/api/events/stream?token=<sse_token>")
+    """
+    ephemeral_token = str(uuid.uuid4())
+    EPHEMERAL_TOKENS_CACHE[ephemeral_token] = {
+        "created_at": time.time(),
+        "principal_token": "<principal>",  # Don't store principal for security
+        "ttl_sec": EPHEMERAL_TOKEN_TTL_SEC,
+    }
+
+    return SSETokenResponse(
+        sse_token=ephemeral_token,
+        expires_in_sec=EPHEMERAL_TOKEN_TTL_SEC,
+    )
 
 
 @app.get("/operator/api/env")

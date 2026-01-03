@@ -57,49 +57,74 @@ export const EventsPanel: React.FC = () => {
     }, [filterSeverity, filterModule, setEvents, setLoading, setError])
 
     // Setup streaming via intelligent client
-    const setupStreaming = useCallback(() => {
+    const setupStreaming = useCallback(async () => {
         if (!useStreaming) return
 
         setConnectionStatus('connecting')
         closeEventsClient()
 
-        const params = new URLSearchParams()
-        if (filterSeverity !== 'all') params.append('severity', filterSeverity)
-        if (filterModule) params.append('module', filterModule)
+        try {
+            // Step 1: Get ephemeral SSE token (valid for 60s)
+            // This prevents exposing the principal token in URL query string for 60+ seconds
+            const tokenResponse = await apiClient.request<{ sse_token: string; expires_in_sec: number }>(
+                'POST',
+                '/operator/api/events/sse-token'
+            )
 
-        eventsClientRef.current = getEventsClient(
-            `/operator/api/events/stream?${params}`,  // Use /stream endpoint for SSE with text/event-stream
-            {
-                onOpen: () => {
-                    console.log('[EventsPanel] Stream connected')
-                    setError(null)
-                    setConnectionStatus('connected')
-                    setRetryCount(0)
-                },
-                onMessage: (data: any) => {
-                    if (data?.events) {
-                        setEvents(data.events)
-                    }
-                },
-                onOffByPolicy: (policyData: any) => {
-                    console.warn('[EventsPanel] Policy rejection:', policyData)
-                    setError(`Policy denied: ${policyData.reason || 'unknown'}`)
-                    setConnectionStatus('offline')
-                },
-                onMaxRetries: () => {
-                    console.error('[EventsPanel] Stream max retries exceeded')
-                    setError('Stream connection lost (max retries exceeded)')
-                    setConnectionStatus('error')
-                    // Fallback to polling
-                    setUseStreaming(false)
-                    fetchEvents()
-                },
-                onError: (err) => {
-                    console.error('[EventsPanel] Stream error:', err)
-                    setConnectionStatus('error')
-                },
+            if (!tokenResponse.ok || !tokenResponse.data?.sse_token) {
+                throw new Error(tokenResponse.error || 'Failed to obtain SSE token')
             }
-        )
+
+            const { sse_token, expires_in_sec } = tokenResponse.data
+            console.log(`[EventsPanel] Obtained ephemeral SSE token (expires in ${expires_in_sec}s)`)
+
+            const params = new URLSearchParams()
+            if (filterSeverity !== 'all') params.append('severity', filterSeverity)
+            if (filterModule) params.append('module', filterModule)
+            params.append('token', sse_token)  // Use ephemeral token in query
+
+            eventsClientRef.current = getEventsClient(
+                `/operator/api/events/stream?${params}`,  // Use /stream endpoint for SSE with text/event-stream
+                {
+                    onOpen: () => {
+                        console.log('[EventsPanel] Stream connected')
+                        setError(null)
+                        setConnectionStatus('connected')
+                        setRetryCount(0)
+                    },
+                    onMessage: (data: any) => {
+                        if (data?.events) {
+                            setEvents(data.events)
+                        }
+                    },
+                    onOffByPolicy: (policyData: any) => {
+                        console.warn('[EventsPanel] Policy rejection:', policyData)
+                        setError(`Policy denied: ${policyData.reason || 'unknown'}`)
+                        setConnectionStatus('offline')
+                    },
+                    onMaxRetries: () => {
+                        console.error('[EventsPanel] Stream max retries exceeded')
+                        setError('Stream connection lost (max retries exceeded)')
+                        setConnectionStatus('error')
+                        // Fallback to polling
+                        setUseStreaming(false)
+                        fetchEvents()
+                    },
+                    onError: (err) => {
+                        console.error('[EventsPanel] Stream error:', err)
+                        setConnectionStatus('error')
+                    },
+                }
+            )
+        } catch (err) {
+            const errorMsg = err instanceof Error ? err.message : 'Unknown error'
+            console.error('[EventsPanel] Failed to setup streaming:', errorMsg)
+            setError(`Failed to setup stream: ${errorMsg}`)
+            setConnectionStatus('error')
+            // Fallback to polling
+            setUseStreaming(false)
+            await fetchEvents()
+        }
     }, [useStreaming, filterSeverity, filterModule, setEvents, setError, fetchEvents])
 
     // Initialize: try streaming first, then fallback to polling
