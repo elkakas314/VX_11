@@ -82,6 +82,19 @@ VX11_TOKEN = (
     or settings.api_token
 )
 AUTH_HEADERS = {settings.token_header: VX11_TOKEN}
+
+# Build set of valid operator tokens for multi-token support
+# This prevents 401 errors when frontend and backend use different tokens
+_OPERATOR_TOKENS = set()
+for token_key in [
+    "VX11_OPERATOR_TOKEN",
+    "VX11_GATEWAY_TOKEN",
+    "VX11_TENTACULO_LINK_TOKEN",
+]:
+    token_val = get_token(token_key)
+    if token_val:
+        _OPERATOR_TOKENS.add(token_val)
+VALID_OPERATOR_TOKENS = _OPERATOR_TOKENS or {VX11_TOKEN}
 OPERATOR_PROXY_ENABLED = os.environ.get(
     "VX11_OPERATOR_PROXY_ENABLED", "false"
 ).lower() in ("1", "true", "yes", "on")
@@ -254,38 +267,34 @@ async def operator_api_proxy(request: Request, call_next):
         if not OPERATOR_PROXY_ENABLED:
             return await call_next(request)
         correlation_id = request.headers.get("X-Correlation-Id") or str(uuid.uuid4())
-        # NOTE: Don't validate token here for operator API
-        # Let operator-backend handle its own token validation
-        # This allows operator-backend to use different tokens than tentaculo_link
 
         operator_url = settings.operator_url.rstrip("/")
         request_path = request.url.path
-        # Keep /operator/api prefix as-is (backend expects full path)
-        # No transformation needed: backend handles /operator/api/* routes
         upstream_path = request_path
         target_url = f"{operator_url}{upstream_path}"
         headers = dict(request.headers)
         headers["X-Correlation-Id"] = correlation_id
 
-        # For SSE/EventSource: token may come as query param (can't send headers)
-        # Tentaculo uses vx11-test-token, but operator-backend uses vx11-operator-test-token
-        # Need to translate the token when proxying
+        # Extract provided token (from header or query param)
+        provided_token = request.headers.get(settings.token_header)
         params = dict(request.query_params)
-
-        # Translate frontend token to backend token
-        OPERATOR_BACKEND_TOKEN = os.environ.get(
-            "VX11_OPERATOR_TOKEN", "vx11-operator-test-token"
-        )
-
         if "token" in params and params["token"]:
-            # Rewrite frontend token to backend token
-            if params["token"] == VX11_TOKEN:
-                # Frontend sent tentaculo's token, translate to operator's token
-                params["token"] = OPERATOR_BACKEND_TOKEN
-            # Otherwise use whatever was provided (edge case)
-        else:
-            # No query param, use header with translated token
-            headers[settings.token_header] = OPERATOR_BACKEND_TOKEN
+            provided_token = params["token"]
+
+        # PASSTHROUGH token as-is (no rewrite)
+        # Both tentaculo and operator-backend maintain VALID_OPERATOR_TOKENS set
+        # This prevents 401 from token mismatch
+        if settings.enable_auth and provided_token:
+            if provided_token not in VALID_OPERATOR_TOKENS:
+                return JSONResponse(
+                    status_code=401,
+                    content={"detail": "invalid_token"},
+                    headers={"X-Correlation-Id": correlation_id},
+                )
+            # Forward token as-is: in both header and query param (for SSE compatibility)
+            headers[settings.token_header] = provided_token
+            if "token" in params:
+                params["token"] = provided_token
 
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:

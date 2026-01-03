@@ -25,6 +25,19 @@ VX11_TOKEN = (
 )
 TOKEN_HEADER = settings.token_header
 
+# Build set of valid tokens for multi-token support
+# Allows compatibility when tentaculo_link and operator-backend use different tokens
+_VALID_TOKENS_SET = set()
+for token_key in [
+    "VX11_OPERATOR_TOKEN",
+    "VX11_GATEWAY_TOKEN",
+    "VX11_TENTACULO_LINK_TOKEN",
+]:
+    token_val = get_token(token_key)
+    if token_val:
+        _VALID_TOKENS_SET.add(token_val)
+VALID_TOKENS = _VALID_TOKENS_SET or {VX11_TOKEN}
+
 RATE_LIMIT_WINDOW_SEC = int(os.environ.get("VX11_OPERATOR_RATE_WINDOW_SEC", "60"))
 RATE_LIMIT_MAX = int(os.environ.get("VX11_OPERATOR_RATE_LIMIT", "60"))
 RATE_STATE: Dict[str, list[float]] = {}
@@ -65,8 +78,8 @@ class TokenGuard:
         if settings.enable_auth:
             if not x_vx11_token:
                 raise HTTPException(status_code=401, detail="auth_required")
-            if x_vx11_token != VX11_TOKEN:
-                raise HTTPException(status_code=403, detail="forbidden")
+            if x_vx11_token not in VALID_TOKENS:
+                raise HTTPException(status_code=403, detail="invalid_token")
         return True
 
 
@@ -78,26 +91,24 @@ def check_sse_auth(
     token: Optional[str] = Query(None),
 ) -> bool:
     """SSE-aware auth validator: accepts token in header (REST) or query param (EventSource).
-    EventSource API cannot send custom headers, only query params or cookies.
-    This validator supports both for backward compatibility.
+    Multi-token support: validates against VALID_TOKENS set.
     """
     if settings.enable_auth:
-        # Try header first (standard REST), fallback to query param (EventSource)
         provided_token = x_vx11_token or token
         import sys
 
         print(
-            f"[SSE AUTH] Header token: {x_vx11_token}, Query token: {token}, Expected: {VX11_TOKEN}",
+            f"[SSE AUTH] Header: {x_vx11_token}, Query: {token}, Valid: {VALID_TOKENS}",
             file=sys.stderr,
         )
         if not provided_token:
             raise HTTPException(status_code=401, detail="auth_required")
-        if provided_token != VX11_TOKEN:
+        if provided_token not in VALID_TOKENS:
             print(
-                f"[SSE AUTH] MISMATCH: {provided_token} != {VX11_TOKEN}",
+                f"[SSE AUTH] MISMATCH: {provided_token} not in {VALID_TOKENS}",
                 file=sys.stderr,
             )
-            raise HTTPException(status_code=403, detail="forbidden")
+            raise HTTPException(status_code=403, detail="invalid_token")
     return True
 
 
@@ -962,7 +973,6 @@ async def shub_jobs_submit(
     correlation_id: str = Depends(get_correlation_id),
     _: bool = Depends(token_guard),
 ):
-    _ = payload
     return _off_by_policy_with_runbook(
         correlation_id,
         service="shub",
@@ -976,7 +986,6 @@ async def assist_deepseek(
     correlation_id: str = Depends(get_correlation_id),
     _: bool = Depends(token_guard),
 ):
-    _ = payload
     return _off_by_policy_with_runbook(
         correlation_id,
         service="assist",
