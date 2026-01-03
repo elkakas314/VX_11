@@ -255,12 +255,16 @@ async def operator_api_proxy(request: Request, call_next):
             return await call_next(request)
         correlation_id = request.headers.get("X-Correlation-Id") or str(uuid.uuid4())
         if settings.enable_auth:
+            # Try header first, then query param (for SSE/EventSource)
             token_header_value = request.headers.get(settings.token_header)
-            if not token_header_value:
+            token_query_value = request.query_params.get("token")
+            provided_token = token_header_value or token_query_value
+
+            if not provided_token:
                 return JSONResponse(
                     status_code=401, content={"detail": "auth_required"}
                 )
-            if token_header_value != VX11_TOKEN:
+            if provided_token != VX11_TOKEN:
                 return JSONResponse(status_code=403, content={"detail": "forbidden"})
 
         operator_url = settings.operator_url.rstrip("/")
@@ -4139,9 +4143,8 @@ async def operator_api_chat(
 
 @app.get("/operator/api/events", tags=["operator-api-p0"])
 async def operator_api_events(
+    request: Request,
     follow: bool = False,
-    token: str = Query(None),  # Query param for SSE (EventSource can't send headers)
-    x_vx11_token: str = Header(None),  # Header token (standard API)
     x_correlation_id: Optional[str] = Header(None),
 ):
     """
@@ -4170,13 +4173,10 @@ async def operator_api_events(
     import asyncio
     from datetime import datetime
 
-    # Validate token (header or query param)
-    if settings.enable_auth:
-        provided_token = x_vx11_token or token
-        if not provided_token:
-            raise HTTPException(status_code=401, detail="auth_required")
-        if provided_token != VX11_TOKEN:
-            raise HTTPException(status_code=403, detail="forbidden")
+    # Token validation already done by middleware
+    # Extract token for reference if needed
+    token = request.query_params.get("token")
+    x_vx11_token = request.headers.get("X-VX11-Token")
 
     correlation_id = x_correlation_id or str(uuid.uuid4())
     last_row_id = 0
