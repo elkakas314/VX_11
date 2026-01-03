@@ -271,6 +271,7 @@ async def operator_api_proxy(request: Request, call_next):
         "/operator/api/modules",
         "/operator/api/events",
         "/operator/api/events/stream",  # SSE stream endpoint
+        "/operator/api/events/sse-token",  # SSE token generation (validates auth internally)
         "/operator/api/v1/events",
         "/operator/api/v1/chat/window/status",
     }
@@ -565,7 +566,7 @@ async def debug_token_info(token: str = None, request: Request = None):
 
     # Build list of valid token prefixes for debugging (first 10 chars + "...")
     valid_token_prefixes = [f"{t[:10]}..." for t in VALID_OPERATOR_TOKENS]
-    
+
     return {
         "debug": "token_info",
         "token_provided": actual_token or None,
@@ -589,16 +590,22 @@ async def debug_valid_tokens():
     """
     # Show token environment variable names
     token_sources = {}
-    for env_key in ["VX11_OPERATOR_TOKEN", "VX11_GATEWAY_TOKEN", "VX11_TENTACULO_LINK_TOKEN"]:
+    for env_key in [
+        "VX11_OPERATOR_TOKEN",
+        "VX11_GATEWAY_TOKEN",
+        "VX11_TENTACULO_LINK_TOKEN",
+    ]:
         val = os.environ.get(env_key)
         if val:
             token_sources[env_key] = f"{val[:10]}..."
-    
+
     return {
         "debug": "valid_tokens",
         "valid_tokens_count": len(VALID_OPERATOR_TOKENS),
         "valid_token_prefixes": [f"{t[:10]}..." for t in VALID_OPERATOR_TOKENS],
-        "full_tokens": list(VALID_OPERATOR_TOKENS),  # DEBUGGING ONLY - shows actual tokens
+        "full_tokens": list(
+            VALID_OPERATOR_TOKENS
+        ),  # DEBUGGING ONLY - shows actual tokens
         "token_sources": token_sources,
         "note": "This is a DEBUG endpoint. Do not expose in production.",
     }
@@ -3136,19 +3143,34 @@ async def events_stream_generator():
 async def operator_api_events_stream(token: str = None):
     """
     Server-Sent Events (SSE) endpoint for real-time event streaming.
-    Frontend uses EventSource() to connect here, passing token in querystring.
+    Frontend uses EventSource() to connect here, passing ephemeral token in querystring.
 
     Endpoint flow:
-    1. Frontend calls /operator/api/events?token=XXX with EventSource
-    2. Validate token from querystring
-    3. Return SSE stream with keep-alive + events
+    1. Frontend calls /operator/api/events/sse-token (POST) with main auth
+    2. Gateway returns ephemeral token (UUID, 60s TTL)
+    3. Frontend opens EventSource('/operator/api/events/stream?token=EPHEMERAL')
+    4. Gateway validates ephemeral token
+    5. SSE stream established with keep-alive messages
     """
-    # Validate token if provided
+    # Validate ephemeral SSE token
     if settings.enable_auth and token:
-        if token not in VALID_OPERATOR_TOKENS:
+        if token not in SSE_TOKENS:
             return JSONResponse(
                 status_code=401,
-                content={"detail": "invalid_token"},
+                content={
+                    "detail": "invalid_token",
+                    "reason": "sse_token_not_found_or_expired",
+                },
+            )
+
+        # Check if token is expired
+        token_data = SSE_TOKENS[token]
+        now = time.time()
+        if now - token_data["created_at"] > token_data["ttl_sec"]:
+            del SSE_TOKENS[token]  # Clean up expired token
+            return JSONResponse(
+                status_code=401,
+                content={"detail": "invalid_token", "reason": "sse_token_expired"},
             )
     elif settings.enable_auth and not token:
         # Token required but not provided
@@ -3765,6 +3787,76 @@ async def operator_api_v1_chat_window_status():
         ],
         "degraded": False,
         "reason": "Full operational mode active",
+    }
+
+
+# ============ SSE EPHEMERAL TOKEN ENDPOINT ============
+
+# In-memory store for SSE tokens (TTL-based)
+# In production, use Redis for persistence across processes
+SSE_TOKENS: Dict[str, Dict[str, Any]] = {}
+SSE_TOKEN_TTL_SEC = 60  # 1 minute TTL for SSE tokens
+
+
+@app.post("/operator/api/events/sse-token", tags=["operator-api-sse"])
+async def operator_api_events_sse_token(request: Request):
+    """
+    Generate ephemeral SSE token for EventSource connection.
+
+    Flow:
+    1. Frontend calls this endpoint with main auth token (header or bearer)
+    2. Gateway validates token and generates ephemeral token (UUID)
+    3. Frontend stores ephemeral token in memory
+    4. Frontend opens EventSource('/operator/api/events/stream?token=EPHEMERAL')
+    5. Gateway validates ephemeral token (much shorter TTL than main token)
+
+    Why ephemeral tokens?
+    - Main token should never go in URL (logged, cached, referer leakage)
+    - Ephemeral token is short-lived, rotatable, low-impact if leaked
+    - EventSource can't use headers, so token must be in querystring
+    """
+    # Get auth token from request (header or bearer)
+    token_from_header = request.headers.get(settings.token_header)
+    token_from_bearer = None
+    auth_header = request.headers.get("Authorization", "")
+    if auth_header.startswith("Bearer "):
+        token_from_bearer = auth_header[7:]
+
+    auth_token = token_from_header or token_from_bearer
+
+    # Validate main auth token
+    if settings.enable_auth:
+        if not auth_token or auth_token not in VALID_OPERATOR_TOKENS:
+            return JSONResponse(
+                status_code=401,
+                content={"detail": "invalid_token", "reason": "main_auth_failed"},
+            )
+
+    # Generate ephemeral token (UUID)
+    sse_token = str(uuid.uuid4())
+
+    # Store with TTL
+    SSE_TOKENS[sse_token] = {
+        "created_at": time.time(),
+        "ttl_sec": SSE_TOKEN_TTL_SEC,
+        "auth_token": auth_token,  # Link to main token for audit
+    }
+
+    # Clean up expired tokens
+    now = time.time()
+    expired = [
+        t
+        for t, data in SSE_TOKENS.items()
+        if now - data["created_at"] > data["ttl_sec"]
+    ]
+    for t in expired:
+        del SSE_TOKENS[t]
+
+    return {
+        "sse_token": sse_token,
+        "ttl_sec": SSE_TOKEN_TTL_SEC,
+        "endpoint": "/operator/api/events/stream",
+        "usage": f"curl -N '/operator/api/events/stream?token={sse_token}' -H 'Accept: text/event-stream'",
     }
 
 
