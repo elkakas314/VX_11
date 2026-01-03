@@ -88,6 +88,12 @@ jobs:
           curl -s -H "X-VX11-Token: vx11-test-token" http://localhost:8000/vx11/status | jq .
           echo "✓ Status endpoint responsive"
 
+      - name: Test SSE Stream (EventSource)
+        run: |
+          echo "Testing SSE stream endpoint..."
+          bash scripts/test_sse_stream.sh http://localhost:8000 vx11-test-token
+          echo "✓ SSE stream test passed"
+
       - name: Test Token Security
         run: |
           # Should fail without token
