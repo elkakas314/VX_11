@@ -270,7 +270,8 @@ async def operator_api_proxy(request: Request, call_next):
 
         operator_url = settings.operator_url.rstrip("/")
         request_path = request.url.path
-        upstream_path = request_path
+        # REWRITE: /operator/api/v1/* → /operator/api/* (remove /v1 for backend routing)
+        upstream_path = request_path.replace("/operator/api/v1/", "/operator/api/", 1)
         target_url = f"{operator_url}{upstream_path}"
         headers = dict(request.headers)
         headers["X-Correlation-Id"] = correlation_id

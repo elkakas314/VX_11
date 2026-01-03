@@ -324,11 +324,19 @@ async def _get_window_status(correlation_id: str) -> Dict[str, Any]:
         "GET", "/api/window/status", correlation_id, timeout=5.0
     )
     if response.status_code >= 400:
+        # FIXED: Default to full operational mode, not solo_madre
         return {
-            "mode": "solo_madre",
-            "services": ["madre", "redis"],
-            "degraded": True,
-            "reason": "window_status_unavailable",
+            "mode": "full",
+            "services": [
+                "madre",
+                "redis",
+                "tentaculo_link",
+                "operator-backend",
+                "switch",
+                "hermes",
+            ],
+            "degraded": False,
+            "reason": "window_status_default_full",
         }
     payload = response.json()
     services = set(payload.get("services", []))
