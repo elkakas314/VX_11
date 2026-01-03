@@ -113,3 +113,4 @@ docs/audit/**/*.zip
 
 # Python cache in tools
 tools/__pycache__/
+tokens.env
