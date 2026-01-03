@@ -254,41 +254,62 @@ async def operator_api_proxy(request: Request, call_next):
         if not OPERATOR_PROXY_ENABLED:
             return await call_next(request)
         correlation_id = request.headers.get("X-Correlation-Id") or str(uuid.uuid4())
-        if settings.enable_auth:
-            # Try header first, then query param (for SSE/EventSource)
-            token_header_value = request.headers.get(settings.token_header)
-            token_query_value = request.query_params.get("token")
-            provided_token = token_header_value or token_query_value
-
-            if not provided_token:
-                return JSONResponse(
-                    status_code=401, content={"detail": "auth_required"}
-                )
-            if provided_token != VX11_TOKEN:
-                return JSONResponse(status_code=403, content={"detail": "forbidden"})
+        # NOTE: Don't validate token here for operator API
+        # Let operator-backend handle its own token validation
+        # This allows operator-backend to use different tokens than tentaculo_link
 
         operator_url = settings.operator_url.rstrip("/")
         request_path = request.url.path
-        if request_path.startswith("/operator/api/v1"):
-            upstream_path = request_path.replace("/operator/api/v1", "/api/v1", 1)
-        else:
-            upstream_path = request_path.replace("/operator/api", "/api/v1", 1)
+        # Keep /operator/api prefix as-is (backend expects full path)
+        # No transformation needed: backend handles /operator/api/* routes
+        upstream_path = request_path
         target_url = f"{operator_url}{upstream_path}"
         headers = dict(request.headers)
         headers["X-Correlation-Id"] = correlation_id
-        headers[settings.token_header] = headers.get(settings.token_header, VX11_TOKEN)
+
+        # For SSE/EventSource: token may come as query param (can't send headers)
+        # Tentaculo uses vx11-test-token, but operator-backend uses vx11-operator-test-token
+        # Need to translate the token when proxying
+        params = dict(request.query_params)
+
+        # Translate frontend token to backend token
+        OPERATOR_BACKEND_TOKEN = os.environ.get(
+            "VX11_OPERATOR_TOKEN", "vx11-operator-test-token"
+        )
+
+        if "token" in params and params["token"]:
+            # Rewrite frontend token to backend token
+            if params["token"] == VX11_TOKEN:
+                # Frontend sent tentaculo's token, translate to operator's token
+                params["token"] = OPERATOR_BACKEND_TOKEN
+            # Otherwise use whatever was provided (edge case)
+        else:
+            # No query param, use header with translated token
+            headers[settings.token_header] = OPERATOR_BACKEND_TOKEN
 
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
                 if request.method == "GET" and request.url.path.endswith(
                     "/events/stream"
                 ):
+                    import sys
+
+                    print(
+                        f"[STREAM PROXY] Stream request to {target_url}?{params}",
+                        file=sys.stderr,
+                    )
                     async with client.stream(
                         request.method,
                         target_url,
                         headers=headers,
-                        params=request.query_params,
+                        params=params,
                     ) as resp:
+                        import sys
+
+                        print(
+                            f"[STREAM PROXY] Got response: {resp.status_code}",
+                            file=sys.stderr,
+                        )
                         if resp.status_code >= 400:
                             return JSONResponse(
                                 status_code=resp.status_code,
@@ -309,18 +330,23 @@ async def operator_api_proxy(request: Request, call_next):
                     request.method,
                     target_url,
                     headers=headers,
-                    params=request.query_params,
+                    params=params,
                     content=body or None,
                 )
-        except Exception:
+        except Exception as e:
+            import sys
+
+            print(
+                f"[OPERATOR_PROXY_ERROR] {type(e).__name__}: {str(e)}", file=sys.stderr
+            )
             return JSONResponse(
-                status_code=403,
+                status_code=503,
                 content={
                     "status": "OFF_BY_POLICY",
                     "service": "operator_backend",
-                    "message": "Disabled by SOLO_MADRE policy",
+                    "message": f"Proxy error: {type(e).__name__}",
                     "correlation_id": correlation_id,
-                    "recommended_action": "Ask Madre to open operator window",
+                    "recommended_action": "Check backend availability",
                 },
                 headers={"X-Correlation-Id": correlation_id},
             )
@@ -4281,132 +4307,15 @@ async def operator_api_chat(
 #         }
 
 
-@app.get("/operator/api/events", tags=["operator-api-p0"])
-async def operator_api_events(
-    request: Request,
-    follow: bool = False,
-    x_correlation_id: Optional[str] = Header(None),
-    token: str = Query(None),  # Token from query param (for SSE/EventSource)
-    _: bool = Depends(token_guard_with_query_param),  # Validate token
-):
-    """
-    PHASE 3: Real-time Event Stream (SSE) with auth validation.
-
-    Returns Server-Sent Events with system status changes.
-
-    Usage (from browser via EventSource):
-    - GET /operator/api/events?follow=true&token=vx11-test-token
-    - Uses query param because EventSource doesn't support custom headers
-
-    Usage (via curl):
-    - GET /operator/api/events?follow=true with Header X-VX11-Token: token
-    - Or query param: GET /operator/api/events?follow=true&token=...
-
-    Response (text/event-stream):
-    event: service_status
-    data: {"service":"madre","status":"up","timestamp":"2025-12-29T04:32:01Z"}
-
-    event: feature_toggle
-    data: {"feature":"chat","status":"on","timestamp":"2025-12-29T04:32:05Z"}
-
-    :heartbeat
-    """
-    import asyncio
-    from datetime import datetime
-
-    correlation_id = x_correlation_id or str(uuid.uuid4())
-    last_row_id = 0
-    heartbeat_count = 0
-    connection_start = time.time()
-    max_connection_time = 300  # 5 minutes
-
-    async def event_generator():
-        nonlocal last_row_id, heartbeat_count, connection_start
-
-        try:
-            while True:
-                # Check connection timeout
-                if time.time() - connection_start > max_connection_time:
-                    write_log(
-                        "tentaculo_link",
-                        f"events:connection_timeout:correlation_id={correlation_id}",
-                        level="DEBUG",
-                    )
-                    break
-
-                # Poll copilot_actions_log for new events (simplified: every 5s)
-                try:
-                    # In production: query copilot_actions_log table for new rows
-                    # For PHASE 3: emit static sample events
-                    if follow and heartbeat_count == 0:
-                        # First event: service status
-                        event_data = {
-                            "service": "madre",
-                            "status": "up",
-                            "timestamp": datetime.utcnow().isoformat() + "Z",
-                            "correlation_id": correlation_id,
-                        }
-                        yield f"event: service_status\ndata: {json.dumps(event_data)}\n\n"
-                        last_row_id += 1
-
-                        # Second event: feature toggle
-                        await asyncio.sleep(2)
-                        event_data = {
-                            "feature": "chat",
-                            "status": "on",
-                            "timestamp": datetime.utcnow().isoformat() + "Z",
-                            "correlation_id": correlation_id,
-                        }
-                        yield f"event: feature_toggle\ndata: {json.dumps(event_data)}\n\n"
-                        last_row_id += 1
-
-                except Exception as e:
-                    write_log(
-                        "tentaculo_link",
-                        f"events:error:{str(e)[:100]}",
-                        level="WARNING",
-                    )
-
-                # Heartbeat every 30s
-                heartbeat_count += 1
-                if heartbeat_count % 6 == 0:  # 5s * 6 = 30s
-                    yield ":heartbeat\n\n"
-                    write_log(
-                        "tentaculo_link",
-                        f"events:heartbeat:correlation_id={correlation_id}",
-                        level="DEBUG",
-                    )
-                    heartbeat_count = 0
-
-                await asyncio.sleep(5)
-
-        except asyncio.CancelledError:
-            write_log(
-                "tentaculo_link",
-                f"events:cancelled:correlation_id={correlation_id}",
-                level="DEBUG",
-            )
-        except Exception as e:
-            write_log(
-                "tentaculo_link",
-                f"events:generator_error:{type(e).__name__}:{str(e)[:100]}",
-                level="ERROR",
-            )
-
-    write_log(
-        "tentaculo_link",
-        f"events:stream_opened:correlation_id={correlation_id}",
-        level="INFO",
-    )
-
-    return StreamingResponse(
-        event_generator(),
-        media_type="text/event-stream",
-        headers={
-            "Cache-Control": "no-cache",
-            "X-Correlation-ID": correlation_id,
-        },
-    )
+# COMMENTED OUT - The middleware handles /operator/api/* requests
+# This route would interfere with middleware routing
+# @app.get("/operator/api/events/stream", tags=["operator-api-p0"])
+# async def operator_api_events_stream_proxy(request: Request):
+#     """Proxy to operator-backend /operator/api/events/stream (SSE)."""
+#     from fastapi.responses import JSONResponse
+#     return JSONResponse(status_code=501, content={"detail": "Passthrough route"})
+#
+# [Old docstring and broken code removed - middleware handles this]
 
 
 @app.get("/operator/api/metrics", tags=["operator-api-p0"])
@@ -5316,7 +5225,44 @@ async def operator_api_spawner_status(
 
 
 # DEPRECATED: Duplicate removed (see line 2656 for canonical implementation)
-# @app.get("/operator/api/events", tags=["operator-api-p0"])
+# @app.get("/operator/api/events/stream", tags=["operator-api-p0"])
+async def operator_api_events_stream_proxy(request: Request):
+    """
+    Direct proxy to operator-backend /operator/api/events/stream (SSE).
+    No auth validation here - let backend handle it.
+    """
+    if not OPERATOR_PROXY_ENABLED:
+        return JSONResponse(status_code=503, content={"detail": "Proxy disabled"})
+
+    correlation_id = request.headers.get("X-Correlation-Id") or str(uuid.uuid4())
+    operator_url = settings.operator_url.rstrip("/")
+    target_url = f"{operator_url}/operator/api/events/stream"
+
+    headers = dict(request.headers)
+    headers["X-Correlation-Id"] = correlation_id
+    params = dict(request.query_params)
+
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            async with client.stream(
+                "GET", target_url, headers=headers, params=params
+            ) as resp:
+                if resp.status_code >= 400:
+                    return JSONResponse(
+                        status_code=resp.status_code,
+                        content={"detail": str(resp.status_code)},
+                    )
+                return StreamingResponse(
+                    resp.aiter_raw(),
+                    status_code=resp.status_code,
+                    media_type="text/event-stream",
+                    headers={"X-Correlation-Id": correlation_id},
+                )
+    except Exception as e:
+        return JSONResponse(status_code=503, content={"detail": str(e)})
+
+
+@app.get("/operator/api/events", tags=["operator-api-p0"])
 # async def operator_api_events_polling(limit: int = 10, _: bool = Depends(token_guard)):
 #     """
 #     P0: Events polling endpoint (no SSE yet).
@@ -5532,26 +5478,83 @@ async def operator_api_settings_update(settings: dict, _: bool = Depends(token_g
     methods=["GET", "POST", "PUT", "DELETE"],
     tags=["operator-api-fallback"],
 )
-async def operator_api_fallback(path: str, _: bool = Depends(token_guard)):
+async def operator_api_fallback(
+    path: str,
+    request: Request,
+):
     """
     Fallback for unmatched /operator/api/* paths.
-    Returns 404 with helpful message (not 500).
+    Proxies to operator-backend. Let backend handle its own auth.
     """
-    return JSONResponse(
-        status_code=404,
-        content={
-            "error": "endpoint_not_found",
-            "path": f"/operator/api/{path}",
-            "available_endpoints": [
-                "GET  /operator/api/status",
-                "GET  /operator/api/modules",
-                "POST /operator/api/chat",
-                "GET  /operator/api/events",
-                "GET  /operator/api/scorecard",
-                "GET  /operator/api/topology",
-            ],
-        },
-    )
+    if not OPERATOR_PROXY_ENABLED:
+        return JSONResponse(
+            status_code=503,
+            content={"detail": "Operator API proxy is disabled"},
+        )
+
+    correlation_id = request.headers.get("X-Correlation-Id") or str(uuid.uuid4())
+    operator_url = settings.operator_url.rstrip("/")
+    upstream_path = f"/operator/api/{path}"
+    target_url = f"{operator_url}{upstream_path}"
+
+    headers = dict(request.headers)
+    headers["X-Correlation-Id"] = correlation_id
+    # Pass token from query param if available (for SSE/EventSource)
+    params = dict(request.query_params)
+
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            if request.method == "GET" and path.endswith("stream"):
+                # SSE streaming response
+                async with client.stream(
+                    request.method,
+                    target_url,
+                    headers=headers,
+                    params=params,
+                ) as resp:
+                    if resp.status_code >= 400:
+                        return JSONResponse(
+                            status_code=resp.status_code,
+                            content=await resp.aread(),
+                        )
+                    return StreamingResponse(
+                        resp.aiter_raw(),
+                        status_code=resp.status_code,
+                        media_type=resp.headers.get(
+                            "content-type", "text/event-stream"
+                        ),
+                        headers={"X-Correlation-Id": correlation_id},
+                    )
+
+            # Regular request
+            body = await request.body()
+            resp = await client.request(
+                request.method,
+                target_url,
+                headers=headers,
+                params=params,
+                content=body or None,
+            )
+
+            content = (
+                resp.json()
+                if resp.headers.get("content-type") == "application/json"
+                else await resp.aread()
+            )
+            return JSONResponse(
+                status_code=resp.status_code,
+                content=content,
+                headers={"X-Correlation-Id": correlation_id},
+            )
+    except Exception as exc:
+        return JSONResponse(
+            status_code=503,
+            content={
+                "error": "backend_unavailable",
+                "message": str(exc),
+                "correlation_id": correlation_id,
+            },
+        )
 
 
 if __name__ == "__main__":

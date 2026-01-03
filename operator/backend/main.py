@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 
 import httpx
-from fastapi import Depends, FastAPI, Header, HTTPException, Request, Response
+from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request, Response
 from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
@@ -33,9 +33,7 @@ AUDIT_LOG_PATH = os.environ.get(
     "VX11_OPERATOR_AUDIT_LOG",
     "/app/logs/operator_backend_audit.jsonl",
 )
-SCORECARD_PATH = os.environ.get(
-    "VX11_SCORECARD_PATH", "/app/docs/audit/SCORECARD.json"
-)
+SCORECARD_PATH = os.environ.get("VX11_SCORECARD_PATH", "/app/docs/audit/SCORECARD.json")
 PERCENTAGES_PATH = os.environ.get(
     "VX11_PERCENTAGES_PATH", "/app/docs/audit/PERCENTAGES.json"
 )
@@ -74,6 +72,35 @@ class TokenGuard:
 
 token_guard = TokenGuard()
 
+
+def check_sse_auth(
+    x_vx11_token: Optional[str] = Header(None),
+    token: Optional[str] = Query(None),
+) -> bool:
+    """SSE-aware auth validator: accepts token in header (REST) or query param (EventSource).
+    EventSource API cannot send custom headers, only query params or cookies.
+    This validator supports both for backward compatibility.
+    """
+    if settings.enable_auth:
+        # Try header first (standard REST), fallback to query param (EventSource)
+        provided_token = x_vx11_token or token
+        import sys
+
+        print(
+            f"[SSE AUTH] Header token: {x_vx11_token}, Query token: {token}, Expected: {VX11_TOKEN}",
+            file=sys.stderr,
+        )
+        if not provided_token:
+            raise HTTPException(status_code=401, detail="auth_required")
+        if provided_token != VX11_TOKEN:
+            print(
+                f"[SSE AUTH] MISMATCH: {provided_token} != {VX11_TOKEN}",
+                file=sys.stderr,
+            )
+            raise HTTPException(status_code=403, detail="forbidden")
+    return True
+
+
 app = FastAPI(title="VX11 Operator Backend", version=APP_VERSION)
 
 
@@ -85,7 +112,9 @@ async def correlation_middleware(request: Request, call_next):
     response.headers["X-Correlation-Id"] = correlation_id
 
     content_type = response.headers.get("content-type", "")
-    if "application/json" in content_type and not isinstance(response, StreamingResponse):
+    if "application/json" in content_type and not isinstance(
+        response, StreamingResponse
+    ):
         try:
             body = response.body
             if body:
@@ -109,8 +138,10 @@ def _now_iso() -> str:
 
 
 def _correlation_id(request: Request, x_correlation_id: Optional[str]) -> str:
-    return getattr(request.state, "correlation_id", None) or x_correlation_id or str(
-        uuid.uuid4()
+    return (
+        getattr(request.state, "correlation_id", None)
+        or x_correlation_id
+        or str(uuid.uuid4())
     )
 
 
@@ -486,7 +517,7 @@ async def events(
 @app.get("/operator/api/events/stream")
 async def events_stream(
     correlation_id: str = Depends(get_correlation_id),
-    _: bool = Depends(token_guard),
+    _: bool = Depends(check_sse_auth),
 ):
     heartbeat_sec = int(os.environ.get("VX11_OPERATOR_SSE_HEARTBEAT", "15"))
     poll_interval_sec = int(os.environ.get("VX11_OPERATOR_SSE_POLL", "60"))
@@ -577,9 +608,7 @@ async def audit_run_detail(
     correlation_id: str = Depends(get_correlation_id),
     _: bool = Depends(token_guard),
 ):
-    response = await _call_tentaculo(
-        "GET", f"/api/audit/{run_id}", correlation_id
-    )
+    response = await _call_tentaculo("GET", f"/api/audit/{run_id}", correlation_id)
     return JSONResponse(status_code=response.status_code, content=response.json())
 
 
@@ -807,9 +836,7 @@ async def _manifestator_plan(correlation_id: str) -> Dict[str, Any]:
     lanes_resp = await _call_tentaculo(
         "GET", "/api/rails/lanes", correlation_id, timeout=5.0
     )
-    rails_resp = await _call_tentaculo(
-        "GET", "/api/rails", correlation_id, timeout=5.0
-    )
+    rails_resp = await _call_tentaculo("GET", "/api/rails", correlation_id, timeout=5.0)
     return {
         "summary": "Manifestator compare plan generated",
         "lanes": lanes_resp.json().get("lanes", []),

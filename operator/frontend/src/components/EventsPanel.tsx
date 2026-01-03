@@ -68,7 +68,7 @@ export const EventsPanel: React.FC = () => {
         if (filterModule) params.append('module', filterModule)
 
         eventsClientRef.current = getEventsClient(
-            `/operator/api/events?${params}`,
+            `/operator/api/events/stream?${params}`,  // Use /stream endpoint for SSE with text/event-stream
             {
                 onOpen: () => {
                     console.log('[EventsPanel] Stream connected')
@@ -164,8 +164,8 @@ export const EventsPanel: React.FC = () => {
                         <button
                             onClick={() => setUseStreaming(!useStreaming)}
                             className={`px-3 py-1 rounded text-sm font-medium transition-colors ${useStreaming
-                                    ? 'bg-purple-700 hover:bg-purple-600'
-                                    : 'bg-slate-700 hover:bg-slate-600'
+                                ? 'bg-purple-700 hover:bg-purple-600'
+                                : 'bg-slate-700 hover:bg-slate-600'
                                 }`}
                         >
                             {useStreaming ? '📡 SSE' : '🔄 Poll'}
