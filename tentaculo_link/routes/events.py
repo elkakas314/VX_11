@@ -6,7 +6,7 @@ Endpoint: GET /api/events - Server-Sent Events stream o polling
 """
 
 from typing import Optional
-from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request
 import os
 
 from tentaculo_link.db.events_metrics import get_events, log_event
@@ -14,14 +14,22 @@ from tentaculo_link.db.events_metrics import get_events, log_event
 router = APIRouter(prefix="/api", tags=["events"])
 
 
-def check_auth(x_vx11_token: Optional[str] = Header(None)) -> bool:
-    """Simple auth check"""
+def check_auth(
+    request: Request,
+    x_vx11_token: Optional[str] = Header(None),
+    token: Optional[str] = Query(None),
+) -> bool:
+    """Simple auth check - supports both header and query param tokens"""
     if not os.environ.get("ENABLE_AUTH", "true").lower() in ("true", "1"):
         return True
     required_token = os.environ.get("VX11_TENTACULO_LINK_TOKEN", "")
-    if not x_vx11_token:
+    
+    # Try header first, then query param (for SSE/EventSource API)
+    provided_token = x_vx11_token or token
+    
+    if not provided_token:
         raise HTTPException(status_code=401, detail="auth_required")
-    if x_vx11_token != required_token:
+    if provided_token != required_token:
         raise HTTPException(status_code=403, detail="forbidden")
     return True
 
