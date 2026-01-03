@@ -383,9 +383,10 @@ else:
 
 # Include new operator API routes with /operator prefix
 try:
-    app.include_router(
-        api_routes.events.router, prefix="/operator", tags=["operator-api"]
-    )
+    # COMMENTED OUT: events.py serves JSON polling, but main_v7.py has SSE endpoint
+    # app.include_router(
+    #     api_routes.events.router, prefix="/operator", tags=["operator-api"]
+    # )
     app.include_router(
         api_routes.settings.router, prefix="/operator", tags=["operator-api"]
     )
