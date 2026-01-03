@@ -428,6 +428,35 @@ async def health():
     return {"status": "ok", "module": "tentaculo_link", "version": "7.0"}
 
 
+@app.get("/madre/health")
+async def madre_health_proxy():
+    """
+    Proxy to Madre /health endpoint (internal service read-only).
+    Acceso: GET http://localhost:8000/madre/health (single entrypoint).
+    Uso: Verificar salud de Madre sin exponer puerto 8001 al host.
+    """
+    try:
+        clients = get_clients()
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            r = await client.get("http://madre:8001/health")
+            r.raise_for_status()
+            return r.json()
+    except (httpx.HTTPError, Exception) as e:
+        write_log(
+            "tentaculo_link",
+            f"madre_health:error:{type(e).__name__}:{str(e)[:50]}",
+            level="WARNING",
+        )
+        return JSONResponse(
+            status_code=503,
+            content={
+                "status": "error",
+                "module": "madre",
+                "error": f"upstream_error: {str(e)[:50]}",
+            },
+        )
+
+
 @app.get("/operator")
 async def operator_redirect():
     """Redirect /operator to /operator/ui/."""
