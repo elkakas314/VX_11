@@ -1,0 +1,291 @@
+# VX11 SSE Ephemeral Token — Prometheus Monitoring Configuration
+# Location: deploy/monitoring/prometheus-rules-vx11.yml
+# Usage: Add to your Prometheus AlertingRules
+
+---
+# Prometheus Scrape Config (add to prometheus.yml)
+# scrape_configs:
+#   - job_name: 'vx11-operator'
+#     static_configs:
+#       - targets: ['localhost:8001']
+#     metrics_path: '/metrics'
+#     scrape_interval: 15s
+
+---
+groups:
+  - name: vx11-sse-ephemeral-token
+    interval: 30s
+    rules:
+      # ==================== AVAILABILITY ALERTS ====================
+
+      - alert: VX11OperatorServiceDown
+        expr: up{job="vx11-operator"} == 0
+        for: 1m
+        annotations:
+          severity: "critical"
+          summary: "VX11 Operator backend is DOWN"
+          description: "VX11 operator-backend ({{ $labels.instance }}) is not responding to Prometheus scrapes."
+          action: "1. Check service status: `docker ps | grep vx11-operator`
+            2. View logs: `docker compose logs vx11-operator | tail -50`
+            3. Restart: `docker compose restart vx11-operator`
+            4. If persists: Review error logs, may need revert to e1fa49c~1"
+          runbook: "docs/runbooks/operator-down.md"
+
+      - alert: VX11TentaculoLinkDown
+        expr: up{job="vx11-gateway"} == 0
+        for: 1m
+        annotations:
+          severity: "critical"
+          summary: "VX11 Gateway (tentaculo_link) is DOWN"
+          description: "VX11 gateway cannot be reached. All operator requests blocked."
+          action:
+            "1. Restart gateway: `docker compose restart vx11-tentaculo-link`
+            2. Check port 8000: `curl http://localhost:8000/health`"
+          runbook: "docs/runbooks/gateway-down.md"
+
+      # ==================== TOKEN ISSUANCE ALERTS ====================
+
+      - alert: ExcessiveSSETokenIssuance
+        expr: rate(vx11_sse_token_issued_total[5m]) > 500
+        for: 5m
+        annotations:
+          severity: "warning"
+          summary: "SSE token issuance rate > 500/min"
+          description: "Token endpoint is receiving {{ $value | humanize }} requests/sec. Possible abuse or client misbehavior."
+          action:
+            "1. Check source IPs in gateway logs: `docker compose logs vx11-tentaculo-link | grep sse-token | awk '{print $NF}'`
+            2. If legitimate (mass client deployment): This is expected, no action needed
+            3. If suspicious: Implement IP-based rate limiting at gateway
+            4. Escalate to security team if pattern suggests attacks"
+          runbook: "docs/runbooks/excessive-token-issuance.md"
+
+      - alert: SSETokenIssuanceFailureRate
+        expr: rate(vx11_sse_token_issued_errors_total[1m]) > 0.5
+        for: 5m
+        annotations:
+          severity: "warning"
+          summary: "SSE token issuance failing ({{ $value | humanize }}%)"
+          description: "Token generation endpoint is throwing errors for >0.5 requests/sec."
+          action:
+            "1. View recent errors: `docker compose logs vx11-operator | grep -i error | tail -20`
+            2. Check if database connection is OK
+            3. Check if UUID generation is failing (unlikely)
+            4. Restart operator: `docker compose restart vx11-operator`"
+          runbook: "docs/runbooks/token-issuance-failure.md"
+
+      # ==================== TOKEN CACHE ALERTS ====================
+
+      - alert: EphemeralTokenCacheMemoryLeak
+        expr: vx11_ephemeral_token_cache_size_entries > 5000
+        for: 10m
+        annotations:
+          severity: "warning"
+          summary: "Ephemeral token cache has > 5000 entries (possible memory leak)"
+          description: "Cache size: {{ $value | humanize }} entries. TTL should auto-cleanup at 60s."
+          action:
+            "1. Check if TTL implementation is working: Review operator logs for cleanup messages
+            2. Restart operator (clears cache): `docker compose restart vx11-operator`
+            3. If issue recurs within 1h: Possible bug in TTL logic, escalate to dev
+            4. Monitor memory: `docker stats vx11-operator --no-stream`"
+          runbook: "docs/runbooks/cache-memory-leak.md"
+
+      - alert: EphemeralTokenCacheMemoryHigh
+        expr: vx11_ephemeral_token_cache_size_bytes > 100000000
+        for: 5m
+        annotations:
+          severity: "warning"
+          summary: "Token cache consuming > 100MB memory"
+          description: "Current: {{ $value | humanizeBytesIEC }}. May indicate scaling issue."
+          action:
+            "1. Check cache size: `curl http://localhost:8001/internal/cache-stats | jq .`
+            2. If legitimate (many concurrent clients): Plan to upgrade to Redis
+            3. Otherwise: Restart and investigate"
+
+      # ==================== AUTH & VALIDATION ALERTS ====================
+
+      - alert: SSEValidationFailureSpike
+        expr: rate(vx11_sse_auth_failures_total[1m]) > 10
+        for: 5m
+        annotations:
+          severity: "warning"
+          summary: "SSE authentication failures spike: {{ $value | humanize }}/sec"
+          description: "More than 10 failed token validations per second."
+          action:
+            "1. Check logs for failure pattern: `docker compose logs vx11-operator | grep 403 | tail -20`
+            2. If pattern is 'token expired': Expected behavior (clients getting old tokens), no action
+            3. If pattern is 'invalid token': Possible misuse or attack
+            4. If all failures: Token validation logic may be broken, restart operator"
+          runbook: "docs/runbooks/auth-failures.md"
+
+      - alert: PrincipalTokenValidationFailure
+        expr: rate(vx11_principal_token_invalid_total[1m]) > 1
+        for: 5m
+        annotations:
+          severity: "critical"
+          summary: "Principal token validation failing ({{ $value | humanize }}/sec)"
+          description: "Should be near zero. Indicates principal token env var mismatch or gateway issue."
+          action:
+            "1. Verify principal token is set: `echo $VX11_PRINCIPAL_TOKEN`
+            2. Check if it matches gateway config: `docker exec vx11-tentaculo-link env | grep VALID_TOKENS`
+            3. If mismatch: Update env vars, restart gateway
+            4. If still failing: Check gateway parsing logic"
+          runbook: "docs/runbooks/principal-token-invalid.md"
+
+      # ==================== PERFORMANCE ALERTS ====================
+
+      - alert: SSETokenIssuanceLatencyHigh
+        expr: histogram_quantile(0.95, rate(vx11_sse_token_issuance_latency_ms_bucket[5m])) > 200
+        for: 5m
+        annotations:
+          severity: "warning"
+          summary: "Token issuance p95 latency > 200ms (slow)"
+          description: "Token generation should be <50ms. Current p95: {{ $value | humanize }}ms"
+          action: "1. Check if CPU is constrained: `docker stats vx11-operator`
+            2. Check if database queries are slow (shouldn't be, tokens don't touch DB)
+            3. Check if garbage collection is happening: `docker compose logs vx11-operator | grep -i gc`
+            4. If persistent: Profile operator with perf tools"
+          runbook: "docs/runbooks/token-latency-high.md"
+
+      - alert: GatewayResponseTimeHigh
+        expr: histogram_quantile(0.95, rate(vx11_gateway_latency_ms_bucket[5m])) > 500
+        for: 10m
+        annotations:
+          severity: "warning"
+          summary: "Gateway response time p95 > 500ms"
+          description: "Requests passing through tentaculo_link are slow. Possible bottleneck."
+          action:
+            "1. Check if backend (operator) is slow: Test directly at :8001
+            2. Check gateway CPU/memory: `docker stats vx11-tentaculo-link`
+            3. Check if DNS resolution is slow (unlikely, localhost)
+            4. Review gateway logs for timeout/retry patterns"
+
+      # ==================== DATABASE ALERTS ====================
+
+      - alert: DatabaseConnectionPoolExhausted
+        expr: vx11_db_connection_pool_available == 0
+        for: 1m
+        annotations:
+          severity: "critical"
+          summary: "Database connection pool exhausted"
+          description: "No available connections. New queries will queue."
+          action:
+            '1. Check active queries: `sqlite3 data/runtime/vx11.db "SELECT COUNT(*) FROM pragma_database_list"`
+            2. Restart operator (closes stale connections): `docker compose restart vx11-operator`
+            3. If issue persists: May need to increase pool size or investigate slow queries'
+
+      - alert: DatabaseLocked
+        expr: vx11_db_locked_errors_total > 0
+        for: 2m
+        annotations:
+          severity: "warning"
+          summary: "Database is locked (SQLite contention)"
+          description: "SQLite reports lock contention. May indicate high write load."
+          action: "1. This is normal for SQLite under high load
+            2. For persistent issues, consider migrating to PostgreSQL
+            3. Monitor write latency: Check vx11_db_write_latency_ms_bucket"
+
+      # ==================== INFRASTRUCTURE ALERTS ====================
+
+      - alert: HighMemoryUsage
+        expr: container_memory_usage_bytes{name="vx11-operator"} / (1024*1024) > 500
+        for: 5m
+        annotations:
+          severity: "warning"
+          summary: "Operator container using > 500MB memory"
+          description: "Current: {{ $value | humanize }}MB"
+          action:
+            "1. Check cache size: `curl http://localhost:8001/internal/cache-stats | jq .`
+            2. Check if memory is from cache or app leaks
+            3. If cache: Scale to Redis or increase container limit
+            4. If app: Profile for memory leaks"
+
+      - alert: DiskSpaceRunningOut
+        expr: node_filesystem_avail_bytes{device=~"/dev/.*",mountpoint="/"} / node_filesystem_size_bytes{device=~"/dev/.*",mountpoint="/"} < 0.1
+        for: 5m
+        annotations:
+          severity: "critical"
+          summary: "Disk space < 10%"
+          description: "Server may run out of space soon."
+          action: "1. Check what's consuming space: `du -sh /* | sort -rh`
+            2. Archive old logs or backups
+            3. Clean Docker images if needed: `docker image prune -a`"
+
+      # ==================== DEPLOYMENT & INTEGRITY CHECKS ====================
+
+      - alert: DeploymentVersionMismatch
+        expr: vx11_deployed_commit_hash != vx11_running_commit_hash
+        for: 2m
+        annotations:
+          severity: "warning"
+          summary: "Deployed commit doesn't match running version"
+          description: "Deployment may not have completed. Deployed: {{ $labels.deployed }}, Running: {{ $labels.running }}"
+          action: "1. Verify deployment completed: `git log --oneline | head -5`
+            2. Force restart: `docker compose restart vx11-operator vx11-tentaculo-link`
+            3. Check deployment logs for errors"
+
+      - alert: SSETokenCacheIntegrityCheckFailed
+        expr: vx11_cache_integrity_check_failed_total > 0
+        for: 1m
+        annotations:
+          severity: "critical"
+          summary: "Cache integrity check failed"
+          description: "Internal cache state is corrupted. This should never happen."
+          action:
+            "1. Restart operator immediately: `docker compose restart vx11-operator`
+            2. Review code for potential race conditions in cache management
+            3. Enable debug logging to diagnose"
+---
+# Grafana Dashboard JSON (for reference — deploy separately)
+#
+# {
+#   "dashboard": {
+#     "title": "VX11 SSE Ephemeral Token Monitoring",
+#     "panels": [
+#       {
+#         "title": "Token Issuance Rate (req/min)",
+#         "targets": [
+#           {"expr": "rate(vx11_sse_token_issued_total[1m]) * 60"}
+#         ]
+#       },
+#       {
+#         "title": "Cache Size (entries)",
+#         "targets": [
+#           {"expr": "vx11_ephemeral_token_cache_size_entries"}
+#         ]
+#       },
+#       {
+#         "title": "Validation Errors (per min)",
+#         "targets": [
+#           {"expr": "rate(vx11_sse_auth_failures_total[1m]) * 60"}
+#         ]
+#       },
+#       {
+#         "title": "Token Issuance Latency p95 (ms)",
+#         "targets": [
+#           {"expr": "histogram_quantile(0.95, vx11_sse_token_issuance_latency_ms_bucket)"}
+#         ]
+#       }
+#     ]
+#   }
+# }
+
+---
+# Query Examples for Manual Investigation
+
+# 1. Token issuance trend (last 24h)
+# rate(vx11_sse_token_issued_total[1h]) offset 24h
+
+# 2. Cache size over time (detect leaks)
+# vx11_ephemeral_token_cache_size_entries
+
+# 3. Validation failure ratio
+# rate(vx11_sse_auth_failures_total[5m]) / rate(vx11_sse_auth_success_total[5m])
+
+# 4. Top error codes
+# topk(5, rate(vx11_sse_errors_by_code_total[5m]))
+
+# 5. Service dependency check
+# up{job=~"vx11-operator|vx11-gateway|vx11-frontend"}
+
+---
+
