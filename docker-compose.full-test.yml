@@ -94,8 +94,8 @@ services:
       - VX11_OPERATOR_PROXY_ENABLED=1
       - VX11_OPERATOR_CONTROL_ENABLED=1
       - VX11_EVENTS_ENABLED=1
+      - VX11_REDIS_URL=redis://redis-test:6379/0
       - MADRE_URL=http://madre:8001
-      - REDIS_URL=redis://redis-test:6379
       - PYTHONUNBUFFERED=1
       - LOG_LEVEL=INFO
     volumes:

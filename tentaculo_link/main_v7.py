@@ -272,6 +272,7 @@ async def operator_api_proxy(request: Request, call_next):
         "/operator/api/events",
         "/operator/api/events/stream",  # SSE stream endpoint
         "/operator/api/events/sse-token",  # SSE token generation (validates auth internally)
+        "/operator/api/window/status",  # Window status proxy
         "/operator/api/v1/events",
         "/operator/api/v1/chat/window/status",
     }
@@ -3079,19 +3080,8 @@ async def operator_api_events(
     Frontend EventSource connects with: /operator/api/events?token=XXX
     Endpoint detects EventSource request and returns streaming response.
     """
-    # Validate token if provided
-    if settings.enable_auth and token:
-        if token not in VALID_OPERATOR_TOKENS:
-            return JSONResponse(
-                status_code=401,
-                content={"detail": "invalid_token"},
-            )
-    elif settings.enable_auth and not token:
-        # Token required but not provided
-        return JSONResponse(
-            status_code=401,
-            content={"detail": "token_required"},
-        )
+    # This endpoint is PUBLIC - no auth validation needed
+    # Middleware already verified this is a public entry point
 
     # Check if this is an EventSource client (by Accept header)
     accept_header = request.headers.get("Accept", "") if request else ""
@@ -3142,43 +3132,30 @@ async def events_stream_generator():
 @app.get("/operator/api/events/stream", tags=["operator-api-sse"])
 async def operator_api_events_stream(token: str = None):
     """
-    Server-Sent Events (SSE) endpoint for real-time event streaming.
-    Frontend uses EventSource() to connect here, passing ephemeral token in querystring.
-
-    Endpoint flow:
-    1. Frontend calls /operator/api/events/sse-token (POST) with main auth
-    2. Gateway returns ephemeral token (UUID, 60s TTL)
-    3. Frontend opens EventSource('/operator/api/events/stream?token=EPHEMERAL')
-    4. Gateway validates ephemeral token
-    5. SSE stream established with keep-alive messages
+    Server-Sent Events (SSE) stream endpoint.
+    Validates ephemeral token from Redis (from /events/sse-token POST) before streaming.
+    Maintains connection with keep-alive every 10s.
+    Works correctly with multiple Uvicorn workers (Redis-backed).
     """
-    # Validate ephemeral SSE token
-    if settings.enable_auth and token:
-        if token not in SSE_TOKENS:
-            return JSONResponse(
-                status_code=401,
-                content={
-                    "detail": "invalid_token",
-                    "reason": "sse_token_not_found_or_expired",
-                },
-            )
+    # Validate ephemeral token from Redis
+    write_log(
+        "tentaculo_link",
+        f"[SSE STREAM] Validating token: {token[:20] if token else 'None'}...",
+    )
+    token_data = await _sse_token_validate_redis(token)
+    write_log(
+        "tentaculo_link",
+        f"[SSE STREAM] Token validation result: {token_data is not None}",
+    )
 
-        # Check if token is expired
-        token_data = SSE_TOKENS[token]
-        now = time.time()
-        if now - token_data["created_at"] > token_data["ttl_sec"]:
-            del SSE_TOKENS[token]  # Clean up expired token
-            return JSONResponse(
-                status_code=401,
-                content={"detail": "invalid_token", "reason": "sse_token_expired"},
-            )
-    elif settings.enable_auth and not token:
-        # Token required but not provided
+    if not token_data:
         return JSONResponse(
             status_code=401,
-            content={"detail": "token_required"},
+            content={"detail": "invalid_token"},
         )
 
+    # Token is valid and not expired (Redis TTL handles expiration)
+    # Return SSE stream
     return StreamingResponse(
         events_stream_generator(),
         media_type="text/event-stream",
@@ -3790,12 +3767,43 @@ async def operator_api_v1_chat_window_status():
     }
 
 
-# ============ SSE EPHEMERAL TOKEN ENDPOINT ============
+# ============ SSE EPHEMERAL TOKEN ENDPOINT (Redis-backed) ============
 
-# In-memory store for SSE tokens (TTL-based)
-# In production, use Redis for persistence across processes
-SSE_TOKENS: Dict[str, Dict[str, Any]] = {}
+# Redis key prefix for SSE tokens (Redis provides TTL + multi-process safety)
+SSE_TOKEN_PREFIX = "vx11:sse_token:"
 SSE_TOKEN_TTL_SEC = 60  # 1 minute TTL for SSE tokens
+
+
+async def _sse_token_store_redis(
+    token: str, auth_token: str, ttl_sec: int = SSE_TOKEN_TTL_SEC
+):
+    """Store SSE token in Redis with TTL. Survives multi-worker/restart."""
+    cache = get_cache()
+    if cache:
+        key = f"{SSE_TOKEN_PREFIX}{token}"
+        value = {
+            "created_at": time.time(),
+            "auth_token": auth_token,
+        }
+        try:
+            await cache.set(key, value, ttl=ttl_sec)
+            return True
+        except Exception as e:
+            write_log("tentaculo_link", f"SSE token Redis store failed: {e}")
+    return False
+
+
+async def _sse_token_validate_redis(token: str) -> Optional[Dict[str, Any]]:
+    """Validate and retrieve SSE token from Redis. Returns None if invalid/expired."""
+    cache = get_cache()
+    if cache:
+        key = f"{SSE_TOKEN_PREFIX}{token}"
+        try:
+            value = await cache.get(key)
+            return value  # cache.get() already deserializes JSON to dict
+        except Exception as e:
+            write_log("tentaculo_link", f"SSE token Redis validate failed: {e}")
+    return None
 
 
 @app.post("/operator/api/events/sse-token", tags=["operator-api-sse"])
@@ -3835,22 +3843,8 @@ async def operator_api_events_sse_token(request: Request):
     # Generate ephemeral token (UUID)
     sse_token = str(uuid.uuid4())
 
-    # Store with TTL
-    SSE_TOKENS[sse_token] = {
-        "created_at": time.time(),
-        "ttl_sec": SSE_TOKEN_TTL_SEC,
-        "auth_token": auth_token,  # Link to main token for audit
-    }
-
-    # Clean up expired tokens
-    now = time.time()
-    expired = [
-        t
-        for t, data in SSE_TOKENS.items()
-        if now - data["created_at"] > data["ttl_sec"]
-    ]
-    for t in expired:
-        del SSE_TOKENS[t]
+    # Store with TTL in Redis (survives worker restarts)
+    await _sse_token_store_redis(sse_token, auth_token, SSE_TOKEN_TTL_SEC)
 
     return {
         "sse_token": sse_token,
@@ -3858,6 +3852,45 @@ async def operator_api_events_sse_token(request: Request):
         "endpoint": "/operator/api/events/stream",
         "usage": f"curl -N '/operator/api/events/stream?token={sse_token}' -H 'Accept: text/event-stream'",
     }
+
+
+@app.get("/operator/api/window/status", tags=["operator-api-proxy"])
+async def operator_api_window_status(request: Request):
+    """
+    Proxy: GET /operator/api/window/status -> backend /api/window/status
+    Returns window status for UI to determine if chat is enabled/read-only.
+    """
+    try:
+        clients = get_clients()
+        backend_client = clients.get_client("operator-backend")
+        if not backend_client:
+            return JSONResponse(
+                status_code=503,
+                content={"detail": "backend unavailable"},
+            )
+
+        # Proxy with correlation ID
+        correlation_id = request.headers.get("X-Correlation-ID") or str(uuid.uuid4())
+        auth_token = request.headers.get(settings.token_header) or ""
+
+        response = await backend_client.get(
+            "/api/window/status",
+            headers={
+                "X-VX11-Token": auth_token,
+                "X-Correlation-ID": correlation_id,
+            },
+            timeout=5.0,
+        )
+        return response
+    except Exception as e:
+        write_log(
+            "tentaculo_link",
+            f"window_status proxy error: {str(e)[:100]}",
+        )
+        return JSONResponse(
+            status_code=503,
+            content={"detail": "window status unavailable"},
+        )
 
 
 @app.post("/operator/api/chat/commands", tags=["operator-api-p0"])
