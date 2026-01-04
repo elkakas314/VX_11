@@ -39,19 +39,8 @@ export class IntelligentEventsClient {
         this.maxRetries = options.maxRetries ?? 10
         this.maxDelayMs = options.maxDelayMs ?? 30000
 
-        // GUARD: Only connect if token is available
-        // If no token, call onError and stop
-        const token = getCurrentToken()
-        if (!token) {
-            console.warn('[EventsClient] No token configured; SSE disabled until token is set')
-            this.shouldStop = true
-            this.options.onError?.({
-                message: 'Token not configured',
-                code: 'NO_TOKEN',
-            })
-            return
-        }
-
+        // NOTE: URL should already contain ephemeral token if needed (added by caller like EventsPanel)
+        // No need to check getCurrentToken() here - that flow is handled upstream
         this.connect()
     }
 
@@ -61,10 +50,10 @@ export class IntelligentEventsClient {
         console.log(`[EventsClient] Connecting to ${this.url} (attempt ${this.retryCount + 1}/${this.maxRetries})`)
 
         try {
-            // Add auth token to URL params for SSE
-            const token = getCurrentToken()
-            const separator = this.url.includes('?') ? '&' : '?'
-            const urlWithToken = token ? `${this.url}${separator}token=${encodeURIComponent(token)}` : this.url
+            // IMPORTANT: URL already has ephemeral token from caller (EventsPanel)
+            // Do NOT add getCurrentToken() again - that's the main token, not the ephemeral SSE token
+            // EventsPanel handles: 1) exchange main token for ephemeral, 2) add ephemeral to URL, 3) pass to getEventsClient
+            const urlWithToken = this.url
 
             this.eventSource = new EventSource(urlWithToken)
 
